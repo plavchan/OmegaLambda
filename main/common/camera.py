@@ -6,34 +6,45 @@ from win32com.client import Dispatch
 import signal
 import winreg
 import math
-import pywintypes                                                                   #Not all are necessarily important
+import pywintypes
 
+# NEEDS TESTING
 
-class Camera():                                                                     
-    def __init__(self,camera):                                                      #initial function. just needs to take up space to function correctly.
-        self.camera=camera
+class Camera():
+    def __init__(self, output_directory):
+        # output_directory starts from user path
+        self.output_directory = output_directory
+        self.Camera = win32com.client.Dispatch("MaxIm.CCDCamera")  # Sets the camera connection path to the CCDCamera
+        self.Camera.DisableAutoShutdown == True  # All of these settings are just basic camera setup settings.
+        self.Camera.LockApp == True
+        self.Camera.CoolerOn == True
+        self.Camera.AutoDownload == True
 
-    def expose(self,exposure_time,type,filter):                                     #Exposure function that does all the main work.
-        camera=win32com.client.Dispatch("MaxIm.CCDCamera")                          #Opens MaxIm Dl
-        try:                                                                        #Try statement does the connection. ONLY ONE "="!!!!
-            camera.LinkEnabled=True
+        try:
+            self.Camera.LinkEnabled == True
             print("Camera is connected")
+
         except:
-            print("Camera is not connected")
+            print("Camera is not Connected")
             return
-        camera.DisableAutoShutdown                                                  #Not sure if really works
-        if camera.LinkEnabled==True:                                                #Does work if camera is connected
-            camera.Expose(exposure_time,type,filter)                                #starts exposure using variables set in the driver
-            camera.StartDownload                                                    #starts download of the exposure
-            print(camera.ImageReady)                                                #tester
-            while camera.ImageReady==False:                                         #If the exposure is not ready for saving, it waits 20 seconds for exposure to load
-                time.sleep(20)                                                      #VERY IMPORTANT
-                print(camera.ImageReady)                                            #tester
-                if camera.ImageReady==True:                                         #Saves image if there is an image to save.
-                    print(camera.ImageReady)                                        #tester
-                    path = os.path.expanduser('~/Desktop')                          
-                    camera.SaveImage(os.path.join(path, "test_pictures.fit"))       #Saves image to Desktop
- 
+
+    def expose(self, exposure_time, filter, type="light"):
+        if type == "light":
+            type = 1
+        elif type == "dark":
+            type = 0
+        else:
+            print("ERROR: Invalid exposure type.")
+            return
+        self.Camera.SetFullFrame()
+        self.Camera.Expose(exposure_time, type, filter)
+        while Camera.ImageReady==False:
+            time.sleep(1)
+            if Camera.ImageReady:
+                Camera.StartDownload
+                path = os.path.expanduser(self.output_directory)
+                Camera.SaveImage(os.path.join(path, "test_pictures.fit"))
+
     def set_gain(self):
         pass
 
