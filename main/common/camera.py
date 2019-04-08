@@ -8,6 +8,7 @@ import winreg
 import math
 import pywintypes
 
+# NEEDS TESTING
 
 class Camera():
     def __init__(self, output_directory):
