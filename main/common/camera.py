@@ -41,24 +41,3 @@ class Camera():
 
     def set_binning(self):
         pass
-
-    def log(self):
-        return self.camera.CameraState
-        a="Camera is Idle: Able to start exposures"
-        b="Camera is Waiting: Exposure has started"
-        c="Camera is Exposing: Exposure is currently in process"
-        d="Camera is Reading: Camera array is being read out"
-        e="Camera is Downloading: Downloading data to PC"
-        f="CAMERA ERROR!!!"
-        if self.camera.CameraState == 0:
-            return a
-        elif self.camera.CameraState == 1:
-            return b
-        elif self.camera.CameraState == 2:
-            return c
-        elif self.camera.CameraState == 3:
-            return d
-        elif self.camera.CameraState == 4:
-            return e
-        elif self.camera.CameraState == 5:
-            return f
