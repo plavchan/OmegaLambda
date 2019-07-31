@@ -1,6 +1,6 @@
 import serial #Serial imported for Serial communication
 
-ser = serial.Serial("COM8",9600) #Establish connection over COM8 and at a 9800 Baud rate
+ser = serial.Serial("COM8",9600) #Establish connection over COM8 and at a 9600 Baud rate
 
 ser.open #Open the serial port for communication
 
