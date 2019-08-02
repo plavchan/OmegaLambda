@@ -3,7 +3,7 @@ import time #Time imported for delays
 
 status = "The flatfield lamp is currently off" #defining variable for the status command
 
-ser = serial.Serial("COM9",9600) #Establish connection over COM8 and at a 9800 Baud rate
+ser = serial.Serial("COM4",9600) #Establish connection over COM4 and at a 9800 Baud rate
 
 ser.open #Open the serial port for communication
 
