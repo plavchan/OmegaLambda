@@ -1,12 +1,10 @@
-from main.common.cAmera import Camera
-from main.common.logger import Logger
+from main.common.cAmera import *
+from main.common.logger import *
 
 #activates the camera function
 camera_object = Camera("camera_work")
 camera_object.expose(10, 1, type="dark")
 
 #activates the logger function
-logger_object=Logger(Camera)
-logger_object
-
+main('camera_work')
 #NEEDS TESTING
