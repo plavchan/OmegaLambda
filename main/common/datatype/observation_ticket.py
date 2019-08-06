@@ -2,7 +2,7 @@ import datetime
 import json
 import copy
 
-class ObservationRequest():
+class ObservationTicket():
 
     def __init__(self, name=None, ra=None, dec=None, start_time=None, end_time=None, filter=None,
                  num=None, exp_time=None, self_guide=None, guide=None, cycle_filter=None):
@@ -27,10 +27,10 @@ class ObservationRequest():
     @staticmethod
     def deserialized(text):
         '''
-        This decodes a JSON string to an ObservationRequest object.
+        This decodes a JSON string to an ObservationTicket object.
 
         :param text: JSON STRING
-        :return: ObservationRequest
+        :return: ObservationTicket
         '''
         return json.loads(text, object_hook=_dict_to_obs_object)
 
@@ -44,6 +44,6 @@ class ObservationRequest():
 
 
 def _dict_to_obs_object(dict):
-    return ObservationRequest(name=dict['name'], ra=dict['ra'], dec=dict['dec'], start_time=dict['start_time'],
-                              end_time=dict['end_time'], filter=dict['filter'], num=dict['num'], exp_time=dict['exp_time'],
-                              self_guide=dict['self_guide'], guide=dict['guide'], cycle_filter=dict['cycle_filter'])
+    return ObservationTicket(name=dict['name'], ra=dict['ra'], dec=dict['dec'], start_time=dict['start_time'],
+                             end_time=dict['end_time'], filter=dict['filter'], num=dict['num'], exp_time=dict['exp_time'],
+                             self_guide=dict['self_guide'], guide=dict['guide'], cycle_filter=dict['cycle_filter'])
