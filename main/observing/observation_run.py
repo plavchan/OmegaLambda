@@ -8,11 +8,12 @@ from main.controller.camera import Camera
 
 class ObservationRun():
 
-    def __init__(self, observation_request_list):
+    def __init__(self, observation_request_list, image_directory):
         '''
 
         :param observation_request_list: List of ObservationTickets
         '''
+        self.image_directory = image_directory
         self.observation_request_list = observation_request_list
         self.filterwheel_dict = filter_wheel.get_filter().filter_position_dict()
         self.camera = Camera()
@@ -41,18 +42,31 @@ class ObservationRun():
 
         return False
     
-    def run_ticket(self, ticket, filter=None):
+    def take_images(num, exp_time, filter, end_time, path):
+        num_filters = len(filter)
         
-        def take_images(ticket, filter, path):
-            for i in range(len(ticket.num)):
-                image_name = "SOMETHING" #TODO: need image nomenclature
-                self.camera.expose(int(ticket.exposure_time), self.filterwheel_dict[filter], os.path.join(path, image_name))
-                
+        for i in range(num):
+            image_name = "SOMETHING" #TODO: need image nomenclature
+            current_filter = filter[num_filters%i]
+            self.camera.expose(int(exp_time), self.filterwheel_dict[current_filter], os.path.join(path, image_name))
+            #TODO: stop observing if end_time is reached.
+
+    
+    def run_ticket(self, ticket, filter=None, cycle=False):
+        if cycle:
+            take_images(ticket.num, ticket.exp_time, ticket.filter, ticket.end_time, path)
+            return
+       
         if filter:
-            take_images(ticket, filter, path)
+            take_images(ticket.num, ticket.exp_time, filter, ticket.end_time, path)
+            return
+        
+        #TODO: if cycle is false?
+            
 
 
     def observe(self):
+        
         for ticket in self.observation_request_list:
             #TODO: slew to RA Dec
             #TODO: start guiding
@@ -63,8 +77,6 @@ class ObservationRun():
                 start_time_epoch_milli = tutil.datetime_to_epoch_milli_converter(ticket.start_time)
                 time.sleep((start_time_epoch_milli - current_epoch_milli)/1000)
                 
-            for i in range(len(ticket.num)):
-                num_filters = len(list(ticket.filter))
-                if ticket.cycle_filter:
+            run_ticket(self, ticket)
                     
                 
