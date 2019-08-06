@@ -1,6 +1,8 @@
 import datetime
 import time
+import os
 
+import main.common.datatype.filter_wheel
 import main.common.util.time_utils as tutil
 from main.controller.camera import Camera
 
@@ -12,15 +14,8 @@ class ObservationRun():
         :param observation_request_list: List of ObservationTickets
         '''
         self.observation_request_list = observation_request_list
+        self.filterwheel_dict = filter_wheel.get_filter().filter_position_dict()
         self.camera = Camera()
-
-    def observation_request_validity(self):
-        '''
-        Check observation tickets for proper time sequence and filters
-
-        :return: Boolean
-        '''
-        pass
 
     def compare_current_time(self, comparison, future=True):
         '''
@@ -45,6 +40,16 @@ class ObservationRun():
             return True
 
         return False
+    
+    def run_ticket(self, ticket, filter=None):
+        
+        def take_images(ticket, filter, path):
+            for i in range(len(ticket.num)):
+                image_name = "SOMETHING" #TODO: need image nomenclature
+                self.camera.expose(int(ticket.exposure_time), self.filterwheel_dict[filter], os.path.join(path, image_name))
+                
+        if filter:
+            take_images(ticket, filter, path)
 
 
     def observe(self):
@@ -57,4 +62,9 @@ class ObservationRun():
                 current_epoch_milli = tutil.datetime_to_epoch_milli_converter(datetime.datetime.now)
                 start_time_epoch_milli = tutil.datetime_to_epoch_milli_converter(ticket.start_time)
                 time.sleep((start_time_epoch_milli - current_epoch_milli)/1000)
-            #TODO: WIP
+                
+            for i in range(len(ticket.num)):
+                num_filters = len(list(ticket.filter))
+                if ticket.cycle_filter:
+                    
+                
