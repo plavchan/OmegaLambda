@@ -1,4 +1,5 @@
 import itertools
+import json
 
 _filter = None
 
@@ -33,5 +34,9 @@ class FilterWheel():
         return self.__dict__
     
     @staticmethod
-    def deserialized():
-        pass
+    def deserialized(text):
+        return json.loads(text, object_hook=_dict_to_filter_obect)
+
+def _dict_to_filter_object(dict):
+    return FilterWheel(dict['position_1'], dict['position_2'], dict['position_3'], dict['positon_4'],
+                       dict['position_5'], dict['position_6'], dict['position_7'], dict['positon_8'])
