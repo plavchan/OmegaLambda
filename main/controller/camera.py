@@ -1,7 +1,7 @@
 import time
+
 import win32com.client
 
-from main.controller.filter_wheel import FilterWheel
 
 # NEEDS TESTING
 

@@ -1,5 +1,18 @@
 import itertools
 
+_filter = None
+
+def initialize_filter():
+    global _filter
+    # TODO: Read a filter position JSON and initialized FilterWheel object pointing it to _filter
+    pass
+
+def get_filter():
+    global _filter
+    if _filter is None:
+        initialize_filter()
+    return _filter
+
 class FilterWheel():
 
     def __init__(self, position_1, position_2, position_3, position_4, position_5, position_6, position_7, position_8):
