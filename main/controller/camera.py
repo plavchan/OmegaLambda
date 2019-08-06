@@ -36,6 +36,7 @@ class Camera():
             time.sleep(1)
             if Camera.ImageReady:
                 Camera.StartDownload
+                #TODO: Automate image nomenclature 
                 Camera.SaveImage(save_path)
 
     def set_gain(self):
