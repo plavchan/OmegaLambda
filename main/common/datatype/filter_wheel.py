@@ -28,3 +28,10 @@ class FilterWheel():
     def filter_position_dict(self):
         i = itertools.count(0)
         return {filter:next(i) for filter in self.__dict__.values()}
+    
+    def serialized(self):
+        return self.__dict__
+    
+    @staticmethod
+    def deserialized():
+        pass
