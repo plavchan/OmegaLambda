@@ -7,7 +7,6 @@ lazy-object-proxy
 macholib
 mccabe
 pefile
-pip
 PyInstaller
 pylint
 pywin32

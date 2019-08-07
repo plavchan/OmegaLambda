@@ -1,4 +1,4 @@
-from main.common.camera import Camera
+from main.controller.camera import Camera
 
 camera_object = Camera("camera_work")
 camera_object.expose(10, 1, type="dark")
