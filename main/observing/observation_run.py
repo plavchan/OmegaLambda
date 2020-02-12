@@ -5,6 +5,9 @@ import os
 from main.common.util import time_utils
 from main.controller.camera import Camera
 from main.common.datatype import filter_wheel
+from depricated.telescope import telescope 	# WON'T work from my understanding since depricated is not currently listed as a module with an __init__.py file.
+						# Also, the telescope.py file doesn't define a telescope class either
+						# I am assuming these are a bit outdated and are to be replaced with a new telescope file in main.controller?
 
 class ObservationRun():
 
@@ -17,12 +20,13 @@ class ObservationRun():
         self.observation_request_list = observation_request_list
         self.filterwheel_dict = filter_wheel.get_filter().filter_position_dict()
         self.camera = Camera()
-
+	self.telescope = Telescope()		#hypothetical telescope class to be defined in main.controller, based on functions from depricated.telescope
 
     def observe(self):
         
         for ticket in self.observation_request_list:
             #TODO: slew to RA Dec
+	    #self.telescope.telescopemove()		needs arguments based on ticket
             #TODO: start guiding
             if ticket.start_time > datetime.datetime.now():
                 print("It is not the start time {} of {} observation, "
@@ -48,12 +52,14 @@ class ObservationRun():
 
     def take_images(self, name, num, exp_time, filter, end_time, path):
         num_filters = len(filter)
-
+	
+	image_num = 1
         for i in range(num):
             if end_time <= datetime.datetime.now():
                 print("The observations end time of {} has passed.  "
                       "Stopping observation of {}.".format(end_time, name))
 
             current_filter = filter[num_filters % i]
-            image_name = "{}_{}_{}_{}.fits".format(name, current_filter, exp_time, datetime.datetime.now().isoformat())
+            image_name = "{}_{}_{}_{}_{}.fits".format(name, current_filter, exp_time, datetime.datetime.now().isoformat(), image_num)
             self.camera.expose(int(exp_time), self.filterwheel_dict[current_filter], os.path.join(path, image_name))
+	    image_num += 1
