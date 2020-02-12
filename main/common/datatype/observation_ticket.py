@@ -42,7 +42,8 @@ class ObservationTicket():
             copy_obj.end_time = copy_obj.end_time.isoformat()
         return copy_obj.__dict__
 
-
+#Is this purposefully defined outside of the ObservationRun class, instead of as another staticmethod?  Is it because you only
+#   ever want it to be used within the deserialized method?
 def _dict_to_obs_object(dict):
     return ObservationTicket(name=dict['name'], ra=dict['ra'], dec=dict['dec'], start_time=dict['start_time'],
                              end_time=dict['end_time'], filter=dict['filter'], num=dict['num'], exp_time=dict['exp_time'],
