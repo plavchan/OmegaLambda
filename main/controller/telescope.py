@@ -16,6 +16,8 @@ class Telescope():
         self.connection = False
         self.Telescope.com = r'COM19' #Changed from COM5 to COM19 to match the current scope COM port on dev
         self.Telescope.cordwrapEnabled = False
+        
+        #Possibly add write / get registry comport method?
 
     def checkTelescope(self):
         if self.Telescope.Connected == False: #not sure if this will work?
