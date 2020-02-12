@@ -68,14 +68,25 @@ class Telescope():
             print("not connected")
             return self.Telescope.cordwrapEnabled == False
     
-    def telescopemove(self, ra, dec):
+    def telescopeSlew(self, ra, dec):
         if self.Telescope.Connected == True:
             self.Telescope.Park()
             time.sleep(30)
             self.Telescope.Unpark()
             time.sleep(3)
             self.Telescope.SlewToCoordinates(ra, dec)
-        
+            time.sleep(30)
+            try:
+                self.Telescope.tracking = True
+            except:
+                return print("Telescope is in position; error with tracking.")
+            else:
+                return print("Telescope is in position; tracking at the sidereal rate.")
+        else:
+            print("not connected")
+    
+    def Abort(self):
+        self.Telescope.AbortSlew()
         
         
         
