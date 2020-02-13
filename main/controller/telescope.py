@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Feb  5 18:55:17 2020
-
-@author: purpl
-"""
-
 import time
 import win32com.client
 
