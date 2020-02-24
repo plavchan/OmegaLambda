@@ -1,0 +1,24 @@
+Starting the process of switching from MaxIM DL API to ASCOM API.  First step was to figure out what the ASCOM driver is called,
+to replace win32com.client.Dispatch("MaxIM.CCDCamera") with win32com.client.Dispatch("ASCOM.[something]").
+
+From the MINERVA code, this looked like it would help with just that:
+
+import win32com.client
+
+x = win32com.client.Dispatch("ASCOM.Utilities.Chooser")
+x.DeviceType = "Camera"
+driver = x.Choose(None)
+print("The driver is" + driver)
+
+
+When running, though, I get a window called "ASCOM Camera Chooser" where I have to choose what camera driver to use, but my only options are
+"Camera V2 Simulator" and "Simulator."  I tried this after having connected to the camera through MaxIm, and still no luck.  I tried reinstalling
+the SBIG camera drivers from Diffraction Limited, and stil nothing.  Tried looking through other ASCOM programs and setups, nothing.  After some
+research, I found some people claiming that SBIG cameras don't have any ASCOM drivers?  Some claim there is a software development kit we can
+use?  When doing the setup through MaxIm, there is an option for SBIG Universal cameras or ASCOM cameras, and the ASCOM option launches the
+same "driver chooser" window that the code does.  The SBIG option, however, opens a separate setup window all together.
+
+https://forum.diffractionlimited.com/threads/ascom-driver-for-stf-8300.5591/
+https://diffractionlimited.com/help/maximdl/ASCOM_Camera.htm
+https://diffractionlimited.com/help/maximdl/HIDD_SETUPST7.htm
+https://stackoverflow.com/questions/46163001/python-script-for-controlling-ascom-ccd-camera
