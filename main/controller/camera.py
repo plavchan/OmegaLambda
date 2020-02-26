@@ -49,3 +49,5 @@ class Camera():
 
     def set_binning(self):
         pass
+
+#test
