@@ -8,7 +8,8 @@ import win32com.client
 class Camera():
     def __init__(self):
         self.Camera = win32com.client.Dispatch("MaxIM.CCDCamera")  # Sets the camera connection path to the CCDCamera
-        self.Application = win32com.client.Dispatch("MaxIM.CCDCamera")
+        self.Application = win32com.client.Dispatch("MaxIm.Application")
+        self.Document = win32com.client.Dispatch("MaxIm.Document")
         self.Camera.DisableAutoShutdown = True  # All of these settings are just basic camera setup settings.
         self.Application.LockApp = True
         self.Camera.AutoDownload = True
@@ -65,5 +66,9 @@ class Camera():
     def set_gain(self):
         pass
 
-    def set_binning(self):
-        pass
+    def set_binning(self, factor):
+        if factor == 2 or factor == 3:
+            self.Document.Bin(factor)
+        else:
+            print("ERROR: Invalid binning factor")
+        
