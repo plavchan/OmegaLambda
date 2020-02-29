@@ -8,13 +8,13 @@ import win32com.client
 class Camera():
     def __init__(self):
         self.Camera = win32com.client.Dispatch("MaxIM.CCDCamera")  # Sets the camera connection path to the CCDCamera
+        self.Application = win32com.client.Dispatch("MaxIM.CCDCamera")
         self.Camera.DisableAutoShutdown = True  # All of these settings are just basic camera setup settings.
-        #self.Camera.LockApp = True
+        self.Application.LockApp = True
         self.Camera.AutoDownload = True
+        self.coolersetpoint = -30
 
         self.check_connection()
-    
-    T_0 = -30
 
     def check_connection(self):
         if self.Camera.LinkEnabled == True:
@@ -26,9 +26,27 @@ class Camera():
                 print("Camera cannot connect")
             else:
                 print("Camera has successfully connected")
+        
+    def coolerSet(self):
+        try: self.Camera.CoolerOn = True
+        except: print("Cooler Error")
+        
+        if self.Camera.CoolerOn == True:
+            try: self.Camera.TemperatureSetpoint = self.coolersetpoint
+            except: pass
+        
+    def coolerAdjust(self):
+        if self.Camera.CoolerOn == False:
+            self.coolerSet()
+        
+        T_diff = abs(self.TemperatureSetpoint - self.Temperature)
+        Power = self.CoolerPower
+        
+        if T_diff >= 1 and Power >= 95:
+            self.TemperatureSetpoint += 5
 
     def expose(self, exposure_time, filter, save_path, type="light"):
-        if type == "light": #probably will have to change this, 1 translated to the UV filter
+        if type == "light":
             type = 1
         elif type == "dark":
             type = 0
@@ -49,5 +67,3 @@ class Camera():
 
     def set_binning(self):
         pass
-
-#test
