@@ -7,7 +7,7 @@ import win32com.client
 
 class Camera():
     def __init__(self):
-        self.Camera = win32com.client.Dispatch("MaxIM.CCDCamera")  # Sets the camera connection path to the CCDCamera
+        self.Camera = win32com.client.Dispatch("MaxIm.CCDCamera")  # Sets the camera connection path to the CCDCamera
         self.Application = win32com.client.Dispatch("MaxIm.Application")
         self.Document = win32com.client.Dispatch("MaxIm.Document")
         self.Camera.DisableAutoShutdown = True  # All of these settings are just basic camera setup settings.
@@ -21,16 +21,13 @@ class Camera():
         if self.Camera.LinkEnabled == True:
             print("Camera is already connected")
         else:
-            try:
-                self.Camera.LinkEnabled = True
-            except:
-                print("Camera cannot connect")
-            else:
-                print("Camera has successfully connected")
+            try: self.Camera.LinkEnabled = True
+            except: print("ERROR: Could not connect to camera")
+            else: print("Camera has successfully connected")
         
     def coolerSet(self):
         try: self.Camera.CoolerOn = True
-        except: print("Cooler Error")
+        except: print("ERROR: Could not turn on cooler")
         
         if self.Camera.CoolerOn == True:
             try: self.Camera.TemperatureSetpoint = self.coolersetpoint
@@ -71,4 +68,5 @@ class Camera():
             self.Document.Bin(factor)
         else:
             print("ERROR: Invalid binning factor")
+            return
         
