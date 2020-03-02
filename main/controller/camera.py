@@ -9,16 +9,15 @@ class Camera():
     def __init__(self):
         self.Camera = win32com.client.Dispatch("MaxIm.CCDCamera")  # Sets the camera connection path to the CCDCamera
         self.Application = win32com.client.Dispatch("MaxIm.Application")
-        self.Document = win32com.client.Dispatch("MaxIm.Document")
         self.Camera.DisableAutoShutdown = True  # All of these settings are just basic camera setup settings.
         self.Application.LockApp = True
         self.Camera.AutoDownload = True
-        self.coolersetpoint = -30
+        self.coolersetpoint = -30 #temporarily changed for testing purposes--should be -30 C normally
 
         self.check_connection()
 
     def check_connection(self):
-        if self.Camera.LinkEnabled == True:
+        if self.Camera.LinkEnabled:
             print("Camera is already connected")
         else:
             try: self.Camera.LinkEnabled = True
@@ -29,19 +28,29 @@ class Camera():
         try: self.Camera.CoolerOn = True
         except: print("ERROR: Could not turn on cooler")
         
-        if self.Camera.CoolerOn == True:
+        if self.Camera.CoolerOn:
             try: self.Camera.TemperatureSetpoint = self.coolersetpoint
             except: pass
+            else: print("Cooler Setpoint set to {0:.1f} C".format(self.Camera.TemperatureSetpoint))
         
     def coolerAdjust(self):
-        if self.Camera.CoolerOn == False:
+        if not self.Camera.CoolerOn:
             self.coolerSet()
         
-        T_diff = abs(self.TemperatureSetpoint - self.Temperature)
-        Power = self.CoolerPower
+        if not self.Camera.ImageReady:
+            print("Camera is currently exposing--do not change the cooler setpoint.")
+            
+        else:
+            T_diff = abs(self.Camera.TemperatureSetpoint - self.Camera.Temperature)
+            Power = self.Camera.CoolerPower
         
-        if T_diff >= 1 and Power >= 95:
-            self.TemperatureSetpoint += 5
+            if T_diff >= 1 and Power >= 99:
+                self.Camera.TemperatureSetpoint += 5
+                print("Cooler Setpoint adjusted to {0:.1f} C".format(self.Camera.TemperatureSetpoint))
+            
+            elif T_diff <= 0.1 and Power <= 40:
+                self.Camera.TemperatureSetpoint -= 5
+                print("Cooler Setpoint adjusted to {0:.1f} C".format(self.Camera.TemperatureSetpoint))
 
     def expose(self, exposure_time, filter, save_path, type="light"):
         if type == "light":
@@ -53,20 +62,15 @@ class Camera():
             return
         self.Camera.SetFullFrame()
         self.Camera.Expose(exposure_time, type, filter)
-        while self.Camera.ImageReady==False:
+        while not self.Camera.ImageReady:
             time.sleep(1)
-            if self.Camera.ImageReady:
-                self.Camera.StartDownload
+            if self.Camera.ImageReady: #since autodownload is true, startdownload was redundant
                 #TODO: Automate image nomenclature 
                 self.Camera.SaveImage(save_path)
-
+                
     def set_gain(self):
         pass
 
     def set_binning(self, factor):
-        if factor == 2 or factor == 3:
-            self.Document.Bin(factor)
-        else:
-            print("ERROR: Invalid binning factor")
-            return
+        pass
         

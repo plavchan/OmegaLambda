@@ -1,0 +1,158 @@
+New slightly edited test_driver.py:
+
+from main.controller.camera import Camera
+
+camera_object = Camera()
+#camera_object.check_connection()
+
+camera_object.coolerSet()
+
+camera_object.coolerAdjust()
+
+camera_object.expose(2, 4, r'c\users\gmuobservatory\documents\observing sessions\2020_data\testimage.fits', type="light")
+
+
+Tried running and got this error:
+
+$ python -m main.drivers.test_driver.py
+Camera has successfully connected
+Traceback (most recent call last):
+  File "C:\Users\GMUObservatory\Anaconda3\lib\runpy.py", line 183, in _run_modul
+e_as_main
+    mod_name, mod_spec, code = _get_module_details(mod_name, _Error)
+  File "C:\Users\GMUObservatory\Anaconda3\lib\runpy.py", line 109, in _get_modul
+e_details
+    __import__(pkg_name)
+  File "C:\Users\GMUObservatory\-omegalambda\main\drivers\test_driver.py", line
+8, in <module>
+    camera_object.coolerAdjust()
+  File "C:\Users\GMUObservatory\-omegalambda\main\controller\camera.py", line 40
+, in coolerAdjust
+    T_diff = abs(self.TemperatureSetpoint - self.Temperature)
+AttributeError: 'Camera' object has no attribute 'TemperatureSetpoint'
+
+
+Figured out I incorrectly used "self.TemperatureSetpoint" instead of "Self.Camera.TemperatureSetpoint"
+Ran correctly after that fix.  Still getting the same "could not save file" error.
+
+$ python -m main.drivers.test_driver.py
+Camera has successfully connected
+Cooler Setpoint set to 5.0 C
+Traceback (most recent call last):
+  File "C:\Users\GMUObservatory\Anaconda3\lib\runpy.py", line 183, in _run_modul
+e_as_main
+    mod_name, mod_spec, code = _get_module_details(mod_name, _Error)
+  File "C:\Users\GMUObservatory\Anaconda3\lib\runpy.py", line 109, in _get_modul
+e_details
+    __import__(pkg_name)
+  File "C:\Users\GMUObservatory\-omegalambda\main\drivers\test_driver.py", line
+10, in <module>
+    camera_object.expose(2, 4, r'c\users\gmuobservatory\documents\observing sess
+ions\2020_data\CCD Image 3.fits', type="light")
+  File "C:\Users\GMUObservatory\-omegalambda\main\controller\camera.py", line 63
+, in expose
+    self.Camera.SaveImage(save_path)
+  File "<COMObject MaxIm.CCDCamera>", line 2, in SaveImage
+pywintypes.com_error: (-2147352567, 'Exception occurred.', (65535, 'MaxIm DL 6',
+ "Could Not Save File 'c\\users\\gmuobservatory\\documents\\observing sessions\\
+2020_data\\CCD Image 3.fits'", None, 0, 0), None)
+
+
+
+Looked up the documentation for the Maxim API but it was unhelpful.  Just said the argument is a save path, and it should return true
+(Boolean) if successful.  Tried switching from backslashes to forward slashes, but that didn't change anything.  Also tried changing my
+argument from raw to regular syntax:
+
+r'c\users\gmuobservatory\documents\observing sessions\2020_data\testimage.fits'
+
+vs.
+
+'c\\users\\gmuobservatory\\documents\\observing\ sessions\\2020_data\\testimage.fits'
+
+But that didn't change anything either.
+Tried changing from camera's "saveimage" method to document's "savefile" method.  Got a very similar error:
+
+$ python -m main.drivers.test_driver.py
+Camera has successfully connected
+Cooler Setpoint set to 5.0 C
+Traceback (most recent call last):
+  File "C:\Users\GMUObservatory\Anaconda3\lib\runpy.py", line 183, in _run_modul
+e_as_main
+    mod_name, mod_spec, code = _get_module_details(mod_name, _Error)
+  File "C:\Users\GMUObservatory\Anaconda3\lib\runpy.py", line 109, in _get_modul
+e_details
+    __import__(pkg_name)
+  File "C:\Users\GMUObservatory\-omegalambda\main\drivers\test_driver.py", line
+10, in <module>
+    camera_object.expose(2, 4, r'c\users\gmuobservatory\documents\observing sess
+ions\2020_data\testimage.fits', type="light")
+  File "C:\Users\GMUObservatory\-omegalambda\main\controller\camera.py", line 63
+, in expose
+    self.Document.SaveFile(save_path, 3, False, 2) # 3 = .fits, false=no autostr
+etch, 2 = 32 bit
+  File "<COMObject MaxIm.Document>", line 2, in SaveFile
+pywintypes.com_error: (-2147352567, 'Exception occurred.', (65535, 'MaxIm DL 6',
+ "Could Not Save File 'c\\users\\gmuobservatory\\documents\\observing sessions\\
+2020_data\\testimage.fits'\r\nCould not write file %s", None, 0, 0), None)
+
+
+Also tried without the filename itself in the save path.  Changed from .fits to .fit.  Still didn't work.
+Thought maybe it was trying to save before the image was fully downloaded, so I tried adding in time.sleep(30).  Still nothing.
+Tried switching autodownload to false and only downloading after readyfordownload was set to true.  Didn't change.
+
+Found this possibly useful source: mail.python.org/pipermail/python-win32/2006-April/004541.html
+Can now confirm that since the error is not 'invalid input,' there may be some other problem.
+
+Found another source: iceinspace.com.au/forum/archive/index.php/t-106309.html
+So I tried running as an administrator and changing the program's access to the Diffraction Limited/MaxPoint directory.  No luck.
+
+FINALLY I figured out that it was a very small and very dumb mistake.  I was missing the colon after the c in the file path.
+Evidently it is required to work correctly.  The final argument I entered (for future reference) that worked was:
+
+r'c:\users\gmuobservatory\documents\observing sessions\2020_data\\testimage.fit'
+
+Using a .fits file type also worked.
+
+
+Next I tried messing with the cooler settings some more, and creating an automated adjustment system that allows the cooler to settle at a
+comfortable temperature for any particular night.  It will probably need some further adjustment, but I think it's coming along.
+
+Here is what it looks like currently (found in camera.py and test_driver.py):
+
+    def coolerAdjust(self):
+        if not self.Camera.CoolerOn:
+            self.coolerSet()
+        
+        if not self.Camera.ImageReady:
+            print("Camera is currently exposing--do not change the cooler setpoint.")
+            
+        else:
+            T_diff = abs(self.Camera.TemperatureSetpoint - self.Camera.Temperature)
+            Power = self.Camera.CoolerPower
+        
+            if T_diff >= 1 and Power >= 99:
+                self.Camera.TemperatureSetpoint += 5
+                print("Cooler Setpoint adjusted to {0:.1f} C".format(self.Camera.TemperatureSetpoint))
+            
+            elif T_diff <= 0.1 and Power <= 40:
+                self.Camera.TemperatureSetpoint -= 5
+                print("Cooler Setpoint adjusted to {0:.1f} C".format(self.Camera.TemperatureSetpoint))
+
+[camera_object = Camera()]
+
+while camera_object.Camera.CoolerPower:
+    previous = camera_object.Camera.TemperatureSetpoint
+    camera_object.coolerAdjust()
+    current = camera_object.Camera.TemperatureSetpoint
+    if (previous == current                                                                     #setpoint hasn't changed since last check
+        and camera_object.Camera.TemperatureSetpoint <= camera_object.Camera.Temperature + 0.1  #The setpoint and actual temp are within 0.2 of each other.
+        and camera_object.Camera.TemperatureSetPoint >= camera_object.Camera.Temperature - 0.1
+        and camera_object.Camera.ImageReady == True):                                           #Camera isn't currently exposing
+        break
+    time.sleep(60)
+
+
+
+
+Next course of action is to start on the json to string config reader that passes to the deserializer.
+
