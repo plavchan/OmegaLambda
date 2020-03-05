@@ -1,0 +1,30 @@
+from main.common.IO.json_reader import Reader
+
+test_reader = Reader(r'c:\users\gmuobservatory\-omegalambda\main\common\IO\test.json')
+
+print(test_reader.str)
+print(test_reader.ticket)
+print(test_reader.ticket.name)
+print(test_reader.ticket.ra)
+print(test_reader.ticket.dec)
+print(test_reader.ticket.start_time)
+print(test_reader.ticket.end_time)
+print(test_reader.ticket.filter)
+print(test_reader.ticket.num)
+print(test_reader.ticket.exp_time)
+print(test_reader.ticket.self_guide)
+print(test_reader.ticket.guide)
+print(test_reader.ticket.cycle_filter)
+
+test_reader = Reader(r'c:\users\gmuobservatory\-omegalambda\main\common\IO\test_fw.json')
+
+print(test_reader.str)
+print(test_reader.ticket)
+print(test_reader.ticket.position_1)
+print(test_reader.ticket.position_2)
+print(test_reader.ticket.position_3)
+print(test_reader.ticket.position_4)
+print(test_reader.ticket.position_5)
+print(test_reader.ticket.position_6)
+print(test_reader.ticket.position_7)
+print(test_reader.ticket.position_8)
