@@ -1,12 +1,12 @@
 {
-"name": "M41_1",
+"name": "TestTOI1234.01",
 "ra": "6h47m",
 "dec": "-20d44",
-"start_time": "2020-01-12 18:0:0",
-"end_time": "2020-01-13 01:0:0",
+"start_time": "2020-03-16 12:0:0",
+"end_time": "2020-03-16 13:0:0",
 "filter": "r",
-"num": 100,
-"exp_time": 60,
+"num": 2,
+"exp_time": 2,
 "self_guide": false,
 "guide": true,
 "cycle_filter": false
