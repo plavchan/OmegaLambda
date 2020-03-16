@@ -13,8 +13,9 @@ class Camera():
         self.Application.LockApp = True
         self.Camera.AutoDownload = True
         self.coolersetpoint = -30 #temporarily changed for testing purposes--should be -30 C normally
-
+        
         self.check_connection()
+        self.coolerSet()
 
     def check_connection(self):
         if self.Camera.LinkEnabled:
