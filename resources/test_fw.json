@@ -1,10 +1,10 @@
 {
-"position_1": "uv",
-"position_2": "r",
-"position_3": "v",
-"position_4": "b",
-"position_5": "g",
+"position_1": "clr",
+"position_2": "uv",
+"position_3": "b",
+"position_4": "v",
+"position_5": "r",
 "position_6": "ir",
-"position_7": "c",
-"position_8": "Ha"
+"position_7": "Ha",
+"position_8": "None"
 }
