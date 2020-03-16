@@ -1,13 +1,12 @@
 from main.controller.camera import Camera
 import time
 
+
 camera_object = Camera()
-#camera_object.check_connection()
 
-camera_object.coolerSet()
+camera_object.expose(2, 4, r'h:\observatory files\observing sessions\2020_data\testimage.fits', type="light")
 
-camera_object.expose(2, 4, r'c:\users\gmuobservatory\documents\observing sessions\2020_data\\testimage.fit', type="light")
-
+'''
 while camera_object.Camera.CoolerPower:
     previous = camera_object.Camera.TemperatureSetpoint
     camera_object.coolerAdjust()
@@ -18,5 +17,6 @@ while camera_object.Camera.CoolerPower:
         and camera_object.Camera.ImageReady == True):                                           #Camera isn't currently exposing
         break
     time.sleep(60)
+'''
 
 camera_object.Camera.TemperatureSetpoint = 5
