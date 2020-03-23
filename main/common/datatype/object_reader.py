@@ -5,10 +5,10 @@ Objects = {"observation_ticket": ObservationTicket, "filter_wheel": FilterWheel}
 
 class ObjectReader():
     
-    def __init__(self, _str, object_name=None):
+    def __init__(self, reader_obj=None):
         global Objects
-        self.object_name = object_name
-        self.str = _str
+        self.str = reader_obj.str
+        self.type = reader_obj.type
         
-        if object_name in Objects:
-            self.ticket = Objects[object_name].deserialized(self.str)
+        if self.type in Objects:
+            self.ticket = Objects[self.type].deserialized(self.str)

@@ -13,4 +13,5 @@ class Reader():
         with open(self.path, 'r') as file:
             self.__dict__ = json.load(file)
         
-        self.str = json.dumps(self.__dict__)
+        self.str = json.dumps(self.__dict__['details'])
+        self.type = self.__dict__['type']
