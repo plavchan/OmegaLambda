@@ -1,15 +1,15 @@
 import datetime
 import time
 import os
+import math
+import threading
 
 from main.common.util import time_utils
-from main.controller.camera import Camera
-from main.common.IO.json_reader import Reader
-from main.common.datatype.object_reader import ObjectReader
+from main.controller import camera
+from main.common.datatype import filter_wheel
 #from main.controller.telescope import Telescope
 
 class ObservationRun():
-
     def __init__(self, observation_request_list, image_directory):
         '''
 
@@ -17,13 +17,10 @@ class ObservationRun():
         '''
         self.image_directory = image_directory
         self.observation_request_list = observation_request_list
-        self.camera = Camera()
+        self.camera = camera.Camera()
+        
+        self.filterwheel_dict = filter_wheel.get_filter().filter_position_dict()
         #self.telescope = Telescope()
-        
-        self.filterwheel_dict = {value: int(key.replace('position_', '')) for key,value in
-                                 ObjectReader(Reader(r'c:\users\gmu observtory1\-omegalambda\config\fw_config.json')).ticket.__dict__.items()}
-        #Let me know if this is what you were thinking for the filterwheel--since I had to reverse keys and values to get an int for each filter to pass to camera.expose()
-        
 
     def observe(self):
         
@@ -34,7 +31,7 @@ class ObservationRun():
                 pass
         
             for i in range(len(ticket.ra)):
-                #self.telescope.telescopemove(ticket.ra[i], ticket.dec[i])
+                #self.telescope.telescopemove(list(ticket.ra[i]), list(ticket.dec[i]))
                 pass
             
             
@@ -52,22 +49,32 @@ class ObservationRun():
 
         if ticket.cycle_filter:
             self.take_images(ticket.name, ticket.num, ticket.exp_time,
-                             ticket.filter, ticket.end_time, self.image_directory)
+                             ticket.filter, ticket.end_time, self.image_directory, True)
             return
 
         for i in range(len(ticket.filter)):
             self.take_images(ticket.name, ticket.num, ticket.exp_time,
-                             list(ticket.filter)[i], ticket.end_time, self.image_directory)
+                             [ticket.filter[i]], ticket.end_time, self.image_directory, False)
 
 
-    def take_images(self, name, num, exp_time, current_filter, end_time, path):
+    def take_images(self, name, num, exp_time, filter, end_time, path, cycle_filter):
+        num_filters = len(filter)
     
         image_num = 1
         for i in range(num):
             if end_time <= datetime.datetime.now():
                 print("The observations end time of {} has passed.  "
                       "Stopping observation of {}.".format(end_time, name))
+                
+            current_filter = filter[i % num_filters]
             
             image_name = "{0:s}_{1:d}s_{2:s}-{3:04d}.fits".format(name, exp_time, current_filter, image_num)
             self.camera.expose(int(exp_time), self.filterwheel_dict[current_filter], os.path.join(path, image_name), type="light")
-            image_num += 1
+            camera.image_saved.wait() #implemented using threading because sometimes the loop would continue before an image was fully saved and we'd lose that image
+            
+            if cycle_filter:
+                image_num = math.floor(1 + ((i + 1)/num_filters))
+                
+            elif not cycle_filter:
+                image_num += 1
+            

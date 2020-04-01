@@ -10,13 +10,16 @@ try: os.mkdir(r'h:\observatory files\observing sessions\2020_data\{0:s}'.format(
 except: print('ERROR: Could not create directory')
 else: print('New directory for tonight\'s observing has been made!')
 
-try: json_reader = Reader(r'c:\users\gmu observtory1\-omegalambda\resources\test.json')
+try: json_reader = Reader(r'c:\users\gmu observtory1\-omegalambda\test\test.json')
 except: print('ERROR: Error reading observation ticket')
+
+try: global_filter = ObjectReader(Reader(r'c:\users\gmu observtory1\-omegalambda\test\fw_config.json'))
+except: print('ERROR: Error initializing global filter object')
 
 try: object_reader = ObjectReader(json_reader)
 except: print('ERROR: Error reading observation ticket')
-else: print('Observation ticket has been read.  Starting observation run!')
+else: print('Observation ticket has been read.')
 
-run_object = ObservationRun([object_reader.ticket], r'h:\observatory files\observing sessions\2020_data\{0:s}'.format(folder))
+run_object = ObservationRun([object_reader.ticket],
+                            r'h:\observatory files\observing sessions\2020_data\{0:s}'.format(folder))
 run_object.observe()
-

@@ -4,7 +4,7 @@ import unittest
 import datetime
 
 # NOTE: There is a typo in the username on ops: It's called "GMU Observtory1" instead of "GMU Observatory1"
-test_reader = Reader(r'c:\users\gmu observtory1\-omegalambda\resources\test.json')
+test_reader = Reader(r'c:\users\gmu observtory1\-omegalambda\test\test.json')
 object_reader = ObjectReader(test_reader)
 
 class ObsTester(unittest.TestCase):
@@ -23,7 +23,7 @@ class ObsTester(unittest.TestCase):
         self.assertTrue(type(object_reader.ticket.num) is int)
         self.assertTrue(type(object_reader.ticket.self_guide) is bool)
 
-test_reader_fw = Reader(r'c:\users\gmu observtory1\-omegalambda\config\fw_config.json')
+test_reader_fw = Reader(r'c:\users\gmu observtory1\-omegalambda\test\fw_config.json')
 object_reader_fw = ObjectReader(test_reader_fw)
 
 class FWTester(unittest.TestCase):

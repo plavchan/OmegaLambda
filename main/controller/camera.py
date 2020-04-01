@@ -1,11 +1,12 @@
 import time
-
 import win32com.client
-
+import threading
 
 # NEEDS TESTING
+image_saved = threading.Event()
 
 class Camera():
+    
     def __init__(self):
         self.Camera = win32com.client.Dispatch("MaxIm.CCDCamera")  # Sets the camera connection path to the CCDCamera
         self.Application = win32com.client.Dispatch("MaxIm.Application")
@@ -54,6 +55,7 @@ class Camera():
                 print("Cooler Setpoint adjusted to {0:.1f} C".format(self.Camera.TemperatureSetpoint))
 
     def expose(self, exposure_time, filter, save_path, type="light"):
+        global image_saved
         if type == "light":
             type = 1
         elif type == "dark":
@@ -65,9 +67,9 @@ class Camera():
         self.Camera.Expose(exposure_time, type, filter)
         while not self.Camera.ImageReady:
             time.sleep(1)
-            if self.Camera.ImageReady: #since autodownload is true, startdownload was redundant
-                #TODO: Automate image nomenclature 
+            if self.Camera.ImageReady:
                 self.Camera.SaveImage(save_path)
+                image_saved.set()
                 
     def set_gain(self):
         pass

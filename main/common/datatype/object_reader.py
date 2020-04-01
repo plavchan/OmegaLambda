@@ -5,7 +5,7 @@ Objects = {"observation_ticket": ObservationTicket, "filter_wheel": FilterWheel}
 
 class ObjectReader():
     
-    def __init__(self, reader_obj=None):
+    def __init__(self, reader_obj):
         global Objects
         self.str = reader_obj.str
         self.type = reader_obj.type
