@@ -70,7 +70,7 @@ class ObservationRun():
             
             image_name = "{0:s}_{1:d}s_{2:s}-{3:04d}.fits".format(name, exp_time, current_filter, image_num)
             self.camera.expose(int(exp_time), self.filterwheel_dict[current_filter], os.path.join(path, image_name), type="light")
-            camera.image_saved.wait() #implemented using threading because sometimes the loop would continue before an image was fully saved and we'd lose that image
+            self.camera.image_saved.wait() #implemented using threading because sometimes the loop would continue before an image was fully saved and we'd lose that image
             
             if cycle_filter:
                 image_num = math.floor(1 + ((i + 1)/num_filters))

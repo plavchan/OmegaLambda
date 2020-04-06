@@ -2,8 +2,6 @@ import time
 import win32com.client
 import threading
 
-# NEEDS TESTING
-image_saved = threading.Event()
 
 class Camera():
     
@@ -14,6 +12,7 @@ class Camera():
         self.Application.LockApp = True
         self.Camera.AutoDownload = True
         self.coolersetpoint = -30 #temporarily changed for testing purposes--should be -30 C normally
+        self.image_saved = threading.Event()
         
         self.check_connection()
         self.coolerSet()
@@ -55,7 +54,6 @@ class Camera():
                 print("Cooler Setpoint adjusted to {0:.1f} C".format(self.Camera.TemperatureSetpoint))
 
     def expose(self, exposure_time, filter, save_path, type="light"):
-        global image_saved
         if type == "light":
             type = 1
         elif type == "dark":
@@ -69,7 +67,7 @@ class Camera():
             time.sleep(1)
             if self.Camera.ImageReady:
                 self.Camera.SaveImage(save_path)
-                image_saved.set()
+                self.image_saved.set()
                 
     def set_gain(self):
         pass
