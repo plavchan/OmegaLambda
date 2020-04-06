@@ -7,7 +7,7 @@ import json
 
 class Reader():
     
-    def __init__(self, path=None):
+    def __init__(self, path):
         self.path = path
         
         with open(self.path, 'r') as file:
