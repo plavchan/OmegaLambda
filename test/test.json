@@ -6,10 +6,10 @@
 	"start_time": "2020-04-13 10:00:00",
 	"end_time": "2020-04-13 15:00:00",
 	"filter": ["uv", "b", "r"],
-	"num": 6,
+	"num": 2,
 	"exp_time": 2,
 	"self_guide": false,
 	"guide": true,
-	"cycle_filter": true
+	"cycle_filter": false
 	}
 }
