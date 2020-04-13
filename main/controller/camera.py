@@ -1,6 +1,5 @@
 import time
 import win32com.client
-import threading
 
 
 class Camera():
@@ -11,8 +10,7 @@ class Camera():
         self.Camera.DisableAutoShutdown = True  # All of these settings are just basic camera setup settings.
         self.Application.LockApp = True
         self.Camera.AutoDownload = True
-        self.coolersetpoint = -30 #temporarily changed for testing purposes--should be -30 C normally
-        self.image_saved = threading.Event()
+        self.coolersetpoint = 5 #temporarily changed for testing purposes--should be -30 C normally
         
         self.check_connection()
         self.coolerSet()
@@ -39,7 +37,7 @@ class Camera():
             self.coolerSet()
         
         if not self.Camera.ImageReady:
-            print("Camera is currently exposing--do not change the cooler setpoint.")
+            print("Camera is currently exposing--cooler setpoint not changed.")
             
         else:
             T_diff = abs(self.Camera.TemperatureSetpoint - self.Camera.Temperature)
@@ -65,9 +63,8 @@ class Camera():
         self.Camera.Expose(exposure_time, type, filter)
         while not self.Camera.ImageReady:
             time.sleep(1)
-            if self.Camera.ImageReady:
-                self.Camera.SaveImage(save_path)
-                self.image_saved.set()
+        if self.Camera.ImageReady:
+            self.Camera.SaveImage(save_path)
                 
     def set_gain(self):
         pass

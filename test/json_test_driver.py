@@ -23,7 +23,7 @@ class ObsTester(unittest.TestCase):
         self.assertTrue(type(object_reader.ticket.num) is int)
         self.assertTrue(type(object_reader.ticket.self_guide) is bool)
 
-test_reader_fw = Reader(r'c:\users\gmu observtory1\-omegalambda\test\fw_config.json')
+test_reader_fw = Reader(r'c:\users\gmu observtory1\-omegalambda\config\fw_config.json')
 object_reader_fw = ObjectReader(test_reader_fw)
 
 class FWTester(unittest.TestCase):

@@ -2,7 +2,6 @@ import datetime
 import time
 import os
 import math
-import threading
 
 from main.common.util import time_utils
 from main.controller import camera
@@ -65,16 +64,24 @@ class ObservationRun():
             if end_time <= datetime.datetime.now():
                 print("The observations end time of {} has passed.  "
                       "Stopping observation of {}.".format(end_time, name))
+                break
                 
             current_filter = filter[i % num_filters]
             
             image_name = "{0:s}_{1:d}s_{2:s}-{3:04d}.fits".format(name, exp_time, current_filter, image_num)
             self.camera.expose(int(exp_time), self.filterwheel_dict[current_filter], os.path.join(path, image_name), type="light")
-            self.camera.image_saved.wait() #implemented using threading because sometimes the loop would continue before an image was fully saved and we'd lose that image
             
             if cycle_filter:
                 image_num = math.floor(1 + ((i + 1)/num_filters))
                 
             elif not cycle_filter:
                 image_num += 1
+            
+            t = 1
+            while not os.path.exists(os.path.join(path, image_name)):
+                time.sleep(1)
+                if t >= 10:
+                    raise TimeoutError('CCD Image Save Timeout')
+                    break
+                t += 1
             
