@@ -65,6 +65,13 @@ class Camera():
             time.sleep(1)
         if self.Camera.ImageReady:
             self.Camera.SaveImage(save_path)
+            
+    def disconnect(self):
+        if self.Camera.LinkEnabled:
+            try: self.Camera.LinkEnabled = False
+            except: print("ERROR: Could not disconnect from camera")
+            else: print("Camera has successfully disconnected")
+        else: print("Camera is already disconnected")
                 
     def set_gain(self):
         pass

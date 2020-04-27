@@ -20,3 +20,4 @@ while camera_object.Camera.CoolerPower:
 '''
 
 camera_object.Camera.TemperatureSetpoint = 5
+camera_object.disconnect()

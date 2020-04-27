@@ -3,13 +3,13 @@
 	"name": "TestTOI1234.01",
 	"ra": "23",
 	"dec": "3.5",
-	"start_time": "2020-04-13 10:00:00",
-	"end_time": "2020-04-13 15:00:00",
+	"start_time": "2020-04-27 10:00:00",
+	"end_time": "2020-04-27 17:00:00",
 	"filter": ["uv", "b", "r"],
-	"num": 2,
+	"num": 6,
 	"exp_time": 2,
 	"self_guide": false,
 	"guide": true,
-	"cycle_filter": false
+	"cycle_filter": true
 	}
 }
