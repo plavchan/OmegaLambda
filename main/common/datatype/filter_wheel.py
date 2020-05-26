@@ -3,16 +3,12 @@ import json
 
 _filter = None
 
-def initialize_filter():
-    global _filter
-    # TODO: Read a filter position JSON and initialized FilterWheel object pointing it to _filter
-    pass
-
 def get_filter():
     global _filter
     if _filter is None:
-        initialize_filter()
-    return _filter
+        raise NameError('Global filter has not been initialized')
+    else:
+        return _filter
 
 class FilterWheel():
 
@@ -35,8 +31,10 @@ class FilterWheel():
     
     @staticmethod
     def deserialized(text):
-        return json.loads(text, object_hook=_dict_to_filter_obect)
+        return json.loads(text, object_hook=_dict_to_filter_object)
 
 def _dict_to_filter_object(dict):
-    return FilterWheel(dict['position_1'], dict['position_2'], dict['position_3'], dict['positon_4'],
-                       dict['position_5'], dict['position_6'], dict['position_7'], dict['positon_8'])
+    global _filter
+    _filter = FilterWheel(dict['position_1'], dict['position_2'], dict['position_3'], dict['position_4'],
+                       dict['position_5'], dict['position_6'], dict['position_7'], dict['position_8'])
+    return _filter
