@@ -1,7 +1,8 @@
 from main.common.datatype.observation_ticket import ObservationTicket
 from main.common.datatype.filter_wheel import FilterWheel
+from main.common.IO.config_reader import Config
 
-Objects = {"observation_ticket": ObservationTicket, "filter_wheel": FilterWheel}
+Objects = {"observation_ticket": ObservationTicket, "filter_wheel": FilterWheel, "config": Config}
 
 class ObjectReader():
     

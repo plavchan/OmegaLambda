@@ -16,6 +16,9 @@ except: print('ERROR: Error reading observation ticket')
 try: global_filter = ObjectReader(Reader(r'c:\users\gmu observtory1\-omegalambda\config\fw_config.json'))
 except: print('ERROR: Error initializing global filter object')
 
+try: global_config = ObjectReader(Reader(r'C:\Users\GMU Observtory1\-omegalambda\config\parameters_config.json'))
+except: print('ERROR: Error initializing global config object')
+
 try: object_reader = ObjectReader(json_reader)
 except: print('ERROR: Error reading observation ticket')
 else: print('Observation ticket has been read.')

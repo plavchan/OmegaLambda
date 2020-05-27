@@ -6,7 +6,9 @@ import math
 from main.common.util import time_utils
 from main.controller import camera
 from main.common.datatype import filter_wheel
+from main.common.IO import config_reader
 #from main.controller.telescope import Telescope
+#from main.controller.dome import Dome
 
 class ObservationRun():
     def __init__(self, observation_request_list, image_directory):
@@ -19,6 +21,7 @@ class ObservationRun():
         self.camera = camera.Camera()
         
         self.filterwheel_dict = filter_wheel.get_filter().filter_position_dict()
+        self.config_dict = config_reader.get_config()
         #self.telescope = Telescope()
 
     def observe(self):
@@ -35,7 +38,7 @@ class ObservationRun():
             
             
             #TODO: start guiding
-            if ticket.start_time > datetime.datetime.now():
+            if ticket.start_time > datetime.datetime.now(): #TODO: Change to utc
                 print("It is not the start time {} of {} observation, "
                       "waiting till start time.".format(ticket.start_time.isoformat(), ticket.name))
                 current_epoch_milli = time_utils.datetime_to_epoch_milli_converter(datetime.datetime.now)
@@ -85,3 +88,11 @@ class ObservationRun():
                     break
                 t += 1
             
+            if i == (num - 1):
+                print("All exposures for tonight have finished.  Stopping observations of {}.".format(name))
+                
+        self.shutdown(name)
+            
+    def shutdown(self, name):
+        self.camera.coolerSet(self.config_dict.cooler_idle_setpoint)
+        self.camera.disconnect()

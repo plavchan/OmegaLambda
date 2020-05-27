@@ -1,7 +1,7 @@
 '''
 JSON-to-string file reader.
 Input is a .json file, output is a python string that
-is passes on to the deserializer in observation_ticket or filter_wheel.
+is passed on to the deserializer in observation_ticket, filter_wheel, or config_reader.
 '''
 import json
 
