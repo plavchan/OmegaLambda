@@ -52,16 +52,15 @@ class Dome():
             
             else: print("Invalid shutter move command")
     
-    #Should work as a toggle on/off
-    def SlaveDometoScope(self):
+    def SlaveDometoScope(self, toggle):
         while self.Dome.Slewing:
             time.sleep(2)
         if not self.Dome.Slewing:
-            if self.Dome.Slaved == False:
+            if toggle == True:
                 try: self.Dome.Slaved = True
                 except: print("ERROR: Cannot slave dome to scope")
                 else: print("Dome is slaving to scope")
-            elif self.Dome.Slaved == True:
+            elif toggle == False:
                 try: self.Dome.Slaved = False
                 except: print("ERROR: Cannot stop slaving dome to scope")
                 else: print("Dome is no longer slaving to scope")
@@ -82,7 +81,14 @@ class Dome():
         while self.Dome.Slewing:
             time.sleep(2)
         if not self.Dome.Slewing:
-            if self.Dome.Connected:
-                try: self.Dome.Connected = False
-                except: print("ERROR: Could not disconnect from dome")
-            else: print("Dome is already disconnected")
+            if self.Dome.AtPark:
+                try: 
+                    self.Dome.Connected = False
+                    return True
+                except: 
+                    print("ERROR: Could not disconnect from dome")
+                    return False
+            else: 
+                print("Dome is not parked.  Parking before disconnecting.")
+                self.Park()
+                self.disconnect()
