@@ -19,7 +19,7 @@ def convert_radians_to_degrees(Radians):    #radians may be a list with multiple
     else:
         return (Radians*180/math.pi)
 
-def get_dec_and_hour_angle_from_AltAz(azimuth, altitude, latitude):    #Input in degrees
+def get_decHA_from_AltAz(azimuth, altitude, latitude):    #Input in degrees
     (azimuth_r, altitude_r, latitude_r) = convert_degrees_to_radians([azimuth, altitude, latitude])
     dec_r = math.asin(math.sin(altitude_r)*math.sin(latitude_r)+math.cos(altitude_r)*math.cos(latitude_r)*math.cos(azimuth_r))
     HA_r = math.acos((math.sin(altitude_r) - math.sin(latitude_r)*math.sin(dec_r))/(math.cos(latitude_r)*math.cos(dec_r)))
@@ -31,7 +31,7 @@ def get_dec_and_hour_angle_from_AltAz(azimuth, altitude, latitude):    #Input in
 def convert_AltAz_to_RaDec(azimuth, altitude, latitude, longitude, time):
     LST = time_utils.get_local_sidereal_time(longitude, time)
     LST = LST*15
-    (dec, HA) = get_dec_and_hour_angle_from_AltAz(azimuth, altitude, latitude)
+    (dec, HA) = get_decHA_from_AltAz(azimuth, altitude, latitude)
     ra = (LST - HA)/15
     while ra < 0:
         ra += 24
