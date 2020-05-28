@@ -23,7 +23,7 @@ class Camera():
             try: 
                 self.Camera.LinkEnabled = True
             except: print("ERROR: Could not connect to camera")
-            else: print("Camera and focuser have successfully connected")
+            else: print("Camera has successfully connected")
         
     def coolerSet(self, temp=None):
         try: self.Camera.CoolerOn = True
