@@ -56,6 +56,15 @@ class Camera():
             elif T_diff <= 0.1 and Power <= 40:
                 self.Camera.TemperatureSetpoint -= 5
                 print("Cooler Setpoint adjusted to {0:.1f} C".format(self.Camera.TemperatureSetpoint))
+    
+    def is_ready(self):
+        while not self.Camera.Temperature in range(self.Camera.TemperatureSetpoint - 0.1,
+                                                   self.Camera.TemperatureSetpoint + 0.1):
+            time.sleep(1)
+        while not self.Camera.ImageReady:
+            time.sleep(1)
+        if self.Camera.ImageReady:
+            return
 
     def expose(self, exposure_time, filter, save_path=None, type="light"):
         if type == "light":
@@ -67,16 +76,15 @@ class Camera():
             return
         self.Camera.SetFullFrame()
         self.Camera.Expose(exposure_time, type, filter)
-        while not self.Camera.ImageReady:
-            time.sleep(1)
-        if self.Camera.ImageReady:
-            if save_path == None:
-                return
-            else:
-                self.Camera.SaveImage(save_path)
+        self.is_ready()
+        if save_path == None:
+            return
+        else:
+            self.Camera.SaveImage(save_path)
                 
     def disconnect(self):
         if self.Camera.LinkEnabled:
+            self.is_ready()
             try: self.Camera.Quit()
             except: print("ERROR: Could not disconnect from camera")
             else: print("Camera has successfully disconnected")

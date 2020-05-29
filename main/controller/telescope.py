@@ -18,7 +18,6 @@ class Telescope():
         if not self.Telescope.Connected:
             try: 
                 self.Telescope.Connected = True
-                #self.DriverAccess.Connected = True
             except: print("ERROR: Could not connect to the telescope")
         else: print("Already connected")
         
@@ -30,66 +29,90 @@ class Telescope():
        else:
            return True
        #TODO: Figure out if there are any other limits
-          
-    def Park(self):
+       
+    def is_ready(self):
         while self.Telescope.Slewing:
             time.sleep(1)
         if not self.Telescope.Slewing:
-            try: 
-                self.Telescope.Tracking = False
-                self.Telescope.Park()
+            return
+          
+    def Park(self):
+        self.is_ready()
+        try: 
+            self.Telescope.Tracking = False
+            self.Telescope.Park()
                 
-            except: print("ERROR: Could not park telescope")
-            else: print("Telescope is parked, tracking off")
+        except: 
+            print("ERROR: Could not park telescope")
+            return False
+        else: 
+            print("Telescope is parked, tracking off")
+            return True
             
         
     def Unpark(self):
-        while self.Telescope.Slewing:
-            time.sleep(1)
-        if not self.Telescope.Slewing:
-            try: 
-                self.Telescope.Unpark()
-                self.Telescope.Tracking = True
-            except: print("ERROR: Error unparking telescope or enabling tracking")
-            else: print("Telescope is unparked; tracking at sidereal rate")
+        self.is_ready()
+        try: 
+            self.Telescope.Unpark()
+            self.Telescope.Tracking = True
+        except: 
+            print("ERROR: Error unparking telescope or enabling tracking")
+            return False
+        else: 
+            print("Telescope is unparked; tracking at sidereal rate")
+            return True
     
     def Slew(self, ra, dec):
         if self.check_coordinate_limit(ra, dec) == False:
-            return print("ERROR: Cannot slew below 15 degrees altitude.")
+            print("ERROR: Cannot slew below 15 degrees altitude.")
+            return False
         else:
-            if self.Telescope.Connected:
-                while self.Telescope.Slewing:
-                    time.sleep(1)
-                if not self.Telescope.Slewing:
-                    try: 
-                        self.Telescope.SlewToCoordinates(ra, dec) 
-                    except:
-                        print("ERROR: Error slewing to target")
-            else:
-                print("ERROR: Telescope not connected")
-            
-    def Jog(self, direction, distance):                             #Distance in arcseconds
-        directions_key = {"up": 0, "down": 1, "left": 2, "right": 3}
-        rates_key = {**dict.fromkeys(["up","down"], self.Telescope.GuideRateDeclination),
-                     **dict.fromkeys(["left","right"], self.Telescope.GuideRateRightAscension)}
-        
-        if distance < 30*60:                                        #30 arcminutes
-            if direction in directions_key:                        
-                direction_num = directions_key[direction]
-                rate = rates_key[direction]
-            else:
-                return print("ERROR: Invalid jog direction")
-            
-            duration = (distance/3600)/rate #should be in seconds
-            try:
-                self.Telescope.PulseGuide(direction_num, duration*1000) #duration in milliseconds
+            self.is_ready()
+            try: 
+                self.Telescope.SlewToCoordinates(ra, dec) 
             except:
-                print("ERROR: Could not jog telescope")
-                return False
+                print("ERROR: Error slewing to target")
             else:
                 return True
+    
+    def PulseGuide(self, direction, duration):                      #Direction str, duration in SECONDS
+        direction_key = {"up": 0, "down": 1, "left": 2, "right": 3}
+        
+        if direction in direction_key:
+            direction_num = direction_key[direction]
+        else:
+            print("ERROR: Invalid pulse guide direction")
+            return False
+        
+        duration = duration*1000                                    #Convert seconds to milliseconds
+        self.is_ready()
+        try:
+            self.Telescope.PulseGuide(direction_num, duration)
+        except:
+            print("ERROR: Could not pulse guide")
+            return False
+        else:
+            return True
+            
+    def Jog(self, direction, distance):
+        rates_key = {**dict.fromkeys(["up","down"], self.Telescope.GuideRateDeclination),       #Usually the guide rates are the same
+                     **dict.fromkeys(["left","right"], self.Telescope.GuideRateRightAscension)}
+        distance_key = {**dict.fromkeys(["up","left"], distance),
+                        **dict.fromkeys(["down","right"], -distance)}
+        
+        if direction in rates_key:
+            rate = rates_key[direction]
+            distance = distance_key[direction]
+        
+        if distance < 30*60:                       
+            duration = (distance/3600)/rate #should be in seconds
+            self.PulseGuide(direction, duration)
+            
         elif distance >= 30*60:
-            print("ERROR: Cannot jog more than 30 arcminutes")
+            if direction in ("up", "down"):
+                self.Slew(self.Telescope.RightAscension, self.Telescope.Declination + distance)
+            elif direction in ("left", "right"):
+                self.Slew(self.Telescope.RightAscension + distance, self.Telescope.Declination)
     
     def SlewAltAz(self, az, alt, time=None): #input alt/az in degrees
         if alt <= 15:
@@ -103,10 +126,14 @@ class Telescope():
         self.Telescope.AbortSlew()
         
     def disconnect(self):
-        if self.Telescope.Connected:
+        self.is_ready()
+        if self.Telescope.AtPark:
             try: del self.Telescope                                         #Both this and self.Telescope.Quit() didn't work
             except: print("ERROR: Could not disconnect from telescope")
-        else: print("Telescope is already disconnected")
+        else: 
+            print("Telescope is not parked.  Parking telescope before disconnecting.")
+            self.Park()
+            self.disconnect()
         
         
 #Don't know what the cordwrap functions were all about in the deprecated telescope file?
