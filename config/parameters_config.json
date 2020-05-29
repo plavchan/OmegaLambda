@@ -4,6 +4,7 @@
 	"maximum_jog": 1800,
 	"site_latitude": 38.828,
 	"site_longitude": -77.305,
-	"utc_offset": "-04:00"
+	"utc_offset": "-04:00",
+	"prep_time": 30
 	}
 }
