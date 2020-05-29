@@ -1,10 +1,12 @@
 import win32com.client
+import pythoncom
 import time
 
 # NEEDS TESTING
 
 class Dome():
     def __init__(self):
+        pythoncom.CoInitialize()
         self.Dome = win32com.client.Dispatch("ASCOMDome.Dome")
 
         self.connect()
@@ -77,6 +79,7 @@ class Dome():
         self.is_ready()
         if self.Dome.AtPark:
             try: 
+                pythoncom.CoUnititialize()
                 self.Dome.Connected = False
                 return True
             except: 

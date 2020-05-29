@@ -1,4 +1,5 @@
 import win32com.client
+import pythoncom
 import time
 from main.common.IO import config_reader
 from main.common.util import conversion_utils
@@ -7,6 +8,7 @@ from main.common.util import conversion_utils
 
 class Telescope():
     def __init__(self):
+        pythoncom.CoInitialize()
         self.Telescope = win32com.client.Dispatch("ASCOM.SoftwareBisque.Telescope")
         self.config_dict = config_reader.get_config()
         self.Telescope.SlewSettleTime = 1
@@ -128,7 +130,9 @@ class Telescope():
     def disconnect(self):
         self.is_ready()
         if self.Telescope.AtPark:
-            try: del self.Telescope                                         #Both this and self.Telescope.Quit() didn't work
+            try: 
+                pythoncom.CoUnititialize()
+                del self.Telescope                                         #Both this and self.Telescope.Quit() didn't work
             except: print("ERROR: Could not disconnect from telescope")
         else: 
             print("Telescope is not parked.  Parking telescope before disconnecting.")

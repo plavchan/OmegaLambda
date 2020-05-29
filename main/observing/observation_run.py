@@ -3,6 +3,8 @@ import time
 import os
 import math
 import threading
+import pythoncom
+import win32com.client
 
 from main.common.util import time_utils
 from main.controller.camera import Camera
@@ -23,8 +25,9 @@ class ObservationRun():
         
         self.filterwheel_dict = filter_wheel.get_filter().filter_position_dict()
         self.config_dict = config_reader.get_config()
-#        self.telescope = Telescope()
-#        self.dome = Dome()
+        self.lock = threading.Lock()
+#       self.telescope = Telescope()
+#       self.dome = Dome()
 
     def observe(self):
         
@@ -72,32 +75,39 @@ class ObservationRun():
 
     def run_ticket(self, ticket):
     #TODO: Implement threading here
-    #TODO: For some reason, threading creates an Attribute error when calling any camera method...
+    #TODO: For some reason, threading creates an Attribute error when calling any camera method or property...
+    
         if ticket.cycle_filter:
-            '''
+            camera_ID = self.camera.get_COM_ID()
             image_thread = threading.Thread(target=self.take_images, args=(ticket.name, ticket.num, ticket.exp_time,
                                                                            ticket.filter, ticket.end_time, self.image_directory,
-                                                                           True))
+                                                                           True, camera_ID))
             image_thread.start()
+            
             '''
             self.take_images(ticket.name, ticket.num, ticket.exp_time,
                              ticket.filter, ticket.end_time, self.image_directory,
                              True)
+            '''
             return
 
         for i in range(len(ticket.filter)):
-            '''
+            camera_ID = self.camera.get_COM_ID()
             image_thread = threading.Thread(target=self.take_images, args=(ticket.name, ticket.num, ticket.exp_time,
                                                                            [ticket.filter[i]], ticket.end_time, self.image_directory,
-                                                                           False))
+                                                                           False, camera_ID))
             image_thread.start()
             image_thread.join()     #We don't want multiple image threads going at once in different filters, since that would end up acting like a cycle_filter = True
+            
             '''
             self.take_images(ticket.name, ticket.num, ticket.exp_time,
                              [ticket.filter[i]], ticket.end_time, self.image_directory,
                              False)
+            '''
 
-    def take_images(self, name, num, exp_time, filter, end_time, path, cycle_filter):
+    def take_images(self, name, num, exp_time, filter, end_time, path, cycle_filter, camera_ID):
+        pythoncom.CoInitialize()
+        self.camera.set_COM_object(camera_ID)
         num_filters = len(filter)
     
         image_num = 1
@@ -106,16 +116,17 @@ class ObservationRun():
                 print("The observations end time of {} has passed.  "
                       "Stopping observation of {}.".format(end_time, name))
                 break
-                
-            current_filter = filter[i % num_filters]
             
-            image_name = "{0:s}_{1:d}s_{2:s}-{3:04d}.fits".format(name, exp_time, current_filter, image_num)
-            self.camera.expose(int(exp_time), self.filterwheel_dict[current_filter], os.path.join(path, image_name), type="light")
+            with self.lock:
+                current_filter = filter[i % num_filters]
             
-            if cycle_filter:
-                image_num = math.floor(1 + ((i + 1)/num_filters))
-            elif not cycle_filter:
-                image_num += 1
+                image_name = "{0:s}_{1:d}s_{2:s}-{3:04d}.fits".format(name, exp_time, current_filter, image_num)
+                self.camera.expose(int(exp_time), self.filterwheel_dict[current_filter], os.path.join(path, image_name), type="light")
+            
+                if cycle_filter:
+                    image_num = math.floor(1 + ((i + 1)/num_filters))
+                elif not cycle_filter:
+                    image_num += 1
             
             t = 1
             while not os.path.exists(os.path.join(path, image_name)):
@@ -124,12 +135,12 @@ class ObservationRun():
                     raise TimeoutError('CCD Image Save Timeout')
                     break
                 t += 1
-            
-            if i == (num - 1):
-                print("All exposures for tonight have finished.  Stopping observations of {}.".format(name))
+        pythoncom.CoUninitialize()
+        print("{} out of {} exposures for tonight have finished.  Stopping observations of {}.".format((i + 1), num, name))
                 
         self.shutdown(name)
             
     def shutdown(self, name):
-        self.camera.coolerSet(self.config_dict.cooler_idle_setpoint)
         self.camera.disconnect()
+        #self.dome.disconnect()
+        #self.telescope.disconnect()

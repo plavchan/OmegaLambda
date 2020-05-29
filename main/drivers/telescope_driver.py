@@ -8,10 +8,10 @@ global_config_object = ObjectReader(Reader(r'C:\Users\GMU Observtory1\-omegalamb
 tel_obj = Telescope()
 
 tel_obj.Unpark()
-#tel_obj.Slew(2,60)
-tel_obj.SlewAltAz(105, 63)
+tel_obj.Slew(5 + 56/60 + 14.111/3600, 7 + 24/60 + 30.86/3600)
+#tel_obj.SlewAltAz(105, 63)
 
-tel_obj.Jog("up", 30)
+#tel_obj.Jog("up", 30)
 '''
 time.sleep(5)
 tel_obj.Jog("right", 5*60)
@@ -21,9 +21,9 @@ time.sleep(5)
 tel_obj.Jog("left", 45*60)
 time.sleep(5)
 '''
-tel_obj.Park()
+#tel_obj.Park()
 
-tel_obj.disconnect()
+#tel_obj.disconnect()
 
 
 '''

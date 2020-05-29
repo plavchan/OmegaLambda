@@ -1,13 +1,14 @@
 import time
 import win32com.client
+import pythoncom
 from main.common.IO import config_reader
 
 class Camera():
     
     def __init__(self):
+        pythoncom.CoInitialize()
         self.Camera = win32com.client.Dispatch("MaxIm.CCDCamera")  # Sets the camera connection path to the CCDCamera
         self.check_connection()
-        
         self.Application = win32com.client.Dispatch("MaxIm.Application")
         self.Camera.DisableAutoShutdown = True  # All of these settings are just basic camera setup settings.
         self.Application.LockApp = True
@@ -15,6 +16,13 @@ class Camera():
         self.config_dict = config_reader.get_config()
         
         self.coolerSet()
+        
+    def get_COM_ID(self):
+        ID = pythoncom.CoMarshalInterThreadInterfaceInStream(pythoncom.IID_IDispatch, self.Camera)
+        return ID
+    
+    def set_COM_object(self, ID):
+        self.Camera = win32com.client.Dispatch(pythoncom.CoGetInterfaceAndReleaseStream(ID, pythoncom.IID_IDispatch))
 
     def check_connection(self):
         if self.Camera.LinkEnabled:
@@ -23,7 +31,7 @@ class Camera():
             try: 
                 self.Camera.LinkEnabled = True
             except: print("ERROR: Could not connect to camera")
-            else: print("Camera has successfully connected")
+            else: print("Camera has successfully connected") 
         
     def coolerSet(self, temp=None):
         try: self.Camera.CoolerOn = True
@@ -57,10 +65,13 @@ class Camera():
                 self.Camera.TemperatureSetpoint -= 5
                 print("Cooler Setpoint adjusted to {0:.1f} C".format(self.Camera.TemperatureSetpoint))
     
-    def is_ready(self):
-        while not self.Camera.Temperature in range(self.Camera.TemperatureSetpoint - 0.1,
-                                                   self.Camera.TemperatureSetpoint + 0.1):
+    def cooler_ready(self):
+        while not (self.Camera.TemperatureSetpoint - 0.1 <= self.Camera.Temperature <= self.Camera.TemperatureSetpoint + 0.1):
             time.sleep(1)
+        else:
+            return
+    
+    def image_ready(self):
         while not self.Camera.ImageReady:
             time.sleep(1)
         if self.Camera.ImageReady:
@@ -74,9 +85,10 @@ class Camera():
         else:
             print("ERROR: Invalid exposure type.")
             return
+        self.cooler_ready()
         self.Camera.SetFullFrame()
         self.Camera.Expose(exposure_time, type, filter)
-        self.is_ready()
+        self.image_ready()
         if save_path == None:
             return
         else:
@@ -84,8 +96,11 @@ class Camera():
                 
     def disconnect(self):
         if self.Camera.LinkEnabled:
-            self.is_ready()
-            try: self.Camera.Quit()
+            self.image_ready()
+            try: 
+                self.coolerSet(self.config_dict.cooler_idle_setpoint)
+                pythoncom.CoUnititialize()
+                self.Camera.Quit()
             except: print("ERROR: Could not disconnect from camera")
             else: print("Camera has successfully disconnected")
         else: print("Camera is already disconnected")
