@@ -6,7 +6,6 @@ from main.common.IO import config_reader
 class Camera():
     
     def __init__(self):
-        pythoncom.CoInitialize()
         self.Camera = win32com.client.Dispatch("MaxIm.CCDCamera")  # Sets the camera connection path to the CCDCamera
         self.check_connection()
         self.Application = win32com.client.Dispatch("MaxIm.Application")
@@ -16,7 +15,7 @@ class Camera():
         self.config_dict = config_reader.get_config()
         
         self.coolerSet()
-        
+    
     def get_COM_ID(self):
         ID = pythoncom.CoMarshalInterThreadInterfaceInStream(pythoncom.IID_IDispatch, self.Camera)
         return ID
