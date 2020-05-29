@@ -1,6 +1,5 @@
 import time
 import win32com.client
-import pythoncom
 from main.common.IO import config_reader
 
 class Camera():
@@ -15,13 +14,6 @@ class Camera():
         self.config_dict = config_reader.get_config()
         
         self.coolerSet()
-    
-    def get_COM_ID(self):
-        ID = pythoncom.CoMarshalInterThreadInterfaceInStream(pythoncom.IID_IDispatch, self.Camera)
-        return ID
-    
-    def set_COM_object(self, ID):
-        self.Camera = win32com.client.Dispatch(pythoncom.CoGetInterfaceAndReleaseStream(ID, pythoncom.IID_IDispatch))
 
     def check_connection(self):
         if self.Camera.LinkEnabled:
@@ -98,7 +90,6 @@ class Camera():
             self.image_ready()
             try: 
                 self.coolerSet(self.config_dict.cooler_idle_setpoint)
-                pythoncom.CoUnititialize()
                 self.Camera.Quit()
             except: print("ERROR: Could not disconnect from camera")
             else: print("Camera has successfully disconnected")
