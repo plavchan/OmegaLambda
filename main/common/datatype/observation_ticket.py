@@ -4,17 +4,17 @@ import copy
 
 class ObservationTicket():
 
-    def __init__(self, name=None, ra=None, dec=None, start_time=None, end_time=None, filter=None,
-                 num=None, exp_time=None, self_guide=None, guide=None, cycle_filter=None):
+    def __init__(self, name=None, ra=None, dec=None, start_time=None, end_time=None,
+                 filter=None, num=None, exp_time=None, self_guide=None, guide=None, cycle_filter=None):
         self.name = name
         self.ra = ra
         self.dec = dec
         if start_time:
-            self.start_time = datetime.datetime.strptime(start_time, "%Y-%m-%d %H:%M:%S")
+            self.start_time = datetime.datetime.strptime(start_time, "%Y-%m-%d %H:%M:%S%z")
         else:
             self.start_time = start_time
         if end_time:
-            self.end_time = datetime.datetime.strptime(end_time, "%Y-%m-%d %H:%M:%S")
+            self.end_time = datetime.datetime.strptime(end_time, "%Y-%m-%d %H:%M:%S%z")
         else:
             self.end_time = end_time
         self.filter = filter

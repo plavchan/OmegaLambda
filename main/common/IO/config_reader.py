@@ -32,5 +32,5 @@ def _dict_to_config_object(dict):
     global _config
     _config = Config(cooler_setpoint=dict['cooler_setpoint'], cooler_idle_setpoint=dict['cooler_idle_setpoint'],
                      site_latitude=dict['site_latitude'], site_longitude=dict['site_longitude'], utc_offset=dict['utc_offset'],
-                     maximum_jog=dict['maximum_jog'])
+                     maximum_jog=dict['maximum_jog'], prep_time=dict['prep_time'])
     return _config
