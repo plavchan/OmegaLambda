@@ -1,7 +1,6 @@
 import win32com.client
 import time
 
-# NEEDS TESTING
 
 class Dome():
     def __init__(self):
@@ -72,7 +71,6 @@ class Dome():
     def Abort(self):
         self.Dome.AbortSlew()
         
-    #This doesn't work for the telescope for some reason
     def disconnect(self):
         self.is_ready()
         if self.Dome.AtPark:

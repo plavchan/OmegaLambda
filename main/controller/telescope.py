@@ -3,7 +3,6 @@ import time
 from main.common.IO import config_reader
 from main.common.util import conversion_utils
 
-# NEEDS TESTING
 
 class Telescope():
     def __init__(self):
@@ -48,7 +47,6 @@ class Telescope():
         else: 
             print("Telescope is parked, tracking off")
             return True
-            
         
     def Unpark(self):
         self.is_ready()
@@ -138,12 +136,3 @@ class Telescope():
         
         
 #Don't know what the cordwrap functions were all about in the deprecated telescope file?
-
-'''
-self.Telescope.DeclinationRate = 0.0
-self.Telescope.RightAscensionRate = 0.0 #This is the offset from the sidereal rate, not the absolute rate
-self.Telescope.SiteLatitude = 38.828
-self.Telescope.SiteLongitude = -77.305
-self.Telescope.SiteElevation = 131 #General estimate for GMU, if we need more specific elevation let me know
-self.Telescope.UTCDate = datetime.datetime.now(datetime.timezone.utc)
-'''

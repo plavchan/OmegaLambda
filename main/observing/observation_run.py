@@ -9,7 +9,7 @@ from main.common.datatype import filter_wheel
 from main.common.IO import config_reader
 from main.controller.telescope import Telescope
 from main.controller.dome import Dome
-
+    
 class ObservationRun():
     def __init__(self, observation_request_list, image_directory):
         '''
@@ -26,55 +26,33 @@ class ObservationRun():
 #       self.dome = Dome()
 
     def observe(self):
-        
 #       self.dome.Home()
 #       self.dome.SlaveDometoScope(True)
 #       self.telescope.Unpark()
         
-        first = True
-        darks_flats = False
         for ticket in self.observation_request_list:           #Will it always be 1 object per ticket, or could we have multiple objects in a single ticket?
-            
 #           self.telescope.Slew(ticket.ra, ticket.dec)
-            
-            #If enough time before first ticket: Take darks & flats
-            if first:
-                if ticket.start_time > datetime.datetime.utcnow() and (ticket.start_time - datetime.datetime.utcnow() > datetime.timedelta(minutes=self.config_dict.prep_time)):
-                    print("It is not the start time {} of {} observation, "
-                          "there is enough time to take darks and flats beforehand.".format(ticket.start_time.isoformat(), ticket.name))
-                    self.run_darks_flats()
-                    darks_flats = True
-                first = False
-            #If not, run tickets, then take darks & flats
-            if ticket.start_time > datetime.datetime.utcnow() and first == False:
+            self.tzinfo = ticket.start_time.tzinfo
+            current_time = datetime.datetime.now(self.tzinfo)
+            if ticket.start_time > current_time:
                 print("It is not the start time {} of {} observation, "
                       "waiting till start time.".format(ticket.start_time.isoformat(), ticket.name))
 #               if self.dome.ShutterStatus == 1:            
                     #Check weather before opening shutter
 #                   self.dome.MoveShutter('open')
-                current_epoch_milli = time_utils.datetime_to_epoch_milli_converter(datetime.datetime.utcnow)
+                current_epoch_milli = time_utils.datetime_to_epoch_milli_converter(current_time)
                 start_time_epoch_milli = time_utils.datetime_to_epoch_milli_converter(ticket.start_time)
                 time.sleep((start_time_epoch_milli - current_epoch_milli)/1000)
             
             #TODO: start guiding
             self.run_ticket(ticket)
-        
-        #If we didn't take darks and flats before the first ticket, take the now (after the last one)
-        if not darks_flats:
-            self.run_darks_flats()
-    
-    #TODO: Darks and flats procedure
-    def run_darks_flats(self):
-        #If doing before first target, take dome flats while shutter is still closed.  Then, take darks and open shutter.
-        #If doing after last target, start closing shutter and take darks first.  Then once closed, take flats.
-        pass
 
     def run_ticket(self, ticket):
         if ticket.cycle_filter:
             last = self.take_images(ticket.name, ticket.num, ticket.exp_time,
                                     ticket.filter, ticket.end_time, self.image_directory,
                                     True)
-            self.shutdown(last, ticket.name, ticket.num)
+            self.shutdown(last, ticket.num)
             return
         
         else:
@@ -84,14 +62,16 @@ class ObservationRun():
                                           [ticket.filter[i]], ticket.end_time, self.image_directory,
                                           False)
                 last += last_f
-            self.shutdown(last, ticket.name, ticket.num*len(ticket.filter))
+                if last_f != ticket.num:
+                    break
+            self.shutdown(last, ticket.num*len(ticket.filter))
 
     def take_images(self, name, num, exp_time, filter, end_time, path, cycle_filter):
         num_filters = len(filter)
     
         image_num = 1
         for i in range(num):
-            if end_time <= datetime.datetime.now():
+            if end_time <= datetime.datetime.now(self.tzinfo):
                 print("The observations end time of {} has passed.  "
                       "Stopping observation of {}.".format(end_time, name))
                 last_image = i
@@ -112,13 +92,14 @@ class ObservationRun():
                 time.sleep(1)
                 if t >= 10:
                     raise TimeoutError('CCD Image Save Timeout')
+                    last_image = i
                     break
                 t += 1
-        last_image = num
+            last_image = i + 1
         return last_image
             
-    def shutdown(self, image, name, total):
-        print("{} out of {} exposures for tonight have finished.  Stopping observations of {}.".format(image, total, name))
+    def shutdown(self, image, total):
+        print("{} out of {} exposures for tonight have finished.".format(image, total))
         self.camera.disconnect()
         #self.dome.disconnect()
         #self.telescope.disconnect()

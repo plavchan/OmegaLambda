@@ -1,15 +1,17 @@
 from main.controller.telescope import Telescope
+from main.controller.dome import Dome
 from main.common.IO.json_reader import Reader
 from main.common.datatype.object_reader import ObjectReader
-import time
 
 global_config_object = ObjectReader(Reader(r'C:\Users\GMU Observtory1\-omegalambda\config\parameters_config.json'))
 
 tel_obj = Telescope()
+dome_obj = Dome()
 
 tel_obj.Unpark()
-tel_obj.Slew(5 + 56/60 + 14.111/3600, 7 + 24/60 + 30.86/3600)
-#tel_obj.SlewAltAz(105, 63)
+tel_obj.Slew(22 + 5/(60*15) + 13.79/(3600*15), 66 + 46/60 + 30.9/3600)
+dome_obj.MoveShutter('open')
+dome_obj.SlaveDometoScope(True)
 
 #tel_obj.Jog("up", 30)
 '''
