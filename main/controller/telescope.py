@@ -60,6 +60,7 @@ class Telescope():
             return True
     
     def Slew(self, ra, dec):
+        (ra, dec) = conversion_utils.convert_J2000_to_apparent(ra, dec)
         if self.check_coordinate_limit(ra, dec) == False:
             print("ERROR: Cannot slew below 15 degrees altitude.")
             return False
