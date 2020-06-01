@@ -1,4 +1,7 @@
 import math
+import datetime
+from astropy import units as u
+from astropy.coordinates import SkyCoord, ICRS
 from main.common.util import time_utils
 
 def convert_degrees_to_radians(Degrees):    #degrees may be a list with multiple values to convert
@@ -53,5 +56,4 @@ def convert_RaDec_to_AltAz(ra, dec, latitude, longitude, time):
         az_r = 2*math.pi - az_r
     (az, alt) = convert_radians_to_degrees([az_r, alt_r])
     return (az, alt)
-    
     

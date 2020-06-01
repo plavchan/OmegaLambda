@@ -3,7 +3,6 @@ import time
 from main.common.IO import config_reader
 from main.common.util import conversion_utils
 
-
 class Telescope():
     def __init__(self):
         self.Telescope = win32com.client.Dispatch("ASCOM.SoftwareBisque.Telescope")

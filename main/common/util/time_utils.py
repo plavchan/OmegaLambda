@@ -33,6 +33,10 @@ def fractional_hours_of_day(time):
     hours = hours.total_seconds()/(60*60)
     return hours
 
+def current_decimal_year():
+    d = datetime.datetime.now()
+    return d.year + d.month/12
+
 def get_local_sidereal_time(longitude, date=None):
     if date == None:
         date = datetime.datetime.now(datetime.timezone.utc)
