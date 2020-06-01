@@ -80,6 +80,10 @@ class ObservationRun():
             current_filter = filter[i % num_filters]
             
             image_name = "{0:s}_{1:d}s_{2:s}-{3:04d}.fits".format(name, exp_time, current_filter, image_num)
+            if os.path.exists(os.path.join(path, image_name)):
+                n = os.listdir(path)[-1].replace("{0:s}_{1:d}s_{2:s}-".format(name, exp_time, current_filter), '').replace('.fits','')
+                image_num = int(n) + 1
+                image_name = "{0:s}_{1:d}s_{2:s}-{3:04d}.fits".format(name, exp_time, current_filter, image_num)
             self.camera.expose(int(exp_time), self.filterwheel_dict[current_filter], os.path.join(path, image_name), type="light")
             
             if cycle_filter:
