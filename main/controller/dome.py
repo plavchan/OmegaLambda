@@ -1,13 +1,25 @@
 import win32com.client
 import time
+import threading
+import logging
 
-
-class Dome():
+class Dome(threading.Thread):
     def __init__(self):
+        threading.Thread.__init__(self)
+        self.running = True
+        
         self.Dome = win32com.client.Dispatch("ASCOMDome.Dome")
 
         self.connect()
-
+        
+    def run(self):
+        while self.running:
+            logging.debug("Dome thread is alive")
+            time.sleep(5)
+    
+    def stop(self):
+        logging.debug("Stopping dome thread")
+        self.running = False
         
     def connect(self):
         try: self.Dome.Connected = True
@@ -24,6 +36,9 @@ class Dome():
         try: self.Dome.FindHome()
         except: print("ERROR: Dome cannot find home")
         else: print("Dome is homing")
+        while not self.Dome.AtHome:
+            time.sleep(2)
+        return
     
     def Park(self):
         self.is_ready()
@@ -31,25 +46,21 @@ class Dome():
         except: print("ERROR: Error parking dome")
         else: print("Dome is parking")
         
-    def MoveShutter(self, open_or_close=None): #I have made it so passing nothing automatically decides to open/close based on current position
+    def MoveShutter(self, open_or_close):
         self.is_ready()
-        if open_or_close == None:
-            status = self.Dome.ShutterStatus
-            if status == 1:                 #from my testing it seems like 1 = closed
-                self.Dome.OpenShutter()
-                print("Shutter is opening")
-            elif status == 0:
-                self.Dome.CloseShutter()
-                print("Shutter is closing")
-        
-        elif open_or_close == 'open':
+        if open_or_close == 'open':
             self.Dome.OpenShutter()
             print("Shutter is opening")
+            while self.Dome.ShutterStatus != 0:
+                time.sleep(5)
         elif open_or_close == 'close':
             self.Dome.CloseShutter()
             print("Shutter is closing")
+            while self.Dome.ShutterStatus != 1: #Seems like 1 = closed, 0 = open.  Partially opened = open.
+                time.sleep(5)
             
         else: print("Invalid shutter move command")
+        return
     
     def SlaveDometoScope(self, toggle):
         self.is_ready()
@@ -71,9 +82,11 @@ class Dome():
     def Abort(self):
         self.Dome.AbortSlew()
         
-    def disconnect(self):
+    def disconnect(self):   #Always close shutter and park before disconnecting
         self.is_ready()
-        if self.Dome.AtPark:
+        while self.Dome.ShutterStatus != 1:
+            time.sleep(5)
+        if self.Dome.AtPark and self.Dome.ShutterStatus == 1:
             try: 
                 self.Dome.Connected = False
                 return True
@@ -81,6 +94,5 @@ class Dome():
                 print("ERROR: Could not disconnect from dome")
                 return False
         else: 
-            print("Dome is not parked.  Parking before disconnecting.")
-            self.Park()
-            self.disconnect()
+            print("Dome is not parked, or shutter not closed")
+            return False

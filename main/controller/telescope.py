@@ -1,16 +1,30 @@
 import win32com.client
 import time
+import os
 from main.common.IO import config_reader
 from main.common.util import conversion_utils
+import threading
+import logging
 
-class Telescope():
+class Telescope(threading.Thread):
     def __init__(self):
+        threading.Thread.__init__(self)
+        self.running = True
+        
         self.Telescope = win32com.client.Dispatch("ASCOM.SoftwareBisque.Telescope")
         self.config_dict = config_reader.get_config()
         self.Telescope.SlewSettleTime = 1
        
         self.check_connection()
-
+        
+    def run(self):
+        while self.running:
+            logging.debug("Telescope thread is alive")
+            time.sleep(5)
+    
+    def stop(self):
+        logging.debug("Stopping telescope thread")
+        self.running = False
         
     def check_connection(self):
         if not self.Telescope.Connected:
@@ -123,16 +137,16 @@ class Telescope():
     def Abort(self):
         self.Telescope.AbortSlew()
         
-    def disconnect(self):
+    def disconnect(self):   #always park before disconnecting
         self.is_ready()
         if self.Telescope.AtPark:
             try: 
-                del self.Telescope                                         #Both this and self.Telescope.Quit() didn't work
+                self.Telescope.Connected = False
+                #os.system("TASKKILL /F /IM TheSkyX.exe")   #This is the only way it will actually disconnect from TheSkyX so far
             except: print("ERROR: Could not disconnect from telescope")
         else: 
-            print("Telescope is not parked.  Parking telescope before disconnecting.")
-            self.Park()
-            self.disconnect()
+            print("Telescope is not parked.")
+            return False
         
         
 #Don't know what the cordwrap functions were all about in the deprecated telescope file?

@@ -58,6 +58,6 @@ def convert_RaDec_to_AltAz(ra, dec, latitude, longitude, time):
 
 def convert_J2000_to_apparent(ra, dec):
     year = time_utils.current_decimal_year()
-    coords_J2000 = SkyCoord(ra = ra*u.hourangle, dec = dec*u.degree, frame = FK5(equinox='J2000'))
+    coords_J2000 = SkyCoord(ra = ra*u.hourangle, dec = dec*u.degree, frame = 'icrs') #ICRS Equinox is always J2000
     coords_apparent = coords_J2000.transform_to(FK5(equinox='J{}'.format(year)))
     return (coords_apparent.ra.hour, coords_apparent.dec.degree)

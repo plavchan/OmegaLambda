@@ -24,7 +24,6 @@ try: object_reader = ObjectReader(json_reader)
 except: print('ERROR: Could not read observation ticket.')
 else: print('Observation ticket has been read.')
 
-
 run_object = ObservationRun([object_reader.ticket],
                             r'h:\observatory files\observing sessions\2020_data\{0:s}'.format(folder))
 run_object.observe()

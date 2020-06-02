@@ -2,6 +2,7 @@ import time
 import win32com.client
 from main.common.IO import config_reader
 import threading
+import logging
 
 class Camera(threading.Thread):
     
@@ -21,10 +22,11 @@ class Camera(threading.Thread):
         
     def run(self):
         while self.running:
-            print("Camera thread is alive")
+            logging.debug("Camera thread is alive")
             time.sleep(5)
             
     def stop(self):
+        logging.debug("Stopping camera thread")
         self.running = False
 
     def check_connection(self):
