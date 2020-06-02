@@ -22,7 +22,7 @@ class Telescope():
     def check_coordinate_limit(self, ra, dec, time=None):
        (az, alt) = conversion_utils.convert_RaDec_to_AltAz(ra, dec, self.config_dict.site_latitude,
                                                            self.config_dict.site_longitude, time)
-       if alt <= 15:
+       if alt <= 15 or dec > 90:
            return False
        else:
            return True

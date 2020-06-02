@@ -1,11 +1,15 @@
 import time
 import win32com.client
 from main.common.IO import config_reader
+import threading
 
-class Camera():
+class Camera(threading.Thread):
     
     def __init__(self):
-        self.Camera = win32com.client.Dispatch("MaxIm.CCDCamera")  # Sets the camera connection path to the CCDCamera
+        threading.Thread.__init__(self)
+        self.running = True
+        
+        self.Camera = win32com.client.Dispatch("MaxIm.CCDCamera") #Sets the camera connection path to the CCDCamera
         self.check_connection()
         self.Application = win32com.client.Dispatch("MaxIm.Application")
         self.Camera.DisableAutoShutdown = True  # All of these settings are just basic camera setup settings.
@@ -14,6 +18,14 @@ class Camera():
         self.config_dict = config_reader.get_config()
         
         self.coolerSet()
+        
+    def run(self):
+        while self.running:
+            print("Camera thread is alive")
+            time.sleep(5)
+            
+    def stop(self):
+        self.running = False
 
     def check_connection(self):
         if self.Camera.LinkEnabled:
