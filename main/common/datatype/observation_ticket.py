@@ -1,14 +1,30 @@
 import datetime
 import json
 import copy
+import re
 
 class ObservationTicket():
 
     def __init__(self, name=None, ra=None, dec=None, start_time=None, end_time=None,
                  filter=None, num=None, exp_time=None, self_guide=None, guide=None, cycle_filter=None):
         self.name = name
-        self.ra = ra
-        self.dec = dec
+        if type(ra) is float:
+            self.ra = ra
+            self.dec = dec
+        elif type(ra) is str:
+            if ':' in ra:
+                splitter = ':'
+            elif 'h' in ra:
+                splitter = 'h|m|s|d'
+            coords = {'ra': ra, 'dec': dec}
+            for key in coords:
+                coords_split = re.split(splitter, coords[key])
+                if float(coords_split[0]) > 0:
+                    coords[key] = float(coords_split[0]) + float(coords_split[1])/60 + float(coords_split[2])/3600
+                elif float(coords_split[0]) < 0:
+                    coords[key] = float(coords_split[0]) - float(coords_split[1])/60 - float(coords_split[2])/3600
+            self.ra = coords['ra']
+            self.dec = coords['dec']
         if start_time:
             self.start_time = datetime.datetime.strptime(start_time, "%Y-%m-%d %H:%M:%S%z")
         else:
