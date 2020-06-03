@@ -73,6 +73,7 @@ class Dome(threading.Thread):
             try: self.Dome.Slaved = False
             except: print("ERROR: Cannot stop slaving dome to scope")
             else: print("Dome is no longer slaving to scope")
+        logging.debug('Dome slaving toggled')
         
     def Slew(self, Azimuth):
         self._is_ready()

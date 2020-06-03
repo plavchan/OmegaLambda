@@ -3,6 +3,9 @@ from main.common.IO.json_reader import Reader
 from main.common.datatype.object_reader import ObjectReader
 import datetime
 import os
+import logging
+
+logging.basicConfig(level=logging.DEBUG, format='(%(threadName)-10s) %(message)s',)
 
 
 folder = datetime.datetime.now().strftime('%Y%m%d')

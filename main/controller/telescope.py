@@ -82,6 +82,7 @@ class Telescope(threading.Thread):
         else:
             self._is_ready()
             try: 
+                logging.debug('Telescope slewing')
                 self.Telescope.SlewToCoordinates(ra, dec) 
             except:
                 print("ERROR: Error slewing to target")

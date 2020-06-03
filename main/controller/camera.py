@@ -18,7 +18,7 @@ class Camera(threading.Thread):
         self.Camera.AutoDownload = True
         self.config_dict = config_reader.get_config()
         
-        self.coolerSet()
+        self.coolerSet(True)
         
     def run(self):
         while self.running:
@@ -38,18 +38,22 @@ class Camera(threading.Thread):
             except: print("ERROR: Could not connect to camera")
             else: print("Camera has successfully connected") 
         
-    def coolerSet(self):
+    def coolerSet(self, toggle):
         try: self.Camera.CoolerOn = True
         except: print("ERROR: Could not turn on cooler")
         
-        if self.Camera.CoolerOn:
+        if self.Camera.CoolerOn and toggle == True:
             try: self.Camera.TemperatureSetpoint = self.config_dict.cooler_setpoint
+            except: pass
+            else: print("Cooler Setpoint set to {0:.1f} C".format(self.Camera.TemperatureSetpoint))
+        elif toggle == False:
+            try: self.Camera.TemperatureSetpoint = self.config_dict.cooler_idle_setpoint
             except: pass
             else: print("Cooler Setpoint set to {0:.1f} C".format(self.Camera.TemperatureSetpoint))
         
     def _coolerAdjust(self):
         if not self.Camera.CoolerOn:
-            self.coolerSet()
+            self.coolerSet(True)
         
         T_diff = abs(self.Camera.TemperatureSetpoint - self.Camera.Temperature)
         Power = self.Camera.CoolerPower
@@ -94,6 +98,7 @@ class Camera(threading.Thread):
         else:
             print("ERROR: Invalid exposure type.")
             return
+        logging.debug('Exposing image')
         self.cooler_ready()
         self.Camera.SetFullFrame()
         self.Camera.Expose(exposure_time, type, filter)
@@ -107,7 +112,7 @@ class Camera(threading.Thread):
         if self.Camera.LinkEnabled:
             self._image_ready()
             try: 
-                self.coolerSet(self.config_dict.cooler_idle_setpoint)
+                self.coolerSet(False)
                 self.Camera.Quit()
             except: print("ERROR: Could not disconnect from camera")
             else: print("Camera has successfully disconnected")
