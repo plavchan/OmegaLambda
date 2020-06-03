@@ -24,15 +24,16 @@ class Dome(threading.Thread):
     def connect(self):
         try: self.Dome.Connected = True
         except: print("ERROR: Could not connect to dome")
+        else: print("Dome has successfully connected")
         
-    def is_ready(self):
+    def _is_ready(self):
         while self.Dome.Slewing:
             time.sleep(2)
         if not self.Dome.Slewing:
             return
     
     def Home(self):
-        self.is_ready()
+        self._is_ready()
         try: self.Dome.FindHome()
         except: print("ERROR: Dome cannot find home")
         else: print("Dome is homing")
@@ -41,13 +42,13 @@ class Dome(threading.Thread):
         return
     
     def Park(self):
-        self.is_ready()
+        self._is_ready()
         try: self.Dome.Park()
         except: print("ERROR: Error parking dome")
         else: print("Dome is parking")
         
     def MoveShutter(self, open_or_close):
-        self.is_ready()
+        self._is_ready()
         if open_or_close == 'open':
             self.Dome.OpenShutter()
             print("Shutter is opening")
@@ -63,7 +64,7 @@ class Dome(threading.Thread):
         return
     
     def SlaveDometoScope(self, toggle):
-        self.is_ready()
+        self._is_ready()
         if toggle == True:
             try: self.Dome.Slaved = True
             except: print("ERROR: Cannot slave dome to scope")
@@ -74,7 +75,7 @@ class Dome(threading.Thread):
             else: print("Dome is no longer slaving to scope")
         
     def Slew(self, Azimuth):
-        self.is_ready()
+        self._is_ready()
         try: self.Dome.SlewtoAzimuth(Azimuth)
         except: print("ERROR: Error slewing dome")
         else: print("Dome is slewing to {} degrees".format(Azimuth))
@@ -83,7 +84,7 @@ class Dome(threading.Thread):
         self.Dome.AbortSlew()
         
     def disconnect(self):   #Always close shutter and park before disconnecting
-        self.is_ready()
+        self._is_ready()
         while self.Dome.ShutterStatus != 1:
             time.sleep(5)
         if self.Dome.AtPark and self.Dome.ShutterStatus == 1:

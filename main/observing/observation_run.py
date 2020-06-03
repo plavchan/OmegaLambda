@@ -49,6 +49,7 @@ class ObservationRun():
                 time.sleep((start_time_epoch_milli - current_epoch_milli)/1000)
             
             #TODO: start guiding
+            self.camera.cooler_ready()
             input("The program is ready to start taking images of {}.  Please take this time to "
                   "focus and check the pointing of the target.  When you are ready, press Enter: ".format(ticket.name))
             (taken, total) = self.run_ticket(ticket)

@@ -31,6 +31,7 @@ class Telescope(threading.Thread):
             try: 
                 self.Telescope.Connected = True
             except: print("ERROR: Could not connect to the telescope")
+            else: print("Telescope has successfully connected")
         else: print("Already connected")
         
     def check_coordinate_limit(self, ra, dec, time=None):
@@ -42,14 +43,14 @@ class Telescope(threading.Thread):
            return True
        #TODO: Figure out if there are any other limits
        
-    def is_ready(self):
+    def _is_ready(self):
         while self.Telescope.Slewing:
             time.sleep(1)
         if not self.Telescope.Slewing:
             return
           
     def Park(self):
-        self.is_ready()
+        self._is_ready()
         try: 
             self.Telescope.Tracking = False
             self.Telescope.Park()
@@ -62,7 +63,7 @@ class Telescope(threading.Thread):
             return True
         
     def Unpark(self):
-        self.is_ready()
+        self._is_ready()
         try: 
             self.Telescope.Unpark()
             self.Telescope.Tracking = True
@@ -79,7 +80,7 @@ class Telescope(threading.Thread):
             print("ERROR: Cannot slew below 15 degrees altitude.")
             return False
         else:
-            self.is_ready()
+            self._is_ready()
             try: 
                 self.Telescope.SlewToCoordinates(ra, dec) 
             except:
@@ -97,7 +98,7 @@ class Telescope(threading.Thread):
             return False
         
         duration = duration*1000                                    #Convert seconds to milliseconds
-        self.is_ready()
+        self._is_ready()
         try:
             self.Telescope.PulseGuide(direction_num, duration)
         except:
@@ -138,11 +139,12 @@ class Telescope(threading.Thread):
         self.Telescope.AbortSlew()
         
     def disconnect(self):   #always park before disconnecting
-        self.is_ready()
+        self._is_ready()
         if self.Telescope.AtPark:
             try: 
                 self.Telescope.Connected = False
                 #os.system("TASKKILL /F /IM TheSkyX.exe")   #This is the only way it will actually disconnect from TheSkyX so far
+                #os.system(r"C:\Program Files (x86)\Software Bisque\TheSkyX Professional Edition\TheSkyX.exe")
             except: print("ERROR: Could not disconnect from telescope")
         else: 
             print("Telescope is not parked.")
