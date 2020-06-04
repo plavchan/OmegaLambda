@@ -1,26 +1,43 @@
 import win32com.client
+import pythoncom
 import time
 import os
 from main.common.IO import config_reader
 from main.common.util import conversion_utils
 import threading
+import queue
 import logging
 
 class Telescope(threading.Thread):
-    def __init__(self):
-        threading.Thread.__init__(self)
+    
+    def __init__(self, loop_time = 1.0/60):
+        self.q = queue.Queue()
+        self.timeout = loop_time
         self.running = True
+        super(Telescope, self).__init__(name='Scope-Th')
         
         self.Telescope = win32com.client.Dispatch("ASCOM.SoftwareBisque.Telescope")
+        self.marshalled_tel = pythoncom.CoMarshalInterThreadInterfaceInStream(pythoncom.IID_IDispatch, self.Telescope)
         self.config_dict = config_reader.get_config()
         self.Telescope.SlewSettleTime = 1
+        self.slew_done = threading.Event()
        
         self.check_connection()
         
+    def onThread(self, function, *args, **kwargs):
+        self.q.put((function, args, kwargs))
+        
     def run(self):
+        pythoncom.CoInitialize()
+        self.Telescope = win32com.client.Dispatch(pythoncom.CoGetInterfaceAndReleaseStream(self.marshalled_tel, pythoncom.IID_IDispatch))
         while self.running:
             logging.debug("Telescope thread is alive")
-            time.sleep(5)
+            try:
+                function, args, kwargs = self.q.get(timeout=self.timeout)
+                function(*args, **kwargs)
+            except queue.Empty:
+                time.sleep(1)
+        pythoncom.CoUninitialize()
     
     def stop(self):
         logging.debug("Stopping telescope thread")
@@ -50,6 +67,7 @@ class Telescope(threading.Thread):
             return
           
     def Park(self):
+        self.slew_done.clear()
         self._is_ready()
         try: 
             self.Telescope.Tracking = False
@@ -59,7 +77,9 @@ class Telescope(threading.Thread):
             print("ERROR: Could not park telescope")
             return False
         else: 
-            print("Telescope is parked, tracking off")
+            print("Telescope is parking, tracking off")
+            self._is_ready()
+            self.slew_done.set()
             return True
         
     def Unpark(self):
@@ -75,6 +95,7 @@ class Telescope(threading.Thread):
             return True
     
     def Slew(self, ra, dec):
+        self.slew_done.clear()
         (ra, dec) = conversion_utils.convert_J2000_to_apparent(ra, dec)
         if self.check_coordinate_limit(ra, dec) == False:
             print("ERROR: Cannot slew below 15 degrees altitude.")
@@ -87,9 +108,12 @@ class Telescope(threading.Thread):
             except:
                 print("ERROR: Error slewing to target")
             else:
-                return True
+                self._is_ready()
+                self.slew_done.set()
+                return
     
     def PulseGuide(self, direction, duration):                      #Direction str, duration in SECONDS
+        self.slew_done.clear()
         direction_key = {"up": 0, "down": 1, "left": 2, "right": 3}
         
         if direction in direction_key:
@@ -106,6 +130,8 @@ class Telescope(threading.Thread):
             print("ERROR: Could not pulse guide")
             return False
         else:
+            self._is_ready()
+            self.slew_done.set()
             return True
             
     def Jog(self, direction, distance):
@@ -143,7 +169,8 @@ class Telescope(threading.Thread):
         self._is_ready()
         if self.Telescope.AtPark:
             try: 
-                self.Telescope.Connected = False
+                del self.Telescope
+                #self.Telescope.Connected = False
                 #os.system("TASKKILL /F /IM TheSkyX.exe")   #This is the only way it will actually disconnect from TheSkyX so far
                 #os.system(r"C:\Program Files (x86)\Software Bisque\TheSkyX Professional Edition\TheSkyX.exe")
             except: print("ERROR: Could not disconnect from telescope")

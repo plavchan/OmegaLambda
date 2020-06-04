@@ -10,6 +10,6 @@ global_config_object = ObjectReader(Reader(r'C:\Users\GMU Observtory1\-omegalamb
 camera_object = Camera()
 
 camera_object.start()
-camera_object.expose(2, 4, type="light")
-camera_object.disconnect()
-camera_object.stop()
+camera_object.onThread(camera_object.expose, 2, 4)
+camera_object.onThread(camera_object.disconnect)
+camera_object.onThread(camera_object.stop)

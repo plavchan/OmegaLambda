@@ -7,7 +7,6 @@ import logging
 
 logging.basicConfig(level=logging.DEBUG, format='(%(threadName)-10s) %(message)s',)
 
-
 folder = datetime.datetime.now().strftime('%Y%m%d')
 try: os.mkdir(r'h:\observatory files\observing sessions\2020_data\{0:s}'.format(folder))
 except: print('ERROR: Could not create directory, or directory already exists')

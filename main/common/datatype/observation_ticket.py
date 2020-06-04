@@ -19,9 +19,9 @@ class ObservationTicket():
             coords = {'ra': ra, 'dec': dec}
             for key in coords:
                 coords_split = re.split(splitter, coords[key])
-                if float(coords_split[0]) > 0:
+                if float(coords_split[0]) > 0 or coords_split[0] == '+00' or coords_split[0] == '00':
                     coords[key] = float(coords_split[0]) + float(coords_split[1])/60 + float(coords_split[2])/3600
-                elif float(coords_split[0]) < 0:
+                elif float(coords_split[0]) < 0 or coords_split[0] == '-00':
                     coords[key] = float(coords_split[0]) - float(coords_split[1])/60 - float(coords_split[2])/3600
             self.ra = coords['ra']
             self.dec = coords['dec']

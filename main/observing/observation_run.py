@@ -2,6 +2,7 @@ import datetime
 import time
 import os
 import math
+import logging
 
 from main.common.util import time_utils
 from main.controller.camera import Camera
@@ -30,15 +31,18 @@ class ObservationRun():
         self.telescope.start()
         self.dome.start()
         
-        self.dome.Home()
-        self.dome.MoveShutter('open')   #Check weather before opening
-        self.dome.SlaveDometoScope(True)
-        self.telescope.Unpark()
+        self.dome.onThread(self.dome.Home)
+        #self.dome.onThread(self.dome.MoveShutter, 'open')   #Check weather before opening
+        self.dome.onThread(self.dome.SlaveDometoScope, True)
+        self.telescope.onThread(self.telescope.Unpark)
+        self.telescope.Unpark()         #This is weird--not sure why, but the telescope needs to have this on the main thread or else the 
+                                        #telescope thread won't do anything.  It jogs it awake or something.
         
         for ticket in self.observation_request_list:
-            self.telescope.Slew(ticket.ra, ticket.dec)
-            while (self.telescope.Telescope.Slewing or self.dome.Dome.Slewing):
-                time.sleep(2)
+            self.telescope.onThread(self.telescope.Slew, ticket.ra, ticket.dec)
+            self.telescope.slew_done.wait()
+            self.dome.move_done.wait()
+            #self.dome.shutter_done.wait()
             self.tz = ticket.start_time.tzinfo
             current_time = datetime.datetime.now(self.tz)
             if ticket.start_time > current_time:
@@ -49,7 +53,8 @@ class ObservationRun():
                 time.sleep((start_time_epoch_milli - current_epoch_milli)/1000)
             
             #TODO: start guiding
-            self.camera.cooler_ready()
+            self.camera.onThread(self.camera.cooler_ready)
+            self.camera.cooler_settle.wait()
             input("The program is ready to start taking images of {}.  Please take this time to "
                   "focus and check the pointing of the target.  When you are ready, press Enter: ".format(ticket.name))
             (taken, total) = self.run_ticket(ticket)
@@ -79,6 +84,7 @@ class ObservationRun():
         n = None
         images_taken = 0
         for i in range(num):
+            logging.debug('In take_images loop')
             if end_time <= datetime.datetime.now(self.tz):
                 print("The observations end time of {} has passed.  "
                       "Stopping observation of {}.".format(end_time, name))
@@ -90,7 +96,9 @@ class ObservationRun():
                 n = os.listdir(path)[-1].replace("{0:s}_{1:d}s_{2:s}-".format(name, exp_time, filter[-1]), '').replace('.fits','')
                 image_num_base = int(n) + 1
                 image_name = "{0:s}_{1:d}s_{2:s}-{3:04d}.fits".format(name, exp_time, current_filter, image_num_base)
-            self.camera.expose(int(exp_time), self.filterwheel_dict[current_filter], os.path.join(path, image_name), type="light")
+            self.camera.onThread(self.camera.expose, 
+                                 int(exp_time), self.filterwheel_dict[current_filter], os.path.join(path, image_name), "light")     #Very strange issue where sometimes camera saves 2 images at once (different names)?
+            self.camera.image_done.wait()
             images_taken += 1
             if cycle_filter:
                 if n:
@@ -99,27 +107,19 @@ class ObservationRun():
                     image_num = math.floor(1 + ((i + 1)/num_filters))
             elif not cycle_filter:
                 image_num += 1
-            
-            t = 1
-            while not os.path.exists(os.path.join(path, image_name)):
-                time.sleep(1)
-                if t >= 10:
-                    raise TimeoutError('CCD Image Save Timeout')
-                    break
-                t += 1
         return images_taken
     
     def shutdown(self):
         print("All targets have finished for tonight.  Shutting down observatory.")
-        self.dome.SlaveDometoScope(False)
-        self.telescope.Park()
-        self.dome.Park()
-        self.dome.MoveShutter('close')
+        self.dome.onThread(self.dome.SlaveDometoScope, False)
+        self.telescope.onThread(self.telescope.Park)
+        self.dome.onThread(self.dome.Park)
+        #self.dome.onThread(self.dome.MoveShutter, 'close')
         
-        self.camera.disconnect()
-        self.dome.disconnect()
-        self.telescope.disconnect()
+        self.camera.onThread(self.camera.disconnect)
+        self.dome.onThread(self.dome.disconnect)
+        self.telescope.onThread(self.telescope.disconnect)
         
-        self.camera.stop()
-        self.telescope.stop()
-        self.dome.stop()
+        self.camera.onThread(self.camera.stop)
+        self.telescope.onThread(self.telescope.stop)
+        self.dome.onThread(self.dome.stop)
