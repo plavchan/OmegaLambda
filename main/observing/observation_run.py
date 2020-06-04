@@ -42,7 +42,7 @@ class ObservationRun():
             self.telescope.onThread(self.telescope.Slew, ticket.ra, ticket.dec)
             self.telescope.slew_done.wait()
             self.dome.move_done.wait()
-            #self.dome.shutter_done.wait()
+            self.dome.shutter_done.wait()
             self.tz = ticket.start_time.tzinfo
             current_time = datetime.datetime.now(self.tz)
             if ticket.start_time > current_time:
