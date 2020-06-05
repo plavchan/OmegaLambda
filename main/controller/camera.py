@@ -1,5 +1,6 @@
 import time
 import win32com.client
+import pythoncom
 from main.common.IO import config_reader
 import threading
 import queue
@@ -18,18 +19,18 @@ class Camera(threading.Thread):
         self.image_done = threading.Event()
         self.exposing = threading.Lock()
         
-        self.coolerSet(True)
-        
     def onThread(self, function, *args, **kwargs):
         self.q.put((function, args, kwargs))
         
     def run(self):
+        pythoncom.CoInitialize()
         self.Camera = win32com.client.Dispatch("MaxIm.CCDCamera") #Sets the camera connection path to the CCDCamera
         self.check_connection()
         self.Application = win32com.client.Dispatch("MaxIm.Application")
         self.Camera.DisableAutoShutdown = True  # All of these settings are just basic camera setup settings.
         self.Application.LockApp = True
         self.Camera.AutoDownload = True
+        self.coolerSet(True)
         while self.running:
             logging.debug("Camera thread is alive")
             try:
@@ -37,6 +38,7 @@ class Camera(threading.Thread):
                 function(*args, **kwargs)
             except queue.Empty:
                 time.sleep(1)
+        pythoncom.CoUninitialize()
             
     def stop(self):
         logging.debug("Stopping camera thread")

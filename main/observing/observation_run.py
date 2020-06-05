@@ -35,8 +35,6 @@ class ObservationRun():
         self.dome.onThread(self.dome.MoveShutter, 'open')   #Check weather before opening
         self.dome.onThread(self.dome.SlaveDometoScope, True)
         self.telescope.onThread(self.telescope.Unpark)
-        self.telescope.Unpark()         #This is weird--not sure why, but the telescope needs to have this on the main thread or else the 
-                                        #telescope thread won't do anything.  It jogs it awake or something.
         
         for ticket in self.observation_request_list:
             self.telescope.onThread(self.telescope.Slew, ticket.ra, ticket.dec)
@@ -119,7 +117,7 @@ class ObservationRun():
         self.camera.onThread(self.camera.disconnect)
         self.dome.onThread(self.dome.disconnect)
         self.telescope.onThread(self.telescope.disconnect)  #still doesn't disconnect from TheSkyX
-        
+
         self.camera.onThread(self.camera.stop)
         self.telescope.onThread(self.telescope.stop)
         self.dome.onThread(self.dome.stop)

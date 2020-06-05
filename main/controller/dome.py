@@ -1,4 +1,5 @@
 import win32com.client
+import pythoncom
 import time
 import threading
 import queue
@@ -20,6 +21,7 @@ class Dome(threading.Thread):
         self.q.put((function, args, kwargs))
         
     def run(self):
+        pythoncom.CoInitialize()
         self.Dome = win32com.client.Dispatch("ASCOMDome.Dome")
         self.connect()
         while self.running:
@@ -29,6 +31,7 @@ class Dome(threading.Thread):
                 function(*args, **kwargs)
             except queue.Empty:
                 time.sleep(1)
+        pythoncom.CoUninitialize()
     
     def stop(self):
         logging.debug("Stopping dome thread")

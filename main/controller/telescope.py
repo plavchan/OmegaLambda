@@ -1,4 +1,5 @@
 import win32com.client
+import pythoncom
 import time
 import os
 from main.common.IO import config_reader
@@ -22,6 +23,7 @@ class Telescope(threading.Thread):
         self.q.put((function, args, kwargs))
         
     def run(self):
+        pythoncom.CoInitialize()
         self.Telescope = win32com.client.Dispatch("ASCOM.SoftwareBisque.Telescope")
         self.Telescope.SlewSettleTime = 1
         self.check_connection()
@@ -32,6 +34,7 @@ class Telescope(threading.Thread):
                 function(*args, **kwargs)
             except queue.Empty:
                 time.sleep(1)
+        pythoncom.CoUninitialize()
     
     def stop(self):
         logging.debug("Stopping telescope thread")
