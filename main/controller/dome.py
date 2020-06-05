@@ -1,5 +1,4 @@
 import win32com.client
-import pythoncom
 import time
 import threading
 import queue
@@ -13,19 +12,16 @@ class Dome(threading.Thread):
         self.running = True
         super(Dome, self).__init__(name='Dome-Th')
         
-        self.Dome = win32com.client.Dispatch("ASCOMDome.Dome")
-        self.marshalled_dome = pythoncom.CoMarshalInterThreadInterfaceInStream(pythoncom.IID_IDispatch, self.Dome)
         self.move_done = threading.Event()
         self.shutter_done = threading.Event()
 
-        self.connect()
-    
+
     def onThread(self, function, *args, **kwargs):
         self.q.put((function, args, kwargs))
         
     def run(self):
-        pythoncom.CoInitialize()
-        self.Dome = win32com.client.Dispatch(pythoncom.CoGetInterfaceAndReleaseStream(self.marshalled_dome, pythoncom.IID_IDispatch))
+        self.Dome = win32com.client.Dispatch("ASCOMDome.Dome")
+        self.connect()
         while self.running:
             logging.debug("Dome thread is alive")
             try:
@@ -33,7 +29,6 @@ class Dome(threading.Thread):
                 function(*args, **kwargs)
             except queue.Empty:
                 time.sleep(1)
-        pythoncom.CoUninitialize()
     
     def stop(self):
         logging.debug("Stopping dome thread")

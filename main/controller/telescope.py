@@ -1,5 +1,4 @@
 import win32com.client
-import pythoncom
 import time
 import os
 from main.common.IO import config_reader
@@ -16,20 +15,16 @@ class Telescope(threading.Thread):
         self.running = True
         super(Telescope, self).__init__(name='Scope-Th')
         
-        self.Telescope = win32com.client.Dispatch("ASCOM.SoftwareBisque.Telescope")
-        self.marshalled_tel = pythoncom.CoMarshalInterThreadInterfaceInStream(pythoncom.IID_IDispatch, self.Telescope)
         self.config_dict = config_reader.get_config()
-        self.Telescope.SlewSettleTime = 1
         self.slew_done = threading.Event()
-       
-        self.check_connection()
         
     def onThread(self, function, *args, **kwargs):
         self.q.put((function, args, kwargs))
         
     def run(self):
-        pythoncom.CoInitialize()
-        self.Telescope = win32com.client.Dispatch(pythoncom.CoGetInterfaceAndReleaseStream(self.marshalled_tel, pythoncom.IID_IDispatch))
+        self.Telescope = win32com.client.Dispatch("ASCOM.SoftwareBisque.Telescope")
+        self.Telescope.SlewSettleTime = 1
+        self.check_connection()
         while self.running:
             logging.debug("Telescope thread is alive")
             try:
@@ -37,7 +32,6 @@ class Telescope(threading.Thread):
                 function(*args, **kwargs)
             except queue.Empty:
                 time.sleep(1)
-        pythoncom.CoUninitialize()
     
     def stop(self):
         logging.debug("Stopping telescope thread")

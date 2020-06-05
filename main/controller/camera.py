@@ -1,6 +1,5 @@
 import time
 import win32com.client
-import pythoncom
 from main.common.IO import config_reader
 import threading
 import queue
@@ -14,13 +13,6 @@ class Camera(threading.Thread):
         self.running = True
         super(Camera, self).__init__(name='Camera-Th')
         
-        self.Camera = win32com.client.Dispatch("MaxIm.CCDCamera") #Sets the camera connection path to the CCDCamera
-        self.marshalled_cam = pythoncom.CoMarshalInterThreadInterfaceInStream(pythoncom.IID_IDispatch, self.Camera)
-        self.check_connection()
-        self.Application = win32com.client.Dispatch("MaxIm.Application")
-        self.Camera.DisableAutoShutdown = True  # All of these settings are just basic camera setup settings.
-        self.Application.LockApp = True
-        self.Camera.AutoDownload = True
         self.config_dict = config_reader.get_config()
         self.cooler_settle = threading.Event()
         self.image_done = threading.Event()
@@ -32,8 +24,12 @@ class Camera(threading.Thread):
         self.q.put((function, args, kwargs))
         
     def run(self):
-        pythoncom.CoInitialize()
-        self.Camera = win32com.client.Dispatch(pythoncom.CoGetInterfaceAndReleaseStream(self.marshalled_cam, pythoncom.IID_IDispatch))
+        self.Camera = win32com.client.Dispatch("MaxIm.CCDCamera") #Sets the camera connection path to the CCDCamera
+        self.check_connection()
+        self.Application = win32com.client.Dispatch("MaxIm.Application")
+        self.Camera.DisableAutoShutdown = True  # All of these settings are just basic camera setup settings.
+        self.Application.LockApp = True
+        self.Camera.AutoDownload = True
         while self.running:
             logging.debug("Camera thread is alive")
             try:
@@ -41,7 +37,6 @@ class Camera(threading.Thread):
                 function(*args, **kwargs)
             except queue.Empty:
                 time.sleep(1)
-        pythoncom.CoUninitialize()
             
     def stop(self):
         logging.debug("Stopping camera thread")
