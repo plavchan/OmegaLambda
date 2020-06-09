@@ -53,3 +53,13 @@ class Weather(threading.Thread):
                 else:
                     continue        
             return (Humidity, Wind, Rain)
+        
+    def rain_check(self):
+        req = urllib.request.Request('https://weather.com/weather/radar/interactive/l/b63f24c17cc4e2d086c987ce32b2927ba388be79872113643d2ef82b2b13e813', 
+                                     headers={'User-Agent': 'Mozilla/5.0'})
+        self.radar = urllib.request.urlopen(req).read()
+        with open(r'C:\Users\GMU Observtory1\-omegalambda\resources\radar.txt','w') as file:
+            for line in self.radar:
+                file.write(str(line) + '\n')
+        
+                
