@@ -4,6 +4,8 @@
 	"maximum_jog": 1800,
 	"site_latitude": 38.828,
 	"site_longitude": -77.305,
+	"humidity_limit": 85,
+	"wind_limit": 20,
 	"data_directory": "H:\\Observatory Files\\Observing Sessions\\2020_Data",
 	"config_directory": "C:\\Users\\GMU Observtory1\\-omegalambda\\config",
 	"ticket_directory": "C:\\Users\\GMU Observtory1\\-omegalambda\\test",
