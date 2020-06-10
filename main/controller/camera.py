@@ -92,7 +92,7 @@ class Camera(threading.Thread):
         t = 0
         while not (self.Camera.Temperature >= self.Camera.TemperatureSetpoint - 0.1 and
                    self.Camera.Temperature <= self.Camera.TemperatureSetpoint + 0.1):
-            if t >= 5:                     #5 minutes and cooler still hasn't settled.  Time may need adjusting
+            if t >= 10:                     #10 minutes and cooler still hasn't settled.  Time may need adjusting
                 self._coolerAdjust()
             time.sleep(60)
             t += 1
