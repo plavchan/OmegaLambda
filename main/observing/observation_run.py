@@ -144,6 +144,7 @@ class ObservationRun():
         
         self.telescope.slew_done.wait()
         self.dome.move_done.wait()
+        self.dome.shutter_done.wait()
         self.camera.onThread(self.camera.disconnect)
         self.dome.onThread(self.dome.disconnect)
         self.telescope.onThread(self.telescope.disconnect)  #still doesn't disconnect from TheSkyX
