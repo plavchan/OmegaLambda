@@ -7,8 +7,7 @@
 	"humidity_limit": 85,
 	"wind_limit": 20,
 	"data_directory": "H:\\Observatory Files\\Observing Sessions\\2020_Data",
-	"config_directory": "C:\\Users\\GMU Observtory1\\-omegalambda\\config",
-	"ticket_directory": "C:\\Users\\GMU Observtory1\\-omegalambda\\test",
+	"home_directory": "C:\\Users\\GMU Observtory1\\-omegalambda",
 	"prep_time": 30
 	}
 }

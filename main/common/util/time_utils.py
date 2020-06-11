@@ -1,6 +1,10 @@
 import datetime
 import pytz
 import dateutil.parser
+import math
+
+def rounddown_300(x):
+    return (math.floor(x/300))*300
 
 def convert_to_datetime_UTC(date):
     d = dateutil.parser.parse(date)

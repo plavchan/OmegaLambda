@@ -3,6 +3,7 @@ from astropy import units as u
 from astropy.coordinates import SkyCoord, FK5
 from main.common.util import time_utils
 
+
 def convert_degrees_to_radians(Degrees):    #degrees may be a list with multiple values to convert
     if type(Degrees) is list:   
         result = []

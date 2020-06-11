@@ -38,7 +38,7 @@ class ObservationRun():
 
     def observe(self):
         self.weather.start()
-        time.sleep(1)           #This is needed, or else it checks before weather_checker finishes its first test
+        time.sleep(5)           #This is needed, or else it checks before weather_checker finishes its first test
         if self.check_weather(): 
             return
         self.camera.start()
@@ -46,8 +46,8 @@ class ObservationRun():
         self.dome.start()
         
         self.dome.onThread(self.dome.Home)
-        self.dome.onThread(self.dome.MoveShutter, 'open')
         self.dome.onThread(self.dome.SlaveDometoScope, True)
+        self.dome.onThread(self.dome.MoveShutter, 'open')
         self.telescope.onThread(self.telescope.Unpark)
         
         for ticket in self.observation_request_list:
