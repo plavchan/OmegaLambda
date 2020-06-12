@@ -10,8 +10,7 @@ resources/weather_status/*
 
 main/controller/focuser.py
 main/observing/guider.py
-test/TOI1355.json
-test/TOI1521-01.json
+test/TOI*.json
 test/__init__.pyc
 test/threading_practice.py
 test/helpfullink.txt
