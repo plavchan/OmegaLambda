@@ -34,7 +34,7 @@ class Weather(threading.Thread):
             else:
                 logging.debug("Weather checker is alive: Last check false")
                 Last_Rain = R
-                time.sleep(15*60)    #Checks once every fifteen minutes
+                time.sleep(5*60)    #Checks once every five minutes
    
     def weather_check(self):
         self.weather = urllib.request.urlopen('http://weather.cos.gmu.edu/Current_Monitor.htm')
@@ -43,21 +43,12 @@ class Weather(threading.Thread):
                 file.write(str(line)+'\n')
                 
         with open(os.path.join(self.config_dict.home_directory, r'resources\weather_status\weather.txt'), 'r') as file:
-            for line in file:
-                if '<font color=Brown>Humidity</font>' in str(line):
-                    file.readline()
-                    Humidity = file.readline()
-                    Humidity = int(re.search(r'\d+', Humidity.replace('b\' Helvetica"><strong><small><font color="#3366FF">', '')).group())
-                elif '<font color=Brown><small>Wind<br></small></font>' in str(line):
-                    file.readline()
-                    Wind = file.readline()
-                    Wind = float(re.search(r'\d+', Wind.replace('b\' Helvetica"><strong><font color="#3366FF">', '')).group())
-                elif r'<font color=Brown>Today\'s Rain</font>' in str(line):
-                    file.readline()
-                    Rain = file.readline()
-                    Rain = float(re.search("[+-]?\d+\.\d+", Rain.replace('b\' Helvetica"><strong><small><font color="#3366FF">', '')).group())
-                else:
-                    continue        
+            text = file.read()
+            conditions = re.findall(r'<font color="#3366FF">(.+?)</font>', text)
+            Humidity = float(conditions[1].replace('%',''))
+            Wind = float(re.search('[+-]?\d+\.\d+', conditions[3]).group())
+            Rain = float(re.search('[+-]?\d+\.\d+', conditions[5]).group())
+            
             return (Humidity, Wind, Rain)
         
     def rain_check(self):
@@ -90,11 +81,8 @@ class Weather(threading.Thread):
             img = Image.open(os.path.join(self.config_dict.home_directory, r'resources\weather_status\radar-img{0:04d}.png'.format(key + 1)))
             colors = img.getcolors()
             if colors[0][0] > 1 or len(colors) > 1:     #Checks for any colors (green to red for rain) in the images
-                rain.append(1)
+                return True
             else:
-                rain.append(0)
+                continue
             img.close()
-        for i in rain:
-            if i: return True
-            else: continue
         return False
