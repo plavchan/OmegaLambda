@@ -13,6 +13,7 @@ class Dome(threading.Thread):
         self.running = True
         super(Dome, self).__init__(name='Dome-Th')
         
+        self.live_connection = threading.Event()
         self.move_done = threading.Event()
         self.shutter_done = threading.Event()
 
@@ -40,13 +41,16 @@ class Dome(threading.Thread):
     def connect(self):
         try: self.Dome.Connected = True
         except: print("ERROR: Could not connect to dome")
-        else: print("Dome has successfully connected")
+        else: print("Dome has successfully connected"); self.live_connection.set()
         
     def _is_ready(self):
         while self.Dome.Slewing:
             time.sleep(2)
         if not self.Dome.Slewing:
             return
+        
+    def ShutterPosition(self):
+        self.shutter = self.Dome.ShutterStatus
     
     def Home(self):
         self._is_ready()
@@ -80,7 +84,7 @@ class Dome(threading.Thread):
         elif open_or_close == 'close':
             self.Dome.CloseShutter()
             print("Shutter is closing")
-            while self.Dome.ShutterStatus != 1: #Seems like 1 = closed, 0 = open.  Partially opened = open.
+            while self.Dome.ShutterStatus != 1: #Seems like 1 = closed, 0 = open.  Partially opened/closed = last position.
                 time.sleep(5)
             self.shutter_done.set()
             
@@ -123,6 +127,7 @@ class Dome(threading.Thread):
         if self.Dome.AtPark and self.Dome.ShutterStatus == 1:
             try: 
                 self.Dome.Connected = False
+                self.live_conection.clear()
                 return True
             except: 
                 print("ERROR: Could not disconnect from dome")

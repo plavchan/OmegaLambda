@@ -1,0 +1,9 @@
+If the code crashes:
+
+Kill git bash
+Open a new git bash (search in Windows)
+Run "cd ~/-omegalambda" [or press up arrow until you see it]
+Run "python -u -m main.drivers.driver" [or press up arrow until you see it]
+
+This will work as long as your observation ticket is properly coded within main.drivers.driver - temporary solution until we have a cli up and running that will make than an argument.
+

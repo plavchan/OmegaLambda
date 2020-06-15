@@ -2,6 +2,7 @@ import datetime
 import time
 import os
 import math
+import re
 import logging
 
 from main.common.util import time_utils
@@ -44,19 +45,26 @@ class ObservationRun():
         self.camera.start()
         self.telescope.start()
         self.dome.start()
+        self.camera.onThread(self.camera.cooler_ready)
         
-        self.dome.onThread(self.dome.Home)
-        self.dome.onThread(self.dome.SlaveDometoScope, True)
-        self.dome.onThread(self.dome.MoveShutter, 'open')
-        self.telescope.onThread(self.telescope.Unpark)
+        self.dome.live_connection.wait()
+        self.dome.onThread(self.dome.ShutterPosition) #If open, status = 0 (False), if closed, status = 1 (True)
+        time.sleep(1)
+        Initial_shutter = self.dome.shutter
+        if Initial_shutter:
+            self.dome.onThread(self.dome.MoveShutter, 'open')
+            self.dome.onThread(self.dome.Home)
+            self.dome.onThread(self.dome.SlaveDometoScope, True)
+            self.telescope.onThread(self.telescope.Unpark)
         
         for ticket in self.observation_request_list:
             if self.check_weather(): 
                 self.shutdown(); return
-            self.telescope.onThread(self.telescope.Slew, ticket.ra, ticket.dec)
-            self.telescope.slew_done.wait()
-            self.dome.move_done.wait()
-            self.dome.shutter_done.wait()
+            if Initial_shutter:
+                self.telescope.onThread(self.telescope.Slew, ticket.ra, ticket.dec)
+                self.telescope.slew_done.wait()
+                self.dome.move_done.wait()
+                self.dome.shutter_done.wait()
             self.tz = ticket.start_time.tzinfo
             current_time = datetime.datetime.now(self.tz)
             if ticket.start_time > current_time:
@@ -66,7 +74,6 @@ class ObservationRun():
                 start_time_epoch_milli = time_utils.datetime_to_epoch_milli_converter(ticket.start_time)
                 time.sleep((start_time_epoch_milli - current_epoch_milli)/1000)
             
-            self.camera.onThread(self.camera.cooler_ready)
             self.camera.cooler_settle.wait()
             if self.check_weather(): 
                 self.shutdown(); return
@@ -96,7 +103,8 @@ class ObservationRun():
     def take_images(self, name, num, exp_time, filter, end_time, path, cycle_filter):
         num_filters = len(filter)
         image_num = 1
-        n = None
+        N = []
+        image_base = {}
         images_taken = 0
         for i in range(num):
             logging.debug('In take_images loop')
@@ -109,14 +117,17 @@ class ObservationRun():
             image_name = "{0:s}_{1:d}s_{2:s}-{3:04d}.fits".format(name, exp_time, current_filter, image_num)
             
             if i == 0 and os.path.exists(os.path.join(path, image_name)):   #Checks if images already exist (in the event of a crash)
-                n = os.listdir(path)[-1].replace("{0:s}_{1:d}s".format(name, exp_time), '').replace('.fits','')
-                for key in self.filterwheel_dict:
-                    n = n.replace('_{0:s}-'.format(key), '')
-                image_num_base = int(n) + 1
-                image_name = "{0:s}_{1:d}s_{2:s}-{3:04d}.fits".format(name, exp_time, current_filter, image_num_base)
+                for f in filter:
+                    N = []    
+                    for fname in os.listdir(path):
+                        n = re.search('{0:s}_{1:d}s_{2:s}-(.+?).fits'.format(name, exp_time, f), fname)
+                        if n: N.append(int(n.group(1)))
+                    image_base[f] = max(N) + 1
+                
+                image_name = "{0:s}_{1:d}s_{2:s}-{3:04d}.fits".format(name, exp_time, current_filter, image_base[current_filter])
                 
             self.camera.onThread(self.camera.expose, 
-                                 int(exp_time), self.filterwheel_dict[current_filter], os.path.join(path, image_name), "light")     #Very strange issue where sometimes camera saves 2 images at once (different names)?
+                                 int(exp_time), self.filterwheel_dict[current_filter], os.path.join(path, image_name), "light")
             self.camera.image_done.wait()
             #self.guider.onThread(self.guider.FindStars)
             #self.guider.onThread(self.guider.ComparePositions)
@@ -124,19 +135,20 @@ class ObservationRun():
             
             images_taken += 1
             if cycle_filter:
-                if n:
-                    image_num = math.floor(image_num_base + ((i + 1)/num_filters))
+                if N:
+                    image_num = math.floor(image_base[filter[(i + 1) % num_filters]] + ((i + 1)/num_filters))
                 else:
                     image_num = math.floor(1 + ((i + 1)/num_filters))
             elif not cycle_filter:
-                if n:
-                    image_num = image_num_base + 1
+                if N:
+                    image_num = image_base[filter[(i + 1) % num_filters]] + (i + 1)
                 else:
                     image_num += 1
         return images_taken
     
     def shutdown(self):
         print("Shutting down observatory.")
+        self.weather.stop()
         self.dome.onThread(self.dome.SlaveDometoScope, False)
         self.telescope.onThread(self.telescope.Park)
         self.dome.onThread(self.dome.Park)

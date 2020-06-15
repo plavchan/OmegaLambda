@@ -22,10 +22,16 @@ class Weather(threading.Thread):
         super(Weather, self).__init__(name='Weather-Th')
         self.weather_alert = threading.Event()
         self.config_dict = config_reader.get_config()
+        self.weather_url = 'http://weather.cos.gmu.edu/Current_Monitor.htm'
+        self.rain_url = 'https://weather.com/weather/radar/interactive/l/b63f24c17cc4e2d086c987ce32b2927ba388be79872113643d2ef82b2b13e813'
+        self.running = True
         
     def run(self):
         Last_Rain = None
-        while not self.weather_alert.isSet():
+        if not self.check_internet():
+            print("ERROR: Your internet connection requires attention.")
+            return
+        while (self.weather_alert.isSet() == False) and (self.running == True):
             (H, W, R) = self.weather_check()
             Radar = self.rain_check()
             if (H >= self.config_dict.humidity_limit) or (W >= self.config_dict.wind_limit) or (Last_Rain != R and Last_Rain != None) or (Radar == True):
@@ -34,10 +40,31 @@ class Weather(threading.Thread):
             else:
                 logging.debug("Weather checker is alive: Last check false")
                 Last_Rain = R
-                time.sleep(5*60)    #Checks once every five minutes
+                time.sleep(self.config_dict.weather_freq*60)
+                
+    def stop(self):
+        logging.debug("Stopping weather thread")
+        self.running = False
+                
+    def check_internet(self):
+        try:
+            urllib.request.urlopen('http://google.com')
+            return True
+        except:
+            return False
    
     def weather_check(self):
-        self.weather = urllib.request.urlopen('http://weather.cos.gmu.edu/Current_Monitor.htm')
+        self.weather = urllib.request.urlopen(self.weather_url)
+        header = requests.head(self.weather_url).headers
+        if 'Last-Modified' in header:
+            Update_time = time_utils.convert_to_datetime_UTC(header['Last-Modified'])
+            Diff = datetime.datetime.now(datetime.timezone.utc) - Update_time
+            if Diff > datetime.timedelta(minutes=30):
+                print("Warning: GMU COS Weather Station Web site has not updated in the last 30 minutes!")
+                #Implement backup weather station
+        else: 
+            print("Warning: GMU COS Weather Station Web site did not return a last modified timestamp--it may be outdated!")
+            #Implement backup weather station
         with open(os.path.join(self.config_dict.home_directory, r'resources\weather_status\weather.txt'),'w') as file:
             for line in self.weather:
                 file.write(str(line)+'\n')
@@ -53,8 +80,7 @@ class Weather(threading.Thread):
         
     def rain_check(self):
         s = requests.Session()
-        self.radar = s.get('https://weather.com/weather/radar/interactive/l/b63f24c17cc4e2d086c987ce32b2927ba388be79872113643d2ef82b2b13e813', 
-                                     headers={'User-Agent': 'Mozilla/5.0'})
+        self.radar = s.get(self.rain_url, headers={'User-Agent': 'Mozilla/5.0'})
         with open(os.path.join(self.config_dict.home_directory, r'resources\weather_status\radar.txt'),'w') as file:
             file.write(str(self.radar.text))
             
@@ -69,7 +95,6 @@ class Weather(threading.Thread):
             apiKey = re.search(r'"SUN_V3_API_KEY":"(.+?)",', html).group(1)             #Api key needed to access images, found from html
         
         coords = {0: '291:391:10', 1: '291:392:10', 2: '292:391:10', 3: '292:392:10'}   #Radar map coordinates found by looking through html
-        rain = []
         for key in coords:
             url = ( 'https://api.weather.com/v3/TileServer/tile?product=twcRadarMosaic' + '&ts={}'.format(str(esec_round)) 
                    + '&xyz={}'.format(coords[key]) + '&apiKey={}'.format(apiKey) )

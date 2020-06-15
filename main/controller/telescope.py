@@ -83,7 +83,6 @@ class Telescope(threading.Thread):
         self._is_ready()
         try: 
             self.Telescope.Unpark()
-            self.Telescope.Tracking = True
         except: 
             print("ERROR: Error unparking telescope or enabling tracking")
             return False
@@ -91,7 +90,7 @@ class Telescope(threading.Thread):
             print("Telescope is unparked; tracking at sidereal rate")
             return True
     
-    def Slew(self, ra, dec):
+    def Slew(self, ra, dec, tracking=True):     #default tracking is true
         self.slew_done.clear()
         (ra, dec) = conversion_utils.convert_J2000_to_apparent(ra, dec)
         if self.check_coordinate_limit(ra, dec) == False:
@@ -101,7 +100,8 @@ class Telescope(threading.Thread):
             self._is_ready()
             try: 
                 logging.debug('Telescope slewing')
-                self.Telescope.SlewToCoordinates(ra, dec) 
+                self.Telescope.SlewToCoordinates(ra, dec)
+                self.Telescope.Tracking = tracking
             except:
                 print("ERROR: Error slewing to target")
             else:
@@ -151,13 +151,13 @@ class Telescope(threading.Thread):
             elif direction in ("left", "right"):
                 self.Slew(self.Telescope.RightAscension + distance, self.Telescope.Declination)
     
-    def SlewAltAz(self, az, alt, time=None): #input alt/az in degrees
+    def SlewAltAz(self, az, alt, time=None, tracking=False): #input alt/az in degrees; default tracking is False
         if alt <= 15:
             return print("ERROR: Cannot slew below 15 degrees altitude.")
         else:
             (ra, dec) = conversion_utils.convert_AltAz_to_RaDec(az, alt, self.config_dict.site_latitude,
                                                             self.config_dict.site_longitude, time)
-            self.Slew(ra, dec)
+            self.Slew(ra, dec, tracking)
     
     def Abort(self):
         self.Telescope.AbortSlew()
