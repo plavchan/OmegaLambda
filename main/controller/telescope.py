@@ -4,49 +4,16 @@ import time
 import os
 from main.common.IO import config_reader
 from main.common.util import conversion_utils
+from main.controller.hardware import Hardware
 import threading
 import queue
 import logging
 
-class Telescope(threading.Thread):
+class Telescope(Hardware):
     
-    def __init__(self, loop_time = 1.0/60):
-        self.q = queue.Queue()
-        self.timeout = loop_time
-        self.running = True
-        super(Telescope, self).__init__(name='Scope-Th')
-        
-        self.config_dict = config_reader.get_config()
+    def __init__(self):
         self.slew_done = threading.Event()
-        
-    def onThread(self, function, *args, **kwargs):
-        self.q.put((function, args, kwargs))
-        
-    def run(self):
-        pythoncom.CoInitialize()
-        self.Telescope = win32com.client.Dispatch("ASCOM.SoftwareBisque.Telescope")
-        self.Telescope.SlewSettleTime = 1
-        self.check_connection()
-        while self.running:
-            logging.debug("Telescope thread is alive")
-            try:
-                function, args, kwargs = self.q.get(timeout=self.timeout)
-                function(*args, **kwargs)
-            except queue.Empty:
-                time.sleep(1)
-        pythoncom.CoUninitialize()
-    
-    def stop(self):
-        logging.debug("Stopping telescope thread")
-        self.running = False
-        
-    def check_connection(self):
-        if not self.Telescope.Connected:
-            try: 
-                self.Telescope.Connected = True
-            except: print("ERROR: Could not connect to the telescope")
-            else: print("Telescope has successfully connected")
-        else: print("Already connected")
+        super(Telescope, self).__init__(name='Telescope')
         
     def check_coordinate_limit(self, ra, dec, time=None):
        (az, alt) = conversion_utils.convert_RaDec_to_AltAz(ra, dec, self.config_dict.site_latitude,

@@ -14,36 +14,40 @@ class Hardware(threading.Thread):
         self.q = queue.Queue()
         self.timeout = loop_time
         self.running = True
-        super(Hardware, self).__init__(name=name)
+        self.label = name
+        super(Hardware, self).__init__(name = self.label + '-Th')
         
         self.config_dict = config_reader.get_config()
+        self.live_connection = threading.Event()
+        
         
     def onThread(self, function, *args, **kwargs):
         self.q.put((function, args, kwargs))
         
-    def run(self, name):
+    def run(self):
         pythoncom.CoInitialize()
         dispatch_dict = {'Camera': 'MaxIm.CCDCamera', 'Telescope': 'ASCOM.SoftwareBisque.Telescope', 'Dome': 'ASCOMDome.Dome'}
-        COMobj = win32com.client.Dispatch(dispatch_dict[name])
-        if name == 'Camera':
+        if self.label in dispatch_dict:
+            COMobj = win32com.client.Dispatch(dispatch_dict[self.label])
+        if self.label == 'Camera':
             self.Camera = COMobj
             self.Application = win32com.client.Dispatch("MaxIm.Application")
-            self.check_connection(name)
+            self.check_connection()
             self.Camera.DisableAutoShutdown = True
             self.Camera.AutoDownload = True
             self.Application.LockApp = True
-            self.coolerset(True)
-        elif name == 'Telescope':
+            self.coolerSet(True)
+        elif self.label == 'Telescope':
             self.Telescope = COMobj
             self.Telescope.SlewSettleTime = 1
-            self.check_connection(name)
-        elif name == 'Dome':
+            self.check_connection()
+        elif self.label == 'Dome':
             self.Dome = COMobj
-            self.check_connection(name)
+            self.check_connection()
         else:
             print("ERROR: Invalid hardware name")
         while self.running:
-            logging.debug("{0:s} thread is alive".format(name))
+            logging.debug("{0:s} thread is alive".format(self.label))
             try:
                 function, args, kwargs = self.q.get(timeout=self.timeout)
                 function(*args, **kwargs)
@@ -51,36 +55,32 @@ class Hardware(threading.Thread):
                 time.sleep(1)
         pythoncom.CoUninitialize()
         
-    def check_connection(self, name):
-        if name == 'Camera':
+    def stop(self):
+        logging.debug("Stopping {} thread".format(self.label))
+        self.running = False
+        
+    def check_connection(self):
+        self.live_connection.clear()
+        if self.label == 'Camera':
             if self.Camera.LinkEnabled:
                 print("Camera is already connected")
             else:
                 try: 
                     self.Camera.LinkEnabled = True
+                    self.live_connection.set()
                 except: print("ERROR: Could not connect to camera")
                 else: print("Camera has successfully connected") 
-        elif name == 'Telescope':
+        elif self.label == 'Telescope':
             if not self.Telescope.Connected:
                 try: 
                     self.Telescope.Connected = True
+                    self.live_connection.set()
                 except: print("ERROR: Could not connect to the telescope")
                 else: print("Telescope has successfully connected")
             else: print("Already connected")
-        elif name == 'Dome':
-            try: self.Dome.Connected = True
+        elif self.label == 'Dome':
+            try: 
+                self.Dome.Connected = True
+                self.live_connection.set()
             except: print("ERROR: Could not connect to dome")
             else: print("Dome has successfully connected")
-            
-    def coolerSet(self, toggle):
-        try: self.Camera.CoolerOn = True
-        except: print("ERROR: Could not turn on cooler")
-        
-        if self.Camera.CoolerOn and toggle == True:
-            try: self.Camera.TemperatureSetpoint = self.config_dict.cooler_setpoint
-            except: pass
-            else: print("Cooler Setpoint set to {0:.1f} C".format(self.Camera.TemperatureSetpoint))
-        elif toggle == False:
-            try: self.Camera.TemperatureSetpoint = self.config_dict.cooler_idle_setpoint
-            except: pass
-            else: print("Cooler Setpoint set to {0:.1f} C".format(self.Camera.TemperatureSetpoint))
