@@ -2,59 +2,18 @@ import time
 import win32com.client
 import pythoncom
 from main.common.IO import config_reader
+from main.controller.hardware import Hardware
 import threading
 import queue
 import logging
 
-class Camera(threading.Thread):
+class Camera(Hardware):
     
-    def __init__(self, loop_time = 1.0/60):
-        self.q = queue.Queue()
-        self.timeout = loop_time
-        self.running = True
-        super(Camera, self).__init__(name='Camera-Th')
-        
-        self.config_dict = config_reader.get_config()
+    def __init__(self):
         self.cooler_settle = threading.Event()
         self.image_done = threading.Event()
         self.exposing = threading.Lock()
-        
-    def onThread(self, function, *args, **kwargs):
-        self.q.put((function, args, kwargs))
-	
-	#Cool comment
-	
-        
-    def run(self):
-        pythoncom.CoInitialize()
-        self.Camera = win32com.client.Dispatch("MaxIm.CCDCamera") #Sets the camera connection path to the CCDCamera
-        self.check_connection()
-        self.Application = win32com.client.Dispatch("MaxIm.Application")
-        self.Camera.DisableAutoShutdown = True  # All of these settings are just basic camera setup settings.
-        self.Application.LockApp = True
-        self.Camera.AutoDownload = True
-        self.coolerSet(True)
-        while self.running:
-            logging.debug("Camera thread is alive")
-            try:
-                function, args, kwargs = self.q.get(timeout=self.timeout)
-                function(*args, **kwargs)
-            except queue.Empty:
-                time.sleep(1)
-        pythoncom.CoUninitialize()
-            
-    def stop(self):
-        logging.debug("Stopping camera thread")
-        self.running = False
-
-    def check_connection(self):
-        if self.Camera.LinkEnabled:
-            print("Camera is already connected")
-        else:
-            try: 
-                self.Camera.LinkEnabled = True
-            except: print("ERROR: Could not connect to camera")
-            else: print("Camera has successfully connected") 
+        super(Camera, self).__init__(name='Camera')
         
     def coolerSet(self, toggle):
         try: self.Camera.CoolerOn = True

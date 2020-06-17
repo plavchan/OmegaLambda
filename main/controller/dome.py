@@ -4,44 +4,14 @@ import time
 import threading
 import queue
 import logging
+from main.controller.hardware import Hardware
 
-class Dome(threading.Thread):
+class Dome(Hardware):
     
-    def __init__(self, loop_time = 1.0/60):
-        self.q = queue.Queue()
-        self.timeout = loop_time
-        self.running = True
-        super(Dome, self).__init__(name='Dome-Th')
-        
-        self.live_connection = threading.Event()
+    def __init__(self):
         self.move_done = threading.Event()
         self.shutter_done = threading.Event()
-
-
-    def onThread(self, function, *args, **kwargs):
-        self.q.put((function, args, kwargs))
-        
-    def run(self):
-        pythoncom.CoInitialize()
-        self.Dome = win32com.client.Dispatch("ASCOMDome.Dome")
-        self.connect()
-        while self.running:
-            logging.debug("Dome thread is alive")
-            try:
-                function, args, kwargs = self.q.get(timeout=self.timeout)
-                function(*args, **kwargs)
-            except queue.Empty:
-                time.sleep(1)
-        pythoncom.CoUninitialize()
-    
-    def stop(self):
-        logging.debug("Stopping dome thread")
-        self.running = False
-        
-    def connect(self):
-        try: self.Dome.Connected = True
-        except: print("ERROR: Could not connect to dome")
-        else: print("Dome has successfully connected"); self.live_connection.set()
+        super(Dome, self).__init__(name='Dome')
         
     def _is_ready(self):
         while self.Dome.Slewing:
