@@ -6,12 +6,12 @@ import os
 import logging
 from logger.logger import Logger
 
-log_object = Logger()   #I believe this is the only spot where we actually want to instantiate a logger object--everywhere else we can just add messages
-
 try: 
     global_config = ObjectReader(Reader(r'C:\Users\GMU Observtory1\-omegalambda\config\parameters_config.json'))
 except: logging.critical('Error initializing global config object')
 else: logging.info('Created global config object')
+
+log_object = Logger()   #I believe this is the only spot where we actually want to instantiate a logger object--everywhere else we can just add messages
 
 folder = datetime.datetime.now().strftime('%Y%m%d')
 try: 
