@@ -21,6 +21,9 @@ class Camera(threading.Thread):
         
     def onThread(self, function, *args, **kwargs):
         self.q.put((function, args, kwargs))
+	
+	#Cool comment
+	
         
     def run(self):
         pythoncom.CoInitialize()
