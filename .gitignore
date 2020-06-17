@@ -4,6 +4,7 @@ deprecated/
 testing_log/
 resources/weather_status/*
 !resources/weather_status/.gitkeep
+logger/*.log
 **/__pycache__
 
 # Untracked Files #

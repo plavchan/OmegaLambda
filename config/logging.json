@@ -1,0 +1,33 @@
+{"type": "logging_config",
+"details": {
+	"version": 1,
+	"formatters": {
+		"detailed": {
+			"format": "%(asctime)s -- %(levelname)s: (%(threadName)-10s) Module: %(module)s | Function: %(funcName)s | Message: %(message)s",
+			"datefmt": "%Y-%m-%d %H:%M:%S%z"
+			},
+		"simple": {
+			"format": "%(levelname)s: (%(threadName)-10s) Module: %(module)s | Message: %(message)s"
+			}
+		},
+	"handlers": {
+		"console": {
+			"class": "logging.StreamHandler",
+			"formatter": "simple",
+			"level": "INFO"
+			},
+		"file": {
+			"class": "logging.handlers.RotatingFileHandler",
+			"filename": "C:\\Users\\GMU Observtory1\\-omegalambda\\logger\\omegalambda_log.log",
+			"formatter": "detailed",
+			"level": "DEBUG",
+			"maxBytes": 10485760,
+			"backupCount": 10
+			}
+		},
+	"root": {
+		"handlers": ["console", "file"],
+		"level": "DEBUG"
+		}
+	}
+}

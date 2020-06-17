@@ -4,27 +4,32 @@ from main.common.datatype.object_reader import ObjectReader
 import datetime
 import os
 import logging
+from logger.logger import Logger
 
-logging.basicConfig(level=logging.DEBUG, format='(%(threadName)-10s) %(message)s',)
+log_object = Logger()   #I believe this is the only spot where we actually want to instantiate a logger object--everywhere else we can just add messages
 
-try: global_config = ObjectReader(Reader(r'C:\Users\GMU Observtory1\-omegalambda\config\parameters_config.json'))
-except: print('ERROR: Error initializing global config object')
+try: 
+    global_config = ObjectReader(Reader(r'C:\Users\GMU Observtory1\-omegalambda\config\parameters_config.json'))
+except: logging.critical('Error initializing global config object')
+else: logging.info('Created global config object')
 
 folder = datetime.datetime.now().strftime('%Y%m%d')
-try: os.mkdir(os.path.join(global_config.ticket.data_directory, folder))
-except: print('ERROR: Could not create directory, or directory already exists')
-else: print('New directory for tonight\'s observing has been made!')
+try: 
+    os.mkdir(os.path.join(global_config.ticket.data_directory, folder))
+except: logging.warning('Could not create directory, or directory already exists')
+else: logging.info('New directory for tonight\'s observing has been made!')
 
 try: json_reader = Reader(os.path.join(global_config.ticket.home_directory, r'test\test.json'))
-except: print('ERROR: Could not read observation ticket.')
-else: pass
+except: logging.critical('Could not read observation ticket.')
+else: logging.info('Observation ticket has been read')
 
 try: global_filter = ObjectReader(Reader(os.path.join(global_config.ticket.home_directory, r'config\fw_config.json')))
-except: print('ERROR: Error initializing global filter object')
+except: logging.critical('Error initializing global filter object')
+else: logging.info('Created global filter object')
 
 try: object_reader = ObjectReader(json_reader)
-except: print('ERROR: Could not read observation ticket.')
-else: print('Observation ticket has been read.')
+except: logging.critical('Could not parse observation ticket.')
+else: logging.info('Observation ticket has been parsed')
 
 run_object = ObservationRun([object_reader.ticket],
                             os.path.join(global_config.ticket.data_directory, folder))
