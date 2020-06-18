@@ -8,6 +8,19 @@ import json
 class Reader():
     
     def __init__(self, path):
+        '''
+        
+
+        Parameters
+        ----------
+        path : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        '''
         self.path = path
         
         with open(self.path, 'r') as file:

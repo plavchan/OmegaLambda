@@ -7,6 +7,39 @@ class ObservationTicket():
 
     def __init__(self, name=None, ra=None, dec=None, start_time=None, end_time=None,
                  filter=None, num=None, exp_time=None, self_guide=None, guide=None, cycle_filter=None):
+        '''
+        
+
+        Parameters
+        ----------
+        name : STR, optional
+            Name of intended target, ex: TOI1234.01 . The default is None.
+        ra : FLOAT, STR, optional
+            Right ascension of target object. The default is None.
+        dec : Float, STR, optional
+            Declination of target object. The default is None.
+        start_time : TYPE, optional
+            Start time of first exposure. The default is None.
+        end_time : TYPE, optional
+            End time of last exposure. The default is None.
+        filter : LIST, optional
+            List of filters that will be used during observing sesion. The default is None.
+        num : INT, optional
+            Number of exposures. The default is None.
+        exp_time : TYPE, optional
+            Exposure time of each image in seconds. The default is None.
+        self_guide : BOOL, optional
+           If True, telescope will automatically slew to coordinates specified in ra and dec parameters, if false or empty, will not. The default is None.
+        guide : BOOl, optional
+            DESCRIPTION. The default is None.
+        cycle_filter : BOOL, optional
+            If true, filter will cycle after each exposure, if False filter will cycle after number specified in num parameter. The default is None.
+
+        Returns
+        -------
+        None.
+
+        '''
         self.name = name
         if type(ra) is float:
             self.ra = ra
@@ -51,6 +84,15 @@ class ObservationTicket():
         return json.loads(text, object_hook=_dict_to_obs_object)
 
     def serialized(self):
+        '''
+        
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+
+        '''
         copy_obj = copy.deepcopy(self)
         if copy_obj.start_time:
             copy_obj.start_time = copy_obj.start_time.isoformat()
@@ -60,6 +102,20 @@ class ObservationTicket():
 
 
 def _dict_to_obs_object(dict):
+    '''
+    
+
+    Parameters
+    ----------
+    dict : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    TYPE
+        DESCRIPTION.
+
+    '''
     return ObservationTicket(name=dict['name'], ra=dict['ra'], dec=dict['dec'], start_time=dict['start_time'],
                              end_time=dict['end_time'], filter=dict['filter'], num=dict['num'], exp_time=dict['exp_time'],
                              self_guide=dict['self_guide'], guide=dict['guide'], cycle_filter=dict['cycle_filter'])
