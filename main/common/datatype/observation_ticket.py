@@ -23,17 +23,20 @@ class ObservationTicket():
         end_time : TYPE, optional
             End time of last exposure. The default is None.
         filter : LIST, optional
-            List of filters that will be used during observing sesion. The default is None.
+            List of filters that will be used during observing sesion.
+            The default is None.
         num : INT, optional
             Number of exposures. The default is None.
         exp_time : TYPE, optional
             Exposure time of each image in seconds. The default is None.
         self_guide : BOOL, optional
-           If True, telescope will automatically slew to coordinates specified in ra and dec parameters, if false or empty, will not. The default is None.
+           If True, telescope will automatically slew to coordinates specified in 
+           ra and dec parameters, if false or empty, will not. The default is None.
         guide : BOOl, optional
             DESCRIPTION. The default is None.
         cycle_filter : BOOL, optional
-            If true, filter will cycle after each exposure, if False filter will cycle after number specified in num parameter. The default is None.
+            If true, filter will cycle after each exposure, if False filter will
+            cycle after number specified in num parameter. The default is None.
 
         Returns
         -------

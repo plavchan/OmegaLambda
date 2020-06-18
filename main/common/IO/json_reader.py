@@ -10,11 +10,10 @@ class Reader():
     def __init__(self, path):
         '''
         
-
         Parameters
         ----------
-        path : TYPE
-            DESCRIPTION.
+        path : STR
+            Path to desired json file to be converted into a string.
 
         Returns
         -------

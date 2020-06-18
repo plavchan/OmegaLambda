@@ -5,6 +5,16 @@ from main.common.util import time_utils
 
 
 def convert_degrees_to_radians(Degrees):    #degrees may be a list with multiple values to convert
+    '''
+    Parameters
+    ----------
+    Degrees: LIST, FLOAT
+        Value in degrees
+    
+    Returns
+    -------
+    Degree value in Radians
+    '''
     if type(Degrees) is list:   
         result = []
         for element in Degrees:
@@ -14,6 +24,16 @@ def convert_degrees_to_radians(Degrees):    #degrees may be a list with multiple
         return (Degrees*math.pi/180)
 
 def convert_radians_to_degrees(Radians):    #radians may be a list with multiple values to convert
+    '''
+    Parameters
+    ---------
+    Radians: LIST, FLOAT
+        Any value in Radians
+        
+    Returns
+    -------
+    Radian value in degrees
+    '''
     if type(Radians) is list:    
         result = []
         for element in Radians:
@@ -22,7 +42,27 @@ def convert_radians_to_degrees(Radians):    #radians may be a list with multiple
     else:
         return (Radians*180/math.pi)
 
-def get_decHA_from_AltAz(azimuth, altitude, latitude):    #Input in degrees
+def get_decHA_from_AltAz(azimuth, altitude, latitude): #Input in degrees
+    '''
+    
+
+    Parameters
+    ----------
+    azimuth : FLOAT
+        The azimuth of intended target.
+    altitude : FLOAT
+        The altitude of intended target.
+    latitude : FLOAT
+        The lattitude of observatory???.
+
+    Returns
+    -------
+    dec : FLOAT
+        The calculated declination of the target.
+    HA : FLOAT
+        The calculated hour angle of intended target.
+
+    '''
     (azimuth_r, altitude_r, latitude_r) = convert_degrees_to_radians([azimuth, altitude, latitude])
     dec_r = math.asin(math.sin(altitude_r)*math.sin(latitude_r)+math.cos(altitude_r)*math.cos(latitude_r)*math.cos(azimuth_r))
     HA_r = math.acos((math.sin(altitude_r) - math.sin(latitude_r)*math.sin(dec_r))/(math.cos(latitude_r)*math.cos(dec_r)))
@@ -32,6 +72,30 @@ def get_decHA_from_AltAz(azimuth, altitude, latitude):    #Input in degrees
     return (dec, HA)
     
 def convert_AltAz_to_RaDec(azimuth, altitude, latitude, longitude, time):
+    '''
+    
+
+    Parameters
+    ----------
+    azimuth : FLOAT
+        The azimuth of the intended target.
+    altitude : FLOAT
+        The altitude of the intended target.
+    latitude : FLOAT
+        The lattitude of the observatory???.
+    longitude : FLOAT
+        The longitude of the observatory???.
+    time : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    ra : FLOAT
+        The calculated Right Ascension from Alt/Az.
+    dec : FLOAT
+        The calculated Declination from Alt/Az.
+
+    '''
     LST = time_utils.get_local_sidereal_time(longitude, time)
     LST = LST*15
     (dec, HA) = get_decHA_from_AltAz(azimuth, altitude, latitude)
@@ -43,6 +107,30 @@ def convert_AltAz_to_RaDec(azimuth, altitude, latitude, longitude, time):
     return (ra, dec)
 
 def convert_RaDec_to_AltAz(ra, dec, latitude, longitude, time):
+    '''
+    
+
+    Parameters
+    ----------
+    ra : FLOAT
+        Given right ascension of target.
+    dec : FLOAT
+        Given declination of target.
+    latitude : FLOAT
+        Lattitude of observatory???.
+    longitude : FLOAT
+        Longitude of observatory???.
+    time : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    az : FLOAT
+        Calculated azimuth of target.
+    alt : FLOAT
+        Calculated altitude of target.
+
+    '''
     LST = time_utils.get_local_sidereal_time(longitude, time)
     HA = (LST - ra)*15
     while HA < 0:
