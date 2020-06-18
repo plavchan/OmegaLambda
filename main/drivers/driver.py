@@ -8,8 +8,8 @@ from logger.logger import Logger
 
 try: 
     global_config = ObjectReader(Reader(r'C:\Users\GMU Observtory1\-omegalambda\config\parameters_config.json'))
-except: logging.critical('Error initializing global config object')
-else: logging.info('Created global config object')
+except: logging.critical('Could not read or parse config file')
+else: pass
 
 log_object = Logger()   #I believe this is the only spot where we actually want to instantiate a logger object--everywhere else we can just add messages
 
@@ -25,7 +25,7 @@ else: logging.info('Observation ticket has been read')
 
 try: global_filter = ObjectReader(Reader(os.path.join(global_config.ticket.home_directory, r'config\fw_config.json')))
 except: logging.critical('Error initializing global filter object')
-else: logging.info('Created global filter object')
+else: pass
 
 try: object_reader = ObjectReader(json_reader)
 except: logging.critical('Could not parse observation ticket.')

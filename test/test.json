@@ -1,15 +1,15 @@
 {"type": "observation_ticket",
 "details": {
 	"name": "TestTOI1234.01",
-	"ra": "10:25:44.2712",
-	"dec": "-07:03:35.384",
-	"start_time": "2020-06-17 10:00:00-04:00",
-	"end_time": "2020-06-17 23:00:00-04:00",
+	"ra": "07:11:51.8602",
+	"dec": "-00:29:33.952",
+	"start_time": "2020-06-18 10:00:00-04:00",
+	"end_time": "2020-06-18 23:00:00-04:00",
 	"filter": ["r", "b", "uv"],
 	"num": 3,
 	"exp_time": 2,
 	"self_guide": false,
 	"guide": true,
-	"cycle_filter": true
+	"cycle_filter": false
 	}
 }

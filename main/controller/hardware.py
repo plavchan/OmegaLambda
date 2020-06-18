@@ -1,30 +1,79 @@
 #Hardware class to be inherited by camera, telescope, dome, etc.
-
 import threading
 import queue
 import time
 import logging
+
 import pythoncom
 import win32com.client
+
 from main.common.IO import config_reader
 
-class Hardware(threading.Thread):
+class Hardware(threading.Thread):           #Subclassed from threading.Thread
     
     def __init__(self, name, loop_time = 1.0/60):
+        '''
+
+        Parameters
+        ----------
+        name : STR
+            Details the name of the hardware object.  Important for naming the thread
+            and calling the correct dispatch functions.
+        loop_time : FLOAT, optional
+            The time that the queue will wait for a function call before cycling on. The default is 1.0/60.
+
+        Returns
+        -------
+        None.
+
+        '''
         self.q = queue.Queue()
         self.timeout = loop_time
-        self.running = True
+        self.running = True                                                     #Will stay true to keep the thread running until self.stop is called
         self.label = name
-        super(Hardware, self).__init__(name = self.label + '-Th')
+        super(Hardware, self).__init__(name = self.label + '-Th')               #Called threading.Thread.__init__ 
         
-        self.config_dict = config_reader.get_config()
+        self.config_dict = config_reader.get_config()                           #Gets the global config object
         self.live_connection = threading.Event()
         
         
     def onThread(self, function, *args, **kwargs):
+        '''
+
+        Parameters
+        ----------
+        function : FUNCTION
+            A class method that is to be put in the thread queue and called on the
+            appropriate thread.
+        *args : ANY TYPE
+            The arguments to be passed to the class method.
+        **kwargs : ANY TYPE
+            The keyword arguments to be passed to the class method.
+
+        Returns
+        -------
+        None.
+
+        '''
         self.q.put((function, args, kwargs))
+        logging.debug('A class method has been put on the {} queue'.format(self.label))
         
     def run(self):
+        '''
+        Description
+        -----------
+        Started by calling Hardware.start() [as a subclass of threading.Thread].
+        Creates a hardware-specific thread for the camera, telescope, or dome that dispatches the
+        correct COM object and starts a loop that continuously checks the queue to see if any
+        function calls have been passed via onThread.
+        
+        Only stops once self.running has been set to False by calling self.stop.
+
+        Returns
+        -------
+        None.
+
+        '''
         pythoncom.CoInitialize()
         dispatch_dict = {'Camera': 'MaxIm.CCDCamera', 'Telescope': 'ASCOM.SoftwareBisque.Telescope', 'Dome': 'ASCOMDome.Dome'}
         if self.label in dispatch_dict:
@@ -33,10 +82,10 @@ class Hardware(threading.Thread):
             self.Camera = COMobj
             self.Application = win32com.client.Dispatch("MaxIm.Application")
             self.check_connection()
-            self.Camera.DisableAutoShutdown = True
+            self.Camera.DisableAutoShutdown = True                          # Setting basic configurations for the camera
             self.Camera.AutoDownload = True
             self.Application.LockApp = True
-            self.coolerSet(True)
+            self.coolerSet(True)                                            # Starts the camera's cooler--method defined in camera.py
         elif self.label == 'Telescope':
             self.Telescope = COMobj
             self.Telescope.SlewSettleTime = 1
@@ -51,15 +100,39 @@ class Hardware(threading.Thread):
             try:
                 function, args, kwargs = self.q.get(timeout=self.timeout)
                 function(*args, **kwargs)
+                logging.debug('{} has been run on the {} thread'.format(function, self.label))
             except queue.Empty:
                 time.sleep(1)
         pythoncom.CoUninitialize()
         
     def stop(self):
+        '''
+        Description
+        -----------
+        Sets self.running to False, which stops the run method from executing.
+        Must be called via onThread.
+
+        Returns
+        -------
+        None.
+
+        '''
         logging.debug("Stopping {} thread".format(self.label))
         self.running = False
         
     def check_connection(self):
+        '''
+        Description
+        -----------
+        Depending on which type of hardware, this will check if it has been properly connected
+        or not from the dispatch commands.
+
+        Returns
+        -------
+        None.
+
+        '''
+        logging.info('Checking connection for the {}'.format(self.label))
         self.live_connection.clear()
         if self.label == 'Camera':
             if self.Camera.LinkEnabled:

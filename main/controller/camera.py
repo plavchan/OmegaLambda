@@ -1,13 +1,10 @@
 import time
-import win32com.client
-import pythoncom
-from main.common.IO import config_reader
-from main.controller.hardware import Hardware
 import threading
-import queue
 import logging
 
-class Camera(Hardware):
+from main.controller.hardware import Hardware
+
+class Camera(Hardware):         # Subclassed from the hardware class
     
     def __init__(self):
         self.cooler_settle = threading.Event()
