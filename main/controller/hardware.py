@@ -75,7 +75,8 @@ class Hardware(threading.Thread):           #Subclassed from threading.Thread
 
         '''
         pythoncom.CoInitialize()
-        dispatch_dict = {'Camera': 'MaxIm.CCDCamera', 'Telescope': 'ASCOM.SoftwareBisque.Telescope', 'Dome': 'ASCOMDome.Dome'}
+        dispatch_dict = {'Camera': 'MaxIm.CCDCamera', 'Telescope': 'ASCOM.SoftwareBisque.Telescope', 
+                         'Dome': 'ASCOMDome.Dome', 'Focuser': 'RoboFocus.FocusControl'}
         if self.label in dispatch_dict:
             COMobj = win32com.client.Dispatch(dispatch_dict[self.label])
         if self.label == 'Camera':
@@ -93,8 +94,10 @@ class Hardware(threading.Thread):           #Subclassed from threading.Thread
         elif self.label == 'Dome':
             self.Dome = COMobj
             self.check_connection()
+        elif self.label == 'Focuser':
+            self.Focuser = COMobj
         else:
-            print("ERROR: Invalid hardware name")
+            logging.error("Invalid hardware name")
         while self.running:
             logging.debug("{0:s} thread is alive".format(self.label))
             try:

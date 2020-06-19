@@ -9,7 +9,6 @@ logger/*.log
 
 # Untracked Files #
 
-main/controller/focuser.py
 main/observing/guider.py
 test/TOI*.json
 test/__init__.pyc

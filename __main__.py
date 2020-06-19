@@ -4,12 +4,14 @@ import os
 from main.drivers.driver import run
 
 def cli_run(args):
-    run(args.folder, args.obs_ticket, args.filter)
+    run(args.config, args.folder, args.obs_ticket, args.filter)
 
 def main():
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers()
-    run_driver = subparsers.add_parser('run')
+    run_driver = subparsers.add_parser('run', help='Start an observation run')
+    run_driver.add_argument('config',
+                            help='Path to configuration JSON file')
     run_driver.add_argument('folder',
                             help='Path where images are to be saved.')
     run_driver.add_argument('obs_ticket',

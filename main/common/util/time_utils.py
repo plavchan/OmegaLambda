@@ -33,7 +33,7 @@ def convert_to_datetime_UTC(date):
 
     Returns
     -------
-    CLASS INSTANCE OBJECT of DATETIME.DATETIME
+    DATETIME.DATETIME
         Datetime object in UTC time, timezone-aware.
 
     '''
@@ -46,7 +46,7 @@ def datetime_to_epoch_milli_converter(date):
 
     Parameters
     ----------
-    date : CLASS INSTANCE OBJECT of DATETIME.DATETIME
+    date : DATETIME.DATETIME
         Should be timezone-aware, in UTC--generated from convert_to_datetime_UTC.
 
     Returns
@@ -71,7 +71,7 @@ def epoch_milli_to_datetime_converter(epochmilli):
 
     Returns
     -------
-    CLASS INSTANCE OBJECT of DATETIME.DATETIME
+    DATETIME.DATETIME
         Timezone-aware, UTC datetime.datetime object.
 
     '''
@@ -83,7 +83,7 @@ def days_since_j2000(date=None):
 
     Parameters
     ----------
-    date : CLASS INSTANCE OBJECT of DATETIME.DATETIME, optional
+    date : DATETIME.DATETIME, optional
         Should be timezone-aware, UTC datetime.datetime object.  The default is None, which
         will calculate the days since J2000 for today.
 
@@ -107,7 +107,7 @@ def fractional_hours_of_day(time=None):
 
     Parameters
     ----------
-    time : CLASS INSTANCE OBJECT of DATETIME.DATETIME, optional
+    time : DATETIME.DATETIME, optional
         Should be timezone-aware, UTC datetime.datetime object.  The default is None, which
         will calculate the fractional hours of the day for right now.
 
@@ -148,7 +148,7 @@ def get_local_sidereal_time(longitude, date=None):
     ----------
     longitude : FLOAT
         Site longitude where you want to calculate LST.
-    date : CLASS INSTANCE OBJECT of DATETIME.DATETIME, optional
+    date : DATETIME.DATETIME, optional
         Date and time for which you want to calculate LST. The default is None, which
         will calculate the LST for the current date & time.
 

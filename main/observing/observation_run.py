@@ -85,6 +85,7 @@ class ObservationRun():
         self.shutdown()
         
     def run_ticket(self, ticket):
+        # Focuser here
         if ticket.cycle_filter:
             img_count = self.take_images(ticket.name, ticket.num, ticket.exp_time,
                                          ticket.filter, ticket.end_time, self.image_directory,
@@ -129,9 +130,7 @@ class ObservationRun():
             self.camera.onThread(self.camera.expose, 
                                  int(exp_time), self.filterwheel_dict[current_filter], os.path.join(path, image_name), "light")
             self.camera.image_done.wait()
-            #self.guider.onThread(self.guider.FindStars)
-            #self.guider.onThread(self.guider.ComparePositions)
-            #Do NOT wait for guider functions to finish
+            # Guider here
             
             images_taken += 1
             if cycle_filter:

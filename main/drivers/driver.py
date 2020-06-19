@@ -7,10 +7,10 @@ from main.common.IO.json_reader import Reader
 from main.common.datatype.object_reader import ObjectReader
 
 
-def run(folder, obs_ticket, filter):
+def run(config, folder, obs_ticket, filter):
     
     try: 
-        global_config = ObjectReader(Reader(r'C:\Users\GMU Observtory1\-omegalambda\config\parameters_config.json'))
+        global_config = ObjectReader(Reader(config))
     except: logging.critical('Could not read or parse config file')
     else: pass
 
@@ -30,6 +30,5 @@ def run(folder, obs_ticket, filter):
     except: logging.critical('Error reading observation ticket')
     else: print('Observation ticket has been read.')
 
-    run_object = ObservationRun([object_reader.ticket],
-                            r'h:\observatory files\observing sessions\2020_data\{0:s}'.format(folder))
+    run_object = ObservationRun([object_reader.ticket], folder)
     run_object.observe()
