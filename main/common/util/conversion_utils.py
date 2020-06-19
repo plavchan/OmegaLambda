@@ -53,7 +53,7 @@ def get_decHA_from_AltAz(azimuth, altitude, latitude): #Input in degrees
     altitude : FLOAT
         The altitude of intended target.
     latitude : FLOAT
-        The lattitude of observatory???.
+        The lattitude of observatory.
 
     Returns
     -------
@@ -82,11 +82,11 @@ def convert_AltAz_to_RaDec(azimuth, altitude, latitude, longitude, time):
     altitude : FLOAT
         The altitude of the intended target.
     latitude : FLOAT
-        The lattitude of the observatory???.
+        The lattitude of the observatory.
     longitude : FLOAT
-        The longitude of the observatory???.
-    time : TYPE
-        DESCRIPTION.
+        The longitude of the observatory.
+    time : datetime.datetime object
+        Time to be converted.
 
     Returns
     -------
@@ -117,11 +117,11 @@ def convert_RaDec_to_AltAz(ra, dec, latitude, longitude, time):
     dec : FLOAT
         Given declination of target.
     latitude : FLOAT
-        Lattitude of observatory???.
+        Lattitude of observatory.
     longitude : FLOAT
-        Longitude of observatory???.
-    time : TYPE
-        DESCRIPTION.
+        Longitude of observatory.
+    time : datetime.datetime object
+        Time to be converted.
 
     Returns
     -------
@@ -146,6 +146,25 @@ def convert_RaDec_to_AltAz(ra, dec, latitude, longitude, time):
     return (az, alt)
 
 def convert_J2000_to_apparent(ra, dec):
+    '''
+    
+
+    Parameters
+    ----------
+    ra : FLOAT
+        Right ascension to be converted from J2000 coordinates to apparent 
+        cordinates.
+    dec : FLOAT
+        Declination to be converted from J2000 coordinates to apparent coordinates.
+
+    Returns
+    -------
+    coords_apparent.ra.hour: 
+        DESCRIPTION.
+    coords_apparent.dec.degree:
+        DESCRIPTION.
+
+    '''
     year = time_utils.current_decimal_year()
     coords_J2000 = SkyCoord(ra = ra*u.hourangle, dec = dec*u.degree, frame = 'icrs') #ICRS Equinox is always J2000
     coords_apparent = coords_J2000.transform_to(FK5(equinox='J{}'.format(year)))
