@@ -11,8 +11,8 @@ import datetime
 
 from PIL import Image
 
-from main.common.util import time_utils
-from main.common.IO import config_reader
+from ..common.util import time_utils
+from ..common.IO import config_reader
 
 class Weather(threading.Thread):
     

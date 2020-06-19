@@ -1,6 +1,6 @@
-from main.controller.telescope import Telescope
-from main.common.IO.json_reader import Reader
-from main.common.datatype.object_reader import ObjectReader
+from ..controller.telescope import Telescope
+from ..common.IO.json_reader import Reader
+from ..common.datatype.object_reader import ObjectReader
 import logging
 
 logging.basicConfig(level=logging.DEBUG, format='(%(threadName)-10s) %(message)s',)

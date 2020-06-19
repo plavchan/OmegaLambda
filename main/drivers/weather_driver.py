@@ -1,6 +1,6 @@
-from main.observing.weather_checker import Weather
-from main.common.IO.json_reader import Reader
-from main.common.datatype.object_reader import ObjectReader
+from ..observing.weather_checker import Weather
+from ..common.IO.json_reader import Reader
+from ..common.datatype.object_reader import ObjectReader
 import time
 import logging
 

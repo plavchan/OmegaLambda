@@ -1,13 +1,13 @@
 import argparse
 import os
 
-from main.drivers.driver import run
+from .main.drivers.driver import run
 
 def cli_run(args):
     run(args.config, args.folder, args.obs_ticket, args.filter)
 
 def main():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description='Telescope automation code')
     subparsers = parser.add_subparsers()
     run_driver = subparsers.add_parser('run', help='Start an observation run')
     run_driver.add_argument('config',

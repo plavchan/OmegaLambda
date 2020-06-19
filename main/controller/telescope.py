@@ -3,8 +3,8 @@ import logging
 import time
 import os
 
-from main.common.util import conversion_utils
-from main.controller.hardware import Hardware
+from ..common.util import conversion_utils
+from .hardware import Hardware
 
 class Telescope(Hardware):
     

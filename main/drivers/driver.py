@@ -1,10 +1,10 @@
 import os
 import logging
 
-from logger.logger import Logger
-from main.observing.observation_run import ObservationRun
-from main.common.IO.json_reader import Reader
-from main.common.datatype.object_reader import ObjectReader
+from ...logger.logger import Logger
+from ..observing.observation_run import ObservationRun
+from ..common.IO.json_reader import Reader
+from ..common.datatype.object_reader import ObjectReader
 
 
 def run(config, folder, obs_ticket, filter):

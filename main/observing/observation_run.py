@@ -5,13 +5,13 @@ import math
 import re
 import logging
 
-from main.common.util import time_utils
-from main.controller.camera import Camera
-from main.common.datatype import filter_wheel
-from main.common.IO import config_reader
-from main.controller.telescope import Telescope
-from main.controller.dome import Dome
-from main.observing.weather_checker import Weather
+from ..common.util import time_utils
+from ..controller.camera import Camera
+from ..common.datatype import filter_wheel
+from ..common.IO import config_reader
+from ..controller.telescope import Telescope
+from ..controller.dome import Dome
+from .weather_checker import Weather
 #from main.observing.guider import Guider
     
 class ObservationRun():

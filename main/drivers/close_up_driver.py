@@ -1,7 +1,7 @@
-from main.controller.dome import Dome
-from main.controller.telescope import Telescope
-from main.common.IO.json_reader import Reader
-from main.common.datatype.object_reader import ObjectReader
+from ..controller.dome import Dome
+from ..controller.telescope import Telescope
+from ..common.IO.json_reader import Reader
+from ..common.datatype.object_reader import ObjectReader
 import time
 
 global_config_object = ObjectReader(Reader(r'C:\Users\GMU Observtory1\-omegalambda\config\parameters_config.json'))

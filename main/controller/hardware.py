@@ -7,7 +7,7 @@ import logging
 import pythoncom
 import win32com.client
 
-from main.common.IO import config_reader
+from ..common.IO import config_reader
 
 class Hardware(threading.Thread):           #Subclassed from threading.Thread
     

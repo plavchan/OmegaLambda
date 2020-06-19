@@ -1,9 +1,9 @@
 import json
 import logging
 
-from main.common.datatype.observation_ticket import ObservationTicket
-from main.common.datatype.filter_wheel import FilterWheel
-from main.common.IO.config_reader import Config
+from .observation_ticket import ObservationTicket
+from .filter_wheel import FilterWheel
+from ...common.IO.config_reader import Config
 
 class ObjectReader():
     

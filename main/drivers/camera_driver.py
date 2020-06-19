@@ -1,6 +1,6 @@
-from main.controller.camera import Camera
-from main.common.IO.json_reader import Reader
-from main.common.datatype.object_reader import ObjectReader
+from ..controller.camera import Camera
+from ..common.IO.json_reader import Reader
+from ..common.datatype.object_reader import ObjectReader
 import threading
 import logging
 

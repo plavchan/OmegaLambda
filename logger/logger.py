@@ -4,9 +4,9 @@ import logging.config
 import logging.handlers
 import os
 
-from main.common.IO.json_reader import Reader
-from main.common.datatype.object_reader import ObjectReader
-from main.common.IO import config_reader
+from ..main.common.IO.json_reader import Reader
+from ..main.common.datatype.object_reader import ObjectReader
+from ..main.common.IO import config_reader
 
 class Logger():
     

@@ -4,7 +4,8 @@ import time
 import threading
 import queue
 import logging
-from main.controller.hardware import Hardware
+
+from .hardware import Hardware
 
 class Dome(Hardware):
     
