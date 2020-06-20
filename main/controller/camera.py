@@ -53,6 +53,10 @@ class Camera(Hardware):
     def _coolerAdjust(self):
         '''
         
+        Description
+        -----------
+        Keeps the cooler temperature adjusted
+        at a point where power draw does not exceed 99%
 
         Returns
         -------
@@ -159,7 +163,9 @@ class Camera(Hardware):
                 
     def disconnect(self):
         '''
-        
+        Description
+        ----------
+        Disconnects the camera
 
         Returns
         -------

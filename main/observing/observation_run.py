@@ -17,9 +17,21 @@ from main.observing.weather_checker import Weather
 class ObservationRun():
     def __init__(self, observation_request_list, image_directory):
         '''
+        
 
-        :param observation_request_list: List of ObservationTickets
+        Parameters
+        ----------
+        observation_request_list : LIST
+            List of observation tickets.
+        image_directory : STR
+            Directory to which the images will be saved to.
+
+        Returns
+        -------
+        None.
+
         '''
+
         self.image_directory = image_directory
         self.observation_request_list = observation_request_list
         self.camera = Camera()
@@ -32,12 +44,37 @@ class ObservationRun():
         self.config_dict = config_reader.get_config()
         
     def check_weather(self):
+        '''
+        
+
+        Returns
+        -------
+        bool
+            If True, the weather conditions for observing
+            are poor, and so the observing will stop. If False, conditions are 
+            good to continiue observation.
+
+        '''
         if self.weather.weather_alert.isSet():
             return True
+            
         else:
             return False
+                logging.debug('Weather conditions OK for observation')
 
     def observe(self):
+        '''
+        
+        Desctiption
+        ----------
+        Makes sure the dome, shutter, camera are ready to begin observation,
+        and the start time has passed before beginning observation
+
+        Returns
+        -------
+        None.
+
+        '''
         self.weather.start()
         time.sleep(5)           #This is needed, or else it checks before weather_checker finishes its first test
         if self.check_weather(): 
@@ -82,9 +119,28 @@ class ObservationRun():
             (taken, total) = self.run_ticket(ticket)
             print("{} out of {} exposures were taken for {}.  Moving on to next target.".format(taken, total, ticket.name))
         print("All targets have finished for tonight.")
+        logging.info('All targets completed for the night, proceding to shutdown procedure')
         self.shutdown()
         
     def run_ticket(self, ticket):
+        '''
+        
+
+        Parameters
+        ----------
+        ticket : STR
+            The observation ticket string with information useful to 
+            the observing run.
+
+        Returns
+        -------
+        img_count: INT
+            Number of images taken.
+        ticket.num: INT
+            The total number of images that are specified on the
+            observation ticket.
+
+        '''
         if ticket.cycle_filter:
             img_count = self.take_images(ticket.name, ticket.num, ticket.exp_time,
                                          ticket.filter, ticket.end_time, self.image_directory,
@@ -101,6 +157,34 @@ class ObservationRun():
             return (img_count, ticket.num*len(ticket.filter))
 
     def take_images(self, name, num, exp_time, filter, end_time, path, cycle_filter):
+        '''
+        
+
+        Parameters
+        ----------
+        name : STR
+            Name of target to be observed.
+        num : INT
+            Total number of exposures to be taken during the night.
+        exp_time : INT
+            The exposure time of each image.
+        filter : LIST, STR
+            The filters to be used during the night.
+        end_time : datetime.datetime Object
+            The end time of the observation session, set
+            in the observation ticket.
+        path : STR
+            The image save path.
+        cycle_filter : BOOL
+            If True, camera will cycle filter after each exposre,
+            if False, camera will cycle filter after num value has been reached.
+
+        Returns
+        -------
+        images_taken : INT
+            The number of images taken so far during the observing run.
+
+        '''
         num_filters = len(filter)
         image_num = 1
         N = []
@@ -147,7 +231,18 @@ class ObservationRun():
         return images_taken
     
     def shutdown(self):
+        '''
+        Description
+        ----------
+        Safely shuts down the telescope, camera, and dome
+
+        Returns
+        -------
+        None.
+
+        '''
         print("Shutting down observatory.")
+        logging.debug('In shutdown process')
         self.weather.stop()
         self.dome.onThread(self.dome.SlaveDometoScope, False)
         self.telescope.onThread(self.telescope.Park)
