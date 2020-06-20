@@ -102,8 +102,8 @@ class ObservationTicket():
 
         Returns
         -------
-        TYPE
-            DESCRIPTION.
+        DICT
+            Converts copy_obj to dictionary format.
 
         '''
         copy_obj = copy.deepcopy(self)
