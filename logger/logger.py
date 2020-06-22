@@ -6,7 +6,6 @@ import os
 
 from ..main.common.IO.json_reader import Reader
 from ..main.common.datatype.object_reader import ObjectReader
-from ..main.common.IO import config_reader
 
 class Logger():
     
@@ -21,9 +20,9 @@ class Logger():
         None.
 
         '''
-        self.config_dict = config_reader.get_config()
+        current_path = os.path.abspath(os.path.dirname(__file__))
         
-        path = os.path.join(self.config_dict.home_directory, r'config\logging.json')
+        path = os.path.join(current_path, r'../config/logging.json')
         self.logger_config = ObjectReader(Reader(path))
         logging.config.dictConfig(self.logger_config.ticket)
         

@@ -55,9 +55,9 @@ class Config():
         weather_freq : INT, optional
             Frequency of weather checks in minutes.  Our default is 15 minutes.
         data_directory : STR, optional
-            Where images and other data are saved on the computer.  Our default is H:\\Observatory Files\\Observing Sessions\\2020_Data.
+            Where images and other data are saved on the computer.  Our default is H:/Observatory Files/Observing Sessions/2020_Data.
         home_directory : STR, optional
-            Where the home of our code base is.  Our default is C:\\Users\\GMU Observtory1\\-omegalambda.
+            Where the home of our code base is.  Our default is C:/Users/GMU Observtory1/-omegalambda.
         prep_time : INT, optional
             Preparation time in minutes needed before an observation run to take darks and flats.  Our default is 30 minutes.
 

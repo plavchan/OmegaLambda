@@ -44,20 +44,25 @@ class Dome(Hardware):
             self.move_done.set()
         
     def MoveShutter(self, open_or_close):
+        # Shutter status 0 = open, 1 = closed, 2 = opening, 3 = closing, 4 = error.
         self.shutter_done.clear()
         self._is_ready()
         if open_or_close == 'open':
             self.Dome.OpenShutter()
             print("Shutter is opening")
-            while self.Dome.ShutterStatus != 0:
+            time.sleep(2)
+            while self.Dome.ShutterStatus == 2:
                 time.sleep(5)
-            self.shutter_done.set()
+            if self.Dome.ShutterStatus == 0:
+                self.shutter_done.set()
         elif open_or_close == 'close':
             self.Dome.CloseShutter()
             print("Shutter is closing")
-            while self.Dome.ShutterStatus != 1: #Seems like 1 = closed, 0 = open.  Partially opened/closed = last position.
+            time.sleep(2)
+            while self.Dome.ShutterStatus == 3:
                 time.sleep(5)
-            self.shutter_done.set()
+            if self.Dome.ShutterStatus == 1:
+                self.shutter_done.set()
             
         else: print("Invalid shutter move command")
         return

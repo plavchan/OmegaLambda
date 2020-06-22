@@ -4,15 +4,14 @@ deprecated/
 testing_log/
 resources/weather_status/*
 !resources/weather_status/.gitkeep
+test/*
+!test/test.json
+!test/json_test_driver.py
 logger/*.log
 **/__pycache__
 
 # Untracked Files #
 
-main/observing/guider.py
-test/TOI*.json
-test/__init__.pyc
-test/threading_practice.py
 test/helpfullink.txt
 
 

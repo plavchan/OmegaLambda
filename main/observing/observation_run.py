@@ -6,13 +6,14 @@ import re
 import logging
 
 from ..common.util import time_utils
-from ..controller.camera import Camera
-from ..common.datatype import filter_wheel
 from ..common.IO import config_reader
+from ..common.datatype import filter_wheel
+from ..controller.camera import Camera
 from ..controller.telescope import Telescope
 from ..controller.dome import Dome
+#from ..controller.focuser import Focuser
+#from .guider import Guider
 from .weather_checker import Weather
-#from main.observing.guider import Guider
     
 class ObservationRun():
     def __init__(self, observation_request_list, image_directory):
@@ -26,6 +27,7 @@ class ObservationRun():
         self.telescope = Telescope()
         self.dome = Dome()
         self.weather = Weather()
+        #self.focuser = Focuser(self.camera)
         #self.guider = Guider(self.camera, self.telescope)
         
         self.filterwheel_dict = filter_wheel.get_filter().filter_position_dict()
@@ -119,7 +121,7 @@ class ObservationRun():
             
             if i == 0 and os.path.exists(os.path.join(path, image_name)):   #Checks if images already exist (in the event of a crash)
                 for f in filter:
-                    N = []    
+                    N = [0]    
                     for fname in os.listdir(path):
                         n = re.search('{0:s}_{1:d}s_{2:s}-(.+?).fits'.format(name, exp_time, f), fname)
                         if n: N.append(int(n.group(1)))
