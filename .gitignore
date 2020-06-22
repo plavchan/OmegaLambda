@@ -8,6 +8,7 @@ test/*
 !test/test.json
 !test/json_test_driver.py
 logger/*.log
+logger/*.log.*
 **/__pycache__
 
 # Untracked Files #

@@ -53,7 +53,7 @@ class ObservationRun():
         self.dome.onThread(self.dome.ShutterPosition) #If open, status = 0 (False), if closed, status = 1 (True)
         time.sleep(1)
         Initial_shutter = self.dome.shutter
-        if Initial_shutter:
+        if Initial_shutter in (1,3,4):
             self.dome.onThread(self.dome.MoveShutter, 'open')
             self.dome.onThread(self.dome.Home)
             self.dome.onThread(self.dome.SlaveDometoScope, True)
@@ -62,7 +62,7 @@ class ObservationRun():
         for ticket in self.observation_request_list:
             if self.check_weather(): 
                 self.shutdown(); return
-            if Initial_shutter:
+            if Initial_shutter in (1,3,4):
                 self.telescope.onThread(self.telescope.Slew, ticket.ra, ticket.dec)
                 self.telescope.slew_done.wait()
                 self.dome.move_done.wait()

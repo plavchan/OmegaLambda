@@ -1,8 +1,5 @@
-import win32com.client
-import pythoncom
 import time
 import threading
-import queue
 import logging
 
 from .hardware import Hardware
@@ -21,6 +18,7 @@ class Dome(Hardware):
             return
         
     def ShutterPosition(self):
+        # Shutter status: 0 = open, 1 = closed, 2 = opening, 3 = closing, 4 = error.
         self.shutter = self.Dome.ShutterStatus
     
     def Home(self):
@@ -44,7 +42,6 @@ class Dome(Hardware):
             self.move_done.set()
         
     def MoveShutter(self, open_or_close):
-        # Shutter status 0 = open, 1 = closed, 2 = opening, 3 = closing, 4 = error.
         self.shutter_done.clear()
         self._is_ready()
         if open_or_close == 'open':
