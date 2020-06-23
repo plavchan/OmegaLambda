@@ -16,6 +16,8 @@ class ObservationTicket():
                 splitter = ':'
             elif 'h' in ra:
                 splitter = 'h|m|s|d'
+            elif ' ' in ra:
+                splitter = ' '
             coords = {'ra': ra, 'dec': dec}
             for key in coords:
                 coords_split = re.split(splitter, coords[key])
