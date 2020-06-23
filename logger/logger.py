@@ -9,7 +9,7 @@ from ..main.common.datatype.object_reader import ObjectReader
 
 class Logger():
     
-    def __init__(self):
+    def __init__(self, config):
         '''
         Description
         -----------
@@ -20,10 +20,7 @@ class Logger():
         None.
 
         '''
-        current_path = os.path.abspath(os.path.dirname(__file__))
-        
-        path = os.path.join(current_path, r'../config/logging.json')
-        self.logger_config = ObjectReader(Reader(path))
+        self.logger_config = ObjectReader(Reader(config))
         logging.config.dictConfig(self.logger_config.ticket)
         
         self.start()
