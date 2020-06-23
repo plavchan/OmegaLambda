@@ -73,12 +73,83 @@ def run(obs_tickets, data=None, config=None, filter=None, logger=None):
     else: print('New directory for tonight\'s observing has been made!')
     
     observation_request_list = []
-    for ticket in os.listdir(obs_tickets):
+    for ticket in obs_tickets:
         try: object_reader = ObjectReader(Reader(ticket))
         except: logging.critical('Error reading observation ticket')
         else: print('Observation ticket has been read.')
         
-        observation_request_list.append(object_reader.ticket)
+        if check_ticket(object_reader.ticket):
+            observation_request_list.append(object_reader.ticket)
+        else:
+            logging.error('Observation ticket formatting error')
+            return
         
     run_object = ObservationRun(observation_request_list, folder)
     run_object.observe()
+    
+def check_ticket(ticket):
+    '''
+    Description
+    -----------
+    Sanity check for the finalized observation ticket.  Makes sure everything is the right type and
+    within the right bounds.
+
+    Parameters
+    ----------
+    ticket : CLASS INSTANCE OBJECT of ObservationTicket
+        Retrieved from the object_reader.
+
+    Returns
+    -------
+    BOOL
+        True if the ticket looks good, False otherwise.
+
+    '''
+    if type(ticket.name) is not str:
+        print('Error reading ticket: name not a string...')
+        return False
+    elif type(ticket.ra) is not float:
+        print('Error reading ticket: ra formatting error...')
+        return False
+    elif ticket.ra < 0:
+        print('Error reading ticket: negative ra...')
+        return False
+    elif type(ticket.dec) is not float:
+        print('Error reading ticket: dec formatting error...')
+        return False
+    elif abs(ticket.dec) > 90:
+        print('Error reading ticket: dec greater than +90 or less than -90...')
+        return False
+    elif type(ticket.start_time) is not datetime.datetime:
+        print('Error reading ticket: start time formatting error...')
+        return False
+    elif type(ticket.end_time) is not datetime.datetime:
+        print('Error reading ticket: end time formatting error...')
+        return False
+    elif type(ticket.filter) not in (str, list):
+        print('Error reading ticket: filter not a string or list...')
+        return False
+    elif type(ticket.num) is not int:
+        print('Error reading ticket: num not an integer...')
+        return False
+    elif ticket.num <= 0:
+        print('Error reading ticket: num must be > 0.')
+        return False
+    elif type(ticket.exp_time) not in (int, float):
+        print('Error reading ticket: exp_time not an integer or float...')
+        return False
+    elif ticket.exp_time <= 0:
+        print('Error reading ticket: exp_time must be > 0.')
+        return False
+    elif type(ticket.self_guide) is not bool:
+        print('Error reading ticket: self_guide not a boolean...')
+        return False
+    elif type(ticket.guide) is not bool:
+        print('Error reading ticket: guide not a boolean...')
+        return False
+    elif type(ticket.cycle_filter) is not bool:
+        print('Error reading ticket: cycle_filter not a boolean...')
+        return False
+    else:
+        return True
+    

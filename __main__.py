@@ -9,8 +9,8 @@ def main():
     parser = argparse.ArgumentParser(description='Telescope automation code')
     subparsers = parser.add_subparsers()
     run_driver = subparsers.add_parser('run', help='Start an observation run')
-    run_driver.add_argument('obs_tickets',
-                            help='Path to each observation ticket.  If more than 1, enter as a list.')
+    run_driver.add_argument('obs_tickets', nargs='*',
+                            help='Path to each observation ticket.  If more than 1, enter each sequentially.')
     run_driver.add_argument('--data', '-d', metavar='PATH', dest='data',
                             help='Manual save path for CCD image files.')
     run_driver.add_argument('--config', '-c', metavar='PATH', dest='config',
