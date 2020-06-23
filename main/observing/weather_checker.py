@@ -152,6 +152,7 @@ class Weather(threading.Thread):
             apiKey = re.search(r'"SUN_V3_API_KEY":"(.+?)",', html).group(1)             # Api key needed to access images, found from html
         
         coords = {0: '291:391:10', 1: '291:392:10', 2: '292:391:10', 3: '292:392:10'}   # Radar map coordinates found by looking through html
+        rain = []
         for key in coords:
             url = ( 'https://api.weather.com/v3/TileServer/tile?product=twcRadarMosaic' + '&ts={}'.format(str(esec_round)) 
                    + '&xyz={}'.format(coords[key]) + '&apiKey={}'.format(apiKey) )      # Constructs url of 4 nearest radar images
@@ -161,10 +162,18 @@ class Weather(threading.Thread):
                 file.write(req.content)                                                 # Writes 4 images to local png files
             
             img = Image.open(os.path.join(self.config_dict.home_directory, r'resources\weather_status\radar-img{0:04d}.png'.format(key + 1)))
+            px = img.size[0]*img.size[1]
             colors = img.getcolors()
-            if colors[0][0] > 1 or len(colors) > 1:     # Checks for any colors (green to red for rain) in the images
-                return True
+            if len(colors) > 1:     # Checks for any colors (green to red for rain) in the images
+                percent_colored = 1 - colors[-1][0] / px
+                if percent_colored >= 0.1:
+                    return True
+                else:
+                    rain.append(1)
             else:
                 continue
             img.close()
-        return False
+        if sum(rain) >= 2:
+            return True
+        else:
+            return False
