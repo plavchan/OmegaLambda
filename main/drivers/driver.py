@@ -9,13 +9,14 @@ from ..common.IO import config_reader
 from ..common.datatype.object_reader import ObjectReader
 
 
-def run(obs_ticket, data=None, config=None, filter=None, logger=None):
+def run(obs_tickets, data=None, config=None, filter=None, logger=None):
     '''
 
     Parameters
     ----------
-    obs_ticket : STR
-        OS filepath to where the observation_ticket files are stored.  Can be anywhere that is accessible.
+    obs_tickets : STR, LIST
+        OS filepath to where the observation_ticket file(s) are stored.  Can be anywhere that is accessible.  If more than 1, enter
+        as a list with each path.
     data : STR, optional
         Manual save path for data files if you would prefer a manual path rather than the automatic method. The default is None,
         in which case the data path will be created automatically based on the data_directory parameter in the config file.
@@ -70,10 +71,14 @@ def run(obs_ticket, data=None, config=None, filter=None, logger=None):
         os.mkdir(folder)
     except: logging.warning('Could not create directory, or directory already exists')
     else: print('New directory for tonight\'s observing has been made!')
-
-    try: object_reader = ObjectReader(Reader(obs_ticket))
-    except: logging.critical('Error reading observation ticket')
-    else: print('Observation ticket has been read.')
-
-    run_object = ObservationRun([object_reader.ticket], folder)
+    
+    observation_request_list = []
+    for ticket in os.listdir(obs_tickets):
+        try: object_reader = ObjectReader(Reader(ticket))
+        except: logging.critical('Error reading observation ticket')
+        else: print('Observation ticket has been read.')
+        
+        observation_request_list.append(object_reader.ticket)
+        
+    run_object = ObservationRun(observation_request_list, folder)
     run_object.observe()

@@ -104,6 +104,9 @@ class ObservationRun():
             return (img_count, ticket.num*len(ticket.filter))
 
     def take_images(self, name, num, exp_time, filter, end_time, path, cycle_filter):
+        if num <= 0: 
+            logging.error('Number of exposures must be at least 1.  Please input a valid number of exposures.')
+            break
         num_filters = len(filter)
         image_num = 1
         N = []
