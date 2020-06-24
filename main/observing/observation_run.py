@@ -4,6 +4,7 @@ import os
 import math
 import re
 import logging
+import threading
 
 from ..common.util import time_utils
 from ..common.IO import config_reader
@@ -27,7 +28,7 @@ class ObservationRun():
         self.telescope = Telescope()
         self.dome = Dome()
         self.weather = Weather()
-        #self.focuser = Focuser(self.camera, image_directory)
+        #self.focuser = Focuser(self.camera)
         #self.guider = Guider(self.camera, self.telescope)
         
         self.filterwheel_dict = filter_wheel.get_filter().filter_position_dict()
@@ -148,6 +149,19 @@ class ObservationRun():
         return images_taken
     
     def shutdown(self):
+        timeout = 60
+        t = threading.Timer(timeout, self._shutdown_procedure)
+        t.start()
+        response = input("The last observation ticket has finished.  Shut down? (y/n): ")
+        if response == 'y':
+            t.cancel()
+            self._shutdown_procedure()
+        elif response == 'n':
+            t.cancel()
+            return
+        
+    
+    def _shutdown_procedure(self):
         print("Shutting down observatory.")
         self.weather.stop()
         self.dome.onThread(self.dome.SlaveDometoScope, False)

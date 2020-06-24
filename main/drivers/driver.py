@@ -14,9 +14,9 @@ def run(obs_tickets, data=None, config=None, filter=None, logger=None):
 
     Parameters
     ----------
-    obs_tickets : STR, LIST
-        OS filepath to where the observation_ticket file(s) are stored.  Can be anywhere that is accessible.  If more than 1, enter
-        as a list with each path.
+    obs_tickets : LIST
+        OS filepath to where each observation ticket is stored, or a single path to the directory of observation tickets.
+        Can be anywhere that is accessible.
     data : STR, optional
         Manual save path for data files if you would prefer a manual path rather than the automatic method. The default is None,
         in which case the data path will be created automatically based on the data_directory parameter in the config file.
@@ -73,19 +73,48 @@ def run(obs_tickets, data=None, config=None, filter=None, logger=None):
     else: print('New directory for tonight\'s observing has been made!')
     
     observation_request_list = []
-    for ticket in obs_tickets:
-        try: object_reader = ObjectReader(Reader(ticket))
-        except: logging.critical('Error reading observation ticket')
-        else: print('Observation ticket has been read.')
-        
-        if check_ticket(object_reader.ticket):
-            observation_request_list.append(object_reader.ticket)
-        else:
-            logging.error('Observation ticket formatting error')
-            return
+    if os.path.isfile(obs_tickets[0]):
+        for ticket in obs_tickets:
+            ticket_object = read_ticket(ticket)
+            if ticket_object:
+                observation_request_list.append(ticket_object)
+    else:
+        for filename in os.listdir(obs_tickets[0]):
+            ticket_object = read_ticket(os.path.join(obs_tickets[0], filename))
+            if ticket_object:
+                observation_request_list.append(ticket_object)
+    
+    observation_request_list.sort(key=start_time)
         
     run_object = ObservationRun(observation_request_list, folder)
     run_object.observe()
+    
+def read_ticket(ticket):
+    '''
+
+    Parameters
+    ----------
+    ticket : STR
+        Path to ticket json file.
+
+    Returns
+    -------
+    CLASS INSTANCE OBJECT of ObservationTicket
+        Observation Ticket object to be read by observation_run.py.
+
+    '''
+    if not os.path.isfile(ticket):
+        logging.critical('Invalid file path to obsevation ticket')
+        return None
+    try: object_reader = ObjectReader(Reader(ticket))
+    except: logging.critical('Error reading observation ticket')
+    else: print('Observation ticket has been read')
+    
+    if check_ticket(object_reader.ticket):
+        return object_reader.ticket
+    else:
+        logging.critical('Observation ticket formatting error')
+        return None
     
 def check_ticket(ticket):
     '''
@@ -152,4 +181,20 @@ def check_ticket(ticket):
         return False
     else:
         return True
+    
+def start_time(ticket_object):
+    '''
+
+    Parameters
+    ----------
+    ticket_object : CLASS INSTANCE OBJECT of ObservationTicket
+        Created by observation_ticket.
+
+    Returns
+    -------
+    DATETIME.DATETIME
+        Datetime object for the ticket's start time.  Used to sort the tickets by start time.
+
+    '''
+    return ticket_object.start_time
     
