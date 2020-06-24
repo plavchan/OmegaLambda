@@ -27,7 +27,7 @@ class ObservationRun():
         self.telescope = Telescope()
         self.dome = Dome()
         self.weather = Weather()
-        #self.focuser = Focuser(self.camera)
+        #self.focuser = Focuser(self.camera, image_directory)
         #self.guider = Guider(self.camera, self.telescope)
         
         self.filterwheel_dict = filter_wheel.get_filter().filter_position_dict()

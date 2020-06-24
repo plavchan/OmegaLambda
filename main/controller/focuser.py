@@ -1,10 +1,16 @@
 import logging
+import photutils
+import os
+import statistics
+
+from astropy.io import fits
+from astropy.stats import sigma_clipped_stats
 
 from .hardware import Hardware
 
 class Focuser(Hardware):
     
-    def __init__(self, camera_obj):
+    def __init__(self, camera_obj, image_path):
         '''
 
         Parameters
@@ -18,6 +24,7 @@ class Focuser(Hardware):
 
         '''
         self.camera = camera_obj
+        self.image_path = image_path
         super(Focuser, self).__init__(name='Focuser')       # Calls Hardware.__init__ with the name 'Focuser'
         
     def setFocusDelta(self, amount):
@@ -114,13 +121,20 @@ class Focuser(Hardware):
         None.
 
         '''
+        try: os.mkdir(os.path.join(self.image_path, r'focuser_calibration_images'))
+        except: logging.error('Could not create subdirectory for focusing images, or directory already exists...')
+        # Creates new sub-directory for focuser images
         self.setFocusDelta(starting_delta)
         Last_FWHM = None
         for i in range(loops):
-            self.camera.onThread(self.camera.expose, exp_time, filter)
+            image_name = '{0:s}_{1:d}s_{2:s}-{3:04d}.fits'.format('FocuserImage', exp_time, filter, i + 1)
+            path = os.path.join(self.image_path, r'focuser_calibration_images', image_name)
+            self.camera.onThread(self.camera.expose, exp_time, filter, save_path=path)
             self.camera.image_done.wait()
-            # Use Owen's filereader here to get star FWHM
-            FWHM = None
+            focus_image = fits.getdata(path)
+            mean, median, stdev = sigma_clipped_stats(focus_image, sigma = 3)
+            iraffind = photutils.IRAFStarFinder(fwhm = 10, threshold = 5*stdev)
+            FWHM = statistics.median(iraffind['fwhm'])
             if Last_FWHM == None:
                 # First cycle
                 self.focusAdjust("in"); last = "in"
