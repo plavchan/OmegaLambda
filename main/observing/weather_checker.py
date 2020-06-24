@@ -28,11 +28,11 @@ class Weather(threading.Thread):
 
         '''
         super(Weather, self).__init__(name='Weather-Th')                    # Calls threading.Thread.__init__ with the name 'Weather-Th'
-        self.weather_alert = threading.Event()                              # Threading events to set flags and interact between threads
+        self.weather_alert = threading.Event() 
+        self.stop = threading.Event()                             # Threading events to set flags and interact between threads
         self.config_dict = config_reader.get_config()                       # Global config dictionary
         self.weather_url = 'http://weather.cos.gmu.edu/Current_Monitor.htm'                                                                     #GMU COS Website for humitiy and wind
         self.rain_url = 'https://weather.com/weather/radar/interactive/l/b63f24c17cc4e2d086c987ce32b2927ba388be79872113643d2ef82b2b13e813'      #Weather.com radar for rain
-        self.running = True
         
     def run(self):
         '''
@@ -50,7 +50,7 @@ class Weather(threading.Thread):
         if not self.check_internet():
             logging.error("Your internet connection requires attention.")
             return
-        while (self.weather_alert.isSet() == False) and (self.running == True):
+        while (self.weather_alert.isSet() == False) and (self.stop.isSet() == False):
             (H, W, R) = self.weather_check()
             Radar = self.rain_check()
             if (H >= self.config_dict.humidity_limit) or (W >= self.config_dict.wind_limit) or (Last_Rain != R and Last_Rain != None) or (Radar == True):
@@ -59,21 +59,7 @@ class Weather(threading.Thread):
             else:
                 logging.debug("Weather checker is alive: Last check false")
                 Last_Rain = R
-                time.sleep(self.config_dict.weather_freq*60)
-                
-    def stop(self):
-        '''
-        Description
-        -----------
-        Sets self.running to False to stop run.
-
-        Returns
-        -------
-        None.
-
-        '''
-        logging.debug("Stopping weather thread")
-        self.running = False
+                self.stop.wait(self.config_dict.weather_freq*60)
                 
     def check_internet(self):
         '''

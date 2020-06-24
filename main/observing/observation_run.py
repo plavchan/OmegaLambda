@@ -163,7 +163,7 @@ class ObservationRun():
     
     def _shutdown_procedure(self):
         print("Shutting down observatory.")
-        self.weather.stop()
+        self.weather.stop.set()
         self.dome.onThread(self.dome.SlaveDometoScope, False)
         self.telescope.onThread(self.telescope.Park)
         self.dome.onThread(self.dome.Park)
