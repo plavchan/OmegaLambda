@@ -89,6 +89,8 @@ def run(obs_tickets, data=None, config=None, filter=None, logger=None):
     run_object = ObservationRun(observation_request_list, folder)
     run_object.observe()
     
+    log_object.stop()
+    
 def read_ticket(ticket):
     '''
 

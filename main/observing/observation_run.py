@@ -12,7 +12,7 @@ from ..common.datatype import filter_wheel
 from ..controller.camera import Camera
 from ..controller.telescope import Telescope
 from ..controller.dome import Dome
-#from ..controller.focuser import Focuser
+from ..controller.focuser import Focuser
 #from .guider import Guider
 from .weather_checker import Weather
     
@@ -28,7 +28,7 @@ class ObservationRun():
         self.telescope = Telescope()
         self.dome = Dome()
         self.weather = Weather()
-        #self.focuser = Focuser(self.camera)
+        self.focuser = Focuser(self.camera)
         #self.guider = Guider(self.camera, self.telescope)
         
         self.filterwheel_dict = filter_wheel.get_filter().filter_position_dict()
@@ -48,6 +48,7 @@ class ObservationRun():
         self.camera.start()
         self.telescope.start()
         self.dome.start()
+        self.focuser.start()
         self.camera.onThread(self.camera.cooler_ready)
         
         self.dome.live_connection.wait()
@@ -63,13 +64,14 @@ class ObservationRun():
         for ticket in self.observation_request_list:
             if self.check_weather(): 
                 self.shutdown(); return
+            self.telescope.onThread(self.telescope.Slew, ticket.ra, ticket.dec)
+            self.telescope.slew_done.wait()
             if Initial_shutter in (1,3,4):
-                self.telescope.onThread(self.telescope.Slew, ticket.ra, ticket.dec)
-                self.telescope.slew_done.wait()
                 self.dome.move_done.wait()
                 self.dome.shutter_done.wait()
             self.tz = ticket.start_time.tzinfo
             current_time = datetime.datetime.now(self.tz)
+            
             if ticket.start_time > current_time:
                 print("It is not the start time {} of {} observation, "
                       "waiting till start time.".format(ticket.start_time.isoformat(), ticket.name))
@@ -80,15 +82,28 @@ class ObservationRun():
             self.camera.cooler_settle.wait()
             if self.check_weather(): 
                 self.shutdown(); return
+            self.focus_target(ticket)
             input("The program is ready to start taking images of {}.  Please take this time to "
-                  "focus and check the pointing of the target.  When you are ready, press Enter: ".format(ticket.name))
+                  "check the focus and pointing of the target.  When you are ready, press Enter: ".format(ticket.name))
             (taken, total) = self.run_ticket(ticket)
             print("{} out of {} exposures were taken for {}.  Moving on to next target.".format(taken, total, ticket.name))
         print("All targets have finished for tonight.")
         self.shutdown()
         
+    def focus_target(self, ticket):
+        if type(ticket.filter) is list:
+            focus_filter = [ticket.filter[0]]
+        elif type(ticket.filter) is str:
+            focus_filter = ticket.filter
+        focus_exposure = int(self.config_dict.focus_exposure_multiplier*ticket.exp_time)
+        if focus_exposure <= 0: focus_exposure = 1
+        self.focuser.onThread(self.focuser.AutoFocusProcedure,
+                              focus_exposure, self.filterwheel_dict[focus_filter], self.config_dict.initial_focus_delta,
+                              self.config_dict.focus_iterations, self.image_directory, self.config_dict.focus_goal)
+        self.focuser.focused.wait()
+        return
+        
     def run_ticket(self, ticket):
-        # Focuser here
         if ticket.cycle_filter:
             img_count = self.take_images(ticket.name, ticket.num, ticket.exp_time,
                                          ticket.filter, ticket.end_time, self.image_directory,
@@ -175,7 +190,9 @@ class ObservationRun():
         self.camera.onThread(self.camera.disconnect)
         self.dome.onThread(self.dome.disconnect)
         self.telescope.onThread(self.telescope.disconnect)  #still doesn't disconnect from TheSkyX
+        self.focuser.onThread(self.focuser.disconnect)
 
         self.camera.onThread(self.camera.stop)
         self.telescope.onThread(self.telescope.stop)
         self.dome.onThread(self.dome.stop)
+        self.focuser.onThread(self.focuser.stop)

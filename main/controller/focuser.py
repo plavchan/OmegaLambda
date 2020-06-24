@@ -1,16 +1,13 @@
 import logging
-import photutils
 import os
-import statistics
-
-from astropy.io import fits
-from astropy.stats import sigma_clipped_stats
+import threading
 
 from .hardware import Hardware
+from ..common.util import filereader_utils
 
 class Focuser(Hardware):
     
-    def __init__(self, camera_obj, image_path):
+    def __init__(self, camera_obj):
         '''
 
         Parameters
@@ -24,7 +21,7 @@ class Focuser(Hardware):
 
         '''
         self.camera = camera_obj
-        self.image_path = image_path
+        self.focused = threading.Event()
         super(Focuser, self).__init__(name='Focuser')       # Calls Hardware.__init__ with the name 'Focuser'
         
     def setFocusDelta(self, amount):
@@ -98,7 +95,7 @@ class Focuser(Hardware):
         '''
         self.Focuser.actStop()
         
-    def AutoFocusProcedure(self, exp_time, filter, starting_delta, loops):
+    def AutoFocusProcedure(self, exp_time, filter, starting_delta, loops, image_path, focus_goal):
         '''
         Description
         -----------
@@ -115,26 +112,31 @@ class Focuser(Hardware):
             Initial focuser movement length.
         loops : INT
             How many exposures to take before settling on a focus.
+        image_path : STR
+            File path to the CCD images to be used for focusing.
+        focus_goal : INT
+            Goal for how good to get the focus, in arcseconds.
 
         Returns
         -------
         None.
 
         '''
-        try: os.mkdir(os.path.join(self.image_path, r'focuser_calibration_images'))
+        self.focused.clear()
+        
+        try: os.mkdir(os.path.join(image_path, r'focuser_calibration_images'))
         except: logging.error('Could not create subdirectory for focusing images, or directory already exists...')
         # Creates new sub-directory for focuser images
         self.setFocusDelta(starting_delta)
         Last_FWHM = None
         for i in range(loops):
-            image_name = '{0:s}_{1:d}s_{2:s}-{3:04d}.fits'.format('FocuserImage', exp_time, filter, i + 1)
-            path = os.path.join(self.image_path, r'focuser_calibration_images', image_name)
+            image_name = '{0:s}_{1:d}s-{2:04d}.fits'.format('FocuserImage', exp_time, i + 1)
+            path = os.path.join(image_path, r'focuser_calibration_images', image_name)
             self.camera.onThread(self.camera.expose, exp_time, filter, save_path=path)
             self.camera.image_done.wait()
-            focus_image = fits.getdata(path)
-            mean, median, stdev = sigma_clipped_stats(focus_image, sigma = 3)
-            iraffind = photutils.IRAFStarFinder(fwhm = 10, threshold = 5*stdev)
-            FWHM = statistics.median(iraffind['fwhm'])
+            FWHM = filereader_utils.get_FWHM_from_image(path)
+            if FWHM <= focus_goal:
+                break
             if Last_FWHM == None:
                 # First cycle
                 self.focusAdjust("in"); last = "in"
@@ -147,16 +149,28 @@ class Focuser(Hardware):
                     self.focusAdjust("out"); last = "out"
                 elif last == "out":
                     self.focusAdjust("in"); last = "in"
+            
             Last_FWHM = FWHM
             if i == 9:
                 self.setFocusDelta(int(starting_delta/2))
             if i == 19:
                 self.setFocusDelta(int(starting_delta/4))
-        if FWHM <= 10:
-            logging.info('Autofocus achieved a FWHM of less than 10 arcseconds!')
-        elif FWHM <= 15:
-            logging.info('Autofocus achieved a FWHM of less than 15 arcseconds!')
-        else:
-            logging.info('Autofocus did not get to a FWHM of less than 15 arcseconds.')
+        if FWHM <= focus_goal:
+            logging.info('Autofocus achieved a FWHM of less than {} arcseconds!'.format(focus_goal))
+        
+        self.focused.set()
+        
+    def disconnect(self):
+        '''
+        Description
+        -----------
+        Disconnects from RoboFocus
+
+        Returns
+        -------
+        None.
+
+        '''
+        self.Focuser.actCloseComm()
         
 # Robofocus documentation: http://www.robofocus.com/documents/robofocusins31.pdf ?

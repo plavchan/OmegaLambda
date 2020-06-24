@@ -2,7 +2,6 @@
 import logging
 import logging.config
 import logging.handlers
-import os
 
 from ..main.common.IO.json_reader import Reader
 from ..main.common.datatype.object_reader import ObjectReader
@@ -34,4 +33,8 @@ class Logger():
 
         '''
         logging.info('Initialized logging module')
+        
+    @staticmethod
+    def stop():
+        logging.shutdown()
         
