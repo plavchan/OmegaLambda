@@ -16,7 +16,7 @@ def get_FWHM_from_image(path):
     Returns
     -------
     FWHM : FLOAT
-        Float number of median FWHM from all stars in the image.
+        Float number of median FWHM from all stars in the image, in PIXELS (we will want to convert this to arcseconds).
 
     '''
     logging.info('Starting IRAF fwhm calculations...')
@@ -25,5 +25,7 @@ def get_FWHM_from_image(path):
     iraffind = photutils.IRAFStarFinder(fwhm = 10, threshold = 5*stdev)
     fitsfile = iraffind(image)
     FWHM = statistics.median(fitsfile['fwhm'])
+    length = len(fitsfile)
     logging.info('Finished IRAF fwhm calculations:  Median fwhm = {}'.format(FWHM))
+    logging.info('Number of stars: {}'.format(length))
     return FWHM

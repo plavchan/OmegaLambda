@@ -155,8 +155,7 @@ class Focuser(Hardware):
                 self.setFocusDelta(int(starting_delta/2))
             if i == 19:
                 self.setFocusDelta(int(starting_delta/4))
-        if FWHM <= focus_goal:
-            logging.info('Autofocus achieved a FWHM of less than {} arcseconds!'.format(focus_goal))
+        logging.info('Autofocus achieved a FWHM of {} pixels!'.format(FWHM))
         
         self.focused.set()
         

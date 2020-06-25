@@ -56,9 +56,8 @@ class Camera(Hardware):         # Subclassed from the hardware class
             time.sleep(60)
             t += 1
             print("Waiting for cooler to settle...")
-        else:
-            self.cooler_settle.set()
-            return
+        self.cooler_settle.set()
+        return
     
     def _image_ready(self):
         while not self.Camera.ImageReady:

@@ -55,10 +55,10 @@ class ObservationRun():
         self.dome.onThread(self.dome.ShutterPosition) #If open, status = 0 (False), if closed, status = 1 (True)
         time.sleep(1)
         Initial_shutter = self.dome.shutter
+        self.dome.onThread(self.dome.SlaveDometoScope, True)
         if Initial_shutter in (1,3,4):
             self.dome.onThread(self.dome.MoveShutter, 'open')
             self.dome.onThread(self.dome.Home)
-            self.dome.onThread(self.dome.SlaveDometoScope, True)
             self.telescope.onThread(self.telescope.Unpark)
         
         for ticket in self.observation_request_list:
@@ -71,6 +71,23 @@ class ObservationRun():
                 self.dome.shutter_done.wait()
             self.tz = ticket.start_time.tzinfo
             current_time = datetime.datetime.now(self.tz)
+            '''
+            current_time_local = datetime.datetime.now()
+            # Maybe calculate sunrise/sunset times on daily basis?
+            if current_time_local.month >= 3 and current_time_local.month <= 8:     # Between March and August (Spring - Summer)
+                sunrise = 5
+                sunset = 20
+            else:   # Between September and February (Fall - Winter)
+                sunrise = 7
+                sunset = 17
+            if current_time_local.hour > sunrise and current_time_local < sunset:
+                print("It has become too bright for observations for tonight--the Sun is rising."
+                      "Stopping observations until the next night.")
+                self._shutdown_procedure()
+                
+                time.sleep(x)
+                reconnect and restart everything (maybe make that into a different function, or just move this above the other stuff)
+            '''
             
             if ticket.start_time > current_time:
                 print("It is not the start time {} of {} observation, "
@@ -87,7 +104,6 @@ class ObservationRun():
                   "check the focus and pointing of the target.  When you are ready, press Enter: ".format(ticket.name))
             (taken, total) = self.run_ticket(ticket)
             print("{} out of {} exposures were taken for {}.  Moving on to next target.".format(taken, total, ticket.name))
-        print("All targets have finished for tonight.")
         self.shutdown()
         
     def focus_target(self, ticket):

@@ -1,13 +1,13 @@
 {"type": "observation_ticket",
 "details": {
-	"name": "TestTOI1234.01",
-	"ra": "09:27:35.2433",
-	"dec": "-08:39:30.969",
+	"name": "HIP Something",
+	"ra": "13:34:41.5920",
+	"dec": "-00:35:44.953",
 	"start_time": "2020-06-24 10:00:00-04:00",
 	"end_time": "2020-06-24 23:00:00-04:00",
 	"filter": "r",
 	"num": 1,
-	"exp_time": 2,
+	"exp_time": 10,
 	"self_guide": false,
 	"guide": true,
 	"cycle_filter": false
