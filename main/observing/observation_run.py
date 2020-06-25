@@ -52,7 +52,7 @@ class ObservationRun():
         self.camera.onThread(self.camera.cooler_ready)
         
         self.dome.live_connection.wait()
-        self.dome.onThread(self.dome.ShutterPosition) #If open, status = 0 (False), if closed, status = 1 (True)
+        self.dome.onThread(self.dome.ShutterPosition)
         time.sleep(1)
         Initial_shutter = self.dome.shutter
         if Initial_shutter in (1,3,4):

@@ -1,6 +1,7 @@
 import logging
 import os
 import threading
+import time
 
 from .hardware import Hardware
 from ..common.util import filereader_utils
@@ -132,10 +133,13 @@ class Focuser(Hardware):
         for i in range(loops):
             image_name = '{0:s}_{1:d}s-{2:04d}.fits'.format('FocuserImage', exp_time, i + 1)
             path = os.path.join(image_path, r'focuser_calibration_images', image_name)
-            self.camera.onThread(self.camera.expose, exp_time, filter, save_path=path)
+            self.camera.onThread(self.camera.expose, exp_time, filter, save_path=path, type="light")
             self.camera.image_done.wait()
-            FWHM = filereader_utils.get_FWHM_from_image(path)
-            if FWHM <= focus_goal:
+            FWHM = self.camera.onThread(self.camera.get_FWHM)
+            if not FWHM:
+                logging.warning('Could not retrieve FWHM from the last exposure...retrying')
+                continue
+            if FWHM <= focus_goal: #TODO: Convert focus goal from arcseconds to pixels
                 break
             if Last_FWHM == None:
                 # First cycle

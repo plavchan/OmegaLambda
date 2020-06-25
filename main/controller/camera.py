@@ -86,6 +86,9 @@ class Camera(Hardware):         # Subclassed from the hardware class
                 self.image_done.set()
                 self.image_done.clear()
                 
+    def get_FWHM(self):
+        return self.Camera.FWHM
+                
     def disconnect(self):
         if self.Camera.LinkEnabled:
             self._image_ready()
