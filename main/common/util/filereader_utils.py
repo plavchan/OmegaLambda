@@ -3,7 +3,6 @@ import logging
 import statistics
 
 import photutils
-from photutils import datasets
 from astropy.io import fits
 from astropy.stats import sigma_clipped_stats
 

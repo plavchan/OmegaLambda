@@ -176,4 +176,4 @@ class Focuser(Hardware):
         '''
         self.Focuser.actCloseComm()
         
-# Robofocus documentation: http://www.robofocus.com/documents/robofocusins31.pdf ?
+# Robofocus documentation: http://www.robofocus.com/documents/robofocusins31.pdf

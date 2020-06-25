@@ -53,9 +53,9 @@ class Camera(Hardware):         # Subclassed from the hardware class
                    self.Camera.Temperature <= self.Camera.TemperatureSetpoint + 0.1):
             if t >= self.config_dict.cooler_settle_time:
                 self._coolerAdjust()
+            print("Waiting for cooler to settle...")
             time.sleep(60)
             t += 1
-            print("Waiting for cooler to settle...")
         self.cooler_settle.set()
         return
     

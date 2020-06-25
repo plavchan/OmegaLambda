@@ -1,8 +1,8 @@
 {"type": "observation_ticket",
 "details": {
-	"name": "Alnitak",
-	"ra": "05:40:45.5271",
-	"dec": "-01:56:33.260",
+	"name": "TestStar",
+	"ra": "12:41:39.6423",
+	"dec": "-01:26:57.750",
 	"start_time": "2020-06-25 10:00:00-04:00",
 	"end_time": "2020-06-25 23:00:00-04:00",
 	"filter": "r",
