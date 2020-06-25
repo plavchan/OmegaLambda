@@ -48,7 +48,7 @@ class Dome(Hardware):
             self.Dome.OpenShutter()
             print("Shutter is opening")
             time.sleep(2)
-            while self.Dome.ShutterStatus == 2:
+            while self.Dome.ShutterStatus in (1,2,4):
                 time.sleep(5)
             time.sleep(2)
             if self.Dome.ShutterStatus == 0:
@@ -59,7 +59,7 @@ class Dome(Hardware):
             self.Dome.CloseShutter()
             print("Shutter is closing")
             time.sleep(2)
-            while self.Dome.ShutterStatus == 3:
+            while self.Dome.ShutterStatus in (0,3,4):
                 time.sleep(5)
             time.sleep(2)
             if self.Dome.ShutterStatus == 1:
