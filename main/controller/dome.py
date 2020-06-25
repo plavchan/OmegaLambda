@@ -50,16 +50,22 @@ class Dome(Hardware):
             time.sleep(2)
             while self.Dome.ShutterStatus == 2:
                 time.sleep(5)
+            time.sleep(2)
             if self.Dome.ShutterStatus == 0:
                 self.shutter_done.set()
+            else:
+                logging.error('Dome did not open correctly.')
         elif open_or_close == 'close':
             self.Dome.CloseShutter()
             print("Shutter is closing")
             time.sleep(2)
             while self.Dome.ShutterStatus == 3:
                 time.sleep(5)
+            time.sleep(2)
             if self.Dome.ShutterStatus == 1:
                 self.shutter_done.set()
+            else:
+                logging.error('Dome did not close correctly.')
             
         else: print("Invalid shutter move command")
         return
