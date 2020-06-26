@@ -56,6 +56,8 @@ class Camera(Hardware):         # Subclassed from the hardware class
             print("Waiting for cooler to settle...")
             time.sleep(60)
             t += 1
+        time.sleep(1)
+        print("Cooler has settled")
         self.cooler_settle.set()
         return
     
@@ -75,7 +77,6 @@ class Camera(Hardware):         # Subclassed from the hardware class
                 print("ERROR: Invalid exposure type.")
                 return
             logging.debug('Exposing image')
-            self.cooler_ready()
             self.Camera.SetFullFrame()
             self.Camera.Expose(exposure_time, type, filter)
             self._image_ready()
@@ -87,7 +88,7 @@ class Camera(Hardware):         # Subclassed from the hardware class
                 self.image_done.clear()
                 
     def get_FWHM(self):
-        return self.Camera.FWHM
+        self.fwhm = self.Camera.FWHM
                 
     def disconnect(self):
         if self.Camera.LinkEnabled:

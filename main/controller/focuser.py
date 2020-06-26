@@ -4,7 +4,6 @@ import threading
 import time
 
 from .hardware import Hardware
-from ..common.util import filereader_utils
 
 class Focuser(Hardware):
     
@@ -135,7 +134,10 @@ class Focuser(Hardware):
             path = os.path.join(image_path, r'focuser_calibration_images', image_name)
             self.camera.onThread(self.camera.expose, exp_time, filter, save_path=path, type="light")
             self.camera.image_done.wait()
-            FWHM = self.camera.onThread(self.camera.get_FWHM)
+            time.sleep(1)
+            self.camera.onThread(self.camera.get_FWHM)
+            time.sleep(1)
+            FWHM = self.camera.fwhm
             if not FWHM:
                 logging.warning('Could not retrieve FWHM from the last exposure...retrying')
                 continue

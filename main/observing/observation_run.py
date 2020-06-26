@@ -41,24 +41,24 @@ class ObservationRun():
             return False
 
     def observe(self):
+        Initial_weather = self.check_weather()
         self.weather.start()
-        time.sleep(5)           #This is needed, or else it checks before weather_checker finishes its first test
-        if self.check_weather(): 
-            return
         self.camera.start()
         self.telescope.start()
         self.dome.start()
         self.focuser.start()
-        self.camera.onThread(self.camera.cooler_ready)
         
         self.dome.live_connection.wait()
         self.dome.onThread(self.dome.ShutterPosition)
         time.sleep(1)
         Initial_shutter = self.dome.shutter
-        if Initial_shutter in (1,3,4):
+        if Initial_shutter in (1,3,4) and Initial_weather == False:
             self.dome.onThread(self.dome.MoveShutter, 'open')
             self.dome.onThread(self.dome.Home)
             self.telescope.onThread(self.telescope.Unpark)
+        elif Initial_weather:
+            self.shutdown(); return
+        self.camera.onThread(self.camera.cooler_ready)
         self.dome.onThread(self.dome.SlaveDometoScope, True)
         
         for ticket in self.observation_request_list:
@@ -189,12 +189,18 @@ class ObservationRun():
             self._shutdown_procedure()
         elif response == 'n':
             t.cancel()
+            self.stop_threads()
             return
         
+    def stop_threads(self):
+        self.weather.stop.set()
+        self.camera.onThread(self.camera.stop)
+        self.telescope.onThread(self.telescope.stop)
+        self.dome.onThread(self.dome.stop)
+        self.focuser.onThread(self.focuser.stop)
     
     def _shutdown_procedure(self):
         print("Shutting down observatory.")
-        self.weather.stop.set()
         self.dome.onThread(self.dome.SlaveDometoScope, False)
         self.telescope.onThread(self.telescope.Park)
         self.dome.onThread(self.dome.Park)
@@ -208,7 +214,4 @@ class ObservationRun():
         self.telescope.onThread(self.telescope.disconnect)  #still doesn't disconnect from TheSkyX
         self.focuser.onThread(self.focuser.disconnect)
 
-        self.camera.onThread(self.camera.stop)
-        self.telescope.onThread(self.telescope.stop)
-        self.dome.onThread(self.dome.stop)
-        self.focuser.onThread(self.focuser.stop)
+        self.stop_threads()
