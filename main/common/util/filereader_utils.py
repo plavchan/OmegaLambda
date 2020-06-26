@@ -28,5 +28,5 @@ def get_FWHM_from_image(path):
     FWHM = statistics.median(fitsfile['fwhm'])
     length = len(fitsfile)
     logging.info('Finished IRAF fwhm calculations:  Median fwhm = {}'.format(FWHM))
-    # logging.info('Number of stars: {}'.format(length))
+    logging.info('Number of stars: {}'.format(length))
     return FWHM

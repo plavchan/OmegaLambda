@@ -111,8 +111,8 @@ class Dome(Hardware):
                 return True
             except: 
                 print("ERROR: Could not disconnect from dome")
-                # os.system('taskkill /f /im ASCOMDome.exe')
-                # os.system(r'"C:\Program Files (x86)\Common Files\ASCOM\Dome\ASCOMDome.exe"')
+                os.system('taskkill /f /im ASCOMDome.exe')
+                os.system(r'"C:\Program Files (x86)\Common Files\ASCOM\Dome\ASCOMDome.exe"')
                 return False
         else: 
             print("Dome is not parked, or shutter not closed")
