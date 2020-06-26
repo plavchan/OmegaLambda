@@ -29,8 +29,8 @@ class Hardware(threading.Thread):           #Subclassed from threading.Thread
         '''
         self.q = queue.Queue()
         self.timeout = loop_time
-        self.running = True                                                     #Will stay true to keep the thread running until self.stop is called
         self.label = name
+        self.stopping = threading.Event()
         super(Hardware, self).__init__(name = self.label + '-Th')               #Called threading.Thread.__init__ 
         
         self.config_dict = config_reader.get_config()                           #Gets the global config object
@@ -99,7 +99,7 @@ class Hardware(threading.Thread):           #Subclassed from threading.Thread
             self.check_connection()
         else:
             logging.error("Invalid hardware name")
-        while self.running:
+        while not self.stopping.isSet():
             logging.debug("{0:s} thread is alive".format(self.label))
             try:
                 function, args, kwargs = self.q.get(timeout=self.timeout)
@@ -122,7 +122,7 @@ class Hardware(threading.Thread):           #Subclassed from threading.Thread
 
         '''
         logging.debug("Stopping {} thread".format(self.label))
-        self.running = False
+        self.stopping.set()
         
     def check_connection(self):
         '''

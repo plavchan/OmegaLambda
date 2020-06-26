@@ -99,7 +99,7 @@ class ObservationRun():
             self.camera.cooler_settle.wait()
             if self.check_weather(): 
                 self.shutdown(); return
-            self.focus_target(ticket)
+            # self.focus_target(ticket)
             input("The program is ready to start taking images of {}.  Please take this time to "
                   "check the focus and pointing of the target.  When you are ready, press Enter: ".format(ticket.name))
             (taken, total) = self.run_ticket(ticket)
@@ -210,8 +210,10 @@ class ObservationRun():
         self.dome.move_done.wait()
         self.dome.shutter_done.wait()
         self.camera.onThread(self.camera.disconnect)
+        self.telescope.onThread(self.telescope.disconnect)
         self.dome.onThread(self.dome.disconnect)
-        self.telescope.onThread(self.telescope.disconnect)  #still doesn't disconnect from TheSkyX
         self.focuser.onThread(self.focuser.disconnect)
-
+        
         self.stop_threads()
+
+        
