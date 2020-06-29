@@ -17,13 +17,14 @@ from ..controller.focuser_procedures import FocusProcedures
 from .weather_checker import Weather
     
 class ObservationRun():
-    def __init__(self, observation_request_list, image_directory):
+    def __init__(self, observation_request_list, image_directory, shutdown):
         '''
 
         :param observation_request_list: List of ObservationTickets
         '''
         self.image_directory = image_directory
         self.observation_request_list = observation_request_list
+        self.shutdown = shutdown
         self.camera = Camera()
         self.telescope = Telescope()
         self.dome = Dome()
@@ -185,17 +186,10 @@ class ObservationRun():
         return images_taken
     
     def shutdown(self):
-        timeout = 60
-        t = threading.Timer(timeout, self._shutdown_procedure)
-        t.start()
-        response = input("The last observation ticket has finished.  Shut down? (y/n): ")
-        if response == 'y':
-            t.cancel()
+        if self.shutdown:
             self._shutdown_procedure()
-        elif response == 'n':
-            t.cancel()
-            self.stop_threads()
-            return
+        else:
+            pass
         
     def stop_threads(self):
         self.weather.stop.set()

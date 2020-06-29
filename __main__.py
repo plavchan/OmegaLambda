@@ -3,7 +3,7 @@ import argparse
 from .main.drivers.driver import run
 
 def cli_run(args):
-    run(args.obs_tickets, args.data, args.config, args.filter, args.logger)
+    run(args.obs_tickets, args.data, args.config, args.filter, args.logger, args.shutdown)
 
 def main():
     parser = argparse.ArgumentParser(description='Telescope automation code')
@@ -19,6 +19,8 @@ def main():
                             help='Manual file path to the filter wheel config json file.')
     run_driver.add_argument('--logger', '-l', metavar='PATH', dest='logger',
                             help='Manual file path to the logging config json file.')
+    run_driver.add_argument('--noshutdown', '-ns', action='store_false', default='store_true', dest='shutdown',
+                            help='Use this option if you do not want to shutdown after running the tickets.')
     run_driver.set_defaults(func=cli_run)
     
     args = parser.parse_args()

@@ -9,7 +9,7 @@ from ..common.IO import config_reader
 from ..common.datatype.object_reader import ObjectReader
 
 
-def run(obs_tickets, data=None, config=None, filter=None, logger=None):
+def run(obs_tickets, data=None, config=None, filter=None, logger=None, shutdown=None):
     '''
 
     Parameters
@@ -29,6 +29,9 @@ def run(obs_tickets, data=None, config=None, filter=None, logger=None):
     logger : STR, optional
         Manual save path for the logging configuration file.  The default is None, in which case the logging path will be the default
         for this code, under -omegalambda/config.
+    shutdown : BOOL, optional
+        Toggle to shut down the observatory after running tickets.  The default in None, in which case True will be passed in via argparse,
+        so the observatory will shut down.
 
     Returns
     -------
@@ -86,7 +89,7 @@ def run(obs_tickets, data=None, config=None, filter=None, logger=None):
     
     observation_request_list.sort(key=start_time)
         
-    run_object = ObservationRun(observation_request_list, folder)
+    run_object = ObservationRun(observation_request_list, folder, shutdown)
     run_object.observe()
     
     log_object.stop()
