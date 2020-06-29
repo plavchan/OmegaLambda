@@ -1,26 +1,29 @@
 import logging
 import threading
+import win32com.client
+import time
 
-from .hardware import Hardware
-
-class Focuser(Hardware):
+class Focuser():    # NOT subclassed from hardware...instead FocusProcedures is.
     
     def __init__(self):
         '''
-
-        Parameters
-        ----------
-        camera_obj : CLASS INSTANCE OBJECT of Camera
-            Camera object to be passed in via observation_run
 
         Returns
         -------
         None.
 
         '''
-        self.focused = threading.Event()
         self.adjusting = threading.Event()
-        super(Focuser, self).__init__(name='Focuser')       # Calls Hardware.__init__ with the name 'Focuser'
+        self.Focuser = win32com.client.Dispatch("RoboFocus.FocusControl")
+        self.check_connection()
+        
+    def check_connection(self):
+        self.Focuser.actOpenComm()
+        time.sleep(2)
+        if self.Focuser.getCommStatus():
+            print("Focuser has successfully connected")
+        else:
+            print("ERROR: Could not connect to focuser")
         
     def setFocusDelta(self, amount):
         '''
@@ -47,7 +50,7 @@ class Focuser(Hardware):
             Current position of the focuser.
 
         '''
-        self.position = self.Focuser.getPosition()
+        return self.Focuser.getPosition()
 
     def focusAdjust(self, direction, amount=None):
         '''

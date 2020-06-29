@@ -31,7 +31,7 @@ class Config():
     
     def __init__(self, cooler_setpoint=None, cooler_idle_setpoint=None, cooler_settle_time=None, maximum_jog=None, site_latitude=None, 
                  site_longitude=None, humidity_limit=None, wind_limit=None, weather_freq=None, focus_exposure_multiplier=None, initial_focus_delta=None,
-                 focus_tolerance=None, focus_max_distance=None, data_directory=None, home_directory=None, prep_time=None):
+                 long_focus_tolerance=None, quick_focus_tolerance=None, focus_max_distance=None, data_directory=None, home_directory=None, prep_time=None):
         '''
 
         Parameters
@@ -58,8 +58,10 @@ class Config():
             Multiplier for exposure times on focusing images.  The multiplier is applied to the exposure time for the current ticket.  Our default is 0.5.
         initial_focus_delta : INT, optional
             Initial number of steps the focuser will move for each adjustment.  Our default is 10 steps.
-        focus_tolerance : INT, optional
+        long_focus_tolerance : INT, optional
             Leniency for how close to get the focus within the minimum found during focusing, in pixels.  Our default is 5.
+        quick_focus_tolerance : INT, optional
+            Leniency for how far to let the focus drift before correcting over the course of the night, in pixels.  Our default is 10.
         focus_max_distance : INT, optional
             Maximum distance away from the initial focus position that the focuser can move.  Our default is 100 steps.
         data_directory : STR, optional
@@ -85,7 +87,8 @@ class Config():
         self.weather_freq = weather_freq      
         self.focus_exposure_multiplier = focus_exposure_multiplier
         self.initial_focus_delta = initial_focus_delta
-        self.focus_tolerance = focus_tolerance
+        self.long_focus_tolerance = long_focus_tolerance
+        self.quick_focus_tolerance = quick_focus_tolerance
         self.focus_max_distance = focus_max_distance        
         self.data_directory = data_directory                     
         self.home_directory = home_directory                        
@@ -142,7 +145,8 @@ def _dict_to_config_object(dict):
                      cooler_settle_time=dict['cooler_settle_time'], site_latitude=dict['site_latitude'], site_longitude=dict['site_longitude'], 
                      maximum_jog=dict['maximum_jog'], humidity_limit=dict['humidity_limit'], wind_limit=dict['wind_limit'], weather_freq=dict['weather_freq'],
                      focus_exposure_multiplier=dict['focus_exposure_multiplier'], initial_focus_delta=dict['initial_focus_delta'],
-                     focus_tolerance=dict['focus_tolerance'], focus_max_distance=dict['focus_max_distance'], data_directory=dict['data_directory'], 
-                     home_directory=dict['home_directory'], prep_time=dict['prep_time'])
+                     long_focus_tolerance=dict['long_focus_tolerance'], quick_focus_tolerance=dict['quick_focus_tolerance'],
+                     focus_max_distance=dict['focus_max_distance'], data_directory=dict['data_directory'], home_directory=dict['home_directory'], 
+                     prep_time=dict['prep_time'])
     logging.info('Global config object has been created')
     return _config

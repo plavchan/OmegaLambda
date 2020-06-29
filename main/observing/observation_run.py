@@ -12,8 +12,7 @@ from ..common.datatype import filter_wheel
 from ..controller.camera import Camera
 from ..controller.telescope import Telescope
 from ..controller.dome import Dome
-from ..controller.focuser_control import Focuser
-from ..controller import focuser_procedures
+from ..controller.focuser_procedures import FocusProcedures
 #from .guider import Guider
 from .weather_checker import Weather
     
@@ -29,7 +28,7 @@ class ObservationRun():
         self.telescope = Telescope()
         self.dome = Dome()
         self.weather = Weather()
-        self.focuser = Focuser()
+        self.focus_procedures = FocusProcedures(self.camera)
         #self.guider = Guider(self.camera, self.telescope)
         
         self.filterwheel_dict = filter_wheel.get_filter().filter_position_dict()
@@ -47,7 +46,7 @@ class ObservationRun():
         self.camera.start()
         self.telescope.start()
         self.dome.start()
-        self.focuser.start()
+        self.focus_procedures.start()
         
         self.dome.live_connection.wait()
         self.dome.onThread(self.dome.ShutterPosition)
@@ -115,10 +114,10 @@ class ObservationRun():
         focus_exposure = int(self.config_dict.focus_exposure_multiplier*ticket.exp_time)
         if focus_exposure <= 0: 
             focus_exposure = 1
-        focuser_procedures.StartupFocusProcedure(self.focuser, self.camera, focus_exposure, self.filterwheel_dict[focus_filter], 
-                                                 self.config_dict.initial_focus_delta, self.image_directory, self.config_dict.focus_tolerance,
-                                                 self.config_dict.focus_max_distance)
-        self.focuser.focused.wait()
+        self.focus_procedures.onThread(self.focus_procedures.StartupFocusProcedure, focus_exposure, self.filterwheel_dict[focus_filter], 
+                                       self.config_dict.initial_focus_delta, self.image_directory, self.config_dict.long_focus_tolerance,
+                                       self.config_dict.focus_max_distance)
+        self.focus_procedures.focused.wait()
         return
         
     def run_ticket(self, ticket):
@@ -199,7 +198,7 @@ class ObservationRun():
         self.camera.onThread(self.camera.stop)
         self.telescope.onThread(self.telescope.stop)
         self.dome.onThread(self.dome.stop)
-        self.focuser.onThread(self.focuser.stop)
+        self.focus_procedures.onThread(self.focus_procedures.stop)
     
     def _shutdown_procedure(self):
         print("Shutting down observatory.")
@@ -214,7 +213,7 @@ class ObservationRun():
         self.camera.onThread(self.camera.disconnect)
         self.telescope.onThread(self.telescope.disconnect)
         self.dome.onThread(self.dome.disconnect)
-        self.focuser.onThread(self.focuser.disconnect)
+        self.focus_procedures.onThread(self.focus_procedures.disconnect)
         
         self.stop_threads()
 
