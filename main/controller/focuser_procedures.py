@@ -12,6 +12,7 @@ class FocusProcedures(Hardware):
         self.camera = camera_obj
        
         self.focused = threading.Event()
+        self.continuous_focusing = threading.Event()
         super(FocusProcedures, self).__init__(name='FocusProcedures')
 
     def StartupFocusProcedure(self, exp_time, filter, starting_delta, image_path, long_focus_tolerance, max_distance):
@@ -103,14 +104,70 @@ class FocusProcedures(Hardware):
         return FWHM
     
     def ConstantFocusProcedure(self, initial_fwhm, quick_focus_tolerance):
+        '''
+        Description
+        -----------
+        Automated focusing procedure to be used while taking science images.
+
+        Parameters
+        ----------
+        initial_fwhm : TYPE
+            DESCRIPTION.
+        quick_focus_tolerance : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        '''
         # Will be constantly running in the background
+        self.continuous_focusing.set()
         move = 'in'
-        while True:
-            self.focuser.onThread(self.camera.image_done.wait)
+        while self.continuous_focusing.isSet():
+            logging.debug('Continuous focusing procedure is active...')
+            self.camera.image_done.wait()
             self.camera.onThread(self.camera.get_FWHM)
             time.sleep(1)
-            if abs(self.camera.fwhm - initial_fwhm) >= quick_focus_tolerance:
-                self.focuser.onThread(self.focuser.focusAdjust, move)
+            fwhm = self.camera.fwhm
+            if abs(fwhm - initial_fwhm) >= quick_focus_tolerance:
+                self.focuser.focusAdjust(move)
+            else:
+                continue
+            
+            self.camera.image_done.wait()
+            self.camera.onThread(self.camera.get_FWHM)
+            time.sleep(1)
+            next_fwhm = self.camera.fwhm
+            if next_fwhm <= fwhm:
+                continue
+            elif next_fwhm > fwhm:
+                move = 'out'
+                self.focuser.focusAdjust(move)
                 
+    def StopConstantFocusing(self):
+        '''
+        Description
+        -----------
+        Stops the continuous focusing procedure that is used while taking images.
+
+        Returns
+        -------
+        None.
+
+        '''
+        logging.debug('Stopping continuous focusing')
+        self.continuous_focusing.clear()
+            
     def disconnect(self):
+        '''
+        Description
+        -----------
+        Disconnects from the focuser.
+
+        Returns
+        -------
+        None.
+
+        '''
         self.focuser.disconnect()

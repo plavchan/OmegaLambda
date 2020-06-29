@@ -99,10 +99,10 @@ class ObservationRun():
             self.camera.cooler_settle.wait()
             if self.check_weather(): 
                 self.shutdown(); return
-            self.focus_target(ticket)
+            FWHM = self.focus_target(ticket)
             input("The program is ready to start taking images of {}.  Please take this time to "
                   "check the focus and pointing of the target.  When you are ready, press Enter: ".format(ticket.name))
-            (taken, total) = self.run_ticket(ticket)
+            (taken, total) = self.run_ticket(ticket, FWHM)
             print("{} out of {} exposures were taken for {}.  Moving on to next target.".format(taken, total, ticket.name))
         self.shutdown()
         
@@ -114,17 +114,20 @@ class ObservationRun():
         focus_exposure = int(self.config_dict.focus_exposure_multiplier*ticket.exp_time)
         if focus_exposure <= 0: 
             focus_exposure = 1
-        self.focus_procedures.onThread(self.focus_procedures.StartupFocusProcedure, focus_exposure, self.filterwheel_dict[focus_filter], 
-                                       self.config_dict.initial_focus_delta, self.image_directory, self.config_dict.long_focus_tolerance,
-                                       self.config_dict.focus_max_distance)
+        FWHM = self.focus_procedures.onThread(self.focus_procedures.StartupFocusProcedure, focus_exposure, self.filterwheel_dict[focus_filter], 
+                                              self.config_dict.initial_focus_delta, self.image_directory, self.config_dict.long_focus_tolerance,
+                                              self.config_dict.focus_max_distance)
         self.focus_procedures.focused.wait()
-        return
+        return FWHM
         
-    def run_ticket(self, ticket):
+    def run_ticket(self, ticket, FWHM):
+        self.focus_procedures.onThread(self.focus_procedures.ConstantFocusProcedure, FWHM, self.config_dict.quick_focus_tolerance)
+        
         if ticket.cycle_filter:
             img_count = self.take_images(ticket.name, ticket.num, ticket.exp_time,
                                          ticket.filter, ticket.end_time, self.image_directory,
                                          True)
+            self.focus_procedures.onThread(self.focus_procedures.StopConstantFocusing)
             return (img_count, ticket.num)
         
         else:
@@ -134,6 +137,7 @@ class ObservationRun():
                                              [ticket.filter[i]], ticket.end_time, self.image_directory,
                                              False)
                 img_count += img_count_filter
+            self.focus_procedures.onThread(self.focus_procedures.StopConstantFocusing)
             return (img_count, ticket.num*len(ticket.filter))
 
     def take_images(self, name, num, exp_time, filter, end_time, path, cycle_filter):
