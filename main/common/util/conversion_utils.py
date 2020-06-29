@@ -1,6 +1,9 @@
 import math
+import datetime
+
 from astropy import units as u
-from astropy.coordinates import SkyCoord, FK5
+from astropy.coordinates import SkyCoord, FK5, get_sun
+from astropy.time import Time
 
 from . import time_utils
 
@@ -62,3 +65,11 @@ def convert_J2000_to_apparent(ra, dec):
     coords_J2000 = SkyCoord(ra = ra*u.hourangle, dec = dec*u.degree, frame = 'icrs') #ICRS Equinox is always J2000
     coords_apparent = coords_J2000.transform_to(FK5(equinox='J{}'.format(year)))
     return (coords_apparent.ra.hour, coords_apparent.dec.degree)
+
+def get_sun_elevation(time, latitude, longitude):
+    if type(time) is not datetime.datetime:
+        time = time_utils.convert_to_datetime_UTC(time)
+    astrotime = Time(time, format='datetime')
+    coords = get_sun(astrotime)
+    (az, alt) = convert_RaDec_to_AltAz(float(coords.ra.hour), float(coords.dec.degree), latitude, longitude, time)
+    return alt

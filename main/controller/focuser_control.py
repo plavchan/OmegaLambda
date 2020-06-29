@@ -1,7 +1,6 @@
 import logging
 import threading
 import win32com.client
-import time
 
 class Focuser():    # NOT subclassed from hardware...instead FocusProcedures is.
     
@@ -14,16 +13,8 @@ class Focuser():    # NOT subclassed from hardware...instead FocusProcedures is.
 
         '''
         self.adjusting = threading.Event()
+        self.live_connection = threading.Event()
         self.Focuser = win32com.client.Dispatch("RoboFocus.FocusControl")
-        self.check_connection()
-        
-    def check_connection(self):
-        self.Focuser.actOpenComm()
-        time.sleep(2)
-        if self.Focuser.getCommStatus():
-            print("Focuser has successfully connected")
-        else:
-            print("ERROR: Could not connect to focuser")
         
     def setFocusDelta(self, amount):
         '''
@@ -121,5 +112,6 @@ class Focuser():    # NOT subclassed from hardware...instead FocusProcedures is.
 
         '''
         self.Focuser.actCloseComm()
+        self.live_connection.clear()
         
 # Robofocus documentation: http://www.robofocus.com/documents/robofocusins31.pdf

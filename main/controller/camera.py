@@ -96,6 +96,7 @@ class Camera(Hardware):         # Subclassed from the hardware class
             try: 
                 self.coolerSet(False)
                 self.Camera.Quit()
+                self.live_connection.clear()
             except: print("ERROR: Could not disconnect from camera")
             else: print("Camera has successfully disconnected")
         else: print("Camera is already disconnected")

@@ -97,6 +97,7 @@ class Hardware(threading.Thread):           #Subclassed from threading.Thread
             self.check_connection()
         elif self.label == 'FocusProcedures':
             self.focuser = Focuser()
+            self.check_connection()
         else:
             logging.error("Invalid hardware name")
         while not self.stopping.isSet():
@@ -161,3 +162,11 @@ class Hardware(threading.Thread):           #Subclassed from threading.Thread
                 self.live_connection.set()
             except: print("ERROR: Could not connect to dome")
             else: print("Dome has successfully connected")
+        elif self.label == 'FocusProcedures':
+            self.focuser.Focuser.actOpenComm()
+            time.sleep(2)
+            if self.focuser.Focuser.getCommStatus():
+                print("Focuser has successfully connected")
+                self.live_connection.set()
+            else:
+                print("ERROR: Could not connect to focuser")

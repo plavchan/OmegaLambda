@@ -52,6 +52,7 @@ class FocusProcedures(Hardware):
         Last_FWHM = None
         minimum = None
         i = 0
+        j = 0
         while True:
             image_name = '{0:s}_{1:d}s-{2:04d}.fits'.format('FocuserImage', exp_time, i + 1)
             path = os.path.join(image_path, r'focuser_calibration_images', image_name)
@@ -69,8 +70,8 @@ class FocusProcedures(Hardware):
                 break
             if not FWHM:
                 logging.warning('Could not retrieve FWHM from the last exposure...retrying')
-                i += 1
-                if i >= 9:
+                j += 1
+                if j >= 3:
                     logging.error('There is a problem with MaxIm DL\'s fwhm property.  Cannot focus.')
                     break
                 continue

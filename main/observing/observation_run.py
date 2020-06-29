@@ -6,7 +6,7 @@ import re
 import logging
 import threading
 
-from ..common.util import time_utils
+from ..common.util import time_utils, conversion_utils
 from ..common.IO import config_reader
 from ..common.datatype import filter_wheel
 from ..controller.camera import Camera
@@ -17,14 +17,15 @@ from ..controller.focuser_procedures import FocusProcedures
 from .weather_checker import Weather
     
 class ObservationRun():
-    def __init__(self, observation_request_list, image_directory, shutdown):
+    def __init__(self, observation_request_list, image_directory, shutdown_toggle):
         '''
 
         :param observation_request_list: List of ObservationTickets
         '''
         self.image_directory = image_directory
         self.observation_request_list = observation_request_list
-        self.shutdown = shutdown
+        self.shutdown_toggle = shutdown_toggle
+        self.tz = observation_request_list[0].start_time.tzinfo
         self.camera = Camera()
         self.telescope = Telescope()
         self.dome = Dome()
@@ -35,35 +36,51 @@ class ObservationRun():
         self.filterwheel_dict = filter_wheel.get_filter().filter_position_dict()
         self.config_dict = config_reader.get_config()
         
-    def check_weather(self):
-        if self.weather.weather_alert.isSet():
-            return True
+    def everything_ok(self):
+        if not self.camera.live_connection.wait(timeout = 10):
+            check = False
+            logging.error('Camera connection timeout')
+        elif not self.telescope.live_connection.wait(timeout = 10):
+            check = False
+            logging.error('Telescope connection timeout')
+        elif not self.dome.live_connection.wait(timeout = 10):
+            check = False
+            logging.error('Dome connection timeout')
+        elif not self.focus_procedures.live_connection.wait(timeout = 10):
+            check = False
+            logging.error('Focuser connection timeout')
+        elif self.weather.weather_alert.isSet():
+            check = False
+        elif conversion_utils.get_sun_elevation(datetime.datetime.now(self.tz), self.config_dict.site_latitude, self.config_dict.site_longitude) >= 0:
+            check = False
+            logging.info('The Sun has risen above the horizon...observing will pause until tonight')
         else:
-            return False
+            check = True
+        return check
 
     def observe(self):
-        Initial_weather = self.check_weather()
         self.weather.start()
         self.camera.start()
         self.telescope.start()
         self.dome.start()
         self.focus_procedures.start()
+        time.sleep(1)
+        Initial_check = self.everything_ok()
         
-        self.dome.live_connection.wait()
         self.dome.onThread(self.dome.ShutterPosition)
         time.sleep(1)
         Initial_shutter = self.dome.shutter
-        if Initial_shutter in (1,3,4) and Initial_weather == False:
+        if Initial_shutter in (1,3,4) and Initial_check == True:
             self.dome.onThread(self.dome.MoveShutter, 'open')
             self.dome.onThread(self.dome.Home)
             self.telescope.onThread(self.telescope.Unpark)
-        elif Initial_weather:
+        elif not Initial_check:
             self.shutdown(); return
         self.camera.onThread(self.camera.cooler_ready)
         self.dome.onThread(self.dome.SlaveDometoScope, True)
         
         for ticket in self.observation_request_list:
-            if self.check_weather(): 
+            if not self.everything_ok(): 
                 self.shutdown(); return
             self.telescope.onThread(self.telescope.Slew, ticket.ra, ticket.dec)
             self.telescope.slew_done.wait()
@@ -98,7 +115,7 @@ class ObservationRun():
                 time.sleep((start_time_epoch_milli - current_epoch_milli)/1000)
             
             self.camera.cooler_settle.wait()
-            if self.check_weather(): 
+            if not self.everything_ok(): 
                 self.shutdown(); return
             FWHM = self.focus_target(ticket)
             input("The program is ready to start taking images of {}.  Please take this time to "
@@ -153,7 +170,7 @@ class ObservationRun():
                 print("The observations end time of {} has passed.  "
                       "Stopping observation of {}.".format(end_time, name))
                 break
-            if self.check_weather(): break
+            if not self.everything_ok(): break
             current_filter = filter[i % num_filters]
             image_name = "{0:s}_{1:d}s_{2:s}-{3:04d}.fits".format(name, exp_time, current_filter, image_num)
             
@@ -186,7 +203,7 @@ class ObservationRun():
         return images_taken
     
     def shutdown(self):
-        if self.shutdown:
+        if self.shutdown_toggle:
             self._shutdown_procedure()
         else:
             pass

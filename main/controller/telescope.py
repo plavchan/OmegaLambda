@@ -285,6 +285,7 @@ class Telescope(Hardware):
         if self.Telescope.AtPark:
             try: 
                 self.Telescope.Connected = False
+                self.live_connection.clear()
                 os.system("taskkill /f /im TheSkyX.exe")   #This is the only way it will actually disconnect from TheSkyX so far
             except: logging.error("Could not disconnect from telescope")
             else: logging.info('Telescope disconnected'); return True
