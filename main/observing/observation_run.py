@@ -12,7 +12,8 @@ from ..common.datatype import filter_wheel
 from ..controller.camera import Camera
 from ..controller.telescope import Telescope
 from ..controller.dome import Dome
-from ..controller.focuser import Focuser
+from ..controller.focuser_control import Focuser
+from ..controller import focuser_procedures
 #from .guider import Guider
 from .weather_checker import Weather
     
@@ -28,7 +29,7 @@ class ObservationRun():
         self.telescope = Telescope()
         self.dome = Dome()
         self.weather = Weather()
-        self.focuser = Focuser(self.camera)
+        self.focuser = Focuser()
         #self.guider = Guider(self.camera, self.telescope)
         
         self.filterwheel_dict = filter_wheel.get_filter().filter_position_dict()
@@ -112,10 +113,11 @@ class ObservationRun():
         elif type(ticket.filter) is str:
             focus_filter = ticket.filter
         focus_exposure = int(self.config_dict.focus_exposure_multiplier*ticket.exp_time)
-        if focus_exposure <= 0: focus_exposure = 1
-        self.focuser.onThread(self.focuser.AutoFocusProcedure,
-                              focus_exposure, self.filterwheel_dict[focus_filter], self.config_dict.initial_focus_delta,
-                              self.config_dict.focus_iterations, self.image_directory, self.config_dict.focus_goal)
+        if focus_exposure <= 0: 
+            focus_exposure = 1
+        focuser_procedures.StartupFocusProcedure(self.focuser, self.camera, focus_exposure, self.filterwheel_dict[focus_filter], 
+                                                 self.config_dict.initial_focus_delta, self.image_directory, self.config_dict.focus_tolerance,
+                                                 self.config_dict.focus_max_distance)
         self.focuser.focused.wait()
         return
         

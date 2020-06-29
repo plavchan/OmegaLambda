@@ -10,8 +10,8 @@
 	"weather_freq": 15,
 	"focus_exposure_multiplier": 0.5,
 	"initial_focus_delta": 10,
-	"focus_iterations": 10,
-	"focus_goal": 10,
+	"focus_tolerance": 5,
+	"focus_max_distance": 100,
 	"data_directory": "H:/Observatory Files/Observing Sessions/2020_Data",
 	"home_directory": "C:/Users/GMU Observtory1/-omegalambda",
 	"prep_time": 30
