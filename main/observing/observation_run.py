@@ -180,9 +180,14 @@ class ObservationRun():
                                  int(exp_time), self.filterwheel_dict[current_filter], os.path.join(path, image_name), "light")
             image_saved = self.camera.image_done.wait(timeout = exp_time*2 + 60)
             
-            if not image_saved:
+            name = 'MaxIm_DL.exe'
+            cmd = 'tasklist /FI "IMAGENAME eq %s" /FI "STATUS eq running"' % name
+            status = subprocess.Popen(cmd, stdout=subprocess.PIPE).stdout.read()
+            responding = name in str(status)
+            
+            if not responding:
                 self.camera.crashed.set()
-                logging.error('Image saving is taking a while...MaxIm DL may have crashed.  Restarting...')
+                logging.error('MaxIm DL is not responding.  Restarting...')
                 time.sleep(5)
                 self.camera.crashed.clear()
                 subprocess.call('taskkill /f /im MaxIm_DL.exe')                                               #TODO: Maybe add check if os = windows?

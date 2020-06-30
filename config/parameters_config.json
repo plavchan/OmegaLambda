@@ -9,6 +9,7 @@
 	"wind_limit": 20,
 	"weather_freq": 15,
 	"plate_scale": 0.350,
+	"saturation": 20000,
 	"focus_exposure_multiplier": 0.5,
 	"initial_focus_delta": 10,
 	"long_focus_tolerance": 1,

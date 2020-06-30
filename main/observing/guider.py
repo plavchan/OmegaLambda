@@ -1,5 +1,6 @@
 from ..controller.hardware import Hardware
-
+from ..common.IO import config_reader
+from ..common.util import filereader_utils
 
 '''
 1. Camera takes an exposure in observation_run
@@ -18,13 +19,19 @@ class Guider(Hardware):
     def __init__(self, camera_obj, telescope_obj):
         self.camera = camera_obj
         self.telescope = telescope_obj
+        self.config_dict = config_reader.get_config()
+        #Events/locks go here
         super(Guider, self).__init__(name='Guider')
         
-        #Events/locks go here
         #Idea would be to wait for the last camera.expose from take_images, then call guider.findstars or something to see if a move is necessary
                 
-    def FindStars(self):  #Find test star position
-        pass
-    
-    def ComparePositions(self):     #Compare positions of 2 exposures and decide to move or not
-        pass    
+    def FindStars(self, path):
+        maximum = 0
+        data_table = filereader_utils.IRAF_calculations(path)
+        for i in range(1, len(data_table['peak'])):
+            row = i
+            flux = data_table['peak'][row]
+            if flux > maximum and flux <= self.config_dict.saturation:
+                maximum = flux
+                maxrow = row
+        brightest_unsaturated_star = data_table[:][maxrow]  # Use this as a guiding star
