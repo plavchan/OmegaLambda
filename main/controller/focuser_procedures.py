@@ -6,9 +6,24 @@ import threading
 
 from .hardware import Hardware
 
-class FocusProcedures(Hardware):
+class FocusProcedures(Hardware):            #Subclassed from hardware
     
-    def __init__(self, camera_obj):
+    def __init__(self, focus_obj, camera_obj):
+        '''
+
+        Parameters
+        ----------
+        focus_obj : CLASS INSTANCE OBJECT of Focuser
+            From custom focuser class.
+        camera_obj : CLASS INSTANCE OBJECT of Camera
+            From custom camera class.
+
+        Returns
+        -------
+        None.
+
+        '''
+        self.focuser = focus_obj
         self.camera = camera_obj
        
         self.focused = threading.Event()
@@ -47,8 +62,10 @@ class FocusProcedures(Hardware):
         try: os.mkdir(os.path.join(image_path, r'focuser_calibration_images'))
         except: logging.error('Could not create subdirectory for focusing images, or directory already exists...')
         # Creates new sub-directory for focuser images
-        self.focuser.setFocusDelta(starting_delta)
-        initial_position = self.focuser.current_position()
+        self.focuser.onThread(self.focuser.setFocusDelta, starting_delta)
+        self.focuser.onThread(self.focuser.current_position)
+        time.sleep(2)
+        initial_position = self.focuser.position
         Last_FWHM = None
         minimum = None
         i = 0
@@ -58,10 +75,11 @@ class FocusProcedures(Hardware):
             path = os.path.join(image_path, r'focuser_calibration_images', image_name)
             self.camera.onThread(self.camera.expose, exp_time, filter, save_path=path, type="light")
             self.camera.image_done.wait()
-            current_position = self.focuser.current_position()
+            self.focuser.onThread(self.focuser.current_position)
             time.sleep(1)
             self.camera.onThread(self.camera.get_FWHM)
             time.sleep(1)
+            current_position = self.focuser.position
             FWHM = self.camera.fwhm
             if abs(current_position - initial_position) >= max_distance:
                 logging.error('Focuser has stepped too far away from initial position and could not find a focus.')
@@ -77,24 +95,29 @@ class FocusProcedures(Hardware):
                 continue
             if Last_FWHM == None:
                 # First cycle
-                self.focuser.focusAdjust("in")
-                self.focuser.focusAdjust("in")
+                self.focuser.onThread(self.focuser.focusAdjust, "in")
+                self.focuser.adjusting.wait()
+                self.focuser.onThread(self.focuser.focusAdjust, "in")
+                self.focuser.adjusting.wait()
                 last = "in"
             
             # Intelligence for focus noise?
                 
             elif FWHM <= Last_FWHM:
                 # Better FWHM -- Keep going
-                self.focuser.focusAdjust(last)
+                self.focuser.onThread(self.focuser.focusAdjust, last)
+                self.focuser.adjusting.wait()
             elif FWHM > Last_FWHM:
                 # Worse FWHM -- Switch directions
                 if i > 1:
                     minimum = Last_FWHM
                 if last == "in":
-                    self.focuser.focusAdjust("out")
+                    self.focuser.onThread(self.focuser.focusAdjust, "out")
+                    self.focuser.adjusting.wait()
                     last = "out"
                 elif last == "out":
-                    self.focuser.focusAdjust("in")
+                    self.focuser.onThread(self.focuser.focusAdjust, "in")
+                    self.focuser.adjusting.wait()
                     last = "in"
             Last_FWHM = FWHM
             i += 1
@@ -132,7 +155,8 @@ class FocusProcedures(Hardware):
             time.sleep(1)
             fwhm = self.camera.fwhm
             if abs(fwhm - initial_fwhm) >= quick_focus_tolerance:
-                self.focuser.focusAdjust(move)
+                self.focuser.onThread(self.focuser.focusAdjust, move)
+                self.focuser.adjusting.wait()
             else:
                 continue
             
@@ -144,7 +168,7 @@ class FocusProcedures(Hardware):
                 continue
             elif next_fwhm > fwhm:
                 move = 'out'
-                self.focuser.focusAdjust(move)
+                self.focuser.onThread(self.focuser.focusAdjust, move)
                 
     def StopConstantFocusing(self):
         '''
@@ -159,16 +183,3 @@ class FocusProcedures(Hardware):
         '''
         logging.debug('Stopping continuous focusing')
         self.continuous_focusing.clear()
-            
-    def disconnect(self):
-        '''
-        Description
-        -----------
-        Disconnects from the focuser.
-
-        Returns
-        -------
-        None.
-
-        '''
-        self.focuser.disconnect()

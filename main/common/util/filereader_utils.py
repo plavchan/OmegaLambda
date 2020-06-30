@@ -23,7 +23,7 @@ def get_FWHM_from_image(path):
     logging.info('Starting IRAF fwhm calculations...')
     image = fits.getdata(path)
     mean, median, stdev = sigma_clipped_stats(image, sigma = 3)
-    iraffind = photutils.IRAFStarFinder(threshold = 3.5*stdev, fwhm = 10, sigma_radius = 2, peakmax = 40000, exclude_border = True)
+    iraffind = photutils.IRAFStarFinder(threshold = 3.5*stdev, fwhm = 15, sigma_radius = 2, peakmax = 40000, exclude_border = True)
     fitsfile = iraffind(image)
     FWHM = statistics.median(fitsfile['fwhm'])
     length = len(fitsfile)

@@ -4,7 +4,7 @@ import os
 import math
 import re
 import logging
-import threading
+# import threading
 
 from ..common.util import time_utils, conversion_utils
 from ..common.IO import config_reader
@@ -12,6 +12,7 @@ from ..common.datatype import filter_wheel
 from ..controller.camera import Camera
 from ..controller.telescope import Telescope
 from ..controller.dome import Dome
+from ..controller.focuser_control import Focuser
 from ..controller.focuser_procedures import FocusProcedures
 #from .guider import Guider
 from .weather_checker import Weather
@@ -30,7 +31,8 @@ class ObservationRun():
         self.telescope = Telescope()
         self.dome = Dome()
         self.weather = Weather()
-        self.focus_procedures = FocusProcedures(self.camera)
+        self.focuser = Focuser()
+        self.focus_procedures = FocusProcedures(self.focuser, self.camera)
         #self.guider = Guider(self.camera, self.telescope)
         
         self.filterwheel_dict = filter_wheel.get_filter().filter_position_dict()
@@ -46,7 +48,7 @@ class ObservationRun():
         elif not self.dome.live_connection.wait(timeout = 10):
             check = False
             logging.error('Dome connection timeout')
-        elif not self.focus_procedures.live_connection.wait(timeout = 10):
+        elif not self.focuser.live_connection.wait(timeout = 10):
             check = False
             logging.error('Focuser connection timeout')
         elif self.weather.weather_alert.isSet():
@@ -63,6 +65,7 @@ class ObservationRun():
         self.camera.start()
         self.telescope.start()
         self.dome.start()
+        self.focuser.start()
         self.focus_procedures.start()
         time.sleep(1)
         Initial_check = self.everything_ok()
@@ -213,6 +216,7 @@ class ObservationRun():
         self.camera.onThread(self.camera.stop)
         self.telescope.onThread(self.telescope.stop)
         self.dome.onThread(self.dome.stop)
+        self.focuser.onThread(self.focuser.stop)
         self.focus_procedures.onThread(self.focus_procedures.stop)
     
     def _shutdown_procedure(self):
@@ -228,7 +232,7 @@ class ObservationRun():
         self.camera.onThread(self.camera.disconnect)
         self.telescope.onThread(self.telescope.disconnect)
         self.dome.onThread(self.dome.disconnect)
-        self.focus_procedures.onThread(self.focus_procedures.disconnect)
+        self.focuser.onThread(self.focuser.disconnect)
         
         self.stop_threads()
 

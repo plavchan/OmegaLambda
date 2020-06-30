@@ -1,8 +1,9 @@
 import logging
 import threading
-import win32com.client
 
-class Focuser():    # NOT subclassed from hardware...instead FocusProcedures is.
+from .hardware import Hardware
+
+class Focuser(Hardware):
     
     def __init__(self):
         '''
@@ -13,8 +14,7 @@ class Focuser():    # NOT subclassed from hardware...instead FocusProcedures is.
 
         '''
         self.adjusting = threading.Event()
-        self.live_connection = threading.Event()
-        self.Focuser = win32com.client.Dispatch("RoboFocus.FocusControl")
+        super(Focuser, self).__init__(name='Focuser')                 #calls Hardware.__init__ with the name 'focuser'
         
     def setFocusDelta(self, amount):
         '''
@@ -34,14 +34,17 @@ class Focuser():    # NOT subclassed from hardware...instead FocusProcedures is.
         
     def current_position(self):
         '''
+        Description
+        -----------
+        Sets a property equal to the current position of the focuser.
+        Cannot be directly called due to threading.
 
         Returns
         -------
-        INT
-            Current position of the focuser.
+        None
 
         '''
-        return self.Focuser.getPosition()
+        self.position = self.Focuser.getPosition()
 
     def focusAdjust(self, direction, amount=None):
         '''

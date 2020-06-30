@@ -8,7 +8,6 @@ import pythoncom
 import win32com.client
 
 from ..common.IO import config_reader
-from .focuser_control import Focuser
 
 class Hardware(threading.Thread):           #Subclassed from threading.Thread
     
@@ -77,7 +76,7 @@ class Hardware(threading.Thread):           #Subclassed from threading.Thread
         '''
         pythoncom.CoInitialize()
         dispatch_dict = {'Camera': 'MaxIm.CCDCamera', 'Telescope': 'ASCOM.SoftwareBisque.Telescope', 
-                         'Dome': 'ASCOMDome.Dome'}
+                         'Dome': 'ASCOMDome.Dome', 'Focuser': 'RoboFocus.FocusControl'}
         if self.label in dispatch_dict:
             COMobj = win32com.client.Dispatch(dispatch_dict[self.label])
         if self.label == 'Camera':
@@ -95,9 +94,11 @@ class Hardware(threading.Thread):           #Subclassed from threading.Thread
         elif self.label == 'Dome':
             self.Dome = COMobj
             self.check_connection()
-        elif self.label == 'FocusProcedures':
-            self.focuser = Focuser()
+        elif self.label == 'Focuser':
+            self.Focuser = COMobj
             self.check_connection()
+        elif self.label == 'FocusProcedures':
+            pass
         else:
             logging.error("Invalid hardware name")
         while not self.stopping.isSet():
@@ -162,11 +163,13 @@ class Hardware(threading.Thread):           #Subclassed from threading.Thread
                 self.live_connection.set()
             except: print("ERROR: Could not connect to dome")
             else: print("Dome has successfully connected")
-        elif self.label == 'FocusProcedures':
-            self.focuser.Focuser.actOpenComm()
+        elif self.label == 'Focuser':
+            self.Focuser.actOpenComm()
             time.sleep(2)
-            if self.focuser.Focuser.getCommStatus():
+            if self.Focuser.getCommStatus():
                 print("Focuser has successfully connected")
                 self.live_connection.set()
             else:
                 print("ERROR: Could not connect to focuser")
+        else:
+            print("Invalid hardware type to check connection for")
