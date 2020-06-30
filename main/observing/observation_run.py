@@ -178,7 +178,7 @@ class ObservationRun():
                 
             self.camera.onThread(self.camera.expose, 
                                  int(exp_time), self.filterwheel_dict[current_filter], os.path.join(path, image_name), "light")
-            image_saved = self.camera.image_done.wait(timeout = exp_time + 60)
+            image_saved = self.camera.image_done.wait(timeout = exp_time*2 + 60)
             
             if not image_saved:
                 self.camera.crashed.set()

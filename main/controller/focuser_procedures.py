@@ -97,8 +97,12 @@ class FocusProcedures(Hardware):            #Subclassed from hardware
                 self.focuser.adjusting.wait()
                 last = "in"
             
-            #TODO: Intelligence for focus noise?
-                
+            elif abs(FWHM - Last_FWHM) <= 3:
+                # Focus noise control -- If less than 3 pixels different (about 1"), it will keep moving in that direction and check again vs. the previous last_FWHM
+                self.focuser.onThread(self.focuser.focusAdjust, last)
+                self.focuser.adjusting.wait()
+                i += 1
+                continue
             elif FWHM <= Last_FWHM:
                 # Better FWHM -- Keep going
                 self.focuser.onThread(self.focuser.focusAdjust, last)

@@ -1,7 +1,7 @@
 import threading
 import logging
 import time
-import os
+import subprocess
 
 from ..common.util import conversion_utils
 from .hardware import Hardware
@@ -286,7 +286,7 @@ class Telescope(Hardware):
             try: 
                 self.Telescope.Connected = False
                 self.live_connection.clear()
-                os.system("taskkill /f /im TheSkyX.exe")   #This is the only way it will actually disconnect from TheSkyX so far
+                subprocess.call("taskkill /f /im TheSkyX.exe")   #This is the only way it will actually disconnect from TheSkyX so far
             except: logging.error("Could not disconnect from telescope")
             else: logging.info('Telescope disconnected'); return True
         else: 
