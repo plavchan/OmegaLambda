@@ -5,6 +5,7 @@ import time
 import threading
 
 from .hardware import Hardware
+from ..common.IO import config_reader
 
 class FocusProcedures(Hardware):            #Subclassed from hardware
     
@@ -25,12 +26,13 @@ class FocusProcedures(Hardware):            #Subclassed from hardware
         '''
         self.focuser = focus_obj
         self.camera = camera_obj
+        self.config_dict = config_reader.get_config()
        
         self.focused = threading.Event()
         self.continuous_focusing = threading.Event()
         super(FocusProcedures, self).__init__(name='FocusProcedures')
 
-    def StartupFocusProcedure(self, exp_time, filter, starting_delta, image_path, long_focus_tolerance, max_distance):
+    def StartupFocusProcedure(self, exp_time, filter, image_path):
         '''
         Description
         -----------
@@ -43,15 +45,9 @@ class FocusProcedures(Hardware):            #Subclassed from hardware
             Length of camera exposures in seconds.
         filter : STR
             Filter to take camera exposures in.
-        starting_delta : INT
-            Initial focuser movement length.
         image_path : STR
             File path to the CCD images to be used for focusing.
-        long_focus_tolerance : INT
-            How close the focus should be to the minimum found before stopping.
-        max_distance : INT
-            Maximum distance away from the initial position the focuser may move before stopping.
-
+            
         Returns
         -------
         None.
@@ -62,7 +58,7 @@ class FocusProcedures(Hardware):            #Subclassed from hardware
         try: os.mkdir(os.path.join(image_path, r'focuser_calibration_images'))
         except: logging.error('Could not create subdirectory for focusing images, or directory already exists...')
         # Creates new sub-directory for focuser images
-        self.focuser.onThread(self.focuser.setFocusDelta, starting_delta)
+        self.focuser.onThread(self.focuser.setFocusDelta, self.config_dict.initial_focus_delta)
         self.focuser.onThread(self.focuser.current_position)
         time.sleep(2)
         initial_position = self.focuser.position
@@ -81,10 +77,10 @@ class FocusProcedures(Hardware):            #Subclassed from hardware
             time.sleep(1)
             current_position = self.focuser.position
             FWHM = self.camera.fwhm
-            if abs(current_position - initial_position) >= max_distance:
+            if abs(current_position - initial_position) >= self.config_dict.focus_max_distance:
                 logging.error('Focuser has stepped too far away from initial position and could not find a focus.')
                 break
-            if minimum != None and abs(FWHM - minimum) < long_focus_tolerance:
+            if minimum != None and abs(FWHM - minimum) < self.config_dict.long_focus_tolerance:
                 break
             if not FWHM:
                 logging.warning('Could not retrieve FWHM from the last exposure...retrying')
@@ -101,7 +97,7 @@ class FocusProcedures(Hardware):            #Subclassed from hardware
                 self.focuser.adjusting.wait()
                 last = "in"
             
-            # Intelligence for focus noise?
+            #TODO: Intelligence for focus noise?
                 
             elif FWHM <= Last_FWHM:
                 # Better FWHM -- Keep going
@@ -127,7 +123,7 @@ class FocusProcedures(Hardware):            #Subclassed from hardware
         self.focused.set()
         return FWHM
     
-    def ConstantFocusProcedure(self, initial_fwhm, quick_focus_tolerance):
+    def ConstantFocusProcedure(self, initial_fwhm):
         '''
         Description
         -----------
@@ -135,11 +131,9 @@ class FocusProcedures(Hardware):            #Subclassed from hardware
 
         Parameters
         ----------
-        initial_fwhm : TYPE
-            DESCRIPTION.
-        quick_focus_tolerance : TYPE
-            DESCRIPTION.
-
+        initial_fwhm : FLOAT
+            The fwhm achieved on the target by the startup focus procedure.
+        
         Returns
         -------
         None.
@@ -154,7 +148,7 @@ class FocusProcedures(Hardware):            #Subclassed from hardware
             self.camera.onThread(self.camera.get_FWHM)
             time.sleep(1)
             fwhm = self.camera.fwhm
-            if abs(fwhm - initial_fwhm) >= quick_focus_tolerance:
+            if abs(fwhm - initial_fwhm) >= self.config_dict.quick_focus_tolerance:
                 self.focuser.onThread(self.focuser.focusAdjust, move)
                 self.focuser.adjusting.wait()
             else:

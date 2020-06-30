@@ -4,6 +4,7 @@ import os
 import math
 import re
 import logging
+import subprocess
 # import threading
 
 from ..common.util import time_utils, conversion_utils
@@ -55,7 +56,7 @@ class ObservationRun():
             check = False
         elif conversion_utils.get_sun_elevation(datetime.datetime.now(self.tz), self.config_dict.site_latitude, self.config_dict.site_longitude) >= 0:
             check = False
-            logging.info('The Sun has risen above the horizon...observing will pause until tonight')
+            logging.info('The Sun has risen above the horizon...observing will stop until tonight')
         else:
             check = True
         return check
@@ -71,7 +72,7 @@ class ObservationRun():
         Initial_check = self.everything_ok()
         
         self.dome.onThread(self.dome.ShutterPosition)
-        time.sleep(1)
+        time.sleep(2)
         Initial_shutter = self.dome.shutter
         if Initial_shutter in (1,3,4) and Initial_check == True:
             self.dome.onThread(self.dome.MoveShutter, 'open')
@@ -86,30 +87,19 @@ class ObservationRun():
             if not self.everything_ok(): 
                 self.shutdown(); return
             self.telescope.onThread(self.telescope.Slew, ticket.ra, ticket.dec)
-            self.telescope.slew_done.wait()
+            slew = self.telescope.slew_done.wait(timeout = 60)
+            if not slew:
+                logging.error('Telescope slew has failed.  Retrying...')
+                self.telescope.onThread(self.telescope.Slew, ticket.ra, ticket.dec)
+                slew2 = self.telescope.slew_done.wait(timeout = 60)
+                if not slew2:
+                    logging.critical('Telescope still cannot slew to target.  Cannot continue observing.')
+                    break
             if Initial_shutter in (1,3,4):
                 self.dome.move_done.wait()
                 self.dome.shutter_done.wait()
             self.tz = ticket.start_time.tzinfo
             current_time = datetime.datetime.now(self.tz)
-            '''
-            current_time_local = datetime.datetime.now()
-            # Maybe calculate sunrise/sunset times on daily basis?
-            if current_time_local.month >= 3 and current_time_local.month <= 8:     # Between March and August (Spring - Summer)
-                sunrise = 5
-                sunset = 20
-            else:   # Between September and February (Fall - Winter)
-                sunrise = 7
-                sunset = 17
-            if current_time_local.hour > sunrise and current_time_local < sunset:
-                print("It has become too bright for observations for tonight--the Sun is rising."
-                      "Stopping observations until the next night.")
-                self._shutdown_procedure()
-                
-                time.sleep(x)
-                reconnect and restart everything (maybe make that into a different function, or just move this above the other stuff)
-            '''
-            
             if ticket.start_time > current_time:
                 print("It is not the start time {} of {} observation, "
                       "waiting till start time.".format(ticket.start_time.isoformat(), ticket.name))
@@ -136,13 +126,12 @@ class ObservationRun():
         if focus_exposure <= 0: 
             focus_exposure = 1
         FWHM = self.focus_procedures.onThread(self.focus_procedures.StartupFocusProcedure, focus_exposure, self.filterwheel_dict[focus_filter], 
-                                              self.config_dict.initial_focus_delta, self.image_directory, self.config_dict.long_focus_tolerance,
-                                              self.config_dict.focus_max_distance)
+                                              self.image_directory)
         self.focus_procedures.focused.wait()
         return FWHM
         
     def run_ticket(self, ticket, FWHM):
-        self.focus_procedures.onThread(self.focus_procedures.ConstantFocusProcedure, FWHM, self.config_dict.quick_focus_tolerance)
+        self.focus_procedures.onThread(self.focus_procedures.ConstantFocusProcedure, FWHM)
         
         if ticket.cycle_filter:
             img_count = self.take_images(ticket.name, ticket.num, ticket.exp_time,
@@ -166,8 +155,8 @@ class ObservationRun():
         image_num = 1
         N = []
         image_base = {}
-        images_taken = 0
-        for i in range(num):
+        i = 0
+        while i < num:
             logging.debug('In take_images loop')
             if end_time <= datetime.datetime.now(self.tz):
                 print("The observations end time of {} has passed.  "
@@ -189,10 +178,22 @@ class ObservationRun():
                 
             self.camera.onThread(self.camera.expose, 
                                  int(exp_time), self.filterwheel_dict[current_filter], os.path.join(path, image_name), "light")
-            self.camera.image_done.wait()
+            image_saved = self.camera.image_done.wait(timeout = exp_time + 60)
+            
+            if not image_saved:
+                self.camera.crashed.set()
+                logging.error('Image saving is taking a while...MaxIm DL may have crashed.  Restarting...')
+                time.sleep(5)
+                self.camera.crashed.clear()
+                subprocess.call('taskkill /f /im MaxIm_DL.exe')                                               #TODO: Maybe add check if os = windows?
+                time.sleep(5)
+                self.camera = Camera()
+                self.camera.start()
+                time.sleep(5)
+                continue
+                
             # Guider here
             
-            images_taken += 1
             if cycle_filter:
                 if N:
                     image_num = math.floor(image_base[filter[(i + 1) % num_filters]] + ((i + 1)/num_filters))
@@ -203,7 +204,8 @@ class ObservationRun():
                     image_num = image_base[filter[(i + 1) % num_filters]] + (i + 1)
                 else:
                     image_num += 1
-        return images_taken
+            i += 1
+        return i
     
     def shutdown(self):
         if self.shutdown_toggle:

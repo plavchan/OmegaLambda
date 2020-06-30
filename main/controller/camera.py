@@ -9,6 +9,7 @@ class Camera(Hardware):         # Subclassed from the hardware class
     def __init__(self):
         self.cooler_settle = threading.Event()
         self.image_done = threading.Event()
+        self.crashed = threading.Event()
         self.exposing = threading.Lock()
         super(Camera, self).__init__(name='Camera')
         
@@ -62,10 +63,13 @@ class Camera(Hardware):         # Subclassed from the hardware class
         return
     
     def _image_ready(self):
-        while not self.Camera.ImageReady:
+        while self.Camera.ImageReady == False and self.crashed.isSet() == False:
             time.sleep(1)
         if self.Camera.ImageReady:
-            return
+            return True
+        elif self.crashed.isSet():
+            self.disconnect()
+            return False
 
     def expose(self, exposure_time, filter, save_path=None, type="light"):
         with self.exposing:
@@ -79,10 +83,10 @@ class Camera(Hardware):         # Subclassed from the hardware class
             logging.debug('Exposing image')
             self.Camera.SetFullFrame()
             self.Camera.Expose(exposure_time, type, filter)
-            self._image_ready()
+            check = self._image_ready()
             if save_path == None:
                 return
-            else:
+            elif check:
                 self.Camera.SaveImage(save_path)
                 self.image_done.set()
                 self.image_done.clear()
@@ -92,7 +96,6 @@ class Camera(Hardware):         # Subclassed from the hardware class
                 
     def disconnect(self):
         if self.Camera.LinkEnabled:
-            self._image_ready()
             try: 
                 self.coolerSet(False)
                 self.Camera.Quit()
