@@ -34,13 +34,20 @@ class Dome(Hardware):
     
     def Park(self):
         self.move_done.clear()
+        if self.Dome.AtPark:
+            print("Dome is at park")
+            self.move_done.set()
+            return True
         self._is_ready()
         try: self.Dome.Park()
-        except: print("ERROR: Error parking dome")
+        except: 
+            print("ERROR: Error parking dome")
+            return False
         else: 
             print("Dome is parking")
             self._is_ready()
             self.move_done.set()
+            return True
         
     def MoveShutter(self, open_or_close):
         self.shutter_done.clear()
@@ -84,7 +91,9 @@ class Dome(Hardware):
         elif toggle == False:
             try: self.Dome.Slaved = False
             except: print("ERROR: Cannot stop slaving dome to scope")
-            else: print("Dome is no longer slaving to scope")
+            else: 
+                print("Dome is no longer slaving to scope")
+                self.move_done.set()
         logging.debug('Dome slaving toggled')
         
     def Slew(self, Azimuth):

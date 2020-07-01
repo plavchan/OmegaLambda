@@ -79,6 +79,10 @@ class Telescope(Hardware):
 
         '''
         self.slew_done.clear()
+        if self.Telescope.AtPark:
+            self.slew_done.set()
+            print("Telescope is at park")
+            return True
         self._is_ready()
         try: 
             self.Telescope.Tracking = False

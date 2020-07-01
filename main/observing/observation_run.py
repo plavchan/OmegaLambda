@@ -26,6 +26,7 @@ class ObservationRun():
         '''
         self.image_directory = image_directory
         self.observation_request_list = observation_request_list
+        self.current_ticket = None
         self.shutdown_toggle = shutdown_toggle
         self.tz = observation_request_list[0].start_time.tzinfo
         self.camera = Camera()
@@ -38,6 +39,13 @@ class ObservationRun():
         
         self.filterwheel_dict = filter_wheel.get_filter().filter_position_dict()
         self.config_dict = config_reader.get_config()
+        
+        self.weather.start()
+        self.camera.start()
+        self.telescope.start()
+        self.dome.start()
+        self.focuser.start()
+        self.focus_procedures.start()
         
     def everything_ok(self):
         if not self.camera.live_connection.wait(timeout = 10):
@@ -54,29 +62,35 @@ class ObservationRun():
             logging.error('Focuser connection timeout')
         elif self.weather.weather_alert.isSet():
             check = False
+            # Same situation for weather check -- make it resume once the weather improves if possible
         elif conversion_utils.get_sun_elevation(datetime.datetime.now(self.tz), self.config_dict.site_latitude, self.config_dict.site_longitude) >= 0:
-            logging.info('The Sun has risen above the horizon...observing will stop until tonight')
-            self._shutdown_procedure()
             sunset_time = conversion_utils.get_sunset(datetime.datetime.now(self.tz), self.config_dict.site_latitude, self.config_dict.site_longitude)
+            sunset_time = datetime.datetime.now(datetime.timezone(-datetime.timedelta(hours=4))) + datetime.timedelta(minutes=2)
+            logging.info('The Sun has risen above the horizon...observing will stop until the Sun sets again at {}.'.format(sunset_time.strftime('%Y-%m-%d %H:%M:%S%z')))
+            self._shutdown_procedure()
             sunset_epoch_milli = time_utils.datetime_to_epoch_milli_converter(sunset_time)
             current_epoch_milli = time_utils.datetime_to_epoch_milli_converter(datetime.datetime.now(self.tz))
             time.sleep((sunset_epoch_milli - current_epoch_milli)/1000)
             logging.info('The Sun should now be setting again...observing will resume shortly.')
-            # self._startup_procedure()
+            if not self.weather.weather_alert.isSet():
+                check = True
+                if not self.current_ticket:
+                    self.observe()
+                else:
+                    self._startup_procedure()
+                    self._ticket_slew(self.current_ticket)
+                    self.focus_target(self.current_ticket)
+            else: 
+                print('Weather is still too poor to resume observing.')
+                check = False
         else:
             check = True
         return check
 
     def _startup_procedure(self):
-        self.weather.start()
-        self.camera.start()
-        self.telescope.start()
-        self.dome.start()
-        self.focuser.start()
-        self.focus_procedures.start()
-        time.sleep(1)
         Initial_check = self.everything_ok()
         
+        self.camera.onThread(self.camera.coolerSet, True)
         self.dome.onThread(self.dome.ShutterPosition)
         time.sleep(2)
         Initial_shutter = self.dome.shutter
@@ -89,22 +103,28 @@ class ObservationRun():
         self.camera.onThread(self.camera.cooler_ready)
         self.dome.onThread(self.dome.SlaveDometoScope, True)
         return Initial_shutter
+    
+    def _ticket_slew(self, ticket):
+        self.telescope.onThread(self.telescope.Slew, ticket.ra, ticket.dec)
+        slew = self.telescope.slew_done.wait(timeout = 60)
+        if not slew:
+            logging.error('Telescope slew has failed.  Retrying...')
+            self.telescope.onThread(self.telescope.Slew, ticket.ra, ticket.dec)
+            slew2 = self.telescope.slew_done.wait(timeout = 60)
+            if not slew2:
+                logging.critical('Telescope still cannot slew to target.  Cannot continue observing.')
+                return False
+        return True
 
     def observe(self):
         Initial_shutter = self._startup_procedure()
         
         for ticket in self.observation_request_list:
+            self.current_ticket = ticket
             if not self.everything_ok(): 
                 self.shutdown(); return
-            self.telescope.onThread(self.telescope.Slew, ticket.ra, ticket.dec)
-            slew = self.telescope.slew_done.wait(timeout = 60)
-            if not slew:
-                logging.error('Telescope slew has failed.  Retrying...')
-                self.telescope.onThread(self.telescope.Slew, ticket.ra, ticket.dec)
-                slew2 = self.telescope.slew_done.wait(timeout = 60)
-                if not slew2:
-                    logging.critical('Telescope still cannot slew to target.  Cannot continue observing.')
-                    break
+            if not self._ticket_slew(ticket):
+                return
             if Initial_shutter in (1,3,4):
                 self.dome.move_done.wait()
                 self.dome.shutter_done.wait()
@@ -225,10 +245,16 @@ class ObservationRun():
     def shutdown(self):
         if self.shutdown_toggle:
             self._shutdown_procedure()
+            self.stop_threads()
         else:
             pass
         
     def stop_threads(self):
+        self.camera.onThread(self.camera.disconnect)
+        self.telescope.onThread(self.telescope.disconnect)
+        self.dome.onThread(self.dome.disconnect)
+        self.focuser.onThread(self.focuser.disconnect)
+        
         self.weather.stop.set()
         self.camera.onThread(self.camera.stop)
         self.telescope.onThread(self.telescope.stop)
@@ -242,15 +268,8 @@ class ObservationRun():
         self.telescope.onThread(self.telescope.Park)
         self.dome.onThread(self.dome.Park)
         self.dome.onThread(self.dome.MoveShutter, 'close')
+        self.camera.onThread(self.camera.coolerSet, False)
         
         self.telescope.slew_done.wait()
         self.dome.move_done.wait()
         self.dome.shutter_done.wait()
-        self.camera.onThread(self.camera.disconnect)
-        self.telescope.onThread(self.telescope.disconnect)
-        self.dome.onThread(self.dome.disconnect)
-        self.focuser.onThread(self.focuser.disconnect)
-        
-        self.stop_threads()
-
-        
