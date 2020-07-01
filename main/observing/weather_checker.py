@@ -11,7 +11,7 @@ import datetime
 
 from PIL import Image
 
-from ..common.util import time_utils
+from ..common.util import time_utils, conversion_utils
 from ..common.IO import config_reader
 
 class Weather(threading.Thread):
@@ -33,6 +33,7 @@ class Weather(threading.Thread):
         self.config_dict = config_reader.get_config()                       # Global config dictionary
         self.weather_url = 'http://weather.cos.gmu.edu/Current_Monitor.htm'                                                                     #GMU COS Website for humitiy and wind
         self.rain_url = 'https://weather.com/weather/radar/interactive/l/b63f24c17cc4e2d086c987ce32b2927ba388be79872113643d2ef82b2b13e813'      #Weather.com radar for rain
+        self.sun = False
         
     def run(self):
         '''
@@ -50,16 +51,22 @@ class Weather(threading.Thread):
         if not self.check_internet():
             logging.error("Your internet connection requires attention.")
             return
-        while (self.weather_alert.isSet() == False) and (self.stop.isSet() == False):
+        while not self.stop.isSet():
             (H, W, R) = self.weather_check()
             Radar = self.rain_check()
-            if (H >= self.config_dict.humidity_limit) or (W >= self.config_dict.wind_limit) or (Last_Rain != R and Last_Rain != None) or (Radar == True):
+            Sun_elevation = conversion_utils.get_sun_elevation(datetime.datetime.now(datetime.timezone.utc), self.config_dict.site_latitude, self.config_dict.site_longitude)
+            if (H >= self.config_dict.humidity_limit) or (W >= self.config_dict.wind_limit) or (Last_Rain != R and Last_Rain != None) or (Radar == True) or (Sun_elevation >= 0):
                 self.weather_alert.set()
-                logging.critical("Weather conditions have become too poor for continued observing.")
+                if Sun_elevation >= 0:
+                    self.sun = True
+                else:
+                    self.sun = False
+                logging.critical("Weather conditions have become too poor for continued observing, or the Sun is rising.")
             else:
                 logging.debug("Weather checker is alive: Last check false")
                 Last_Rain = R
-                self.stop.wait(self.config_dict.weather_freq*60)
+                self.weather_alert.clear()
+            self.stop.wait(timeout = self.config_dict.weather_freq*60)
                 
     def check_internet(self):
         '''

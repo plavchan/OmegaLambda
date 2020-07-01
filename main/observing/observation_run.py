@@ -61,27 +61,30 @@ class ObservationRun():
             check = False
             logging.error('Focuser connection timeout')
         elif self.weather.weather_alert.isSet():
-            check = False
-            # Same situation for weather check -- make it resume once the weather improves if possible
-        elif conversion_utils.get_sun_elevation(datetime.datetime.now(self.tz), self.config_dict.site_latitude, self.config_dict.site_longitude) >= 0:
-            sunset_time = conversion_utils.get_sunset(datetime.datetime.now(self.tz), self.config_dict.site_latitude, self.config_dict.site_longitude)
-            logging.info('The Sun has risen above the horizon...observing will stop until the Sun sets again at {}.'.format(sunset_time.strftime('%Y-%m-%d %H:%M:%S%z')))
             self._shutdown_procedure()
-            sunset_epoch_milli = time_utils.datetime_to_epoch_milli_converter(sunset_time)
-            current_epoch_milli = time_utils.datetime_to_epoch_milli_converter(datetime.datetime.now(self.tz))
-            time.sleep((sunset_epoch_milli - current_epoch_milli)/1000)
-            logging.info('The Sun should now be setting again...observing will resume shortly.')
-            if not self.weather.weather_alert.isSet():
-                check = True
-                if not self.current_ticket:
-                    self.observe()
-                else:
-                    self._startup_procedure()
-                    self._ticket_slew(self.current_ticket)
-                    self.focus_target(self.current_ticket)
-            else: 
-                print('Weather is still too poor to resume observing.')
-                check = False
+            if self.weather.sun:
+                sunset_time = conversion_utils.get_sunset(datetime.datetime.now(self.tz), self.config_dict.site_latitude, self.config_dict.site_longitude)
+                logging.info('The Sun has risen above the horizon...observing will stop until the Sun sets again at {}.'.format(sunset_time.strftime('%Y-%m-%d %H:%M:%S%z')))
+                sunset_epoch_milli = time_utils.datetime_to_epoch_milli_converter(sunset_time)
+                current_epoch_milli = time_utils.datetime_to_epoch_milli_converter(datetime.datetime.now(self.tz))
+                time.sleep((sunset_epoch_milli - current_epoch_milli)/1000)
+                logging.info('The Sun should now be setting again...observing will resume shortly.')
+                if not self.weather.weather_alert.isSet():
+                    check = True
+                    if not self.current_ticket:
+                        self.observe()
+                    else:
+                        self._startup_procedure()
+                        self._ticket_slew(self.current_ticket)
+                        self.focus_target(self.current_ticket)
+                else: 
+                    print('Weather is still too poor to resume observing.')
+                    self.everything_ok()
+            elif not self.weather.sun:
+                while self.weather.weather_alert.isSet():
+                    time.sleep(self.config_dict.weather_freq*60)
+                if not self.weather.weather_alert.isSet():
+                    check = True
         else:
             check = True
         return check
@@ -225,8 +228,6 @@ class ObservationRun():
                 self.camera.start()
                 time.sleep(5)
                 continue
-                
-            # Guider here
             
             if cycle_filter:
                 if N:
