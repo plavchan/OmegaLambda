@@ -1,3 +1,5 @@
+import threading
+
 from ..controller.hardware import Hardware
 from ..common.IO import config_reader
 from ..common.util import filereader_utils
@@ -20,12 +22,13 @@ class Guider(Hardware):
         self.camera = camera_obj
         self.telescope = telescope_obj
         self.config_dict = config_reader.get_config()
-        #Events/locks go here
+        self.guiding = threading.Event()
+        
         super(Guider, self).__init__(name='Guider')
         
         #Idea would be to wait for the last camera.expose from take_images, then call guider.findstars or something to see if a move is necessary
                 
-    def FindStars(self, path):
+    def FindGuideStar(self, path):
         maximum = 0
         data_table = filereader_utils.IRAF_calculations(path)
         for i in range(1, len(data_table['peak'])):
@@ -35,3 +38,33 @@ class Guider(Hardware):
                 maximum = flux
                 maxrow = row
         brightest_unsaturated_star = data_table[:][maxrow]  # Use this as a guiding star
+        return brightest_unsaturated_star
+    
+    def GuidingProcedure(self, image_path):
+        self.guiding.set()
+        x_last = None
+        y_last = None
+        while self.guiding.isSet():
+            self.camera.image_done.wait()
+            star = self.FindGuideStar(image_path)   # What if we fall behind the camera?
+            x = star['xcentroid']
+            y = star['ycentroid']     # Initial x and y position of the star in the image
+            if not x_last or not y_last:
+                x_last = x
+                y_last = y
+                continue
+            else:   # Do we want to guide on every image, or only after the star has moved by some threshold?
+                xdistance = x - x_last
+                if xdistance >= 0: direction = 'right'  # Star has moved right in the image, so we want to move it back left, meaning we need to move the telescope right
+                elif xdistance < 0: direction = 'left'  # Star has moved left in the image, so we want to move it back right, meaning we need to move the telescope left
+                self.telescope.onThread(self.telescope.Jog, direction, abs(xdistance))
+                self.telescope.slew_done.wait()
+                
+                ydistance = y - y_last
+                if ydistance >= 0: direction = 'up'   # Star has moved up in the image, so we want to move it back down, meaning we need to move the telescope up
+                elif ydistance < 0: direction = 'down' # Star has moved down in the image, so we want to move it back up, meaning we need to move the telescope down
+                self.telescope.onThread(self.telescope.Jog, direction, abs(ydistance))
+                self.telescope.slew_done.wait()
+                
+    def StopGuiding(self):
+        self.guiding.clear()

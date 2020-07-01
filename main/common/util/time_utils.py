@@ -41,6 +41,24 @@ def convert_to_datetime_UTC(date):
     d = dateutil.parser.parse(date)
     return d.replace(tzinfo=pytz.UTC) - d.utcoffset()
 
+def convert_to_datetime(date):
+    '''
+
+    Parameters
+    ----------
+    date : STR
+        May be a date/time string in almost any format.  Will be parsed by dateutil.parser.
+
+    Returns
+    -------
+    d : DATETIME.DATETIME
+        Datetime object in whatever timezone is passed in, timezone-aware.
+
+    '''
+    logging.debug('Called time_utils function')
+    d = dateutil.parser.parse(date)
+    return d
+
 def datetime_to_epoch_milli_converter(date):
     '''
 

@@ -69,7 +69,18 @@ def convert_J2000_to_apparent(ra, dec):
 def get_sun_elevation(time, latitude, longitude):
     if type(time) is not datetime.datetime:
         time = time_utils.convert_to_datetime_UTC(time)
-    astrotime = Time(time, format='datetime')
+    astrotime = Time(time, format='datetime', scale='utc')
     coords = get_sun(astrotime)
     (az, alt) = convert_RaDec_to_AltAz(float(coords.ra.hour), float(coords.dec.degree), latitude, longitude, time)
     return alt
+
+def get_sunset(day, latitude, longitude):
+    if type(day) is not datetime.datetime:
+        day = time_utils.convert_to_datetime(day)
+    for i in range(12*4):
+        hour = int(i/4) + 12
+        minute = 15*(i % 4)
+        time = datetime.datetime(day.year, day.month, day.day, hour, minute, 0, tzinfo=day.tzinfo)
+        alt = get_sun_elevation(time, latitude, longitude)
+        if alt <= 0:
+            return time.replace(tzinfo=datetime.timezone.utc) - time.utcoffset()

@@ -204,6 +204,7 @@ class Telescope(Hardware):
         None.
 
         '''
+        self.slew_done.clear()
         logging.debug('Sending telescope jog request...')
         rates_key = {**dict.fromkeys(["up","down"], self.Telescope.GuideRateDeclination),       # Dictionaries to convert direction str to distance
                      **dict.fromkeys(["left","right"], self.Telescope.GuideRateRightAscension)}

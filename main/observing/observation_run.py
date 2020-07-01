@@ -55,13 +55,19 @@ class ObservationRun():
         elif self.weather.weather_alert.isSet():
             check = False
         elif conversion_utils.get_sun_elevation(datetime.datetime.now(self.tz), self.config_dict.site_latitude, self.config_dict.site_longitude) >= 0:
-            check = False
             logging.info('The Sun has risen above the horizon...observing will stop until tonight')
+            self._shutdown_procedure()
+            sunset_time = conversion_utils.get_sunset(datetime.datetime.now(self.tz), self.config_dict.site_latitude, self.config_dict.site_longitude)
+            sunset_epoch_milli = time_utils.datetime_to_epoch_milli_converter(sunset_time)
+            current_epoch_milli = time_utils.datetime_to_epoch_milli_converter(datetime.datetime.now(self.tz))
+            time.sleep((sunset_epoch_milli - current_epoch_milli)/1000)
+            logging.info('The Sun should now be setting again...observing will resume shortly.')
+            # self._startup_procedure()
         else:
             check = True
         return check
 
-    def observe(self):
+    def _startup_procedure(self):
         self.weather.start()
         self.camera.start()
         self.telescope.start()
@@ -82,6 +88,10 @@ class ObservationRun():
             self.shutdown(); return
         self.camera.onThread(self.camera.cooler_ready)
         self.dome.onThread(self.dome.SlaveDometoScope, True)
+        return Initial_shutter
+
+    def observe(self):
+        Initial_shutter = self._startup_procedure()
         
         for ticket in self.observation_request_list:
             if not self.everything_ok(): 
@@ -178,7 +188,7 @@ class ObservationRun():
                 
             self.camera.onThread(self.camera.expose, 
                                  int(exp_time), self.filterwheel_dict[current_filter], os.path.join(path, image_name), "light")
-            image_saved = self.camera.image_done.wait(timeout = exp_time*2 + 60)
+            self.camera.image_done.wait(timeout = exp_time*2 + 60)
             
             name = 'MaxIm_DL.exe'
             cmd = 'tasklist /FI "IMAGENAME eq %s" /FI "STATUS eq running"' % name
