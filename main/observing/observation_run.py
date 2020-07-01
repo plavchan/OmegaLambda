@@ -65,7 +65,6 @@ class ObservationRun():
             # Same situation for weather check -- make it resume once the weather improves if possible
         elif conversion_utils.get_sun_elevation(datetime.datetime.now(self.tz), self.config_dict.site_latitude, self.config_dict.site_longitude) >= 0:
             sunset_time = conversion_utils.get_sunset(datetime.datetime.now(self.tz), self.config_dict.site_latitude, self.config_dict.site_longitude)
-            sunset_time = datetime.datetime.now(datetime.timezone(-datetime.timedelta(hours=4))) + datetime.timedelta(minutes=2)
             logging.info('The Sun has risen above the horizon...observing will stop until the Sun sets again at {}.'.format(sunset_time.strftime('%Y-%m-%d %H:%M:%S%z')))
             self._shutdown_procedure()
             sunset_epoch_milli = time_utils.datetime_to_epoch_milli_converter(sunset_time)
@@ -243,7 +242,7 @@ class ObservationRun():
         return i
     
     def shutdown(self):
-        if self.shutdown_toggle:
+        if self.shutdown_toggle or self.weather.weather_alert.isSet():
             self._shutdown_procedure()
             self.stop_threads()
         else:
