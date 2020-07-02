@@ -2,79 +2,91 @@
 import logging
 import statistics
 import numpy as np
+# import matplotlib.pyplot as plt
 
 import photutils
 from astropy.io import fits
 from astropy.stats import sigma_clipped_stats
-# import matplotlib.pyplot as plt
 
-def IRAF_calculations(path, **kwargs):
+def FindStars(path, return_data=False):
     '''
     Description
     -----------
-    Does an IRAF calculation for the parameters specified in kwargs.
+    Finds the star centroids in an image
 
     Parameters
     ----------
     path : STR
-        File path to the image to do calculations on.
-    **kwargs : DICT, optional
-        Keywords for which values you want returned.  Accepts 'fwhm', 'stars', and 'centroids'.  Set 
-        value = True to return that value.  The default is None, which returns all values.
+        Path to fits image file with stars in it.
+    return_data : BOOL, optional
+        If True, returns the image data and the standard deviation as well.  Mostly used for Radial_Average.
+        The default is False.
 
     Returns
     -------
-    results : LIST
-        List with all values specified by kwargs.
+    LIST
+        List of stars, each star is a tuple with (x position, y position).
 
     '''
-    logging.info('Starting IRAF calculations...')
     image = fits.getdata(path)
     mean, median, stdev = sigma_clipped_stats(image, sigma = 3)
-    iraffind = photutils.IRAFStarFinder(threshold = 3.5*stdev, fwhm = 10, sigma_radius = 2, peakmax = 40000, exclude_border = True)
-    fitsfile = iraffind(image)
-    FWHM = statistics.median(fitsfile['fwhm'])
-    stars = len(fitsfile)
-    xcentroids = fitsfile['xcentroid']
-    ycentroids = fitsfile['ycentroid']
-    fluxes = fitsfile['flux']
-    logging.info('Finished IRAF calculations...')
-    results = []
-    for key, value in kwargs.items():
-        if key == 'FWHM' and value == True:
-            results.append(FWHM)
-        elif key =='stars' and value == True:
-            results.append(stars)
-        elif key == 'centroids' and value == True:
-            results.append(xcentroids)
-            results.append(ycentroids)
-        elif key =='fluxes' and value == True:
-            results.append(fluxes)
-    if not results:
-        results = fitsfile
-    return results
-
-def GaussianFit(x, a, x0, sigma):
-    return a*exp(-(x-x0)**2/(2*sigma**2))
-
-def Radial_Average(path):
-
-    image = fits.getdata(path)
-    mean, median, stdev = sigma_clipped_stats(image, sigma = 3)
-    threshold = photutils.detect_threshold(image, nsigma = 15)
-    starfound = photutils.find_peaks(image, threshold = threshold)
-    R = 12
-    r = list(range(0,4096))
+    threshold = photutils.detect_threshold(image, nsigma = 3)
     data = image - median
-    pix_x, pix_y = np.indices((data.shape))
+    # data_0 = photutils.segmentation.detect_sources(image, threshold = threshold, npixels = 20)
+    # threshold = photutils.detect_threshold(data_0, nsigma = 3)
+    starfound = photutils.find_peaks(data, threshold = threshold, box_size = 50, border_width = 20)
     n = 0
-    fwhm_list = []
-
+    stars = []
+    peaks = []
     for row in starfound:
-    
+        bad_pixel = False
         x_cent = starfound['x_peak'][n]
         y_cent = starfound['y_peak'][n]
-        n = n+1
+        peak = image[y_cent, x_cent]
+        # if n > 0:
+        #     if abs(x_cent - starfound['x_peak'][n - 1]) <= 10 or abs(y_cent - starfound['y_peak'][n - 1]) <= 10:
+        #         bad_pixel = True
+        if peak >= 40000:
+            bad_pixel = True
+        pixels = [(y_cent, x_cent + 1), (y_cent, x_cent - 1), (y_cent + 1, x_cent), (y_cent - 1, x_cent)]
+        for value in pixels:
+            if image[value[0], value[1]] < median:
+                bad_pixel = True
+        if bad_pixel: 
+            n += 1
+            continue
+        star = (x_cent, y_cent)
+        stars.append(star)
+        peaks.append(peak)
+        n += 1
+    if not return_data:
+        return stars, peaks
+    else:
+        return (stars, peaks, image - median, stdev)
+
+def Radial_Average(path):
+    '''
+    Description
+    -----------
+    Finds the median fwhm of an image.
+
+    Parameters
+    ----------
+    path : STR
+        File path to fits image to get fwhm from.
+
+    Returns
+    -------
+    median_fwhm : INT
+        The median fwhm measurement of the stars in the fits image.
+
+    '''
+    stars, peaks, data, stdev = FindStars(path, return_data=True)
+    R = 12
+    fwhm_list = []
+    for star in stars:
+        x_cent = star[0]
+        y_cent = star[1]
         xmin = int(x_cent - R)
         xmax = int(x_cent + R)
         ymin = int(y_cent - R)
@@ -91,7 +103,7 @@ def Radial_Average(path):
        
         if len(radialprofile) != 0:
             maximum = radialprofile[0]
-            if radialprofile[2] > (10 +stdev):
+            if radialprofile[2] > (10 + stdev):
                 num = int(0)
                 run = True
                 for x in radialprofile:
@@ -123,6 +135,5 @@ def Radial_Average(path):
                 #     plt.savefig(r'C:/Users/GMU Observtory1/-omegalambda/test/plot.png')
                 
         mask = [fwhm >= 4 for fwhm in fwhm_list]
-        median_fwhm = statistics.median(fwhm_list[mask])
 
-    return median_fwhm
+    return fwhm_list[mask]

@@ -3,6 +3,7 @@ import os
 import logging
 import time
 import threading
+import statistics
 
 from .hardware import Hardware
 from ..common.IO import config_reader
@@ -76,6 +77,7 @@ class FocusProcedures(Hardware):            #Subclassed from hardware
             time.sleep(2)
             current_position = self.focuser.position
             FWHM = filereader_utils.Radial_Average(path)
+            FWHM = statistics.median(FWHM)
             if abs(current_position - initial_position) >= self.config_dict.focus_max_distance:
                 logging.error('Focuser has stepped too far away from initial position and could not find a focus.')
                 break
@@ -154,6 +156,7 @@ class FocusProcedures(Hardware):            #Subclassed from hardware
             newest_image = max(images, key=os.path.getctime)
             full_path = os.path.join(image_path, newest_image)
             fwhm = filereader_utils.Radial_Average(full_path)
+            fwhm = statistics.median(fwhm)
             if abs(fwhm - initial_fwhm) >= self.config_dict.quick_focus_tolerance:
                 self.focuser.onThread(self.focuser.focusAdjust, move)
                 self.focuser.adjusting.wait()

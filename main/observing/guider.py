@@ -76,7 +76,7 @@ class Guider(Hardware):
                 jog_distance = abs(xdistance)*self.config_dict.plate_scale*self.config_dict.guider_ra_dampening
                 if jog_distance >= self.config_dict.guider_max_move:
                     large_move_recovery += 1
-                if jog_distance < self.config_dict.guider_max_move or large_move_recovery >= 5:
+                if jog_distance < self.config_dict.guider_max_move or large_move_recovery >= 6:
                     self.telescope.onThread(self.telescope.Jog, direction, jog_distance)
                     self.telescope.slew_done.wait()
             if abs(y - y_0) >= self.config_dict.guiding_threshold:
@@ -86,7 +86,7 @@ class Guider(Hardware):
                 jog_distance = abs(ydistance)*self.config_dict.plate_scale*self.config_dict.guider_dec_dampening
                 if jog_distance >= self.config_dict.guider_max_move:
                     large_move_recovery += 1
-                if jog_distance < self.config_dict.guider_max_move or large_move_recovery >= 5:
+                if jog_distance < self.config_dict.guider_max_move or large_move_recovery >= 6:
                     self.telescope.onThread(self.telescope.Jog, direction, jog_distance)
                     self.telescope.slew_done.wait()
                 
