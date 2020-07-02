@@ -6,6 +6,7 @@ import threading
 
 from .hardware import Hardware
 from ..common.IO import config_reader
+from ..common.util import filereader_utils
 
 class FocusProcedures(Hardware):            #Subclassed from hardware
     
@@ -72,11 +73,9 @@ class FocusProcedures(Hardware):            #Subclassed from hardware
             self.camera.onThread(self.camera.expose, exp_time, filter, save_path=path, type="light")
             self.camera.image_done.wait()
             self.focuser.onThread(self.focuser.current_position)
-            time.sleep(1)
-            self.camera.onThread(self.camera.get_FWHM)
-            time.sleep(1)
+            time.sleep(2)
             current_position = self.focuser.position
-            FWHM = self.camera.fwhm
+            FWHM = filereader_utils.Radial_Average(path)
             if abs(current_position - initial_position) >= self.config_dict.focus_max_distance:
                 logging.error('Focuser has stepped too far away from initial position and could not find a focus.')
                 break
@@ -127,7 +126,7 @@ class FocusProcedures(Hardware):            #Subclassed from hardware
         self.focused.set()
         return FWHM
     
-    def ConstantFocusProcedure(self, initial_fwhm):
+    def ConstantFocusProcedure(self, initial_fwhm, image_path):
         '''
         Description
         -----------
@@ -137,6 +136,8 @@ class FocusProcedures(Hardware):            #Subclassed from hardware
         ----------
         initial_fwhm : FLOAT
             The fwhm achieved on the target by the startup focus procedure.
+        image_path : STR
+            File path to image folder.
         
         Returns
         -------
@@ -149,9 +150,10 @@ class FocusProcedures(Hardware):            #Subclassed from hardware
         while self.continuous_focusing.isSet():
             logging.debug('Continuous focusing procedure is active...')
             self.camera.image_done.wait()
-            self.camera.onThread(self.camera.get_FWHM)
-            time.sleep(1)
-            fwhm = self.camera.fwhm
+            images = os.listdir(image_path)
+            newest_image = max(images, key=os.path.getctime)
+            full_path = os.path.join(image_path, newest_image)
+            fwhm = filereader_utils.Radial_Average(full_path)
             if abs(fwhm - initial_fwhm) >= self.config_dict.quick_focus_tolerance:
                 self.focuser.onThread(self.focuser.focusAdjust, move)
                 self.focuser.adjusting.wait()

@@ -123,6 +123,6 @@ def Radial_Average(path):
                 #     plt.savefig(r'C:/Users/GMU Observtory1/-omegalambda/test/plot.png')
                 
         mask = [fwhm >= 4 for fwhm in fwhm_list]
+        median_fwhm = statistics.median(fwhm_list[mask])
 
-
-    return fwhm_list[mask]
+    return median_fwhm

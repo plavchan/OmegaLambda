@@ -163,7 +163,7 @@ class ObservationRun():
         return FWHM
         
     def run_ticket(self, ticket, FWHM):
-        self.focus_procedures.onThread(self.focus_procedures.ConstantFocusProcedure, FWHM)
+        self.focus_procedures.onThread(self.focus_procedures.ConstantFocusProcedure, FWHM, self.image_directory)
         
         if ticket.cycle_filter:
             img_count = self.take_images(ticket.name, ticket.num, ticket.exp_time,
