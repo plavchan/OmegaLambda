@@ -97,7 +97,7 @@ class Hardware(threading.Thread):           #Subclassed from threading.Thread
         elif self.label == 'Focuser':
             self.Focuser = COMobj
             self.check_connection()
-        elif self.label == 'FocusProcedures':
+        elif self.label == 'FocusProcedures' or self.label == 'Guider':
             pass
         else:
             logging.error("Invalid hardware name")
