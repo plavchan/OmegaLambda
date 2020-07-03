@@ -212,10 +212,10 @@ class ObservationRun():
                                  int(exp_time), self.filterwheel_dict[current_filter], os.path.join(path, image_name), "light")
             self.camera.image_done.wait(timeout = exp_time*2 + 60)
             
-            name = 'MaxIm_DL.exe'
-            cmd = 'tasklist /FI "IMAGENAME eq %s" /FI "STATUS eq running"' % name
+            prog_name = 'MaxIm_DL.exe'
+            cmd = 'tasklist /FI "IMAGENAME eq %s" /FI "STATUS eq running"' % prog_name
             status = subprocess.Popen(cmd, stdout=subprocess.PIPE).stdout.read()
-            responding = name in str(status)
+            responding = prog_name in str(status)
             
             if not responding:
                 self.camera.crashed.set()

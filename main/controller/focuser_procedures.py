@@ -153,9 +153,9 @@ class FocusProcedures(Hardware):            #Subclassed from hardware
             logging.debug('Continuous focusing procedure is active...')
             self.camera.image_done.wait()
             images = os.listdir(image_path)
-            newest_image = max(images, key=os.path.getctime)
-            full_path = os.path.join(image_path, newest_image)
-            fwhm = filereader_utils.Radial_Average(full_path)
+            paths = [os.path.join(image_path, fname) for fname in images]
+            newest_image = max(paths, key=os.path.getctime)
+            fwhm = filereader_utils.Radial_Average(newest_image)
             fwhm = statistics.median(fwhm)
             if abs(fwhm - initial_fwhm) >= self.config_dict.quick_focus_tolerance:
                 self.focuser.onThread(self.focuser.focusAdjust, move)
