@@ -69,6 +69,9 @@ class FocusProcedures(Hardware):            #Subclassed from hardware
         i = 0
         j = 0
         while True:
+            if self.camera.crashed.isSet() or self.focuser.crashed.isSet():
+                logging.error('The camera or focuser has crashed...focus procedures cannot continue.')
+                break
             image_name = '{0:s}_{1:d}s-{2:04d}.fits'.format('FocuserImage', exp_time, i + 1)
             path = os.path.join(image_path, r'focuser_calibration_images', image_name)
             self.camera.onThread(self.camera.expose, exp_time, filter, save_path=path, type="light")
@@ -149,11 +152,15 @@ class FocusProcedures(Hardware):            #Subclassed from hardware
         # Will be constantly running in the background
         self.continuous_focusing.set()
         move = 'in'
-        while self.continuous_focusing.isSet():
+        while self.continuous_focusing.isSet() and (self.camera.crashed.isSet() == False and self.focuser.crashed.isSet() == False):
             logging.debug('Continuous focusing procedure is active...')
             self.camera.image_done.wait()
             images = os.listdir(image_path)
-            paths = [os.path.join(image_path, fname) for fname in images]
+            paths = []
+            for fname in images:
+                full_path = os.path.join(image_path, fname)
+                if os.path.isfile(full_path): paths.append(full_path)
+                else: continue
             newest_image = max(paths, key=os.path.getctime)
             fwhm = filereader_utils.Radial_Average(newest_image)
             fwhm = statistics.median(fwhm)

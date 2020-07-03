@@ -31,6 +31,7 @@ class Hardware(threading.Thread):           #Subclassed from threading.Thread
         self.timeout = loop_time
         self.label = name
         self.stopping = threading.Event()
+        self.crashed = threading.Event()
         super(Hardware, self).__init__(name = self.label + '-Th')               #Called threading.Thread.__init__ 
         
         self.config_dict = config_reader.get_config()                           #Gets the global config object

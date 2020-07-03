@@ -149,11 +149,12 @@ class Telescope(Hardware):
                 self.Telescope.Tracking = tracking
             except:
                 logging.error("Error slewing to target")
-                return False
-            else:
-                self._is_ready()
+            self._is_ready()
+            if abs(self.Telescope.RightAscension - ra) <= 0.05 and abs(self.Telescope.Declination - dec) <= 0.05:
                 self.slew_done.set()
                 return True
+            else:
+                return False
     
     def PulseGuide(self, direction, duration):
         '''

@@ -9,7 +9,6 @@ class Camera(Hardware):         # Subclassed from the hardware class
     def __init__(self):
         self.cooler_settle = threading.Event()
         self.image_done = threading.Event()
-        self.crashed = threading.Event()
         self.exposing = threading.Lock()
         super(Camera, self).__init__(name='Camera')
         
@@ -72,6 +71,8 @@ class Camera(Hardware):         # Subclassed from the hardware class
             return False
 
     def expose(self, exposure_time, filter, save_path=None, type="light"):
+        while self.crashed.isSet():
+            time.sleep(1)
         with self.exposing:
             if type == "light":
                 type = 1

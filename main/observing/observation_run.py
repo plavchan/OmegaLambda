@@ -5,7 +5,7 @@ import math
 import re
 import logging
 import subprocess
-# import threading
+import threading
 
 from ..common.util import time_utils, conversion_utils
 from ..common.IO import config_reader
@@ -29,6 +29,7 @@ class ObservationRun():
         self.current_ticket = None
         self.shutdown_toggle = shutdown_toggle
         self.tz = observation_request_list[0].start_time.tzinfo
+        self.FWHM = None
         self.camera = Camera()
         self.telescope = Telescope()
         self.dome = Dome()
@@ -142,10 +143,10 @@ class ObservationRun():
             self.camera.cooler_settle.wait()
             if not self.everything_ok(): 
                 self.shutdown(); return
-            FWHM = self.focus_target(ticket)
+            self.FWHM = self.focus_target(ticket)
             input("The program is ready to start taking images of {}.  Please take this time to "
                   "check the focus and pointing of the target.  When you are ready, press Enter: ".format(ticket.name))
-            (taken, total) = self.run_ticket(ticket, FWHM)
+            (taken, total) = self.run_ticket(ticket)
             print("{} out of {} exposures were taken for {}.  Moving on to next target.".format(taken, total, ticket.name))
         self.shutdown()
         
@@ -162,8 +163,8 @@ class ObservationRun():
         self.focus_procedures.focused.wait()
         return FWHM
         
-    def run_ticket(self, ticket, FWHM):
-        self.focus_procedures.onThread(self.focus_procedures.ConstantFocusProcedure, FWHM, self.image_directory)
+    def run_ticket(self, ticket):
+        self.focus_procedures.onThread(self.focus_procedures.ConstantFocusProcedure, self.FWHM, self.image_directory)
         
         if ticket.cycle_filter:
             img_count = self.take_images(ticket.name, ticket.num, ticket.exp_time,
@@ -212,21 +213,7 @@ class ObservationRun():
                                  int(exp_time), self.filterwheel_dict[current_filter], os.path.join(path, image_name), "light")
             self.camera.image_done.wait(timeout = exp_time*2 + 60)
             
-            prog_name = 'MaxIm_DL.exe'
-            cmd = 'tasklist /FI "IMAGENAME eq %s" /FI "STATUS eq running"' % prog_name
-            status = subprocess.Popen(cmd, stdout=subprocess.PIPE).stdout.read()
-            responding = prog_name in str(status)
-            
-            if not responding:
-                self.camera.crashed.set()
-                logging.error('MaxIm DL is not responding.  Restarting...')
-                time.sleep(5)
-                self.camera.crashed.clear()
-                subprocess.call('taskkill /f /im MaxIm_DL.exe')                                               #TODO: Maybe add check if os = windows?
-                time.sleep(5)
-                self.camera = Camera()
-                self.camera.start()
-                time.sleep(5)
+            if self.crash_check('MaxIm_DL.exe'):
                 continue
             
             if cycle_filter:
@@ -241,6 +228,33 @@ class ObservationRun():
                     image_num += 1
             i += 1
         return i
+    
+    def crash_check(self, program):
+        cmd = 'tasklist /FI "IMAGENAME eq %s" /FI "STATUS eq running"' % program
+        status = subprocess.Popen(cmd, stdout=subprocess.PIPE).stdout.read()
+        responding = program in str(status)
+            
+        if not responding:
+            prog_dict = {'MaxIm_DL.exe': [self.camera, Camera], 'TheSkyX.exe': [self.telescope, Telescope],
+                         'ASCOMDome.exe': [self.dome, Dome], 'RoboFocus.exe': [self.focuser, Focuser]}
+            prog_dict[program][0].crashed.set()
+            logging.error('{} is not responding.  Restarting...'.format(program))
+            time.sleep(5)
+            prog_dict[program][0].crashed.clear()
+            subprocess.call('taskkill /f /im {}'.format(program))                      #TODO: Maybe add check if os = windows?
+            time.sleep(5)
+            prog_dict[program][0] = prog_dict[program][1]()                             #TODO: Restart FocusProcedures & Guider too if cam/focus/telescope crashes
+            prog_dict[program][0].start()
+            time.sleep(5)
+            if program in ('MaxIm_DL.exe', 'RoboFocus.exe'):
+                time.sleep(5)
+                self.focus_procedures = FocusProcedures(self.focuser, self.camera)
+                self.focus_procedures.start()
+                time.sleep(5)
+                self.focus_procedures.onThread(self.focus_procedures.ConstantFocusProcedure(self.FWHM, self.image_directory))
+            return True
+        else:
+            return False
     
     def shutdown(self):
         if self.shutdown_toggle or self.weather.weather_alert.isSet():

@@ -83,18 +83,18 @@ class Dome(Hardware):
         self._is_ready()
         if toggle == True:
             try: self.Dome.Slaved = True
-            except: print("ERROR: Cannot slave dome to scope")
+            except: print("ERROR: Cannot sync dome to scope")
             else: 
-                print("Dome is slaving to scope")
+                print("Dome is syncing to scope")
                 self._is_ready()
                 self.move_done.set()
         elif toggle == False:
             try: self.Dome.Slaved = False
-            except: print("ERROR: Cannot stop slaving dome to scope")
+            except: print("ERROR: Cannot stop syncing dome to scope")
             else: 
-                print("Dome is no longer slaving to scope")
+                print("Dome is no longer syncing to scope")
                 self.move_done.set()
-        logging.debug('Dome slaving toggled')
+        logging.debug('Dome syncing toggled')
         
     def Slew(self, Azimuth):
         self.move_done.clear()
