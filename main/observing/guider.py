@@ -71,6 +71,7 @@ class Guider(Hardware):
                     logging.debug('Guider is making an adjustment in RA')
                     self.telescope.onThread(self.telescope.Jog, direction, jog_distance)
                     self.telescope.slew_done.wait()
+                    x_0 = x
             if abs(y - y_0) >= self.config_dict.guiding_threshold:
                 ydistance = y - y_0
                 if ydistance >= 0: direction = 'up'   # Star has moved up in the image, so we want to move it back down, meaning we need to move the telescope up
@@ -84,6 +85,7 @@ class Guider(Hardware):
                     logging.debug('Guider is making an adjustment in Dec')
                     self.telescope.onThread(self.telescope.Jog, direction, jog_distance)
                     self.telescope.slew_done.wait()
+                    y_0 = y
                 
     def StopGuiding(self):
         self.guiding.clear()
