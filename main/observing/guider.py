@@ -34,7 +34,7 @@ class Guider(Hardware):
                 
     def FindGuideStar(self, path):  # Remove IRAFStarFinder
         maximum = 0
-        stars, peaks = filereader_utils.FindStars(path)
+        stars, peaks = filereader_utils.FindStars(path, self.config_dict.saturation)
         i = 0
         maximum = 0
         for star in stars:

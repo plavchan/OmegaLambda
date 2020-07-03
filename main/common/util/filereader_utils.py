@@ -2,14 +2,14 @@
 import logging
 import statistics
 import numpy as np
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 import photutils
 from astropy.io import fits
 from astropy.stats import sigma_clipped_stats
 from scipy.optimize import curve_fit
 
-def FindStars(path, return_data=False):
+def FindStars(path, saturation, return_data=False):
     '''
     Description
     -----------
@@ -19,6 +19,8 @@ def FindStars(path, return_data=False):
     ----------
     path : STR
         Path to fits image file with stars in it.
+    saturation : INT
+        Number of counts for a star to be considered saturated for a specific CCD Camera.
     return_data : BOOL, optional
         If True, returns the image data and the standard deviation as well.  Mostly used for Radial_Average.
         The default is False.
@@ -47,7 +49,7 @@ def FindStars(path, return_data=False):
         # if n > 0:
         #     if abs(x_cent - starfound['x_peak'][n - 1]) <= 10 or abs(y_cent - starfound['y_peak'][n - 1]) <= 10:
         #         bad_pixel = True
-        if peak >= 40000**2:
+        if peak >= (saturation*2)**2:
             bad_pixel = True
         pixels = [(y_cent, x_cent + 1), (y_cent, x_cent - 1), (y_cent + 1, x_cent), (y_cent - 1, x_cent)]
         for value in pixels:
@@ -68,7 +70,7 @@ def FindStars(path, return_data=False):
 def GaussianFit(x,a,x0,sigma):
     return a*np.exp(-(x-x0)**2/(2*sigma**2))
 
-def Radial_Average(path):
+def Radial_Average(path, saturation):
     '''
     Description
     -----------
@@ -78,6 +80,8 @@ def Radial_Average(path):
     ----------
     path : STR
         File path to fits image to get fwhm from.
+    saturation : INT
+        Number of counts for a star to be considered saturated for a specific CCD Camera.
 
     Returns
     -------
@@ -85,7 +89,7 @@ def Radial_Average(path):
         The median fwhm measurement of the stars in the fits image.
 
     '''
-    stars, peaks, data, stdev = FindStars(path, return_data=True)
+    stars, peaks, data, stdev = FindStars(path, saturation, return_data=True)
     R = 25
     fwhm_list = []
     # a = 0
