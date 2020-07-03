@@ -126,6 +126,8 @@ class ObservationRun():
             self.current_ticket = ticket
             if not self.everything_ok(): 
                 self.shutdown(); return
+            self.crash_check('TheSkyX.exe')
+            self.crash_check('ASCOMDome.exe')
             if not self._ticket_slew(ticket):
                 return
             if Initial_shutter in (1,3,4):
@@ -160,7 +162,9 @@ class ObservationRun():
             focus_exposure = 1
         FWHM = self.focus_procedures.onThread(self.focus_procedures.StartupFocusProcedure, focus_exposure, self.filterwheel_dict[focus_filter], 
                                               self.image_directory)
-        self.focus_procedures.focused.wait()
+        while not self.focus_procedures.focused.isSet():
+            self.crash_check('RoboFocus.exe')
+            time.sleep(10)
         return FWHM
         
     def run_ticket(self, ticket):
@@ -215,6 +219,8 @@ class ObservationRun():
             
             if self.crash_check('MaxIm_DL.exe'):
                 continue
+            if self.crash_check('RoboFocus.exe'):
+                pass
             
             if cycle_filter:
                 if N:
