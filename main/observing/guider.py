@@ -1,20 +1,9 @@
 import threading
+import logging
 
 from ..controller.hardware import Hardware
 from ..common.IO import config_reader
 from ..common.util import filereader_utils
-
-'''
-1. Camera takes an exposure in observation_run
-2. Find & record test star's position in FOV
-3. Camera takes another exposure in observation_run
-4. Compare test star's new position to its last one
-5. If too small, do nothing, keep first position saved (so that when we eventually jog, 
-   it is correct for the difference since the first exposure)
-6. If big enough, Pulseguide/jog telescope to correct for the difference b/w
-   previous (or first) location and current location
-7. Make sure dome slaves correctly (should already be taken care of)
-'''
 
 class Guider(Hardware):
     
@@ -42,33 +31,33 @@ class Guider(Hardware):
         self.guiding = threading.Event()
         
         super(Guider, self).__init__(name='Guider')
-        
-        #Idea would be to wait for the last camera.expose from take_images, then call guider.findstars or something to see if a move is necessary
                 
     def FindGuideStar(self, path):  # Remove IRAFStarFinder
         maximum = 0
-        data_table = filereader_utils.IRAF_calculations(path)
-        for i in range(1, len(data_table['peak'])):
-            row = i
-            flux = data_table['peak'][row]
-            if flux > maximum and flux <= self.config_dict.saturation:
-                maximum = flux
-                maxrow = row
-        brightest_unsaturated_star = data_table[:][maxrow]  # Use this as a guiding star
+        stars, peaks = filereader_utils.FindStars(path)
+        i = 0
+        maximum = 0
+        for star in stars:
+            counts = peaks[i]
+            if counts >= maximum and counts <= self.config_dict.saturation:
+                maximum = counts
+                maxindex = i
+            i += 1
+        brightest_unsaturated_star = stars[maxindex]
         return brightest_unsaturated_star
     
     def GuidingProcedure(self, image_path):
         self.guiding.set()
         self.camera.image_done.wait()
         star = self.FindGuideStar(image_path)
-        x_0 = star['xcentroid']
-        y_0 = star['ycentroid']
+        x_0 = star[0]
+        y_0 = star[1]
         large_move_recovery = 0
         while self.guiding.isSet():
             self.camera.image_done.wait()
             star = self.FindGuideStar(image_path)   # What if we fall behind the camera?
-            x = star['xcentroid']
-            y = star['ycentroid']
+            x = star[0]
+            y = star[1]
             if abs(x - x_0) >= self.config_dict.guiding_threshold:
                 xdistance = x - x_0
                 if xdistance >= 0: direction = 'right'  # Star has moved right in the image, so we want to move it back left, meaning we need to move the telescope right
@@ -76,7 +65,10 @@ class Guider(Hardware):
                 jog_distance = abs(xdistance)*self.config_dict.plate_scale*self.config_dict.guider_ra_dampening
                 if jog_distance >= self.config_dict.guider_max_move:
                     large_move_recovery += 1
+                    logging.warning('Guide star has moved substantially between images...If the telescope did not move suddenly, there may'
+                                    'be an issue with the FindGuideStar algorithm.')
                 if jog_distance < self.config_dict.guider_max_move or large_move_recovery >= 6:
+                    logging.debug('Guider is making an adjustment in RA')
                     self.telescope.onThread(self.telescope.Jog, direction, jog_distance)
                     self.telescope.slew_done.wait()
             if abs(y - y_0) >= self.config_dict.guiding_threshold:
@@ -86,7 +78,10 @@ class Guider(Hardware):
                 jog_distance = abs(ydistance)*self.config_dict.plate_scale*self.config_dict.guider_dec_dampening
                 if jog_distance >= self.config_dict.guider_max_move:
                     large_move_recovery += 1
+                    logging.warning('Guide star has moved substantially between images...If the telescope did not move suddenly, there may'
+                                    'be an issue with the FindGuideStar algorithm.')
                 if jog_distance < self.config_dict.guider_max_move or large_move_recovery >= 6:
+                    logging.debug('Guider is making an adjustment in Dec')
                     self.telescope.onThread(self.telescope.Jog, direction, jog_distance)
                     self.telescope.slew_done.wait()
                 

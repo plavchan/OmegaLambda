@@ -109,11 +109,11 @@ class ObservationRun():
     
     def _ticket_slew(self, ticket):
         self.telescope.onThread(self.telescope.Slew, ticket.ra, ticket.dec)
-        slew = self.telescope.slew_done.wait(timeout = 60)
+        slew = self.telescope.slew_done.wait(timeout = 60*2)
         if not slew:
             logging.error('Telescope slew has failed.  Retrying...')
             self.telescope.onThread(self.telescope.Slew, ticket.ra, ticket.dec)
-            slew2 = self.telescope.slew_done.wait(timeout = 60)
+            slew2 = self.telescope.slew_done.wait(timeout = 60*2)
             if not slew2:
                 logging.critical('Telescope still cannot slew to target.  Cannot continue observing.')
                 return False
