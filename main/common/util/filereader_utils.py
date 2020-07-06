@@ -9,7 +9,7 @@ from astropy.io import fits
 from astropy.stats import sigma_clipped_stats
 from scipy.optimize import curve_fit
 
-def FindStars(path, saturation, return_data=False):
+def FindStars(path, saturation, subframe=None, return_data=False):
     '''
     Description
     -----------
@@ -21,6 +21,8 @@ def FindStars(path, saturation, return_data=False):
         Path to fits image file with stars in it.
     saturation : INT
         Number of counts for a star to be considered saturated for a specific CCD Camera.
+    subframe : TUPLE
+        Tuple with x coordinate and y coordinate of the star to create a subframe around.
     return_data : BOOL, optional
         If True, returns the image data and the standard deviation as well.  Mostly used for Radial_Average.
         The default is False.
@@ -35,9 +37,12 @@ def FindStars(path, saturation, return_data=False):
     mean, median, stdev = sigma_clipped_stats(image, sigma = 3)
     threshold = photutils.detect_threshold(image, nsigma = 5)
     data = (image - median)**2
-    # data_0 = photutils.segmentation.detect_sources(image, threshold = threshold, npixels = 20)
-    # threshold = photutils.detect_threshold(data_0, nsigma = 3)
-    starfound = photutils.find_peaks(data, threshold = threshold, box_size = 50, border_width = 20)
+    if not subframe:
+        starfound = photutils.find_peaks(data, threshold = threshold, box_size = 50, border_width = 250)
+    else:
+        R = 250
+        data_subframe = data[subframe[1]-R:subframe[1]+R, subframe[0]-R:subframe[0]+R]
+        starfound = photutils.find_peaks(data_subframe, threshold = threshold, box_size = 50)
     n = 0
     stars = []
     peaks = []
@@ -68,6 +73,26 @@ def FindStars(path, saturation, return_data=False):
         return (stars, peaks, image - median, stdev)
     
 def GaussianFit(x,a,x0,sigma):
+    '''
+    Guassian Fit Function
+
+    Parameters
+    ----------
+    x : FLOAT
+        x data.
+    a : FLOAT
+        Amplitude constant.
+    x0 : FLOAT
+        Initial x.
+    sigma : FLOAT
+        Standard deviation.
+
+    Returns
+    -------
+    y
+        Y value corresponding to input x value.
+
+    '''
     return a*np.exp(-(x-x0)**2/(2*sigma**2))
 
 def Radial_Average(path, saturation):
