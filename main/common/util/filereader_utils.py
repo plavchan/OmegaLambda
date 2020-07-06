@@ -35,14 +35,22 @@ def FindStars(path, saturation, subframe=None, return_data=False):
     '''
     image = fits.getdata(path)
     mean, median, stdev = sigma_clipped_stats(image, sigma = 3)
-    threshold = photutils.detect_threshold(image, nsigma = 5)
     data = (image - median)**2
+    threshold = photutils.detect_threshold(image, nsigma = 5)
     if not subframe:
         starfound = photutils.find_peaks(data, threshold = threshold, box_size = 50, border_width = 250)
     else:
         R = 250
-        data_subframe = data[subframe[1]-R:subframe[1]+R, subframe[0]-R:subframe[0]+R]
-        starfound = photutils.find_peaks(data_subframe, threshold = threshold, box_size = 50)
+        x_cent = subframe[0]
+        y_cent = subframe[1]
+        xmin = int(x_cent - R)
+        xmax = int(x_cent + R)
+        ymin = int(y_cent - R)
+        ymax = int(y_cent + R)
+        data_subframe = data[ymin:ymax, xmin:xmax]
+        image = image[ymin:ymax, xmin:xmax]
+        threshold = threshold[ymin:ymax, xmin:xmax]
+        starfound = photutils.find_peaks(data_subframe, threshold = threshold, box_size = 50, border_width = 10)
     n = 0
     stars = []
     peaks = []
@@ -51,9 +59,6 @@ def FindStars(path, saturation, subframe=None, return_data=False):
         x_cent = starfound['x_peak'][n]
         y_cent = starfound['y_peak'][n]
         peak = image[y_cent, x_cent]
-        # if n > 0:
-        #     if abs(x_cent - starfound['x_peak'][n - 1]) <= 10 or abs(y_cent - starfound['y_peak'][n - 1]) <= 10:
-        #         bad_pixel = True
         if peak >= (saturation*2)**2:
             bad_pixel = True
         pixels = [(y_cent, x_cent + 1), (y_cent, x_cent - 1), (y_cent + 1, x_cent), (y_cent - 1, x_cent)]
