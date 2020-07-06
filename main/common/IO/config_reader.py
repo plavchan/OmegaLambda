@@ -30,9 +30,9 @@ def get_config():
 class Config():
     
     def __init__(self, cooler_setpoint=None, cooler_idle_setpoint=None, cooler_settle_time=None, maximum_jog=None, site_latitude=None, 
-                 site_longitude=None, humidity_limit=None, wind_limit=None, weather_freq=None, plate_scale=None, saturation=None,focus_exposure_multiplier=None, 
-                 initial_focus_delta=None, long_focus_tolerance=None, quick_focus_tolerance=None, focus_max_distance=None, guiding_threshold=None,
-                 guider_ra_dampening=None, guider_dec_dampening=None, guider_max_move=None, data_directory=None, home_directory=None, prep_time=None):
+                 site_longitude=None, humidity_limit=None, wind_limit=None, weather_freq=None, min_reopen_time=None, plate_scale=None, saturation=None,
+                 focus_exposure_multiplier=None, initial_focus_delta=None, long_focus_tolerance=None, quick_focus_tolerance=None, focus_max_distance=None, 
+                 guiding_threshold=None, guider_ra_dampening=None, guider_dec_dampening=None, guider_max_move=None, data_directory=None, home_directory=None, prep_time=None):
         '''
 
         Parameters
@@ -55,6 +55,8 @@ class Config():
             Limit for wind speed in mph while observing.  Our default is 20 mph.
         weather_freq : INT, optional
             Frequency of weather checks in minutes.  Our default is 15 minutes.
+        min_reopen_time : INT or FLOAT, optional
+            Minimum wait time to reopen (in minutes) after a weather check has gone off.  Our default is 30 minutes.
         plate_scale : FLOAT, optional
             CCD camera conversion factor between pixels and arcseconds, in arcseconds/pixel.  Our default is 0.350 arcseconds/pixel.
         saturation : INT, optional
@@ -97,7 +99,8 @@ class Config():
         self.site_longitude = site_longitude                
         self.humidity_limit = humidity_limit                      
         self.wind_limit = wind_limit                         
-        self.weather_freq = weather_freq      
+        self.weather_freq = weather_freq 
+        self.min_reopen_time = min_reopen_time
         self.plate_scale = plate_scale
         self.saturation = saturation
         self.focus_exposure_multiplier = focus_exposure_multiplier
@@ -163,7 +166,7 @@ def _dict_to_config_object(dict):
     _config = Config(cooler_setpoint=dict['cooler_setpoint'], cooler_idle_setpoint=dict['cooler_idle_setpoint'],
                      cooler_settle_time=dict['cooler_settle_time'], site_latitude=dict['site_latitude'], site_longitude=dict['site_longitude'], 
                      maximum_jog=dict['maximum_jog'], humidity_limit=dict['humidity_limit'], wind_limit=dict['wind_limit'], weather_freq=dict['weather_freq'],
-                     plate_scale=dict['plate_scale'], saturation=dict['saturation'], focus_exposure_multiplier=dict['focus_exposure_multiplier'], 
+                     min_reopen_time=dict['min_reopen_time'], plate_scale=dict['plate_scale'], saturation=dict['saturation'], focus_exposure_multiplier=dict['focus_exposure_multiplier'], 
                      initial_focus_delta=dict['initial_focus_delta'], long_focus_tolerance=dict['long_focus_tolerance'], quick_focus_tolerance=dict['quick_focus_tolerance'],
                      focus_max_distance=dict['focus_max_distance'], guiding_threshold=dict['guiding_threshold'], guider_ra_dampening=dict['guider_ra_dampening'],
                      guider_dec_dampening=dict['guider_dec_dampening'], guider_max_move=dict['guider_max_move'], data_directory=dict['data_directory'], 

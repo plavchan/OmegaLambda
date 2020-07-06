@@ -66,6 +66,7 @@ class ObservationRun():
             if self.weather.sun:
                 sunset_time = conversion_utils.get_sunset(datetime.datetime.now(self.tz), self.config_dict.site_latitude, self.config_dict.site_longitude)
                 logging.info('The Sun has risen above the horizon...observing will stop until the Sun sets again at {}.'.format(sunset_time.strftime('%Y-%m-%d %H:%M:%S%z')))
+                time.sleep(60*self.config_dict.min_reopen_time)
                 sunset_epoch_milli = time_utils.datetime_to_epoch_milli_converter(sunset_time)
                 current_epoch_milli = time_utils.datetime_to_epoch_milli_converter(datetime.datetime.now(self.tz))
                 time.sleep((sunset_epoch_milli - current_epoch_milli)/1000)
@@ -74,7 +75,7 @@ class ObservationRun():
                     check = True
                     if not self.current_ticket:
                         self.observe()
-                    else:
+                    elif self.current_ticket.end_time <= datetime.datetime.now(self.tz):
                         self._startup_procedure()
                         self._ticket_slew(self.current_ticket)
                         self.focus_target(self.current_ticket)
@@ -82,9 +83,13 @@ class ObservationRun():
                     print('Weather is still too poor to resume observing.')
                     self.everything_ok()
             elif not self.weather.sun:
+                time.sleep(60*self.config_dict.min_reopen_time)
                 while self.weather.weather_alert.isSet():
                     time.sleep(self.config_dict.weather_freq*60)
-                if not self.weather.weather_alert.isSet():
+                if not self.weather.weather_alert.isSet() and self.current_ticket.end_time <= datetime.datetime.now(self.tz):
+                    self._startup_procedure()
+                    self._ticket_slew(self.current_ticket)
+                    self.focus_target(self.current_ticket)
                     check = True
         else:
             check = True
@@ -133,6 +138,9 @@ class ObservationRun():
             if Initial_shutter in (1,3,4):
                 self.dome.move_done.wait()
                 self.dome.shutter_done.wait()
+            self.camera.cooler_settle.wait()
+            self.FWHM = self.focus_target(ticket)
+            
             self.tz = ticket.start_time.tzinfo
             current_time = datetime.datetime.now(self.tz)
             if ticket.start_time > current_time:
@@ -141,11 +149,10 @@ class ObservationRun():
                 current_epoch_milli = time_utils.datetime_to_epoch_milli_converter(current_time)
                 start_time_epoch_milli = time_utils.datetime_to_epoch_milli_converter(ticket.start_time)
                 time.sleep((start_time_epoch_milli - current_epoch_milli)/1000)
-            
-            self.camera.cooler_settle.wait()
+    
             if not self.everything_ok(): 
                 self.shutdown(); return
-            self.FWHM = self.focus_target(ticket)
+            
             input("The program is ready to start taking images of {}.  Please take this time to "
                   "check the focus and pointing of the target.  When you are ready, press Enter: ".format(ticket.name))
             (taken, total) = self.run_ticket(ticket)
