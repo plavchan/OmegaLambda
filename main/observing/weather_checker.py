@@ -8,6 +8,7 @@ import time
 import threading
 import logging
 import datetime
+import numpy as np
 
 from PIL import Image
 
@@ -192,9 +193,9 @@ class Weather(threading.Thread):
         with open(os.path.join(self.config_dict.home_dictionary, r'resources\weather_status\cloud-img.gif'), 'wb') as file:
             file.write(req.content)
             
-        if os.stat(os.path.join(self.config_dict.home_dictionary, r'resources\weather_status\cloud-img.gif').st_size <= 2000:
+        if os.stat(os.path.join(self.config_dict.home_dictionary, r'resources\weather_status\cloud-img.gif')).st_size <= 2000:
             logging.error('Cloud coverage image cannot be retrieved')
-            return
+            return False
         
         img = Image.open(os.path.join(self.config_dict.home_directory, r'resources/weather_status/cloud-img.gif'))
         img_array = np.array(img)
@@ -209,16 +210,7 @@ class Weather(threading.Thread):
             if color[1] > 16:
                 clouds.append(color)
         percent_cover = sum([cloud[0] for cloud in clouds]) / px * 100
-        #blank sky = 16, state borders = 0
-        # cloudpix = 0
-        # a_internal = len(img_internal[0])*len(img_internal[1])
-        # for x in range(len(img_internal[0])):
-        #     for y in range(len(img_internal[1])):
-        #         if img_internal[x][y] > 16:
-        #             cloudpix +=1
-        # percent_cover = cloudpix/a_internal*100
-        
-        
+        img.close()
         if percent_cover >= self.config_dict.cloud_cover_limit:
             return True
         else:
