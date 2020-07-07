@@ -9,5 +9,5 @@ logging.basicConfig(level=logging.DEBUG, format='(%(threadName)-10s) %(message)s
 
 w = Weather()
 w.start()
-time.sleep(2)
-w.stop()
+time.sleep(10)
+w.stop.set()

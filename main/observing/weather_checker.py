@@ -178,6 +178,7 @@ class Weather(threading.Thread):
         day = int(time_utils.days_of_year())
         conus_band = 13
         time = datetime.datetime.now(datetime.timezone.utc)
+        year = time.year
         time_round = time_utils.rounddown_300(time.hour*60*60 + time.minute*60 + time.second)
         
         s = requests.Session()
@@ -187,13 +188,13 @@ class Weather(threading.Thread):
             time = '{0:02d}{1:02d}'.format(hour, minute)
             if (minute - 1) % 5 != 0:
                 continue
-            url = 'https://www.ssec.wisc.edu/data/geo/images/goes-16/animation_images/{}_{}_{}_{}_conus.gif'.format(satellite, day, time, conus_band)
+            url = 'https://www.ssec.wisc.edu/data/geo/images/goes-16/animation_images/{}_{}{}_{}_{}_conus.gif'.format(satellite, year, day, time, conus_band)
             req = s.get(url, headers={'User-Agent': 'Mozilla/5.0'})
-            
-        with open(os.path.join(self.config_dict.home_dictionary, r'resources\weather_status\cloud-img.gif'), 'wb') as file:
+        
+        with open(os.path.join(self.config_dict.home_directory, r'resources\weather_status\cloud-img.gif'), 'wb') as file:
             file.write(req.content)
-            
-        if os.stat(os.path.join(self.config_dict.home_dictionary, r'resources\weather_status\cloud-img.gif')).st_size <= 2000:
+        
+        if os.stat(os.path.join(self.config_dict.home_directory, r'resources\weather_status\cloud-img.gif')).st_size <= 2000:
             logging.error('Cloud coverage image cannot be retrieved')
             return False
         
