@@ -107,7 +107,7 @@ def days_since_j2000(date=None):
 
     Returns
     -------
-    days : INT
+    days : FLOAT
         Timestamp in the form of days since Jan. 1, 2000.
 
     '''
@@ -119,6 +119,30 @@ def days_since_j2000(date=None):
     j2000 = datetime.datetime(2000, 1, 1, 12, 0, 0, tzinfo=datetime.timezone.utc)
     days = (date - j2000).total_seconds()/(60*60*24)
     return days
+
+def days_of_year(date=None):
+    '''
+
+    Parameters
+    ----------
+    date : DATETIME.DATETIME, optional
+        Should be timezone-aware datetime object. The default is None, which will calculate the
+        days of the year for today.
+
+    Returns
+    -------
+    days : FLOAT
+        Timestamp in the form of days since Jan. 1, [current year].
+
+    '''
+    logging.debug('Called time_utils function')
+    if date == None:
+        date = datetime.datetime.now(datetime.timezone.utc)
+    if type(date) is not datetime.datetime:
+        date = convert_to_datetime_UTC(date)
+    first_day = datetime.datetime(date.year, 1, 1, 0, 0, 0, tzinfo=date.tzinfo)
+    days = (date - first_day).total_seconds()/(60*60*24)
+    return days + 1
 
 def fractional_hours_of_day(time=None):
     '''

@@ -170,3 +170,30 @@ class Weather(threading.Thread):
             return True
         else:
             return False
+        
+    def cloud_check(self):
+        satellite = 'goes-16'
+        day = int(time_utils.days_of_year())
+        conus_band = 13
+        time = datetime.datetime.now(datetime.timezone.utc)
+        time_round = time_utils.rounddown_300(time.hour*60*60 + time.minute*60 + time.second)
+        
+        s = requests.Session()
+        for i in range(6):
+            hour = int(time_round/(60*60))
+            minute = int((time_round - hour*60*60)/60) - i
+            time = '{0:02d}{1:02d}'.format(hour, minute)
+            if (minute - 1) % 5 != 0:
+                continue
+            url = 'https://www.ssec.wisc.edu/data/geo/images/goes-16/animation_images/{}_{}_{}_{}_conus.gif'.format(satellite, day, time, conus_band)
+            req = s.get(url, headers={'User-Agent': 'Mozilla/5.0'})
+            
+        with open(os.path.join(self.config_dict.home_dictionary, r'resources\weather_status\cloud-img.gif'), 'wb') as file:
+            file.write(req.content)
+            
+        if os.stat(os.path.join(self.config_dict.home_dictionary, r'resources\weather_status\cloud-img.gif').st_size <= 2000:
+            logging.error('Cloud coverage image cannot be retrieved')
+            return
+        
+        
+            
