@@ -55,7 +55,8 @@ class Weather(threading.Thread):
             (H, W, R) = self.weather_check()
             Radar = self.rain_check()
             Sun_elevation = conversion_utils.get_sun_elevation(datetime.datetime.now(datetime.timezone.utc), self.config_dict.site_latitude, self.config_dict.site_longitude)
-            if (H >= self.config_dict.humidity_limit) or (W >= self.config_dict.wind_limit) or (Last_Rain != R and Last_Rain != None) or (Radar == True) or (Sun_elevation >= 0):
+            Cloud_cover = self.cloud_check()
+            if (H >= self.config_dict.humidity_limit) or (W >= self.config_dict.wind_limit) or (Last_Rain != R and Last_Rain != None) or (Radar == True) or (Sun_elevation >= 0) or (Cloud_cover == True):
                 self.weather_alert.set()
                 if Sun_elevation >= 0:
                     self.sun = True
@@ -195,5 +196,33 @@ class Weather(threading.Thread):
             logging.error('Cloud coverage image cannot be retrieved')
             return
         
+        img = Image.open(os.path.join(self.config_dict.home_directory, r'resources/weather_status/cloud-img.gif'))
+        img_array = np.array(img)
+        img_array = img_array.astype('float64')
+        #fairfax coordinates ~300, 1350
+        img_internal = img_array[250:350, 1300:1400]
+        img_small = Image.fromarray(img_internal)
+        px = img_small.size[0]*img_small.size[1]
+        colors = img_small.getcolors()
+        clouds = []
+        for color in colors:
+            if color[1] > 16:
+                clouds.append(color)
+        percent_cover = sum([cloud[0] for cloud in clouds]) / px * 100
+        #blank sky = 16, state borders = 0
+        # cloudpix = 0
+        # a_internal = len(img_internal[0])*len(img_internal[1])
+        # for x in range(len(img_internal[0])):
+        #     for y in range(len(img_internal[1])):
+        #         if img_internal[x][y] > 16:
+        #             cloudpix +=1
+        # percent_cover = cloudpix/a_internal*100
+        
+        
+        if percent_cover >= self.config_dict.cloud_cover_limit:
+            return True
+        else:
+            return False
+
         
             

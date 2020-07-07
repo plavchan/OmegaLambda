@@ -8,6 +8,7 @@
 	"humidity_limit": 85,
 	"wind_limit": 20,
 	"weather_freq": 15,
+	"cloud_cover_limit": 50,
 	"min_reopen_time": 30,
 	"plate_scale": 0.350,
 	"saturation": 20000,
