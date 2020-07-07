@@ -8,7 +8,8 @@ import photutils
 from astropy.io import fits
 from astropy.stats import sigma_clipped_stats
 from scipy.optimize import curve_fit
-
+    
+    
 def FindStars(path, saturation, subframe=None, return_data=False):
     '''
     Description
@@ -38,7 +39,7 @@ def FindStars(path, saturation, subframe=None, return_data=False):
     data = (image - median)**2
     threshold = photutils.detect_threshold(image, nsigma = 5)
     if not subframe:
-        starfound = photutils.find_peaks(data, threshold = threshold, box_size = 50, border_width = 250)
+        starfound = photutils.find_peaks(data, threshold = threshold, box_size = 50, border_width = 250, centroid_func=photutils.centroids.centroid_com)
     else:
         R = 250
         x_cent = subframe[0]
@@ -50,7 +51,7 @@ def FindStars(path, saturation, subframe=None, return_data=False):
         data_subframe = data[ymin:ymax, xmin:xmax]
         image = image[ymin:ymax, xmin:xmax]
         threshold = threshold[ymin:ymax, xmin:xmax]
-        starfound = photutils.find_peaks(data_subframe, threshold = threshold, box_size = 50, border_width = 10)
+        starfound = photutils.find_peaks(data_subframe, threshold = threshold, box_size = 50, border_width = 10, centroid_func=photutils.centroids.centroid_com)
     n = 0
     stars = []
     peaks = []
@@ -121,16 +122,12 @@ def Radial_Average(path, saturation):
     '''
     stars, peaks, data, stdev = FindStars(path, saturation, return_data=True)
     R = 25
-    fwhm_list = []
+    fwhm_list = np.ndarray(shape=(len(stars),))
     # a = 0
     for star in stars:
         x_cent = star[0]
         y_cent = star[1]
-        xmin = int(x_cent - R)
-        xmax = int(x_cent + R)
-        ymin = int(y_cent - R)
-        ymax = int(y_cent + R)
-        star = data[ymin:ymax, xmin:xmax]
+        star = data[y_cent-R:y_cent+R, x_cent-R:x_cent+R]
         starx, stary = np.indices((star.shape))
         r = np.sqrt((stary - R)**2 + (starx - R)**2)
         r = r.astype(np.int)
@@ -180,6 +177,6 @@ def Radial_Average(path, saturation):
                 #     plt.savefig(r'C:/Users/GMU Observtory1/-omegalambda/test/plot.png')
                 #     a += 1
                 
-        mask = [fwhm >= 4 for fwhm in fwhm_list]
-
-    return fwhm_list[mask]
+    mask = np.array([fwhm >= 3 for fwhm in fwhm_list])
+    fwhm_med = statistics.median(fwhm_list[mask])
+    return fwhm_med
