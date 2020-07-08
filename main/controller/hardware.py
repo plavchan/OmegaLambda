@@ -100,7 +100,7 @@ class Hardware(threading.Thread):           #Subclassed from threading.Thread
             self.check_connection()
         elif self.label == 'FlatLamp':
             self.check_connection()
-        elif self.label == 'FocusProcedures' or self.label == 'Guider':
+        elif self.label == 'FocusProcedures' or self.label == 'Guider' or self.label == 'Calibration':
             pass
         else:
             logging.error("Invalid hardware name")

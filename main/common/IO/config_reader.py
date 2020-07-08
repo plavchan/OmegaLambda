@@ -32,7 +32,7 @@ class Config():
     def __init__(self, cooler_setpoint=None, cooler_idle_setpoint=None, cooler_settle_time=None, maximum_jog=None, site_latitude=None, 
                  site_longitude=None, humidity_limit=None, wind_limit=None, weather_freq=None, cloud_cover_limit=None, min_reopen_time=None, plate_scale=None, saturation=None,
                  focus_exposure_multiplier=None, initial_focus_delta=None, long_focus_tolerance=None, quick_focus_tolerance=None, focus_max_distance=None, 
-                 guiding_threshold=None, guider_ra_dampening=None, guider_dec_dampening=None, guider_max_move=None, data_directory=None, home_directory=None, prep_time=None):
+                 guiding_threshold=None, guider_ra_dampening=None, guider_dec_dampening=None, guider_max_move=None, data_directory=None, home_directory=None, calibration_time=None):
         '''
 
         Parameters
@@ -85,8 +85,10 @@ class Config():
             Where images and other data are saved on the computer.  Our default is H:/Observatory Files/Observing Sessions/2020_Data.
         home_directory : STR, optional
             Where the home of our code base is.  Our default is C:/Users/GMU Observtory1/-omegalambda.
-        prep_time : INT, optional
-            Preparation time in minutes needed before an observation run to take darks and flats.  Our default is 30 minutes.
+        calibration_time : STR, optional
+            If darks and flats should be taken at the start or end of a given observing session.  Can be str "start" or "end."  If "start", it will take darks
+            and flats for ALL observing tickets at the start of the night.  If "end", it will take darks and flats for all FINISHED tickets at the end of the night.
+            Our default is "end".
 
         Returns
         -------
@@ -117,7 +119,7 @@ class Config():
         self.guider_max_move = guider_max_move
         self.data_directory = data_directory                     
         self.home_directory = home_directory                        
-        self.prep_time = prep_time
+        self.calibration_time = calibration_time
         
     @staticmethod
     def deserialized(text):
@@ -174,6 +176,6 @@ def _dict_to_config_object(dict):
                      long_focus_tolerance=dict['long_focus_tolerance'], quick_focus_tolerance=dict['quick_focus_tolerance'],
                      focus_max_distance=dict['focus_max_distance'], guiding_threshold=dict['guiding_threshold'], guider_ra_dampening=dict['guider_ra_dampening'],
                      guider_dec_dampening=dict['guider_dec_dampening'], guider_max_move=dict['guider_max_move'], data_directory=dict['data_directory'], 
-                     home_directory=dict['home_directory'], prep_time=dict['prep_time'])
+                     home_directory=dict['home_directory'], calibration_time=dict['calibration_time'])
     logging.info('Global config object has been created')
     return _config

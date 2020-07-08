@@ -23,6 +23,6 @@
 	"guider_max_move": 100,
 	"data_directory": "H:/Observatory Files/Observing Sessions/2020_Data",
 	"home_directory": "C:/Users/GMU Observtory1/-omegalambda",
-	"prep_time": 30
+	"calibration_time": "end"
 	}
 }

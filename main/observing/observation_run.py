@@ -6,6 +6,7 @@ import re
 import logging
 import subprocess
 import threading
+import numpy as np
 
 from ..common.util import time_utils, conversion_utils, filereader_utils
 from ..common.IO import config_reader
@@ -16,6 +17,7 @@ from ..controller.dome import Dome
 from ..controller.focuser_control import Focuser
 from ..controller.focuser_procedures import FocusProcedures
 from ..controller.flatfield_lamp import FlatLamp
+from .calibration import Calibration
 #from .guider import Guider
 from .condition_checker import Conditions
     
@@ -27,6 +29,7 @@ class ObservationRun():
         '''
         self.image_directory = image_directory
         self.observation_request_list = observation_request_list
+        self.calibrated_tickets = np.zeros(len(observation_request_list))
         self.current_ticket = None
         self.shutdown_toggle = shutdown_toggle
         self.tz = observation_request_list[0].start_time.tzinfo
@@ -38,11 +41,11 @@ class ObservationRun():
         self.focuser = Focuser()
         self.flatlamp = FlatLamp()
         self.focus_procedures = FocusProcedures(self.focuser, self.camera)
+        self.calibration = Calibration(self.camera, self.flatlamp, self.image_directory)
         #self.guider = Guider(self.camera, self.telescope)
         
         self.filterwheel_dict = filter_wheel.get_filter().filter_position_dict()
         self.config_dict = config_reader.get_config()
-        self.filter_exp_times = {'clr': 5, 'uv': 240, 'b': 120, 'v': 16, 'r': 8, 'ir': 10, 'Ha': 120}
         
         self.conditions.start()
         self.camera.start()
@@ -51,6 +54,7 @@ class ObservationRun():
         self.focuser.start()
         self.focus_procedures.start()
         self.flatlamp.start()
+        self.calibration.start()
         
     def everything_ok(self):
         if not self.camera.live_connection.wait(timeout = 10):
@@ -66,14 +70,7 @@ class ObservationRun():
             check = False
             logging.error('Focuser connection timeout')
         elif self.conditions.weather_alert.isSet():
-            for i in range(len(self.observation_request_list)):
-                if self.current_ticket.name == self.observation_request_list[i].name:
-                    current_ticket_num = i
-            if current_ticket_num >= 1:
-                calibration = False
-            else:
-                calibration = True
-            self._shutdown_procedure(calibration)
+            self._shutdown_procedure(calibration=True)
             if self.conditions.sun:
                 sunset_time = conversion_utils.get_sunset(datetime.datetime.now(self.tz), self.config_dict.site_latitude, self.config_dict.site_longitude)
                 logging.info('The Sun has risen above the horizon...observing will stop until the Sun sets again at {}.'.format(sunset_time.strftime('%Y-%m-%d %H:%M:%S%z')))
@@ -106,12 +103,16 @@ class ObservationRun():
             check = True
         return check
 
-    def _startup_procedure(self):
+    def _startup_procedure(self, calibration=False):
         Initial_check = self.everything_ok()
         
         self.camera.onThread(self.camera.coolerSet, True)
         self.dome.onThread(self.dome.ShutterPosition)
         time.sleep(2)
+        if calibration:
+            self.camera.cooler_settle.wait()
+            print('Taking darks and flats...')
+            self.take_calibration_images(beginning=True)
         Initial_shutter = self.dome.shutter
         if Initial_shutter in (1,3,4) and Initial_check == True:
             self.dome.onThread(self.dome.MoveShutter, 'open')
@@ -169,7 +170,11 @@ class ObservationRun():
             (taken, total) = self.run_ticket(ticket)
             print("{} out of {} exposures were taken for {}.  Moving on to next target.".format(taken, total, ticket.name))
         
-        self.shutdown(calibration=True)
+        if self.config_dict.calibration_time == "end":
+            calibration = True
+        else:
+            calibration = False
+        self.shutdown(calibration)
         
     def focus_target(self, ticket):
         if type(ticket.filter) is list:
@@ -281,60 +286,16 @@ class ObservationRun():
         else:
             return False
         
-    def take_flats(self):
-        self.flatlamp.onThread(self.flatlamp.TurnOn)
-        self.telescope.slew_done.wait()
-        self.dome.move_done.wait()
-        self.dome.shutter_done.wait()
+    def take_calibration_images(self, beginning=False):
         for i in range(len(self.observation_request_list)):
-            filt = self.observation_request_list[i].filter
-            if type(filt) is str:
-                filters = [filt]
-            elif type(filt) is list:
-                filters = filt
-            
-            for f in filters:
-                j = 0
-                while j < 10:
-                    image_name = 'Flat_{0:d}s_{1:s}-{2:04d}'.format(self.filter_exp_times[f], f, j + 1)
-                    self.camera.onThread(self.camera.expose, self.filter_exp_times[f], self.filterwheel_dict[f], 
-                                         save_path=os.path.join(self.image_directory, r'Flats_{}'.format(self.observation_request_list[i].name), image_name), type='light')
-                    median = filereader_utils.MedianCounts(os.path.join(self.image_directory, r'Flats_{}'.format(self.observation_request_list[i].name), image_name))
-                    if median > 14000 and median < 21000:
-                        j += 1
-                    if f in ('b', 'uv', 'Ha'):
-                        if median < 14000:
-                            self.filter_exp_times[f] += 2
-                        elif median > 21000:
-                            self.filter_exp_times[f] -= 2
-                    else:
-                        if median < 14000:
-                            self.filter_exp_times[f] += 10
-                        elif median > 21000:
-                            self.filter_exp_times[f] -= 10
-            if self.current_ticket.name == self.observation_request_list[i].name:
-                break
-        self.flatlamp.onThread(self.flatlamp.TurnOff)
-            
-    def take_darks(self):
-        for i in range(len(self.observation_request_list)):
-            filt = self.observation_request_list[i].filter
-            if type(filt) is str:
-                filters = [filt]
-            elif type(filt) is list:
-                filters = filt
-            
-            for f in filters:
-                for j in range(10):
-                    image_name = 'Dark_{0:d}s-{1:04d}'.format(self.filter_exp_times[f], j + 1)
-                    self.camera.onThread(self.camera.expose, self.filter_exp_times[f], self.filterwheel_dict[f],
-                                         save_path=os.path.join(self.image_directory, r'Darks_{}'.format(self.observation_request_list[i].name), image_name), type='dark')
-            for k in range(10):
-                image_name = 'Dark_{0:d}s-{1:04d}'.format(self.observation_request_list[i].exp_time, j + 1)
-                self.camera.onThread(self.camera.expose, self.observation_request_list[i].exp_time, self.filterwheel_dict[f],
-                                     save_path=os.path.join(self.image_directory, r'Darks_{}'.format(self.observation_request_list[i].name), image_name), type='dark')
-            
-            if self.current_ticket.name == self.observation_request_list[i].name:
+            if self.calibrated_tickets[i]:
+                continue
+            self.calibration.onThread(self.calibration.take_flats, self.observation_request_list[i])
+            self.calibration.calibration_done.wait()
+            self.calibration.onThread(self.calibration.take_darks, self.observation_request_list[i])
+            self.calibration.calibration_done.wait()
+            self.calibrated_tickets[i] = 1
+            if self.current_ticket == self.observation_request_list[i] and beginning == False:
                 break
     
     def shutdown(self, calibration=False):
@@ -366,8 +327,8 @@ class ObservationRun():
         self.dome.onThread(self.dome.Park)
         self.dome.onThread(self.dome.MoveShutter, 'close')
         if calibration:
-            self.take_flats()
-            self.take_darks()
+            print('Taking flats and darks...')
+            self.take_calibration_images()
         
         self.camera.onThread(self.camera.coolerSet, False)
         self.telescope.slew_done.wait()

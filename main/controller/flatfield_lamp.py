@@ -2,6 +2,7 @@
 import logging
 import serial
 import serial.tools.list_ports
+import threading
 
 from .hardware import Hardware
 
@@ -23,21 +24,26 @@ class FlatLamp(Hardware):
             logging.critical('Cannot find flatfield lamp port')
             return
         
+        self.lamp_done = threading.Event()
         super(FlatLamp, self).__init__(name='FlatLamp')
         
     def TurnOn(self):
-       try: self.ser.write('1'.encode()) 
-       except: logging.error('Could not turn on the flatfield lamp')
-       else: 
-           print('The flat lamp is now on')
-           self.status = 'on'
+        self.lamp_done.clear()
+        try: self.ser.write('1'.encode()) 
+        except: logging.error('Could not turn on the flatfield lamp')
+        else: 
+            print('The flat lamp is now on')
+            self.status = 'on'
+            self.lamp_done.set()
        
     def TurnOff(self):
-       try: self.ser.write('0'.encode()) 
-       except: logging.error('Could not turn off the flatfield lamp')
-       else: 
-           print('The flat lamp is now off')
-           self.status = 'off'
+        self.lamp_done.clear()
+        try: self.ser.write('0'.encode()) 
+        except: logging.error('Could not turn off the flatfield lamp')
+        else: 
+            print('The flat lamp is now off')
+            self.status = 'off'
+            self.lamp_done.set()
        
     def disconnect(self):
         if self.status == 'on':
