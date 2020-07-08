@@ -16,7 +16,7 @@ from ..controller.dome import Dome
 from ..controller.focuser_control import Focuser
 from ..controller.focuser_procedures import FocusProcedures
 #from .guider import Guider
-from .weather_checker import Weather
+from .condition_checker import Conditions
     
 class ObservationRun():
     def __init__(self, observation_request_list, image_directory, shutdown_toggle):
@@ -33,7 +33,7 @@ class ObservationRun():
         self.camera = Camera()
         self.telescope = Telescope()
         self.dome = Dome()
-        self.weather = Weather()
+        self.conditions = Conditions()
         self.focuser = Focuser()
         self.focus_procedures = FocusProcedures(self.focuser, self.camera)
         #self.guider = Guider(self.camera, self.telescope)
@@ -41,7 +41,7 @@ class ObservationRun():
         self.filterwheel_dict = filter_wheel.get_filter().filter_position_dict()
         self.config_dict = config_reader.get_config()
         
-        self.weather.start()
+        self.conditions.start()
         self.camera.start()
         self.telescope.start()
         self.dome.start()
@@ -61,9 +61,9 @@ class ObservationRun():
         elif not self.focuser.live_connection.wait(timeout = 10):
             check = False
             logging.error('Focuser connection timeout')
-        elif self.weather.weather_alert.isSet():
+        elif self.conditions.weather_alert.isSet():
             self._shutdown_procedure()
-            if self.weather.sun:
+            if self.conditions.sun:
                 sunset_time = conversion_utils.get_sunset(datetime.datetime.now(self.tz), self.config_dict.site_latitude, self.config_dict.site_longitude)
                 logging.info('The Sun has risen above the horizon...observing will stop until the Sun sets again at {}.'.format(sunset_time.strftime('%Y-%m-%d %H:%M:%S%z')))
                 time.sleep(60*self.config_dict.min_reopen_time)
@@ -71,7 +71,7 @@ class ObservationRun():
                 current_epoch_milli = time_utils.datetime_to_epoch_milli_converter(datetime.datetime.now(self.tz))
                 time.sleep((sunset_epoch_milli - current_epoch_milli)/1000)
                 logging.info('The Sun should now be setting again...observing will resume shortly.')
-                if not self.weather.weather_alert.isSet():
+                if not self.conditions.weather_alert.isSet():
                     check = True
                     if not self.current_ticket:
                         self.observe()
@@ -82,11 +82,11 @@ class ObservationRun():
                 else: 
                     print('Weather is still too poor to resume observing.')
                     self.everything_ok()
-            elif not self.weather.sun:
+            elif not self.conditions.sun:
                 time.sleep(60*self.config_dict.min_reopen_time)
-                while self.weather.weather_alert.isSet():
+                while self.conditions.weather_alert.isSet():
                     time.sleep(self.config_dict.weather_freq*60)
-                if not self.weather.weather_alert.isSet() and self.current_ticket.end_time <= datetime.datetime.now(self.tz):
+                if not self.conditions.weather_alert.isSet() and self.current_ticket.end_time <= datetime.datetime.now(self.tz):
                     self._startup_procedure()
                     self._ticket_slew(self.current_ticket)
                     self.focus_target(self.current_ticket)
@@ -270,7 +270,7 @@ class ObservationRun():
             return False
     
     def shutdown(self):
-        if self.shutdown_toggle or self.weather.weather_alert.isSet():
+        if self.shutdown_toggle or self.conditions.weather_alert.isSet():
             self._shutdown_procedure()
             self.stop_threads()
         else:
@@ -282,7 +282,7 @@ class ObservationRun():
         self.dome.onThread(self.dome.disconnect)
         self.focuser.onThread(self.focuser.disconnect)
         
-        self.weather.stop.set()
+        self.conditions.stop.set()
         self.camera.onThread(self.camera.stop)
         self.telescope.onThread(self.telescope.stop)
         self.dome.onThread(self.dome.stop)

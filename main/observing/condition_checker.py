@@ -1,4 +1,4 @@
-#Weather Checker
+#Condition Checker
 
 import urllib.request
 import requests
@@ -15,7 +15,7 @@ from PIL import Image
 from ..common.util import time_utils, conversion_utils
 from ..common.IO import config_reader
 
-class Weather(threading.Thread):
+class Conditions(threading.Thread):
     
     def __init__(self):
         '''
@@ -28,7 +28,7 @@ class Weather(threading.Thread):
         None.
 
         '''
-        super(Weather, self).__init__(name='Weather-Th')                    # Calls threading.Thread.__init__ with the name 'Weather-Th'
+        super(Conditions, self).__init__(name='Conditions-Th')                    # Calls threading.Thread.__init__ with the name 'Conditions-Th'
         self.weather_alert = threading.Event() 
         self.stop = threading.Event()                             # Threading events to set flags and interact between threads
         self.config_dict = config_reader.get_config()                       # Global config dictionary
@@ -65,7 +65,7 @@ class Weather(threading.Thread):
                     self.sun = False
                 logging.critical("Weather conditions have become too poor for continued observing, or the Sun is rising.")
             else:
-                logging.debug("Weather checker is alive: Last check false")
+                logging.debug("Condition checker is alive: Last check false")
                 Last_Rain = R
                 self.weather_alert.clear()
             self.stop.wait(timeout = self.config_dict.weather_freq*60)
@@ -202,7 +202,7 @@ class Weather(threading.Thread):
         img_array = np.array(img)
         img_array = img_array.astype('float64')
         #fairfax coordinates ~300, 1350
-        img_internal = img_array[250:350, 1300:1400]
+        img_internal = img_array[270:370, 1310:1410]
         img_small = Image.fromarray(img_internal)
         px = img_small.size[0]*img_small.size[1]
         colors = img_small.getcolors()
@@ -212,6 +212,7 @@ class Weather(threading.Thread):
                 clouds.append(color)
         percent_cover = sum([cloud[0] for cloud in clouds]) / px * 100
         img.close()
+        img_small.close()
         if percent_cover >= self.config_dict.cloud_cover_limit:
             return True
         else:
