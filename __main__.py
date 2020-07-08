@@ -20,7 +20,8 @@ def main():
     run_driver.add_argument('--logger', '-l', metavar='PATH', dest='logger',
                             help='Manual file path to the logging config json file.')
     run_driver.add_argument('--noshutdown', '-ns', action='store_false', default='store_true', dest='shutdown',
-                            help='Use this option if you do not want to shutdown after running the tickets.')
+                            help='Use this option if you do not want to shutdown after running the tickets.'
+                            'Note this will also stop the program from taking any darks and flats.')
     run_driver.set_defaults(func=cli_run)
     
     args = parser.parse_args()

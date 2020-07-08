@@ -7,7 +7,7 @@ import logging
 import subprocess
 import threading
 
-from ..common.util import time_utils, conversion_utils
+from ..common.util import time_utils, conversion_utils, filereader_utils
 from ..common.IO import config_reader
 from ..common.datatype import filter_wheel
 from ..controller.camera import Camera
@@ -15,6 +15,7 @@ from ..controller.telescope import Telescope
 from ..controller.dome import Dome
 from ..controller.focuser_control import Focuser
 from ..controller.focuser_procedures import FocusProcedures
+from ..controller.flatfield_lamp import FlatLamp
 #from .guider import Guider
 from .condition_checker import Conditions
     
@@ -35,11 +36,13 @@ class ObservationRun():
         self.dome = Dome()
         self.conditions = Conditions()
         self.focuser = Focuser()
+        self.flatlamp = FlatLamp()
         self.focus_procedures = FocusProcedures(self.focuser, self.camera)
         #self.guider = Guider(self.camera, self.telescope)
         
         self.filterwheel_dict = filter_wheel.get_filter().filter_position_dict()
         self.config_dict = config_reader.get_config()
+        self.filter_exp_times = {'clr': 5, 'uv': 240, 'b': 120, 'v': 16, 'r': 8, 'ir': 10, 'Ha': 120}
         
         self.conditions.start()
         self.camera.start()
@@ -47,6 +50,7 @@ class ObservationRun():
         self.dome.start()
         self.focuser.start()
         self.focus_procedures.start()
+        self.flatlamp.start()
         
     def everything_ok(self):
         if not self.camera.live_connection.wait(timeout = 10):
@@ -62,7 +66,14 @@ class ObservationRun():
             check = False
             logging.error('Focuser connection timeout')
         elif self.conditions.weather_alert.isSet():
-            self._shutdown_procedure()
+            for i in range(len(self.observation_request_list)):
+                if self.current_ticket.name == self.observation_request_list[i].name:
+                    current_ticket_num = i
+            if current_ticket_num >= 1:
+                calibration = False
+            else:
+                calibration = True
+            self._shutdown_procedure(calibration)
             if self.conditions.sun:
                 sunset_time = conversion_utils.get_sunset(datetime.datetime.now(self.tz), self.config_dict.site_latitude, self.config_dict.site_longitude)
                 logging.info('The Sun has risen above the horizon...observing will stop until the Sun sets again at {}.'.format(sunset_time.strftime('%Y-%m-%d %H:%M:%S%z')))
@@ -157,7 +168,8 @@ class ObservationRun():
                   "check the focus and pointing of the target.  When you are ready, press Enter: ".format(ticket.name))
             (taken, total) = self.run_ticket(ticket)
             print("{} out of {} exposures were taken for {}.  Moving on to next target.".format(taken, total, ticket.name))
-        self.shutdown()
+        
+        self.shutdown(calibration=True)
         
     def focus_target(self, ticket):
         if type(ticket.filter) is list:
@@ -268,10 +280,66 @@ class ObservationRun():
             return True
         else:
             return False
+        
+    def take_flats(self):
+        self.flatlamp.onThread(self.flatlamp.TurnOn)
+        self.telescope.slew_done.wait()
+        self.dome.move_done.wait()
+        self.dome.shutter_done.wait()
+        for i in range(len(self.observation_request_list)):
+            filt = self.observation_request_list[i].filter
+            if type(filt) is str:
+                filters = [filt]
+            elif type(filt) is list:
+                filters = filt
+            
+            for f in filters:
+                j = 0
+                while j < 10:
+                    image_name = 'Flat_{0:d}s_{1:s}-{2:04d}'.format(self.filter_exp_times[f], f, j + 1)
+                    self.camera.onThread(self.camera.expose, self.filter_exp_times[f], self.filterwheel_dict[f], 
+                                         save_path=os.path.join(self.image_directory, r'Flats_{}'.format(self.observation_request_list[i].name), image_name), type='light')
+                    median = filereader_utils.MedianCounts(os.path.join(self.image_directory, r'Flats_{}'.format(self.observation_request_list[i].name), image_name))
+                    if median > 14000 and median < 21000:
+                        j += 1
+                    if f in ('b', 'uv', 'Ha'):
+                        if median < 14000:
+                            self.filter_exp_times[f] += 2
+                        elif median > 21000:
+                            self.filter_exp_times[f] -= 2
+                    else:
+                        if median < 14000:
+                            self.filter_exp_times[f] += 10
+                        elif median > 21000:
+                            self.filter_exp_times[f] -= 10
+            if self.current_ticket.name == self.observation_request_list[i].name:
+                break
+        self.flatlamp.onThread(self.flatlamp.TurnOff)
+            
+    def take_darks(self):
+        for i in range(len(self.observation_request_list)):
+            filt = self.observation_request_list[i].filter
+            if type(filt) is str:
+                filters = [filt]
+            elif type(filt) is list:
+                filters = filt
+            
+            for f in filters:
+                for j in range(10):
+                    image_name = 'Dark_{0:d}s-{1:04d}'.format(self.filter_exp_times[f], j + 1)
+                    self.camera.onThread(self.camera.expose, self.filter_exp_times[f], self.filterwheel_dict[f],
+                                         save_path=os.path.join(self.image_directory, r'Darks_{}'.format(self.observation_request_list[i].name), image_name), type='dark')
+            for k in range(10):
+                image_name = 'Dark_{0:d}s-{1:04d}'.format(self.observation_request_list[i].exp_time, j + 1)
+                self.camera.onThread(self.camera.expose, self.observation_request_list[i].exp_time, self.filterwheel_dict[f],
+                                     save_path=os.path.join(self.image_directory, r'Darks_{}'.format(self.observation_request_list[i].name), image_name), type='dark')
+            
+            if self.current_ticket.name == self.observation_request_list[i].name:
+                break
     
-    def shutdown(self):
+    def shutdown(self, calibration=False):
         if self.shutdown_toggle or self.conditions.weather_alert.isSet():
-            self._shutdown_procedure()
+            self._shutdown_procedure(calibration=calibration)
             self.stop_threads()
         else:
             pass
@@ -281,6 +349,7 @@ class ObservationRun():
         self.telescope.onThread(self.telescope.disconnect)
         self.dome.onThread(self.dome.disconnect)
         self.focuser.onThread(self.focuser.disconnect)
+        self.flatlamp.onThread(self.flatlamp.disconnect)
         
         self.conditions.stop.set()
         self.camera.onThread(self.camera.stop)
@@ -288,15 +357,19 @@ class ObservationRun():
         self.dome.onThread(self.dome.stop)
         self.focuser.onThread(self.focuser.stop)
         self.focus_procedures.onThread(self.focus_procedures.stop)
+        self.flatlamp.onThread(self.flatlamp.stop)
     
-    def _shutdown_procedure(self):
+    def _shutdown_procedure(self, calibration):
         print("Shutting down observatory.")
         self.dome.onThread(self.dome.SlaveDometoScope, False)
         self.telescope.onThread(self.telescope.Park)
         self.dome.onThread(self.dome.Park)
         self.dome.onThread(self.dome.MoveShutter, 'close')
-        self.camera.onThread(self.camera.coolerSet, False)
+        if calibration:
+            self.take_flats()
+            self.take_darks()
         
+        self.camera.onThread(self.camera.coolerSet, False)
         self.telescope.slew_done.wait()
         self.dome.move_done.wait()
         self.dome.shutter_done.wait()

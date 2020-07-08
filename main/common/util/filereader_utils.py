@@ -8,6 +8,11 @@ import photutils
 from astropy.io import fits
 from astropy.stats import sigma_clipped_stats
 from scipy.optimize import curve_fit
+
+def MedianCounts(image_path):
+    image = fits.getdata(image_path)
+    mean, median, stdev = sigma_clipped_stats(image, sigma = 3)
+    return median
     
     
 def FindStars(path, saturation, subframe=None, return_data=False):

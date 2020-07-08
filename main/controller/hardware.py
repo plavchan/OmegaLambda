@@ -98,6 +98,8 @@ class Hardware(threading.Thread):           #Subclassed from threading.Thread
         elif self.label == 'Focuser':
             self.Focuser = COMobj
             self.check_connection()
+        elif self.label == 'FlatLamp':
+            self.check_connection()
         elif self.label == 'FocusProcedures' or self.label == 'Guider':
             pass
         else:
@@ -164,6 +166,10 @@ class Hardware(threading.Thread):           #Subclassed from threading.Thread
                 self.live_connection.set()
             except: print("ERROR: Could not connect to dome")
             else: print("Dome has successfully connected")
+        elif self.label == 'FlatLamp':
+            try: self.ser.open()
+            except: print("ERROR: Flatfield lamp did not connect successfully.")
+            else: print("Flatfield Lamp has successfully connected")
         elif self.label == 'Focuser':
             self.Focuser.actOpenComm()
             time.sleep(2)
