@@ -1,6 +1,7 @@
 # Darks & Flats automation
 import os
 import threading
+import logging
 
 from ..common.util import filereader_utils
 from ..common.datatype import filter_wheel
@@ -29,26 +30,28 @@ class Calibration(Hardware):
             filters = [filt]
         elif type(filt) is list:
             filters = filt
-        
+        try: os.mkdir(os.path.join(self.image_directory, 'Flats_{}'.format(ticket.name)))
+        except: logging.warning('Could not create flat folder, or folder already exists...')
         for f in filters:
             j = 0
             while j < 10:
-                image_name = 'Flat_{0:d}s_{1:s}-{2:04d}'.format(self.filter_exp_times[f], f, j + 1)
+                image_name = 'Flat_{0:d}s_{1:s}-{2:04d}.fits'.format(self.filter_exp_times[f], f, j + 1)
                 self.camera.onThread(self.camera.expose, self.filter_exp_times[f], self.filterwheel_dict[f], 
                                      save_path=os.path.join(self.image_directory, r'Flats_{}'.format(ticket.name), image_name), type='light')
+                self.camera.image_done.wait()
                 median = filereader_utils.MedianCounts(os.path.join(self.image_directory, r'Flats_{}'.format(ticket.name), image_name))
                 if median > 14000 and median < 21000:
                     j += 1
                 if f in ('b', 'uv', 'Ha'):
                     if median < 14000:
-                        self.filter_exp_times[f] += 2
-                    elif median > 21000:
-                        self.filter_exp_times[f] -= 2
-                else:
-                    if median < 14000:
                         self.filter_exp_times[f] += 10
                     elif median > 21000:
                         self.filter_exp_times[f] -= 10
+                else:
+                    if median < 14000:
+                        self.filter_exp_times[f] += 2
+                    elif median > 21000:
+                        self.filter_exp_times[f] -= 2
         self.flatlamp.onThread(self.flatlamp.TurnOff)
         lamp = self.flatlamp.lamp_done.wait(timeout = 60)
         if not lamp:
@@ -63,15 +66,20 @@ class Calibration(Hardware):
             filters = [filt]
         elif type(filt) is list:
             filters = filt
-        
+        try: os.mkdir(os.path.join(self.image_directory, 'Darks_{}'.format(ticket.name)))
+        except: logging.warning('Could not create flat folder, or folder already exists...')
+        check = True
         for f in filters:
             for j in range(10):
-                image_name = 'Dark_{0:d}s-{1:04d}'.format(self.filter_exp_times[f], j + 1)
+                image_name = 'Dark_{0:d}s-{1:04d}.fits'.format(self.filter_exp_times[f], j + 1)
                 self.camera.onThread(self.camera.expose, self.filter_exp_times[f], self.filterwheel_dict[f],
                                      save_path=os.path.join(self.image_directory, r'Darks_{}'.format(ticket.name), image_name), type='dark')
-        for k in range(10):
-            image_name = 'Dark_{0:d}s-{1:04d}'.format(ticket.exp_time, j + 1)
-            self.camera.onThread(self.camera.expose, ticket.exp_time, self.filterwheel_dict[f],
-                                 save_path=os.path.join(self.image_directory, r'Darks_{}'.format(ticket.name), image_name), type='dark')
+            if self.filter_exp_times[f] == ticket.exp_time:
+                check = False
+        if check:
+            for k in range(10):
+                image_name = 'Dark_{0:d}s-{1:04d}.fits'.format(ticket.exp_time, j + 1)
+                self.camera.onThread(self.camera.expose, ticket.exp_time, self.filterwheel_dict[f],
+                                     save_path=os.path.join(self.image_directory, r'Darks_{}'.format(ticket.name), image_name), type='dark')
         self.calibration_done.set()
         return True

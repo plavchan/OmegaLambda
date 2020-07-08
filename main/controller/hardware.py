@@ -167,7 +167,9 @@ class Hardware(threading.Thread):           #Subclassed from threading.Thread
             except: print("ERROR: Could not connect to dome")
             else: print("Dome has successfully connected")
         elif self.label == 'FlatLamp':
-            try: self.ser.open()
+            try: 
+                self.ser.open()
+                self.ser.write('0'.encode())
             except: print("ERROR: Flatfield lamp did not connect successfully.")
             else: print("Flatfield Lamp has successfully connected")
         elif self.label == 'Focuser':

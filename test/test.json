@@ -1,15 +1,15 @@
 {"type": "observation_ticket",
 "details": {
 	"name": "TestStar",
-	"ra": "04:52:53.6698",
-	"dec": "-05:27:09.702",
-	"start_time": "2020-07-03 10:00:00-04:00",
-	"end_time": "2020-07-03 23:00:00-04:00",
-	"filter": "r",
+	"ra": "11:49:03.5776",
+	"dec": "+14:34:19.417",
+	"start_time": "2020-07-08 10:00:00-04:00",
+	"end_time": "2020-07-08 23:00:00-04:00",
+	"filter": ["r", "v", "clr"],
 	"num": 1,
-	"exp_time": 10,
-	"self_guide": false,
-	"guide": true,
+	"exp_time": 6,
+	"self_guide": true,
+	"guide": false,
 	"cycle_filter": false
 	}
 }

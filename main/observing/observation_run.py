@@ -18,7 +18,7 @@ from ..controller.focuser_control import Focuser
 from ..controller.focuser_procedures import FocusProcedures
 from ..controller.flatfield_lamp import FlatLamp
 from .calibration import Calibration
-#from .guider import Guider
+from .guider import Guider
 from .condition_checker import Conditions
     
 class ObservationRun():
@@ -42,7 +42,7 @@ class ObservationRun():
         self.flatlamp = FlatLamp()
         self.focus_procedures = FocusProcedures(self.focuser, self.camera)
         self.calibration = Calibration(self.camera, self.flatlamp, self.image_directory)
-        #self.guider = Guider(self.camera, self.telescope)
+        self.guider = Guider(self.camera, self.telescope)
         
         self.filterwheel_dict = filter_wheel.get_filter().filter_position_dict()
         self.config_dict = config_reader.get_config()
@@ -55,6 +55,7 @@ class ObservationRun():
         self.focus_procedures.start()
         self.flatlamp.start()
         self.calibration.start()
+        self.guider.start()
         
     def everything_ok(self):
         if not self.camera.live_connection.wait(timeout = 10):
@@ -110,6 +111,7 @@ class ObservationRun():
         self.dome.onThread(self.dome.ShutterPosition)
         time.sleep(2)
         if calibration:
+            self.camera.onThread(self.camera.cooler_ready)
             self.camera.cooler_settle.wait()
             print('Taking darks and flats...')
             self.take_calibration_images(beginning=True)
@@ -137,7 +139,11 @@ class ObservationRun():
         return True
 
     def observe(self):
-        Initial_shutter = self._startup_procedure()
+        if self.config_dict.calibration_time == "start":
+            calibration = True
+        else:
+            calibration = False
+        Initial_shutter = self._startup_procedure(calibration)
         
         for ticket in self.observation_request_list:
             self.current_ticket = ticket
@@ -193,12 +199,15 @@ class ObservationRun():
         
     def run_ticket(self, ticket):
         self.focus_procedures.onThread(self.focus_procedures.ConstantFocusProcedure, self.FWHM, self.image_directory)
-        
+        if ticket.self_guide:
+            self.guider.onThread(self.guider.GuidingProcedure, self.image_directory)
         if ticket.cycle_filter:
             img_count = self.take_images(ticket.name, ticket.num, ticket.exp_time,
                                          ticket.filter, ticket.end_time, self.image_directory,
                                          True)
             self.focus_procedures.onThread(self.focus_procedures.StopConstantFocusing)
+            if ticket.self_guide:
+                self.guider.onThread(self.guider.StopGuiding)
             return (img_count, ticket.num)
         
         else:
@@ -209,6 +218,8 @@ class ObservationRun():
                                              False)
                 img_count += img_count_filter
             self.focus_procedures.onThread(self.focus_procedures.StopConstantFocusing)
+            if ticket.self_guide:
+                self.guider.onThread(self.guider.StopGuiding)
             return (img_count, ticket.num*len(ticket.filter))
 
     def take_images(self, name, num, exp_time, filter, end_time, path, cycle_filter):
@@ -318,6 +329,7 @@ class ObservationRun():
         self.dome.onThread(self.dome.stop)
         self.focuser.onThread(self.focuser.stop)
         self.focus_procedures.onThread(self.focus_procedures.stop)
+        self.guider.onThread(self.guider.stop)
         self.flatlamp.onThread(self.flatlamp.stop)
     
     def _shutdown_procedure(self, calibration):
