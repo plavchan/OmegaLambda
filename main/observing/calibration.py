@@ -67,7 +67,7 @@ class Calibration(Hardware):
         elif type(filt) is list:
             filters = filt
         try: os.mkdir(os.path.join(self.image_directory, 'Darks_{}'.format(ticket.name)))
-        except: logging.warning('Could not create flat folder, or folder already exists...')
+        except: logging.warning('Could not create dark folder, or folder already exists...')
         check = True
         for f in filters:
             for j in range(10):

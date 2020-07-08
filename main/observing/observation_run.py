@@ -110,13 +110,13 @@ class ObservationRun():
         self.camera.onThread(self.camera.coolerSet, True)
         self.dome.onThread(self.dome.ShutterPosition)
         time.sleep(2)
-        if calibration:
-            self.camera.onThread(self.camera.cooler_ready)
-            self.camera.cooler_settle.wait()
-            print('Taking darks and flats...')
-            self.take_calibration_images(beginning=True)
         Initial_shutter = self.dome.shutter
         if Initial_shutter in (1,3,4) and Initial_check == True:
+            if calibration:
+                self.camera.onThread(self.camera.cooler_ready)
+                self.camera.cooler_settle.wait()
+                print('Taking darks and flats...')
+            self.take_calibration_images(beginning=True)
             self.dome.onThread(self.dome.MoveShutter, 'open')
             self.dome.onThread(self.dome.Home)
             self.telescope.onThread(self.telescope.Unpark)
@@ -298,6 +298,10 @@ class ObservationRun():
             return False
         
     def take_calibration_images(self, beginning=False):
+        if not beginning:
+            self.telescope.slew_done.wait()
+            self.dome.move_done.wait()
+            self.dome.shutter_done.wait()
         for i in range(len(self.observation_request_list)):
             if self.calibrated_tickets[i]:
                 continue
