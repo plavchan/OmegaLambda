@@ -54,7 +54,7 @@ class Config():
         wind_limit : INT, optional
             Limit for wind speed in mph while observing.  Our default is 20 mph.
         weather_freq : INT, optional
-            Frequency of weather checks in minutes.  Our default is 15 minutes.
+            Frequency of weather checks in minutes.  Our default is 10 minutes.
         cloud_cover_limit : FLOAT, optional
             Limit for percentage of sky around Fairfax to be covered by clouds before closing up.  Our default is 50%.
         min_reopen_time : INT or FLOAT, optional

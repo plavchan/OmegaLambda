@@ -1,5 +1,5 @@
 import tkinter as tk
-
+import time
 
 def box_labels():
     tk.Label(master, text = 'Target Name').grid(row = 0)
@@ -18,8 +18,8 @@ def exampletxt():
     tk.Label(master, text = 'Ex: TOI1234-01').grid(row = 0, column = 2)
     tk.Label(master, text = 'Ex: 04:52:53.6698').grid(row = 1, column = 2)
     tk.Label(master, text = 'Ex: -05:27:09.702').grid(row = 2, column = 2)
-    tk.Label(master, text = 'Ex: 2020-07-03 10:00:00-04:00').grid(row = 3, column = 2)
-    tk.Label(master, text = 'Ex: 2020-07-03 23:00:00-04:00').grid(row = 4, column = 2)
+    tk.Label(master, text = 'Ex: 2020-07-03 10:00:00').grid(row = 3, column = 2)
+    tk.Label(master, text = 'Ex: 2020-07-03 23:00:00').grid(row = 4, column = 2)
     tk.Label(master, text = 'Can be single filter or list. ie: \"r\" or [\"r\", \"b\", \"uv\"]').grid(row = 5, column = 2)
     tk.Label(master, text = 'Number of science exposures to be taken per filter').grid(row = 6, column = 2)
     tk.Label(master, text = 'Exposure time in seconds for each science image').grid(row = 7, column = 2)
@@ -34,25 +34,47 @@ def box_fill():
     guide.insert(10, 'false')
     cycle_filter.insert(10, 'false')
 
+def ok_func():
+    savetxt()
+    master.quit()
 
+def dst_check():
+    
+    if time.localtime().tm_isdst == 1:
+        dst = '-04:00'
+    else:
+        dst = '-05:00'
+    return dst
 
+    
+def truefalse_check():
+    if self_guide == 1:
+        self_guide_var = 'true'
+    else:
+        self_guide_var = 'false'
+        
+    return self_guide_var
+def button_press():
+    print('button value = {}'.format(self_guide.get()))
     
     
 def savetxt():
+    dst = dst_check()
+    self_guide_var = truefalse_check()
     with open(r'C:/Users/GMU Observtory1/-omegalambda/observation_tickets/{}.json'.format(name.get()), 'w+') as f:
         f.write('{\"type\": \"observation ticket\",')
         f.write('\n\"details\":{')
         f.write('\n\t\"name\": \"{}\",'.format(name.get()))
         f.write('\n\t\"ra\": \"{}\",'.format(ra.get()))
         f.write('\n\t\"dec\": \"{}\",'.format(dec.get()))
-        f.write('\n\t\"start_time\": \"{}\",'.format(start_time.get()))
-        f.write('\n\t\"end_time\": \"{}\",'.format(end_time.get()))
+        f.write('\n\t\"start_time\": \"{}{}\",'.format(start_time.get(), dst))
+        f.write('\n\t\"end_time\": \"{}{}\",'.format(end_time.get(), dst))
         f.write('\n\t\"filter\": {},'.format(filter_.get()))
         f.write('\n\t\"num\": {},'.format(n_exposures.get()))
         f.write('\n\t\"exp_time\": {},'.format(exposure_time.get()))
-        f.write('\n\t\"self_guide\": {},'.format(self_guide.get()))
-        f.write('\n\t\"guide\":{},'.format(guide.get()))
-        f.write('\n\t\"cycle_filter\": {}'.format(cycle_filter.get()))
+        f.write('\n\t\"self_guide\": {},'.format(self_guide_var))
+        # f.write('\n\t\"guide\":{},'.format(guide.get()))
+        # f.write('\n\t\"cycle_filter\": {}'.format(cycle_filter.get()))
         f.write('\n\t}\n}')
         
 
@@ -77,9 +99,13 @@ end_time = tk.Entry(master)
 filter_ = tk.Entry(master)
 n_exposures = tk.Entry(master)
 exposure_time = tk.Entry(master)
-self_guide = tk.Entry(master)
-guide = tk.Entry(master)
-cycle_filter = tk.Entry(master)
+# self_guide = tk.Entry(master)
+# guide = tk.Entry(master)
+# cycle_filter = tk.Entry(master)
+self_guide = tk.IntVar()
+
+b1 = tk.Checkbutton(master, text = 'Self Guide', onvalue = 1, offvalue = 0, variable = self_guide, command = button_press())
+b1.grid(row = 8, column = 1)
 
 name.grid(row = 0, column = 1)
 ra.grid(row = 1, column = 1)
@@ -89,14 +115,14 @@ end_time.grid(row = 4, column = 1)
 filter_.grid(row = 5, column = 1)
 n_exposures.grid(row = 6, column = 1)
 exposure_time.grid(row = 7, column = 1)
-self_guide.grid(row = 8, column = 1)
-guide.grid(row = 9, column = 1)
-cycle_filter.grid(row = 10, column = 1)
+# self_guide.grid(row = 8, column = 1)
+# guide.grid(row = 9, column = 1)
+# cycle_filter.grid(row = 10, column = 1)
 
-box_fill()
+# box_fill()
 
 
-quit_ = tk.Button(master, text = 'Quit', command = master.quit)
+quit_ = tk.Button(master, text = 'Quit', command = ok_func)
 apply = tk.Button(master, text = 'Apply', command = savetxt)
 quit_.place(x = 200, y = 250)
 apply.place(x = 235, y = 250)
