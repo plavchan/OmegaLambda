@@ -290,7 +290,7 @@ class ObservationRun():
                 self.focus_procedures = FocusProcedures(self.focuser, self.camera)
                 self.focus_procedures.start()
                 time.sleep(5)
-                self.focus_procedures.onThread(self.focus_procedures.ConstantFocusProcedure(self.FWHM, self.image_directory))
+                self.focus_procedures.onThread(self.focus_procedures.ConstantFocusProcedure, self.image_directory)
             return True
         else:
             return False
