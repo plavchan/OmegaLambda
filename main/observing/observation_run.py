@@ -33,7 +33,6 @@ class ObservationRun():
         self.current_ticket = None
         self.shutdown_toggle = shutdown_toggle
         self.tz = observation_request_list[0].start_time.tzinfo
-        self.FWHM = None
         self.camera = Camera()
         self.telescope = Telescope()
         self.dome = Dome()
@@ -157,7 +156,7 @@ class ObservationRun():
                 self.dome.move_done.wait()
                 self.dome.shutter_done.wait()
             self.camera.cooler_settle.wait()
-            self.FWHM = self.focus_target(ticket)
+            self.focus_target(ticket)
             
             self.tz = ticket.start_time.tzinfo
             current_time = datetime.datetime.now(self.tz)
@@ -190,15 +189,14 @@ class ObservationRun():
         focus_exposure = int(self.config_dict.focus_exposure_multiplier*ticket.exp_time)
         if focus_exposure <= 0: 
             focus_exposure = 1
-        FWHM = self.focus_procedures.onThread(self.focus_procedures.StartupFocusProcedure, focus_exposure, self.filterwheel_dict[focus_filter], 
-                                              self.image_directory)
+        self.focus_procedures.onThread(self.focus_procedures.StartupFocusProcedure, focus_exposure, self.filterwheel_dict[focus_filter], 
+                                       self.image_directory)
         while not self.focus_procedures.focused.isSet():
             self.crash_check('RoboFocus.exe')
             time.sleep(10)
-        return FWHM
         
     def run_ticket(self, ticket):
-        self.focus_procedures.onThread(self.focus_procedures.ConstantFocusProcedure, self.FWHM, self.image_directory)
+        self.focus_procedures.onThread(self.focus_procedures.ConstantFocusProcedure, self.image_directory)
         if ticket.self_guide:
             self.guider.onThread(self.guider.GuidingProcedure, self.image_directory)
         if ticket.cycle_filter:
@@ -306,9 +304,9 @@ class ObservationRun():
             if self.calibrated_tickets[i]:
                 continue
             self.calibration.onThread(self.calibration.take_flats, self.observation_request_list[i])
-            self.calibration.calibration_done.wait()
+            self.calibration.flats_done.wait()
             self.calibration.onThread(self.calibration.take_darks, self.observation_request_list[i])
-            self.calibration.calibration_done.wait()
+            self.calibration.darks_done.wait()
             self.calibrated_tickets[i] = 1
             if self.current_ticket == self.observation_request_list[i] and beginning == False:
                 break

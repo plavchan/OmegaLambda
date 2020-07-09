@@ -206,13 +206,11 @@ class Conditions(threading.Thread):
         img_small = Image.fromarray(img_internal)
         px = img_small.size[0]*img_small.size[1]
         colors = img_small.getcolors()
-        clouds = []
-        for color in colors:
-            if color[1] > 16:
-                clouds.append(color)
+        clouds = [color for color in colors if color[1] > 30]
         percent_cover = sum([cloud[0] for cloud in clouds]) / px * 100
         img.close()
         img_small.close()
+        print(percent_cover)
         if percent_cover >= self.config_dict.cloud_cover_limit:
             return True
         else:

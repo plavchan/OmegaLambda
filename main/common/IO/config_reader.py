@@ -62,7 +62,8 @@ class Config():
         plate_scale : FLOAT, optional
             CCD camera conversion factor between pixels and arcseconds, in arcseconds/pixel.  Our default is 0.350 arcseconds/pixel.
         saturation : INT, optional
-            CCD camera saturation limit for exposure in counts.  Our default is 20,000 counts.
+            CCD camera saturation limit for exposure in counts.  This is more like the exposure linearity limit, after which you'd prefer
+            not to have targets pass.  Our default is 20,000 counts.
         focus_exposure_multiplier : FLOAT, optional
             Multiplier for exposure times on focusing images.  The multiplier is applied to the exposure time for the current ticket.  Our default is 0.5.
         initial_focus_delta : INT, optional

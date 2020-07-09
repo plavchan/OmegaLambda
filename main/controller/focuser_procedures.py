@@ -29,6 +29,7 @@ class FocusProcedures(Hardware):            #Subclassed from hardware
         self.focuser = focus_obj
         self.camera = camera_obj
         self.config_dict = config_reader.get_config()
+        self.FWHM = None
        
         self.focused = threading.Event()
         self.continuous_focusing = threading.Event()
@@ -128,9 +129,9 @@ class FocusProcedures(Hardware):            #Subclassed from hardware
         logging.info('Autofocus achieved a FWHM of {} pixels!'.format(FWHM))
         
         self.focused.set()
-        return FWHM
+        self.FWHM = FWHM
     
-    def ConstantFocusProcedure(self, initial_fwhm, image_path):
+    def ConstantFocusProcedure(self, image_path):
         '''
         Description
         -----------
@@ -138,8 +139,6 @@ class FocusProcedures(Hardware):            #Subclassed from hardware
 
         Parameters
         ----------
-        initial_fwhm : FLOAT
-            The fwhm achieved on the target by the startup focus procedure.
         image_path : STR
             File path to image folder.
         
@@ -162,7 +161,7 @@ class FocusProcedures(Hardware):            #Subclassed from hardware
                 else: continue
             newest_image = max(paths, key=os.path.getctime)
             fwhm = filereader_utils.Radial_Average(newest_image, self.config_dict.saturation)
-            if abs(fwhm - initial_fwhm) >= self.config_dict.quick_focus_tolerance:
+            if abs(fwhm - self.FWHM) >= self.config_dict.quick_focus_tolerance:
                 self.focuser.onThread(self.focuser.focusAdjust, move)
                 self.focuser.adjusting.wait()
             else:

@@ -55,14 +55,8 @@ class Guider(Hardware):
         '''
         maximum = 0
         stars, peaks = filereader_utils.FindStars(path, self.config_dict.saturation, subframe=subframe)
-        i = 0
-        maximum = 0
-        for star in stars:
-            counts = peaks[i]
-            if counts >= maximum and counts <= self.config_dict.saturation:
-                maximum = counts
-                maxindex = i
-            i += 1
+        peaks = [peak for peak in peaks if peak <= self.config_dict.saturation]
+        maxindex = peaks.index(max(peaks))
         brightest_unsaturated_star = stars[maxindex]
         return brightest_unsaturated_star
     
