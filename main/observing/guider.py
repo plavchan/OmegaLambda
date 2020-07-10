@@ -53,12 +53,21 @@ class Guider(Hardware):
             Tuple with x-coordinate and y-coordinate of the star in the image.
 
         '''
-        maximum = 0
         stars, peaks = filereader_utils.FindStars(path, self.config_dict.saturation, subframe=subframe)
-        peaks = [peak for peak in peaks if peak <= self.config_dict.saturation]
+        i = 0
+        j = 0
+        while i < len(stars) - j:
+            if peaks[i] >= self.config_dict.saturation:
+                peaks.pop(i)
+                stars.pop(i)
+                j += 1
+            i += 1
         maxindex = peaks.index(max(peaks))
         brightest_unsaturated_star = stars[maxindex]
+        #TODO: insert backup star in case guide star gets above 20,000 counts over the night
         return brightest_unsaturated_star
+    
+    
     
     @staticmethod
     def FindNewestImage(image_path):
