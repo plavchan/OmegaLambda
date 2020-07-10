@@ -2,7 +2,7 @@
 import logging
 import statistics
 import numpy as np
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
 import photutils
 from astropy.io import fits
@@ -126,9 +126,9 @@ def Radial_Average(path, saturation):
 
     '''
     stars, peaks, data, stdev = FindStars(path, saturation, return_data=True)
-    R = 25
+    R = 30
     fwhm_list = np.ndarray(shape=(len(stars),))
-    # a = 0
+    a = 0
     for star in stars:
         x_cent = star[0]
         y_cent = star[1]
@@ -143,44 +143,40 @@ def Radial_Average(path, saturation):
        
         if len(radialprofile) != 0:
             maximum = max(radialprofile)
+            sigma_unnormal = np.std(radialprofile)
+            radialprofile = radialprofile/maximum
             f = np.linspace(0, len(radialprofile), len(radialprofile))
             mean = np.mean(radialprofile)
             sigma = np.std(radialprofile)
+            # print(2.355*sigma)
             try:
-                popt, pcov = curve_fit(GaussianFit, f, radialprofile, p0=[maximum, mean, sigma])
+                popt, pcov = curve_fit(GaussianFit, f, radialprofile, p0=[1/(np.sqrt(2*np.pi)), mean, sigma])
                 g = np.linspace(0, len(radialprofile), 10*len(radialprofile))
                 function = GaussianFit(g, *popt)
             except:
-                print("Could not find a Gaussian Fit...skipping to the next star")
+                logging.debug("Could not find a Gaussian Fit...skipping to the next star")
                 continue
             run = True
             for x in range(len(g)):
                 if run == True:
-                    if function[x] <= (maximum/2):
-                        #print('HWHM = {}'.format(num))
+                    if function[x] <= (1/2):
                         FWHM = 2*g[x]
                         fwhm_list = np.append(fwhm_list, FWHM)
                         run = False
                 elif run == False:
                     break
-
                 
-                # graphing stuff 
-                
-                # plt.figure()
-                # plt.imshow(star, cmap = 'YlGn')
-               
-                # if a <= 1:
-                #     # fig,ax=plt.subplots()
-                #     # ax.plot(f,radialprofile)
-                #     plt.plot(f, radialprofile, 'b+:', label='data')
-                #     plt.plot(f, GaussianFit(f, *popt), 'ro:', label='fit')
-                #     plt.legend()
-                #     plt.xlabel('x position')
-                #     plt.ylabel('counts')
-                #     plt.show()
-                #     plt.savefig(r'C:/Users/GMU Observtory1/-omegalambda/test/plot.png')
-                #     a += 1
+            if a < 1:
+                plt.plot(f, radialprofile, 'b+:', label='data')
+                plt.plot(f, GaussianFit(f, *popt), 'ro:', label='fit')
+                plt.plot([0, FWHM/2], [1/2, 1/2], 'g-.')
+                plt.plot([FWHM/2, FWHM/2], [0, 1/2], 'g-.', label='HWHM')
+                plt.legend()
+                plt.xlabel('x position, HWHM = {}'.format(FWHM/2))
+                plt.ylabel('normalized counts')
+                plt.grid()
+                plt.savefig(r'C:/Users/GMU Observtory1/-omegalambda/test/GaussianPlot.png')
+                a += 1
                 
     mask = np.array([fwhm >= 3 for fwhm in fwhm_list])
     fwhm_med = statistics.median(fwhm_list[mask])

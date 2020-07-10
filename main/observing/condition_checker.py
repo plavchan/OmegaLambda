@@ -210,7 +210,6 @@ class Conditions(threading.Thread):
         percent_cover = sum([cloud[0] for cloud in clouds]) / px * 100
         img.close()
         img_small.close()
-        print(percent_cover)
         if percent_cover >= self.config_dict.cloud_cover_limit:
             return True
         else:
