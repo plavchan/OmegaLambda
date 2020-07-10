@@ -18,6 +18,9 @@ class ObservationTicket():
                 splitter = 'h|m|s|d'
             elif ' ' in ra:
                 splitter = ' '
+            else:
+                self.ra = float(ra)
+                self.dec = float(dec)
             coords = {'ra': ra, 'dec': dec}
             for key in coords:
                 coords_split = re.split(splitter, coords[key])
