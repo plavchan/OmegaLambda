@@ -2,7 +2,7 @@
 import logging
 import statistics
 import numpy as np
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 import photutils
 from astropy.io import fits
