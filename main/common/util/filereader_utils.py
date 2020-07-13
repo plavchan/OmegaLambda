@@ -2,12 +2,14 @@
 import logging
 import statistics
 import numpy as np
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
 import photutils
 from astropy.io import fits
 from astropy.stats import sigma_clipped_stats
 from scipy.optimize import curve_fit
+
+focus_star = None
 
 def MedianCounts(image_path):
     '''
@@ -137,10 +139,11 @@ def Radial_Average(path, saturation):
         The median fwhm measurement of the stars in the fits image.
 
     '''
-    stars, peaks, data, stdev = FindStars(path, saturation, return_data=True)
+    global focus_star
+    stars, peaks, data, stdev = FindStars(path, saturation, subframe=focus_star, return_data=True)
     R = 30
     fwhm_list = np.ndarray(0)
-    # a = 0
+    a = 0
     for star in stars:
         x_cent = star[0]
         y_cent = star[1]
@@ -176,18 +179,30 @@ def Radial_Average(path, saturation):
                 elif run == False:
                     break
                 
-            # if a < 1:
-            #     plt.plot(f, radialprofile, 'b+:', label='data')
-            #     plt.plot(f, GaussianFit(f, *popt), 'ro:', label='fit')
-            #     plt.plot([0, FWHM/2], [1/2, 1/2], 'g-.')
-            #     plt.plot([FWHM/2, FWHM/2], [0, 1/2], 'g-.', label='HWHM')
-            #     plt.legend()
-            #     plt.xlabel('x position, HWHM = {}'.format(FWHM/2))
-            #     plt.ylabel('normalized counts')
-            #     plt.grid()
-            #     plt.savefig(r'C:/Users/GMU Observtory1/-omegalambda/test/GaussianPlot.png')
-            #     a += 1
+            if a < 1:
+                plt.plot(f, radialprofile, 'b+:', label='data')
+                plt.plot(f, GaussianFit(f, *popt), 'ro:', label='fit')
+                plt.plot([0, FWHM/2], [1/2, 1/2], 'g-.')
+                plt.plot([FWHM/2, FWHM/2], [0, 1/2], 'g-.', label='HWHM')
+                plt.legend()
+                plt.xlabel('x position, HWHM = {}'.format(FWHM/2))
+                plt.ylabel('normalized counts')
+                plt.grid()
+                plt.savefig(r'C:/Users/GMU Observtory1/-omegalambda/test/GaussianPlot.png')
+                a += 1
     
     mask = np.array([fwhm >= 3 for fwhm in fwhm_list])
     fwhm_med = statistics.median(fwhm_list[mask])
+    
+    i = 0
+    j = 0
+    while i < len(stars) - j:
+        if peaks[i] >= saturation:
+            peaks.pop(i)
+            stars.pop(i)
+            j += 1
+        i += 1
+    maxindex = peaks.index(max(peaks))
+    focus_star = stars[maxindex]
+    
     return fwhm_med

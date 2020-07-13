@@ -4,6 +4,8 @@ import logging
 import time
 import threading
 import statistics
+import numpy as np
+import matplotlib.pyplot as plt
 
 from .hardware import Hardware
 from ..common.IO import config_reader
@@ -66,10 +68,11 @@ class FocusProcedures(Hardware):
         self.focuser.onThread(self.focuser.current_position)
         time.sleep(2)
         initial_position = self.focuser.position
-        Last_FWHM = None
         minimum = None
         i = 0
         j = 0
+        fwhm_values = []
+        focus_positions = []
         while True:
             if self.camera.crashed.isSet() or self.focuser.crashed.isSet():
                 logging.error('The camera or focuser has crashed...focus procedures cannot continue.')
@@ -94,7 +97,7 @@ class FocusProcedures(Hardware):
                     logging.error('There is a problem with MaxIm DL\'s fwhm property.  Cannot focus.')
                     break
                 continue
-            if Last_FWHM == None:
+            if i == 0:
                 # First cycle
                 self.focuser.onThread(self.focuser.focusAdjust, "in")
                 self.focuser.adjusting.wait()
@@ -102,20 +105,19 @@ class FocusProcedures(Hardware):
                 self.focuser.adjusting.wait()
                 last = "in"
             
-            elif abs(FWHM - Last_FWHM) <= 3:
+            elif abs(FWHM - fwhm_values[i - 1]) <= 3:
                 # Focus noise control -- If less than 3 pixels different (about 1"), it will keep moving in that direction and check again vs. the previous last_FWHM
                 self.focuser.onThread(self.focuser.focusAdjust, last)
                 self.focuser.adjusting.wait()
                 i += 1
-                continue
-            elif FWHM <= Last_FWHM:
+            elif FWHM <= fwhm_values[i - 1]:
                 # Better FWHM -- Keep going
                 self.focuser.onThread(self.focuser.focusAdjust, last)
                 self.focuser.adjusting.wait()
-            elif FWHM > Last_FWHM:
+            elif FWHM > fwhm_values[i - 1]:
                 # Worse FWHM -- Switch directions
                 if i > 1:
-                    minimum = Last_FWHM
+                    minimum = fwhm_values[i - 1]
                 if last == "in":
                     self.focuser.onThread(self.focuser.focusAdjust, "out")
                     self.focuser.adjusting.wait()
@@ -124,10 +126,28 @@ class FocusProcedures(Hardware):
                     self.focuser.onThread(self.focuser.focusAdjust, "in")
                     self.focuser.adjusting.wait()
                     last = "in"
-            Last_FWHM = FWHM
+            fwhm_values.append(FWHM)
+            focus_positions.append(current_position)
             i += 1
         
+        data = sorted(zip(focus_positions, fwhm_values))
+        x = [_[0] for _ in data]
+        y = [_[1] for _ in data]
+        med = statistics.median(x)
+        fit = np.polyfit(x, y, 2)
+        xfit = np.linspace(med - 50, med + 50, 100)
+        yfit = fit[0]*(xfit**2) + fit[1]*xfit + fit[2]
+        plt.plot(x, y, 'bo', label='Raw data')
+        plt.plot(xfit, yfit, 'r-', label='Parabolic fit')
+        plt.legend()
+        plt.xlabel('Focus Positions (units)')
+        plt.ylabel('FWHM value (pixels)')
+        plt.savefig(os.path.join(self.config_dict.home_directory, r'test/FocusPlot.png'))
+        
+        minindex = np.where(yfit == min(yfit))
+        minfocus = np.round(xfit[minindex])
         logging.info('Autofocus achieved a FWHM of {} pixels!'.format(FWHM))
+        logging.info('The theoretical minimum focus was calculated to be at position {}'.format(minfocus))
         
         self.focused.set()
         self.FWHM = FWHM

@@ -3,9 +3,34 @@ import argparse
 from .main.drivers.driver import run
 
 def cli_run(args):
+    '''
+    Description
+    -----------
+    Passes the CLI arguments into the run function in driver.
+
+    Parameters
+    ----------
+    args : ANY TYPE
+        Arguments passed in from the command line.
+
+    Returns
+    -------
+    None.
+
+    '''
     run(args.obs_tickets, args.data, args.config, args.filter, args.logger, args.shutdown)
 
 def main():
+    '''
+    Description
+    -----------
+    Defines the 'run' CLI command and arguments.
+
+    Returns
+    -------
+    None.
+
+    '''
     parser = argparse.ArgumentParser(description='Telescope automation code')
     subparsers = parser.add_subparsers()
     run_driver = subparsers.add_parser('run', help='Start an observation run')
@@ -27,5 +52,5 @@ def main():
     args = parser.parse_args()
     args.func(args)
     
-if __name__ == '__main__':
+if __name__ == '__main__':      # Run the main function when -omegalambda is called.
     main()
