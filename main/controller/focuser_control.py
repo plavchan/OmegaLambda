@@ -7,6 +7,7 @@ class Focuser(Hardware):
     
     def __init__(self):
         '''
+        Initializes the focuser as a subclass of hardware.
 
         Returns
         -------

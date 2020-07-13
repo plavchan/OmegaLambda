@@ -7,6 +7,41 @@ class ObservationTicket():
 
     def __init__(self, name=None, ra=None, dec=None, start_time=None, end_time=None,
                  filter=None, num=None, exp_time=None, self_guide=None, guide=None, cycle_filter=None):
+        '''
+        
+        Parameters
+        ----------
+        name : STR, optional
+            Name of intended target, ex: TOI1234.01 . The default is None.
+        ra : FLOAT, STR, optional
+            Right ascension of target object. The default is None.
+        dec : FLOAT, STR, optional
+            Declination of target object. The default is None.
+        start_time : STR, optional
+            Start time of first exposure. The default is None.
+        end_time : STR, optional
+            End time of last exposure. The default is None.
+        filter : LIST, optional
+            List of filters that will be used during observing sesion.
+            The default is None.
+        num : INT, optional
+            Number of exposures. The default is None.
+        exp_time : INT, optional
+            Exposure time of each image in seconds. The default is None.
+        self_guide : BOOL, optional
+           If True, self-guiding module will activate, keeping the telescope 
+           pointed steady at the same target with minor adjustments. The default is None.
+        guide : BOOl, optional
+            If True, activates external guiding module, keeping telescope pointed at the
+            same taget with minor adjustments. The default is None.
+        cycle_filter : BOOL, optional
+            If true, filter will cycle after each exposure, if False filter will
+            cycle after number specified in num parameter. The default is None.
+            
+        Returns
+        -------
+        None.
+        '''
         self.name = name
         if type(ra) is float:
             self.ra = ra
@@ -48,14 +83,25 @@ class ObservationTicket():
     @staticmethod
     def deserialized(text):
         '''
-        This decodes a JSON string to an ObservationTicket object.
-
-        :param text: JSON STRING
-        :return: ObservationTicket
+        Parameters
+        ----------
+        text : JSON STRING
+            Takes .json string from json_reader.py to be converted.
+            
+        Returns
+        -------
+        Observation_Ticket OBJECT
+            Decoded .json string.
         '''
         return json.loads(text, object_hook=_dict_to_obs_object)
 
     def serialized(self):
+        '''
+        Returns
+        -------
+        DICT
+            Creates copy_obj in dictionary format.
+        '''
         copy_obj = copy.deepcopy(self)
         if copy_obj.start_time:
             copy_obj.start_time = copy_obj.start_time.isoformat()
@@ -65,6 +111,18 @@ class ObservationTicket():
 
 
 def _dict_to_obs_object(dict):
+    '''
+    Parameters
+    ----------
+    dict : DICT
+        .json file with proper observation ticket info,
+        see /test/test.json for proper formatting.
+        
+    Returns
+    -------
+    ObservationTicket OBJECT
+        An ObservationTicket object created from the .json file dictionary.
+    '''
     return ObservationTicket(name=dict['name'], ra=dict['ra'], dec=dict['dec'], start_time=dict['start_time'],
                              end_time=dict['end_time'], filter=dict['filter'], num=dict['num'], exp_time=dict['exp_time'],
                              self_guide=dict['self_guide'], guide=dict['guide'], cycle_filter=dict['cycle_filter'])

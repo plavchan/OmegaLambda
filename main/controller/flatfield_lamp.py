@@ -9,6 +9,14 @@ from .hardware import Hardware
 class FlatLamp(Hardware):
     
     def __init__(self):
+        '''
+        Initializes the flat lamp as a subclass of hardware.
+
+        Returns
+        -------
+        None.
+
+        '''
         self.ser = serial.Serial()
         self.ser.baudrate = 9600
         self.status = None
@@ -28,6 +36,16 @@ class FlatLamp(Hardware):
         super(FlatLamp, self).__init__(name='FlatLamp')
         
     def TurnOn(self):
+        '''
+        Description
+        -----------
+        Turns on the flat lamp.
+
+        Returns
+        -------
+        None.
+
+        '''
         self.lamp_done.clear()
         try: self.ser.write('1'.encode()) 
         except: logging.error('Could not turn on the flatfield lamp')
@@ -37,6 +55,16 @@ class FlatLamp(Hardware):
             self.lamp_done.set()
        
     def TurnOff(self):
+        '''
+        Description
+        -----------
+        Turns off the flat lamp.
+
+        Returns
+        -------
+        None.
+
+        '''
         self.lamp_done.clear()
         try: self.ser.write('0'.encode()) 
         except: logging.error('Could not turn off the flatfield lamp')
@@ -46,6 +74,16 @@ class FlatLamp(Hardware):
             self.lamp_done.set()
        
     def disconnect(self):
+        '''
+        Description
+        -----------
+        Disconnects the flat lamp.
+
+        Returns
+        -------
+        None.
+
+        '''
         if self.status == 'on':
             self.TurnOff()
         try: self.ser.close()

@@ -3,6 +3,12 @@ import time
 import json
 
 def box_labels():
+    '''
+    Description
+    -----------
+    Labels for each input box
+
+    '''
     tk.Label(master, text = 'Target Name').grid(row = 0)
     tk.Label(master, text = 'Target RA').grid(row = 1)
     tk.Label(master, text = 'Target DEC').grid(row = 2)
@@ -14,6 +20,13 @@ def box_labels():
 
 
 def exampletxt():
+    '''
+    Description
+    -----------
+    Example text for each box, showing 
+    possible formatting options
+
+    '''
     tk.Label(master, text = 'Ex: TOI1234-01').grid(row = 0, column = 2)
     tk.Label(master, text = 'Ex: 04:52:53.6698, 04h52m53.67s, 04 52 53.67').grid(row = 1, column = 2)
     tk.Label(master, text = 'Ex: -05:27:09.702, -05d27m09.70s, -05 27 09.70').grid(row = 2, column = 2)
@@ -27,16 +40,29 @@ def exampletxt():
     tk.Label(master, text = 'Cycle filter after each science image').grid(row = 10, column = 2)
     
 
-def box_fill():
-    self_guide.insert(10, 'true')
-    guide.insert(10, 'false')
-    cycle_filter.insert(10, 'false')
 
-def ok_func():
+def quit_func():
+    '''
+    Description
+    -----------
+    Defines the function for the quit button,
+    saves the inputted text then closes the window
+    '''
     savetxt()
     master.quit()
 
 def dst_check():
+    '''
+    Description
+    -----------
+    Checks if the current time is in daylight savings or not
+
+    Returns
+    -------
+    dst : STR
+        Timezone offset from UTC, if daylight savings, offset is -04:00, else -05:00.
+
+    '''
     
     if time.localtime().tm_isdst == 1:
         dst = '-04:00'
@@ -46,6 +72,21 @@ def dst_check():
 
     
 def truefalse_check():
+    '''
+    Description
+    -----------
+    Takes the integers returned by the checkboxes and converts them into strings for .json file
+
+    Returns
+    -------
+    self_guide_var : STR
+        Whether or not to activate self_guide, default is true.
+    guide_var : STR
+        Whether or not to activate outside guiding, default is false.
+    cycle_filter_var : STR
+        Whether or not to cycle filter after every image, default is false.
+
+    '''
     if self_guide.get() == 1:
         self_guide_var = 'true'
     else:
@@ -63,6 +104,17 @@ def truefalse_check():
 
 
 def filter_split():
+    '''
+    Description
+    -----------
+    Formats inputted filters correctly
+
+    Returns
+    -------
+    i : STR
+        Properly formatted filter(s).
+
+    '''
     j = filter_.get()
     k = j.replace(' ', '')
     i = k.split(",")
@@ -73,6 +125,16 @@ def filter_split():
     return i
     
 def savetxt():
+    '''
+    Description
+    -----------
+    Saves the text to .json file in proper format
+
+    Returns
+    -------
+    None.
+
+    '''
     dst = dst_check()
     self_guide_var, guide_var, cycle_filter_var = truefalse_check()
     i = filter_split()
@@ -97,15 +159,14 @@ def savetxt():
     
      
 master = tk.Tk()
-
+#Creates window
 master.title('Observation Ticket Creator')
 master.geometry('550x300')
 
 box_labels()
 exampletxt()
 
-
-
+#Creates the input text boxes
 name = tk.Entry(master)
 ra = tk.Entry(master)
 dec = tk.Entry(master)
@@ -114,10 +175,13 @@ end_time = tk.Entry(master)
 filter_ = tk.Entry(master)
 n_exposures = tk.Entry(master)
 exposure_time = tk.Entry(master)
+
+#Creates variables for check buttons
 self_guide = tk.IntVar()
 guide = tk.IntVar()
 cycle_filter = tk.IntVar()
 
+#Creates check buttons
 self_guide.set(1)
 b1 = tk.Checkbutton(master, text = 'Self Guide', onvalue = 1, offvalue = 0, variable = self_guide)
 b1.grid(row = 8, column = 1)
@@ -126,6 +190,7 @@ b2.place(x = 147, y = 190)
 b3 = tk.Checkbutton(master, text = 'Cycle Filter', onvalue = 1, offvalue = 0, variable = cycle_filter)
 b3.place(x = 147, y = 212)
 
+#Places text boxes in the window
 name.grid(row = 0, column = 1)
 ra.grid(row = 1, column = 1)
 dec.grid(row = 2, column = 1)
@@ -137,10 +202,12 @@ exposure_time.grid(row = 7, column = 1)
 
 
 
+#Creates Quit and Apply buttons
 
-
-quit_ = tk.Button(master, text = 'Quit', command = ok_func)
+quit_ = tk.Button(master, text = 'Quit', command = quit_func)
 apply = tk.Button(master, text = 'Apply', command = savetxt)
+
+#Places the buttons in the window
 quit_.place(x = 200, y = 250)
 apply.place(x = 235, y = 250)
 

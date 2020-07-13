@@ -10,9 +10,7 @@ class Telescope(Hardware):
     
     def __init__(self):
         '''
-        Description
-        -----------
-        Creates the telescope class as a subclass of Hardware.
+        Initializes the telescope class as a subclass of Hardware.
 
         Returns
         -------

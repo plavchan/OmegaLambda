@@ -11,6 +11,23 @@ from ..controller.hardware import Hardware
 class Calibration(Hardware):
     
     def __init__(self, camera_obj, flatlamp_obj, image_directory):
+        '''
+        Initializes the calibration module as a subclass of hardware.
+
+        Parameters
+        ----------
+        camera_obj : Camera Object
+            Initialized camera.
+        flatlamp_obj : FlatLamp Object
+            Initialized flat lamp.
+        image_directory : STR
+            Path to where image files are saved.
+
+        Returns
+        -------
+        None.
+
+        '''
         self.camera = camera_obj
         self.flatlamp = flatlamp_obj
         self.image_directory = image_directory
@@ -23,6 +40,22 @@ class Calibration(Hardware):
         super(Calibration, self).__init__(name='Calibration')
         
     def take_flats(self, ticket):
+        '''
+        Description
+        -----------
+        Takes flatfield images for a target.
+
+        Parameters
+        ----------
+        ticket : ObservationTicket Object
+            Created using json_reader and object_reader.
+
+        Returns
+        -------
+        bool
+            True if successful, otherwise False.
+
+        '''
         self.flats_done.clear()
         self.flatlamp.onThread(self.flatlamp.TurnOn)
         lamp = self.flatlamp.lamp_done.wait(timeout = 60)
@@ -63,6 +96,22 @@ class Calibration(Hardware):
         return True
         
     def take_darks(self, ticket):
+        '''
+        Description
+        -----------
+        Takes dark images for a target.
+
+        Parameters
+        ----------
+        ticket : ObservationTicket Object.
+            Created by json_reader and object_reader.
+
+        Returns
+        -------
+        bool
+            True if successful, otherwise False.
+
+        '''
         self.darks_done.clear()
         filt = ticket.filter
         if type(filt) is str:

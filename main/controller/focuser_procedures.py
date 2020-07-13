@@ -9,10 +9,11 @@ from .hardware import Hardware
 from ..common.IO import config_reader
 from ..common.util import filereader_utils
 
-class FocusProcedures(Hardware):            #Subclassed from hardware
+class FocusProcedures(Hardware):
     
     def __init__(self, focus_obj, camera_obj):
         '''
+        Initializes focusprocedures as a subclass of hardware.
 
         Parameters
         ----------

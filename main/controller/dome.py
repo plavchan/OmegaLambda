@@ -8,24 +8,63 @@ from .hardware import Hardware
 class Dome(Hardware):
     
     def __init__(self):
+        '''
+        Initializes the dome as a subclass of hardware.
+
+        Returns
+        -------
+        None.
+
+        '''
         self.move_done = threading.Event()
         self.shutter_done = threading.Event()
         super(Dome, self).__init__(name='Dome')
         
     def _is_ready(self):
+        '''
+        Description
+        -----------
+        Checks to see if the dome is ready to receive a new command, else
+        it waits.
+
+        Returns
+        -------
+        None.
+
+        '''
         while self.Dome.Slewing:
             time.sleep(2)
         if not self.Dome.Slewing:
             return
         
     def ShutterPosition(self):
+        '''
+        Description
+        -----------
+        Checks the current position of the shutter.
+
+        Returns
+        -------
+        None.
+
+        '''
         # Shutter status: 0 = open, 1 = closed, 2 = opening, 3 = closing, 4 = error.
         self.shutter = self.Dome.ShutterStatus
     
     def Home(self):
+        '''
+        Description
+        -----------
+        Homes the dome.
+
+        Returns
+        -------
+        None.
+
+        '''
         self._is_ready()
         try: self.Dome.FindHome()
-        except: print("ERROR: Dome cannot find home")
+        except: logging.error('Dome cannot find home')
         else: 
             print("Dome is homing")
             while not self.Dome.AtHome:
@@ -33,6 +72,17 @@ class Dome(Hardware):
             return
     
     def Park(self):
+        '''
+        Description
+        -----------
+        Parks the dome.
+
+        Returns
+        -------
+        bool
+            True if successful, otherwise False.
+
+        '''
         self.move_done.clear()
         if self.Dome.AtPark:
             print("Dome is at park")
@@ -41,7 +91,7 @@ class Dome(Hardware):
         self._is_ready()
         try: self.Dome.Park()
         except: 
-            print("ERROR: Error parking dome")
+            logging.error("Error parking dome")
             return False
         else: 
             print("Dome is parking")
@@ -50,6 +100,17 @@ class Dome(Hardware):
             return True
         
     def MoveShutter(self, open_or_close):
+        '''
+        Parameters
+        ----------
+        open_or_close : STR
+            Wether or not the dome shutter is open or closed, 
+            can either be 'open' or 'close'.
+            
+        Returns
+        -------
+        None.
+        '''
         self.shutter_done.clear()
         self._is_ready()
         if open_or_close == 'open':
@@ -79,37 +140,80 @@ class Dome(Hardware):
         return
     
     def SlaveDometoScope(self, toggle):
+        '''
+        Parameters
+        ----------
+        toggle : BOOL
+            If True, will slave the dome movements to the telescope movement.
+            If False, will stop slaving the dome movements to the telescope movement.
+            
+        Returns
+        -------
+        None.
+        '''
         self.move_done.clear()
         self._is_ready()
         if toggle == True:
             try: self.Dome.Slaved = True
-            except: print("ERROR: Cannot sync dome to scope")
+            except: logging.error("Cannot sync dome to scope")
             else: 
                 print("Dome is syncing to scope")
                 self._is_ready()
                 self.move_done.set()
         elif toggle == False:
             try: self.Dome.Slaved = False
-            except: print("ERROR: Cannot stop syncing dome to scope")
+            except: logging.error("Cannot stop syncing dome to scope")
             else: 
                 print("Dome is no longer syncing to scope")
                 self.move_done.set()
         logging.debug('Dome syncing toggled')
         
     def Slew(self, Azimuth):
+        '''
+        Parameters
+        ----------
+        Azimuth : FLOAT
+            Azimiuth of intended dome slew.
+            
+        Returns
+        -------
+        None.
+        '''
         self.move_done.clear()
         self._is_ready()
         try: self.Dome.SlewtoAzimuth(Azimuth)
-        except: print("ERROR: Error slewing dome")
+        except: logging.error("Error slewing dome")
         else: 
             print("Dome is slewing to {} degrees".format(Azimuth))
             self._is_ready()
             self.move_done.set()
     
     def Abort(self):
+        '''
+        Description
+        -----------
+        Aborts the current dome movement.
+
+        Returns
+        -------
+        None.
+
+        '''
         self.Dome.AbortSlew()
         
     def disconnect(self):   #Always close shutter and park before disconnecting
+        '''
+        Description
+        -----------
+        Disconnects the dome.
+        
+        Returns
+        -------
+        bool
+            If False, dome cannot be connected for some reason, if True,
+            Dome has disconnected.
+            
+        '''
         self._is_ready()
         while self.Dome.ShutterStatus != 1:
             time.sleep(5)
@@ -119,7 +223,7 @@ class Dome(Hardware):
                 self.live_conection.clear()
                 return True
             except: 
-                print("ERROR: Could not disconnect from dome")
+                logging.error("Could not disconnect from dome")
                 subprocess.call('taskkill /f /im ASCOMDome.exe')
                 subprocess.Popen(r'"C:\Program Files (x86)\Common Files\ASCOM\Dome\ASCOMDome.exe"')
                 return False

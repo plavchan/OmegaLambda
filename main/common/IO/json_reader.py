@@ -1,13 +1,19 @@
-'''
-JSON-to-string file reader.
-Input is a .json file, output is a python string that
-is passed on to the deserializer in observation_ticket, filter_wheel, or config_reader.
-'''
 import json
 
 class Reader():
     
     def __init__(self, path):
+        '''
+        Parameters
+        ----------
+        path : STR
+            Path to desired .json file to be converted into a string to be passed to
+            deserializer in observation_ticket, filter_wheel, or config_reader.
+            
+        Returns
+        -------
+        None.
+        '''
         self.path = path
         
         with open(self.path, 'r') as file:

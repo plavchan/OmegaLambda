@@ -9,10 +9,11 @@ import win32com.client
 
 from ..common.IO import config_reader
 
-class Hardware(threading.Thread):           #Subclassed from threading.Thread
+class Hardware(threading.Thread):
     
     def __init__(self, name, loop_time = 1.0/60):
         '''
+        Initializes hardware as a subclass of threading.Thread.
 
         Parameters
         ----------

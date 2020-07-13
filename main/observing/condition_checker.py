@@ -19,9 +19,7 @@ class Conditions(threading.Thread):
     
     def __init__(self):
         '''
-        Description
-        -----------
-        Subclassed from threading.Thread.  Weather periodically checks the weather conditions while observing.
+        Subclassed from threading.Thread.  Conditions periodically checks the humidity, wind, sun position, clouds, and rain while observing.
 
         Returns
         -------
@@ -174,6 +172,18 @@ class Conditions(threading.Thread):
             return False
         
     def cloud_check(self):
+        '''
+        Description
+        -----------
+        Checks the current cloud cover around Fairfax.
+
+        Returns
+        -------
+        bool
+            True if cloud cover reaches or exceeds the maximum percenage
+            defined in the config file, otherwise False.
+
+        '''
         satellite = 'goes-16'
         day = int(time_utils.days_of_year())
         conus_band = 13

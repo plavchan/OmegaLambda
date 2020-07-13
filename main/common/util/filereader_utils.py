@@ -10,6 +10,18 @@ from astropy.stats import sigma_clipped_stats
 from scipy.optimize import curve_fit
 
 def MedianCounts(image_path):
+    '''
+    Parameters
+    ----------
+    image_path : STR
+        Path to image file to calculate median counts for.
+
+    Returns
+    -------
+    median : FLOAT
+        Median counts of the specified image file.
+
+    '''
     image = fits.getdata(image_path)
     mean, median, stdev = sigma_clipped_stats(image, sigma = 3)
     return median
@@ -127,7 +139,7 @@ def Radial_Average(path, saturation):
     '''
     stars, peaks, data, stdev = FindStars(path, saturation, return_data=True)
     R = 30
-    fwhm_list = np.ndarray(shape=(len(stars),))
+    fwhm_list = np.ndarray(0)
     # a = 0
     for star in stars:
         x_cent = star[0]
@@ -175,7 +187,7 @@ def Radial_Average(path, saturation):
             #     plt.grid()
             #     plt.savefig(r'C:/Users/GMU Observtory1/-omegalambda/test/GaussianPlot.png')
             #     a += 1
-                
+    
     mask = np.array([fwhm >= 3 for fwhm in fwhm_list])
     fwhm_med = statistics.median(fwhm_list[mask])
     return fwhm_med

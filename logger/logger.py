@@ -26,7 +26,10 @@ class Logger():
         
     def start(self):
         '''
-
+        Description
+        -----------
+        Starts the logger module.
+        
         Returns
         -------
         None.
@@ -36,5 +39,15 @@ class Logger():
         
     @staticmethod
     def stop():
+        '''
+        Description
+        -----------
+        Stops the logger module.
+
+        Returns
+        -------
+        None.
+
+        '''
         logging.shutdown()
         
