@@ -128,7 +128,7 @@ def Radial_Average(path, saturation):
     stars, peaks, data, stdev = FindStars(path, saturation, return_data=True)
     R = 30
     fwhm_list = np.ndarray(shape=(len(stars),))
-    a = 0
+    # a = 0
     for star in stars:
         x_cent = star[0]
         y_cent = star[1]
@@ -143,12 +143,10 @@ def Radial_Average(path, saturation):
        
         if len(radialprofile) != 0:
             maximum = max(radialprofile)
-            sigma_unnormal = np.std(radialprofile)
             radialprofile = radialprofile/maximum
             f = np.linspace(0, len(radialprofile), len(radialprofile))
             mean = np.mean(radialprofile)
             sigma = np.std(radialprofile)
-            # print(2.355*sigma)
             try:
                 popt, pcov = curve_fit(GaussianFit, f, radialprofile, p0=[1/(np.sqrt(2*np.pi)), mean, sigma])
                 g = np.linspace(0, len(radialprofile), 10*len(radialprofile))
@@ -166,17 +164,17 @@ def Radial_Average(path, saturation):
                 elif run == False:
                     break
                 
-            if a < 1:
-                plt.plot(f, radialprofile, 'b+:', label='data')
-                plt.plot(f, GaussianFit(f, *popt), 'ro:', label='fit')
-                plt.plot([0, FWHM/2], [1/2, 1/2], 'g-.')
-                plt.plot([FWHM/2, FWHM/2], [0, 1/2], 'g-.', label='HWHM')
-                plt.legend()
-                plt.xlabel('x position, HWHM = {}'.format(FWHM/2))
-                plt.ylabel('normalized counts')
-                plt.grid()
-                plt.savefig(r'C:/Users/GMU Observtory1/-omegalambda/test/GaussianPlot.png')
-                a += 1
+            # if a < 1:
+            #     plt.plot(f, radialprofile, 'b+:', label='data')
+            #     plt.plot(f, GaussianFit(f, *popt), 'ro:', label='fit')
+            #     plt.plot([0, FWHM/2], [1/2, 1/2], 'g-.')
+            #     plt.plot([FWHM/2, FWHM/2], [0, 1/2], 'g-.', label='HWHM')
+            #     plt.legend()
+            #     plt.xlabel('x position, HWHM = {}'.format(FWHM/2))
+            #     plt.ylabel('normalized counts')
+            #     plt.grid()
+            #     plt.savefig(r'C:/Users/GMU Observtory1/-omegalambda/test/GaussianPlot.png')
+            #     a += 1
                 
     mask = np.array([fwhm >= 3 for fwhm in fwhm_list])
     fwhm_med = statistics.median(fwhm_list[mask])

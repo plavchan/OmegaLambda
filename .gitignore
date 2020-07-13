@@ -9,6 +9,8 @@ test/*
 !test/json_test_driver.py
 logger/*.log
 logger/*.log.*
+observation_tickets/*
+!observation_tickets/Observation_ticket_creator.pyw
 **/__pycache__
 
 # Untracked Files #
