@@ -9,7 +9,7 @@ from ..common.IO import config_reader
 from ..common.datatype.object_reader import ObjectReader
 
 
-def run(obs_tickets, data=None, config=None, _filter=None, logger=None, shutdown=None):
+def run(obs_tickets, data=None, config=None, _filter=None, logger=None, shutdown=None, calibration=None):
     """
 
     Parameters
@@ -33,6 +33,9 @@ def run(obs_tickets, data=None, config=None, _filter=None, logger=None, shutdown
     shutdown : BOOL, optional
         Toggle to shut down the observatory after running tickets.  The default in None, in which case True will be
         passed in via argparse, so the observatory will shut down.
+    calibration : BOOL, optional
+        Toggle to take calibration images or not.  The default is None, in which case True will be passed in via
+        argparse, so the observatory will take darks and flats at the specified time in the config file.
 
     Returns
     -------
@@ -95,7 +98,7 @@ def run(obs_tickets, data=None, config=None, _filter=None, logger=None, shutdown
     
     observation_request_list.sort(key=start_time)
         
-    run_object = ObservationRun(observation_request_list, folder, shutdown)
+    run_object = ObservationRun(observation_request_list, folder, shutdown, calibration)
     run_object.observe()
     
     log_object.stop()

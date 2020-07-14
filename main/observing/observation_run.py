@@ -23,7 +23,7 @@ from .condition_checker import Conditions
 
 
 class ObservationRun:
-    def __init__(self, observation_request_list, image_directory, shutdown_toggle):
+    def __init__(self, observation_request_list, image_directory, shutdown_toggle, calibration_toggle):
         """
         Initializes the observation run.
 
@@ -46,6 +46,7 @@ class ObservationRun:
         self.calibrated_tickets = np.zeros(len(observation_request_list))
         self.current_ticket = None
         self.shutdown_toggle = shutdown_toggle
+        self.calibration_toggle = calibration_toggle
         self.tz = observation_request_list[0].start_time.tzinfo
         
         # Initializes all relevant hardware
@@ -167,7 +168,7 @@ class ObservationRun:
                 self.camera.onThread(self.camera.cooler_ready)
                 self.camera.cooler_settle.wait()
                 print('Taking darks and flats...')
-            self.take_calibration_images(beginning=True)
+                self.take_calibration_images(beginning=True)
             self.dome.onThread(self.dome.move_shutter, 'open')
             self.dome.onThread(self.dome.home)
             self.telescope.onThread(self.telescope.unpark)
@@ -215,7 +216,7 @@ class ObservationRun:
         -------
         None.
         """
-        if self.config_dict.calibration_time == "start":
+        if self.config_dict.calibration_time == "start" and self.calibration_toggle is True:
             calibration = True
         else:
             calibration = False
@@ -255,7 +256,7 @@ class ObservationRun:
             print("{} out of {} exposures were taken for {}.  Moving on to next target.".format(taken, total,
                                                                                                 ticket.name))
         
-        if self.config_dict.calibration_time == "end":
+        if self.config_dict.calibration_time == "end" and self.calibration_toggle is True:
             calibration = True
         else:
             calibration = False
