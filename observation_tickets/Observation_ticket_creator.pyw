@@ -143,7 +143,7 @@ def savetxt():
     i = filter_split()
     current_path = os.path.abspath(os.path.dirname(__file__))
     with open(os.path.join(current_path, r'{}.json'.format(name.get())), 'w+') as f:
-        f.write('{\"type\": \"observation ticket\",')
+        f.write('{\"type\": \"observation_ticket\",')
         f.write('\n\"details\":{')
         f.write('\n\t\"name\": \"{}\",'.format(name.get()))
         f.write('\n\t\"ra\": \"{}\",'.format(ra.get()))
