@@ -1,6 +1,7 @@
 import tkinter as tk
 import time
 import json
+import os
 
 
 def box_labels():
@@ -140,7 +141,8 @@ def savetxt():
     dst = dst_check()
     self_guide_var, guide_var, cycle_filter_var = truefalse_check()
     i = filter_split()
-    with open(r'C:/Users/GMU Observtory1/-omegalambda/observation_tickets/{}.json'.format(name.get()), 'w+') as f:
+    current_path = os.path.abspath(os.path.dirname(__file__))
+    with open(os.path.join(current_path, r'{}.json'.format(name.get())), 'w+') as f:
         f.write('{\"type\": \"observation ticket\",')
         f.write('\n\"details\":{')
         f.write('\n\t\"name\": \"{}\",'.format(name.get()))
