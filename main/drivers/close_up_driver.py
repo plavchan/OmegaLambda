@@ -9,13 +9,13 @@ global_config_object = ObjectReader(Reader(r'C:\Users\GMU Observtory1\-omegalamb
 tel_obj = Telescope()
 dome_obj = Dome()
 
-dome_obj.SlaveDometoScope(False)
+dome_obj.slave_dome_to_scope(False)
 print("Disabled dome slaving")
-dome_obj.MoveShutter('close')
+dome_obj.move_shutter('close')
 print("Closing shutter")
-tel_obj.Park()
+tel_obj.park()
 print("Parking telescope")
-dome_obj.Park()
+dome_obj.park()
 print("Parking dome")
 
 while tel_obj.Telescope.Slewing or dome_obj.Dome.Slewing:

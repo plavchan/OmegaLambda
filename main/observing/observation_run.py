@@ -5,10 +5,10 @@ import math
 import re
 import logging
 import subprocess
-import threading
+# import threading
 import numpy as np
 
-from ..common.util import time_utils, conversion_utils, filereader_utils
+from ..common.util import time_utils, conversion_utils      # and filereader_utils
 from ..common.IO import config_reader
 from ..common.datatype import filter_wheel
 from ..controller.camera import Camera
@@ -20,12 +20,13 @@ from ..controller.flatfield_lamp import FlatLamp
 from .calibration import Calibration
 from .guider import Guider
 from .condition_checker import Conditions
-    
-class ObservationRun():
+
+
+class ObservationRun:
     def __init__(self, observation_request_list, image_directory, shutdown_toggle):
-        '''
+        """
         Initializes the observation run.
-        
+
         Parameters
         ----------
         observation_request_list : LIST
@@ -34,11 +35,11 @@ class ObservationRun():
             Directory to which the images will be saved to.
         shutdown_toggle : BOOL
             Whether or not to shut down after finished with observations.
-            
+
         Returns
         -------
         None.
-        '''
+        """
         # Basic parameters
         self.image_directory = image_directory
         self.observation_request_list = observation_request_list
@@ -76,36 +77,40 @@ class ObservationRun():
         self.guider.start()
         
     def everything_ok(self):
-        '''
+        """
         Description
         -----------
         Checks hardware connections and all outside conditions (humidity, wind, rain,
                                                                 sun elevation, and cloud coverage)
-        
+
         Returns
         -------
         bool
-            If False, something has gone wrong, and so the observing will have to stop. Otherwise, conditions are 
+            If False, something has gone wrong, and so the observing will have to stop. Otherwise, conditions are
             good to continue observation.
-            
-        '''
-        if not self.camera.live_connection.wait(timeout = 10):
+
+        """
+        check = None
+        if not self.camera.live_connection.wait(timeout=10):
             check = False
             logging.error('Camera connection timeout')
-        elif not self.telescope.live_connection.wait(timeout = 10):
+        elif not self.telescope.live_connection.wait(timeout=10):
             check = False
             logging.error('Telescope connection timeout')
-        elif not self.dome.live_connection.wait(timeout = 10):
+        elif not self.dome.live_connection.wait(timeout=10):
             check = False
             logging.error('Dome connection timeout')
-        elif not self.focuser.live_connection.wait(timeout = 10):
+        elif not self.focuser.live_connection.wait(timeout=10):
             check = False
             logging.error('Focuser connection timeout')
         elif self.conditions.weather_alert.isSet():
             self._shutdown_procedure(calibration=True)
             if self.conditions.sun:
-                sunset_time = conversion_utils.get_sunset(datetime.datetime.now(self.tz), self.config_dict.site_latitude, self.config_dict.site_longitude)
-                logging.info('The Sun has risen above the horizon...observing will stop until the Sun sets again at {}.'.format(sunset_time.strftime('%Y-%m-%d %H:%M:%S%z')))
+                sunset_time = conversion_utils.get_sunset(datetime.datetime.now(self.tz),
+                                                          self.config_dict.site_latitude,
+                                                          self.config_dict.site_longitude)
+                logging.info('The Sun has risen above the horizon...observing will stop until the Sun sets again '
+                             'at {}.'.format(sunset_time.strftime('%Y-%m-%d %H:%M:%S%z')))
                 time.sleep(60*self.config_dict.min_reopen_time)
                 sunset_epoch_milli = time_utils.datetime_to_epoch_milli_converter(sunset_time)
                 current_epoch_milli = time_utils.datetime_to_epoch_milli_converter(datetime.datetime.now(self.tz))
@@ -126,7 +131,8 @@ class ObservationRun():
                 time.sleep(60*self.config_dict.min_reopen_time)
                 while self.conditions.weather_alert.isSet():
                     time.sleep(self.config_dict.weather_freq*60)
-                if not self.conditions.weather_alert.isSet() and self.current_ticket.end_time <= datetime.datetime.now(self.tz):
+                if not self.conditions.weather_alert.isSet() and \
+                        self.current_ticket.end_time <= datetime.datetime.now(self.tz):
                     self._startup_procedure()
                     self._ticket_slew(self.current_ticket)
                     self.focus_target(self.current_ticket)
@@ -136,7 +142,7 @@ class ObservationRun():
         return check
 
     def _startup_procedure(self, calibration=False):
-        '''
+        """
         Parameters
         ----------
         calibration : BOOL, optional
@@ -149,30 +155,31 @@ class ObservationRun():
             The position of the shutter before observing started.
             0 = open, 1 = closed, 2 = opening, 3 = closing, 4 = error.
 
-        '''
-        Initial_check = self.everything_ok()
+        """
+        initial_check = self.everything_ok()
         
-        self.camera.onThread(self.camera.coolerSet, True)
-        self.dome.onThread(self.dome.ShutterPosition)
+        self.camera.onThread(self.camera.cooler_set, True)
+        self.dome.onThread(self.dome.shutter_position)
         time.sleep(2)
-        Initial_shutter = self.dome.shutter
-        if Initial_shutter in (1,3,4) and Initial_check == True:
+        initial_shutter = self.dome.shutter
+        if initial_shutter in (1, 3, 4) and initial_check is True:
             if calibration:
                 self.camera.onThread(self.camera.cooler_ready)
                 self.camera.cooler_settle.wait()
                 print('Taking darks and flats...')
             self.take_calibration_images(beginning=True)
-            self.dome.onThread(self.dome.MoveShutter, 'open')
-            self.dome.onThread(self.dome.Home)
-            self.telescope.onThread(self.telescope.Unpark)
-        elif not Initial_check:
-            self.shutdown(); return
+            self.dome.onThread(self.dome.move_shutter, 'open')
+            self.dome.onThread(self.dome.home)
+            self.telescope.onThread(self.telescope.unpark)
+        elif not initial_check:
+            self.shutdown()
+            return
         self.camera.onThread(self.camera.cooler_ready)
-        self.dome.onThread(self.dome.SlaveDometoScope, True)
-        return Initial_shutter
+        self.dome.onThread(self.dome.slave_dome_to_scope, True)
+        return initial_shutter
     
     def _ticket_slew(self, ticket):
-        '''
+        """
 
         Parameters
         ----------
@@ -184,45 +191,46 @@ class ObservationRun():
         bool
             True if slew was successful, otherwise False.
 
-        '''
-        self.telescope.onThread(self.telescope.Slew, ticket.ra, ticket.dec)
-        slew = self.telescope.slew_done.wait(timeout = 60*2)
+        """
+        self.telescope.onThread(self.telescope.slew, ticket.ra, ticket.dec)
+        slew = self.telescope.slew_done.wait(timeout=60*3)
         if not slew:
             logging.error('Telescope slew has failed.  Retrying...')
-            self.telescope.onThread(self.telescope.Slew, ticket.ra, ticket.dec)
-            slew2 = self.telescope.slew_done.wait(timeout = 60*2)
+            self.telescope.onThread(self.telescope.slew, ticket.ra, ticket.dec)
+            slew2 = self.telescope.slew_done.wait(timeout=60*2)
             if not slew2:
                 logging.critical('Telescope still cannot slew to target.  Cannot continue observing.')
                 return False
         return True
 
     def observe(self):
-        '''
+        """
         Description
         ----------
         Makes sure the dome, shutter, camera are ready to begin observation,
         and the start time has passed before beginning observation.  Then it loops
         through all tickets and starts the necessary procedures.
-        
+
         Returns
         -------
         None.
-        '''
+        """
         if self.config_dict.calibration_time == "start":
             calibration = True
         else:
             calibration = False
-        Initial_shutter = self._startup_procedure(calibration)
+        initial_shutter = self._startup_procedure(calibration)
         
         for ticket in self.observation_request_list:
             self.current_ticket = ticket
             if not self.everything_ok(): 
-                self.shutdown(); return
+                self.shutdown()
+                return
             self.crash_check('TheSkyX.exe')
             self.crash_check('ASCOMDome.exe')
             if not self._ticket_slew(ticket):
                 return
-            if Initial_shutter in (1,3,4):
+            if initial_shutter in (1, 3, 4):
                 self.dome.move_done.wait()
                 self.dome.shutter_done.wait()
             self.camera.cooler_settle.wait()
@@ -238,12 +246,14 @@ class ObservationRun():
                 time.sleep((start_time_epoch_milli - current_epoch_milli)/1000)
     
             if not self.everything_ok(): 
-                self.shutdown(); return
+                self.shutdown()
+                return
             
             input("The program is ready to start taking images of {}.  Please take this time to "
                   "check the focus and pointing of the target.  When you are ready, press Enter: ".format(ticket.name))
             (taken, total) = self.run_ticket(ticket)
-            print("{} out of {} exposures were taken for {}.  Moving on to next target.".format(taken, total, ticket.name))
+            print("{} out of {} exposures were taken for {}.  Moving on to next target.".format(taken, total,
+                                                                                                ticket.name))
         
         if self.config_dict.calibration_time == "end":
             calibration = True
@@ -252,7 +262,7 @@ class ObservationRun():
         self.shutdown(calibration)
         
     def focus_target(self, ticket):
-        '''
+        """
         Description
         -----------
         Starts the focus procedures module to focus on the current target.
@@ -266,28 +276,33 @@ class ObservationRun():
         -------
         None.
 
-        '''
+        """
         if type(ticket.filter) is list:
             focus_filter = [ticket.filter[0]]
         elif type(ticket.filter) is str:
             focus_filter = ticket.filter
+        else:
+            logging.error('Filter argument is wrong type')
+            return
         focus_exposure = int(self.config_dict.focus_exposure_multiplier*ticket.exp_time)
         if focus_exposure <= 0: 
             focus_exposure = 1
-        self.focus_procedures.onThread(self.focus_procedures.StartupFocusProcedure, focus_exposure, self.filterwheel_dict[focus_filter], 
-                                       self.image_directory)
+        elif focus_exposure >= 30:
+            focus_exposure = 30
+        self.focus_procedures.onThread(self.focus_procedures.startup_focus_procedure, focus_exposure,
+                                       self.filterwheel_dict[focus_filter], self.image_directory)
         while not self.focus_procedures.focused.isSet():
             self.crash_check('RoboFocus.exe')
             time.sleep(10)
         
     def run_ticket(self, ticket):
-        '''
+        """
         Parameters
         ----------
         ticket : ObservationTicket Object
-            The observation ticket object with information useful to 
+            The observation ticket object with information useful to
             the observing run.
-            
+
         Returns
         -------
         img_count: INT
@@ -295,33 +310,33 @@ class ObservationRun():
         ticket.num: INT
             The total number of images that are specified on the
             observation ticket.
-        '''
-        self.focus_procedures.onThread(self.focus_procedures.ConstantFocusProcedure, self.image_directory)
+        """
+        self.focus_procedures.onThread(self.focus_procedures.constant_focus_procedure, self.image_directory)
         if ticket.self_guide:
-            self.guider.onThread(self.guider.GuidingProcedure, self.image_directory)
+            self.guider.onThread(self.guider.guiding_procedure, self.image_directory)
         if ticket.cycle_filter:
             img_count = self.take_images(ticket.name, ticket.num, ticket.exp_time,
                                          ticket.filter, ticket.end_time, self.image_directory,
                                          True)
-            self.focus_procedures.onThread(self.focus_procedures.StopConstantFocusing)
+            self.focus_procedures.onThread(self.focus_procedures.stop_constant_focusing)
             if ticket.self_guide:
-                self.guider.onThread(self.guider.StopGuiding)
-            return (img_count, ticket.num)
+                self.guider.onThread(self.guider.stop_guiding)
+            return img_count, ticket.num
         
         else:
             img_count = 0
             for i in range(len(ticket.filter)):
                 img_count_filter = self.take_images(ticket.name, ticket.num, ticket.exp_time,
-                                             [ticket.filter[i]], ticket.end_time, self.image_directory,
-                                             False)
+                                                    [ticket.filter[i]], ticket.end_time, self.image_directory,
+                                                    False)
                 img_count += img_count_filter
-            self.focus_procedures.onThread(self.focus_procedures.StopConstantFocusing)
+            self.focus_procedures.onThread(self.focus_procedures.stop_constant_focusing)
             if ticket.self_guide:
-                self.guider.onThread(self.guider.StopGuiding)
-            return (img_count, ticket.num*len(ticket.filter))
+                self.guider.onThread(self.guider.stop_guiding)
+            return img_count, ticket.num * len(ticket.filter)
 
-    def take_images(self, name, num, exp_time, filter, end_time, path, cycle_filter):
-        '''
+    def take_images(self, name, num, exp_time, _filter, end_time, path, cycle_filter):
+        """
         Parameters
         ----------
         name : STR
@@ -330,7 +345,7 @@ class ObservationRun():
             Total number of exposures to be taken during the night.
         exp_time : INT
             The exposure time of each image.
-        filter : LIST, STR
+        _filter : LIST, STR
             The filters to be used during the night.
         end_time : datetime.datetime Object
             The end time of the observation session, set
@@ -340,15 +355,15 @@ class ObservationRun():
         cycle_filter : BOOL
             If True, camera will cycle filter after each exposre,
             if False, camera will cycle filter after num value has been reached.
-            
+
         Returns
         -------
         i : INT
             The number of images taken for the current ticket.
-        '''
-        num_filters = len(filter)
+        """
+        num_filters = len(_filter)
         image_num = 1
-        N = []
+        names_list = []
         image_base = {}
         i = 0
         while i < num:
@@ -357,23 +372,28 @@ class ObservationRun():
                 print("The observations end time of {} has passed.  "
                       "Stopping observation of {}.".format(end_time, name))
                 break
-            if not self.everything_ok(): break
-            current_filter = filter[i % num_filters]
+            if not self.everything_ok():
+                break
+            current_filter = _filter[i % num_filters]
             image_name = "{0:s}_{1:d}s_{2:s}-{3:04d}.fits".format(name, exp_time, current_filter, image_num)
             
-            if i == 0 and os.path.exists(os.path.join(path, image_name)):   #Checks if images already exist (in the event of a crash)
-                for f in filter:
-                    N = [0]    
+            if i == 0 and os.path.exists(os.path.join(path, image_name)):
+                # Checks if images already exist (in the event of a crash)
+                for f in _filter:
+                    names_list = [0]
                     for fname in os.listdir(path):
                         n = re.search('{0:s}_{1:d}s_{2:s}-(.+?).fits'.format(name, exp_time, f), fname)
-                        if n: N.append(int(n.group(1)))
-                    image_base[f] = max(N) + 1
+                        if n:
+                            names_list.append(int(n.group(1)))
+                    image_base[f] = max(names_list) + 1
                 
-                image_name = "{0:s}_{1:d}s_{2:s}-{3:04d}.fits".format(name, exp_time, current_filter, image_base[current_filter])
+                image_name = "{0:s}_{1:d}s_{2:s}-{3:04d}.fits".format(name, exp_time, current_filter,
+                                                                      image_base[current_filter])
                 
             self.camera.onThread(self.camera.expose, 
-                                 int(exp_time), self.filterwheel_dict[current_filter], os.path.join(path, image_name), "light")
-            self.camera.image_done.wait(timeout = exp_time*2 + 60)
+                                 int(exp_time), self.filterwheel_dict[current_filter],
+                                 os.path.join(path, image_name), "light")
+            self.camera.image_done.wait(timeout=exp_time*2 + 60)
             
             if self.crash_check('MaxIm_DL.exe'):
                 continue
@@ -381,20 +401,20 @@ class ObservationRun():
                 pass
             
             if cycle_filter:
-                if N:
-                    image_num = math.floor(image_base[filter[(i + 1) % num_filters]] + ((i + 1)/num_filters))
+                if names_list:
+                    image_num = math.floor(image_base[_filter[(i + 1) % num_filters]] + ((i + 1) / num_filters))
                 else:
                     image_num = math.floor(1 + ((i + 1)/num_filters))
             elif not cycle_filter:
-                if N:
-                    image_num = image_base[filter[(i + 1) % num_filters]] + (i + 1)
+                if names_list:
+                    image_num = image_base[_filter[(i + 1) % num_filters]] + (i + 1)
                 else:
                     image_num += 1
             i += 1
         return i
     
     def crash_check(self, program):
-        '''
+        """
         Description
         -----------
         Checks to see if any important programs are not responding, and if so,
@@ -411,7 +431,7 @@ class ObservationRun():
             True if the program is not responding and needs to be restarted, otherwise
             False.
 
-        '''
+        """
         cmd = 'tasklist /FI "IMAGENAME eq %s" /FI "STATUS eq running"' % program
         status = subprocess.Popen(cmd, stdout=subprocess.PIPE).stdout.read()
         responding = program in str(status)
@@ -423,9 +443,10 @@ class ObservationRun():
             logging.error('{} is not responding.  Restarting...'.format(program))
             time.sleep(5)
             prog_dict[program][0].crashed.clear()
-            subprocess.call('taskkill /f /im {}'.format(program))                      #TODO: Maybe add check if os = windows?
+            subprocess.call('taskkill /f /im {}'.format(program))        # TODO: Maybe add check if os = windows?
             time.sleep(5)
-            prog_dict[program][0] = prog_dict[program][1]()                             #TODO: Restart FocusProcedures & Guider too if cam/focus/telescope crashes
+            prog_dict[program][0] = prog_dict[program][1]()
+            # TODO: Restart FocusProcedures & Guider too if cam/focus/telescope crashes
             prog_dict[program][0].start()
             time.sleep(5)
             if program in ('MaxIm_DL.exe', 'RoboFocus.exe'):
@@ -433,16 +454,16 @@ class ObservationRun():
                 self.focus_procedures = FocusProcedures(self.focuser, self.camera)
                 self.focus_procedures.start()
                 time.sleep(5)
-                self.focus_procedures.onThread(self.focus_procedures.ConstantFocusProcedure, self.image_directory)
+                self.focus_procedures.onThread(self.focus_procedures.constant_focus_procedure, self.image_directory)
             return True
         else:
             return False
         
     def take_calibration_images(self, beginning=False):
-        '''
+        """
         Description
         -----------
-        Takes flats and darks for the current observation ticket and 
+        Takes flats and darks for the current observation ticket and
         any previous ones.
 
         Parameters
@@ -454,7 +475,7 @@ class ObservationRun():
         -------
         None.
 
-        '''
+        """
         if not beginning:
             self.telescope.slew_done.wait()
             self.dome.move_done.wait()
@@ -467,11 +488,11 @@ class ObservationRun():
             self.calibration.onThread(self.calibration.take_darks, self.observation_request_list[i])
             self.calibration.darks_done.wait()
             self.calibrated_tickets[i] = 1
-            if self.current_ticket == self.observation_request_list[i] and beginning == False:
+            if self.current_ticket == self.observation_request_list[i] and beginning is False:
                 break
     
     def shutdown(self, calibration=False):
-        '''
+        """
         Description
         -----------
         Decides whether or not to shut down, and whether or not to take calibration images.
@@ -485,7 +506,7 @@ class ObservationRun():
         -------
         None.
 
-        '''
+        """
         if self.shutdown_toggle or self.conditions.weather_alert.isSet():
             self._shutdown_procedure(calibration=calibration)
             self.stop_threads()
@@ -493,7 +514,7 @@ class ObservationRun():
             pass
         
     def stop_threads(self):
-        '''
+        """
         Description
         -----------
         Stops all of the hardware threads.
@@ -502,7 +523,7 @@ class ObservationRun():
         -------
         None.
 
-        '''
+        """
         self.camera.onThread(self.camera.disconnect)
         self.telescope.onThread(self.telescope.disconnect)
         self.dome.onThread(self.dome.disconnect)
@@ -519,30 +540,30 @@ class ObservationRun():
         self.flatlamp.onThread(self.flatlamp.stop)
     
     def _shutdown_procedure(self, calibration):
-        '''
+        """
         Description
         ----------
         Safely shuts down the telescope, camera, and dome
-        
+
         Parameters
         ----------
         calibration : BOOL
             Whether or not to take calibration images at the end
-        
+
         Returns
         -------
         None.
-        '''
+        """
         print("Shutting down observatory.")
-        self.dome.onThread(self.dome.SlaveDometoScope, False)
-        self.telescope.onThread(self.telescope.Park)
-        self.dome.onThread(self.dome.Park)
-        self.dome.onThread(self.dome.MoveShutter, 'close')
+        self.dome.onThread(self.dome.slave_dome_to_scope, False)
+        self.telescope.onThread(self.telescope.park)
+        self.dome.onThread(self.dome.park)
+        self.dome.onThread(self.dome.move_shutter, 'close')
         if calibration:
             print('Taking flats and darks...')
             self.take_calibration_images()
         
-        self.camera.onThread(self.camera.coolerSet, False)
+        self.camera.onThread(self.camera.cooler_set, False)
         self.telescope.slew_done.wait()
         self.dome.move_done.wait()
         self.dome.shutter_done.wait()

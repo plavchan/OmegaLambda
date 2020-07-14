@@ -1,4 +1,4 @@
-#Logging module
+# Logging module
 import logging
 import logging.config
 import logging.handlers
@@ -6,10 +6,11 @@ import logging.handlers
 from ..main.common.IO.json_reader import Reader
 from ..main.common.datatype.object_reader import ObjectReader
 
-class Logger():
-    
+
+class Logger:
+
     def __init__(self, config):
-        '''
+        """
         Description
         -----------
         Creates logging console and file configurations based on config json file
@@ -18,28 +19,29 @@ class Logger():
         -------
         None.
 
-        '''
+        """
         self.logger_config = ObjectReader(Reader(config))
         logging.config.dictConfig(self.logger_config.ticket)
-        
+
         self.start()
-        
-    def start(self):
-        '''
+
+    @staticmethod
+    def start():
+        """
         Description
         -----------
-        Starts the logger module.
-        
+        States that the logger module has been started.
+
         Returns
         -------
         None.
 
-        '''
+        """
         logging.info('Initialized logging module')
-        
+
     @staticmethod
     def stop():
-        '''
+        """
         Description
         -----------
         Stops the logger module.
@@ -48,6 +50,5 @@ class Logger():
         -------
         None.
 
-        '''
+        """
         logging.shutdown()
-        

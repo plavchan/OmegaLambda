@@ -9,71 +9,77 @@ from ..common.IO import config_reader
 from ..common.datatype.object_reader import ObjectReader
 
 
-def run(obs_tickets, data=None, config=None, filter=None, logger=None, shutdown=None):
-    '''
+def run(obs_tickets, data=None, config=None, _filter=None, logger=None, shutdown=None):
+    """
 
     Parameters
     ----------
     obs_tickets : LIST
-        OS filepath to where each observation ticket is stored, or a single path to the directory of observation tickets.
-        Can be anywhere that is accessible.
+        OS filepath to where each observation ticket is stored, or a single path to the directory of observation
+        tickets. Can be anywhere that is accessible.
     data : STR, optional
-        Manual save path for data files if you would prefer a manual path rather than the automatic method. The default is None,
-        in which case the data path will be created automatically based on the data_directory parameter in the config file.
+        Manual save path for data files if you would prefer a manual path rather than the automatic method. The default
+        is None, in which case the data path will be created automatically based on the data_directory parameter in the
+        config file.
     config : STR, optional
-        Manual save path for the general configuration json file.  The default is None, in which case the config path will be the
-        default for this code, under -omegalambda/config.
-    filter : STR, optional
-        Manual save path for the filter wheel configuration json file.  The default is None, in which case the filter wheel path will
-        be the default for this code, under -omegalambda/config.
+        Manual save path for the general configuration json file.  The default is None, in which case the config path
+        will be the default for this code, under -omegalambda/config.
+    _filter : STR, optional
+        Manual save path for the filter wheel configuration json file.  The default is None, in which case the filter
+        wheel path will be the default for this code, under -omegalambda/config.
     logger : STR, optional
-        Manual save path for the logging configuration file.  The default is None, in which case the logging path will be the default
-        for this code, under -omegalambda/config.
+        Manual save path for the logging configuration file.  The default is None, in which case the logging path will
+        be the default for this code, under -omegalambda/config.
     shutdown : BOOL, optional
-        Toggle to shut down the observatory after running tickets.  The default in None, in which case True will be passed in via argparse,
-        so the observatory will shut down.
+        Toggle to shut down the observatory after running tickets.  The default in None, in which case True will be
+        passed in via argparse, so the observatory will shut down.
 
     Returns
     -------
     None.
 
-    '''
+    """
     current_path = os.path.abspath(os.path.dirname(__file__))
-   # Gets the current filepath for this driver.py file, to use for automatically finding the config files
+    # Gets the current filepath for this driver.py file, to use for automatically finding the config files
     
     if logger:
         log_object = Logger(logger)
     else:
-        path = os.path.abspath( os.path.join(current_path, r'../../config/logging.json'))
+        path = os.path.abspath(os.path.join(current_path, r'../../config/logging.json'))
         log_object = Logger(path)
-    # I believe this is the only spot where we actually want to instantiate a logger object--everywhere else we can just add messages
+    # I believe this is the only spot where we actually want to instantiate a logger object
+    # everywhere else we can just add messages
     
     try:
         if config:
             global_config = ObjectReader(Reader(config))
         else:
             global_config = ObjectReader(Reader(
-                os.path.abspath( os.path.join(current_path, r'../../config/parameters_config.json') )))
-    except: logging.critical('Could not read or parse config file')
+                os.path.abspath(os.path.join(current_path, r'../../config/parameters_config.json'))))
+    except:
+        logging.critical('Could not read or parse config file')
 
     try: 
-        if filter:
-            global_filter = ObjectReader(Reader(filter))
+        if _filter:
+            global_filter = ObjectReader(Reader(_filter))
         else:
             global_filter = ObjectReader(Reader(
-                os.path.abspath( os.path.join(current_path, r'../../config/fw_config.json') )))
-    except: logging.critical('Error initializing global filter object')
+                os.path.abspath(os.path.join(current_path, r'../../config/fw_config.json'))))
+    except:
+        logging.critical('Error initializing global filter object')
     
     config_dict = config_reader.get_config()
-    
+    folder = None
     try:
         if data:
             folder = r'{}'.format(data)     # Reads as a raw string
         else:
             folder = os.path.join(config_dict.data_directory, datetime.datetime.now().strftime('%Y%m%d'))
         os.mkdir(folder)
-    except: logging.warning('Could not create directory, or directory already exists')
-    else: print('New directory for tonight\'s observing has been made!')
+    except:
+        logging.warning('Could not create directory, or directory already exists')
+    else:
+        print('New directory for tonight\'s observing has been made!')
     
     observation_request_list = []
     if os.path.isfile(obs_tickets[0]):
@@ -93,9 +99,10 @@ def run(obs_tickets, data=None, config=None, filter=None, logger=None, shutdown=
     run_object.observe()
     
     log_object.stop()
-    
+
+
 def read_ticket(ticket):
-    '''
+    """
 
     Parameters
     ----------
@@ -107,22 +114,27 @@ def read_ticket(ticket):
     CLASS INSTANCE OBJECT of ObservationTicket
         Observation Ticket object to be read by observation_run.py.
 
-    '''
+    """
     if not os.path.isfile(ticket):
         logging.critical('Invalid file path to obsevation ticket')
         return None
-    try: object_reader = ObjectReader(Reader(ticket))
-    except: logging.critical('Error reading observation ticket')
-    else: print('Observation ticket has been read')
+    try:
+        object_reader = ObjectReader(Reader(ticket))
+    except:
+        logging.critical('Error reading observation ticket')
+        return
+    else:
+        print('Observation ticket has been read')
     
     if check_ticket(object_reader.ticket):
         return object_reader.ticket
     else:
         logging.critical('Observation ticket formatting error')
         return None
-    
+
+
 def check_ticket(ticket):
-    '''
+    """
     Description
     -----------
     Sanity check for the finalized observation ticket.  Makes sure everything is the right type and
@@ -138,7 +150,7 @@ def check_ticket(ticket):
     BOOL
         True if the ticket looks good, False otherwise.
 
-    '''
+    """
     if type(ticket.name) is not str:
         print('Error reading ticket: name not a string...')
         return False
@@ -186,9 +198,10 @@ def check_ticket(ticket):
         return False
     else:
         return True
-    
+
+
 def start_time(ticket_object):
-    '''
+    """
 
     Parameters
     ----------
@@ -200,6 +213,5 @@ def start_time(ticket_object):
     DATETIME.DATETIME
         Datetime object for the ticket's start time.  Used to sort the tickets by start time.
 
-    '''
+    """
     return ticket_object.start_time
-    

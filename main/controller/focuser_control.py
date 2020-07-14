@@ -3,22 +3,24 @@ import threading
 
 from .hardware import Hardware
 
+
 class Focuser(Hardware):
     
     def __init__(self):
-        '''
+        """
         Initializes the focuser as a subclass of hardware.
 
         Returns
         -------
         None.
 
-        '''
+        """
         self.adjusting = threading.Event()
-        super(Focuser, self).__init__(name='Focuser')                 #calls Hardware.__init__ with the name 'focuser'
+        self.position = None
+        super(Focuser, self).__init__(name='Focuser')      # calls Hardware.__init__ with the name 'focuser'
         
-    def setFocusDelta(self, amount):
-        '''
+    def set_focus_delta(self, amount):
+        """
 
         Parameters
         ----------
@@ -29,12 +31,12 @@ class Focuser(Hardware):
         -------
         None.
 
-        '''
+        """
         self.Focuser.setDelta(int(amount))
         logging.debug('Focuser delta changed')
         
     def current_position(self):
-        '''
+        """
         Description
         -----------
         Sets a property equal to the current position of the focuser.
@@ -44,11 +46,11 @@ class Focuser(Hardware):
         -------
         None
 
-        '''
+        """
         self.position = self.Focuser.getPosition()
 
-    def focusAdjust(self, direction, amount=None):
-        '''
+    def focus_adjust(self, direction, amount=None):
+        """
 
         Parameters
         ----------
@@ -62,10 +64,10 @@ class Focuser(Hardware):
         -------
         None.
 
-        '''
+        """
         self.adjusting.clear()
-        if amount != None:
-            self.setFocusDelta(amount)
+        if amount is not None:
+            self.set_focus_delta(amount)
         if direction == "in":
             self.Focuser.actIn()
             logging.info('Focuser moved in')
@@ -76,8 +78,8 @@ class Focuser(Hardware):
             logging.error('Invalid focus move direction')
         self.adjusting.set()
             
-    def AbsoluteMove(self, position):
-        '''
+    def absolute_move(self, position):
+        """
 
         Parameters
         ----------
@@ -88,11 +90,11 @@ class Focuser(Hardware):
         -------
         None.
 
-        '''
+        """
         self.Focuser.actGoToPosition(int(position))
         
-    def AbortFocusMove(self):
-        '''
+    def abort_focus_move(self):
+        """
         Description
         -----------
         Stops any focuser movements that may be in progress.
@@ -101,11 +103,11 @@ class Focuser(Hardware):
         -------
         None.
 
-        '''
+        """
         self.Focuser.actStop()
         
     def disconnect(self):
-        '''
+        """
         Description
         -----------
         Disconnects from RoboFocus
@@ -114,7 +116,7 @@ class Focuser(Hardware):
         -------
         None.
 
-        '''
+        """
         self.Focuser.actCloseComm()
         self.live_connection.clear()
         

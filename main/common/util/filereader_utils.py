@@ -11,8 +11,9 @@ from scipy.optimize import curve_fit
 
 focus_star = None
 
-def MedianCounts(image_path):
-    '''
+
+def mediancounts(image_path):
+    """
     Parameters
     ----------
     image_path : STR
@@ -23,14 +24,14 @@ def MedianCounts(image_path):
     median : FLOAT
         Median counts of the specified image file.
 
-    '''
+    """
     image = fits.getdata(image_path)
-    mean, median, stdev = sigma_clipped_stats(image, sigma = 3)
+    mean, median, stdev = sigma_clipped_stats(image, sigma=3)
     return median
     
     
-def FindStars(path, saturation, subframe=None, return_data=False):
-    '''
+def findstars(path, saturation, subframe=None, return_data=False):
+    """
     Description
     -----------
     Finds the star centroids in an image
@@ -52,29 +53,31 @@ def FindStars(path, saturation, subframe=None, return_data=False):
     LIST
         List of stars, each star is a tuple with (x position, y position).
 
-    '''
+    """
     image = fits.getdata(path)
-    mean, median, stdev = sigma_clipped_stats(image, sigma = 3)
+    mean, median, stdev = sigma_clipped_stats(image, sigma=3)
     data = (image - median)**2
-    threshold = photutils.detect_threshold(image, nsigma = 5)
+    threshold = photutils.detect_threshold(image, nsigma=5)
     if not subframe:
-        starfound = photutils.find_peaks(data, threshold = threshold, box_size = 50, border_width = 250, centroid_func=photutils.centroids.centroid_com)
+        starfound = photutils.find_peaks(data, threshold=threshold, box_size=50, border_width=250,
+                                         centroid_func=photutils.centroids.centroid_com)
     else:
-        R = 250
+        r = 250
         x_cent = subframe[0]
         y_cent = subframe[1]
-        xmin = int(x_cent - R)
-        xmax = int(x_cent + R)
-        ymin = int(y_cent - R)
-        ymax = int(y_cent + R)
+        xmin = int(x_cent - r)
+        xmax = int(x_cent + r)
+        ymin = int(y_cent - r)
+        ymax = int(y_cent + r)
         data_subframe = data[ymin:ymax, xmin:xmax]
         image = image[ymin:ymax, xmin:xmax]
         threshold = threshold[ymin:ymax, xmin:xmax]
-        starfound = photutils.find_peaks(data_subframe, threshold = threshold, box_size = 50, border_width = 10, centroid_func=photutils.centroids.centroid_com)
+        starfound = photutils.find_peaks(data_subframe, threshold=threshold, box_size=50, border_width=10,
+                                         centroid_func=photutils.centroids.centroid_com)
     n = 0
     stars = []
     peaks = []
-    for row in starfound:
+    for _ in starfound:
         bad_pixel = False
         x_cent = starfound['x_peak'][n]
         y_cent = starfound['y_peak'][n]
@@ -95,11 +98,12 @@ def FindStars(path, saturation, subframe=None, return_data=False):
     if not return_data:
         return stars, peaks
     else:
-        return (stars, peaks, image - median, stdev)
-    
-def GaussianFit(x,a,x0,sigma):
-    '''
-    Guassian Fit Function
+        return stars, peaks, image - median, stdev
+
+
+def gaussianfit(x, a, x0, sigma):
+    """
+    Gaussian Fit Function
 
     Parameters
     ----------
@@ -117,11 +121,12 @@ def GaussianFit(x,a,x0,sigma):
     y
         Y value corresponding to input x value.
 
-    '''
+    """
     return a*np.exp(-(x-x0)**2/(2*sigma**2))
 
-def Radial_Average(path, saturation):
-    '''
+
+def radial_average(path, saturation):
+    """
     Description
     -----------
     Finds the median fwhm of an image.
@@ -138,18 +143,18 @@ def Radial_Average(path, saturation):
     median_fwhm : INT
         The median fwhm measurement of the stars in the fits image.
 
-    '''
+    """
     global focus_star
-    stars, peaks, data, stdev = FindStars(path, saturation, subframe=focus_star, return_data=True)
-    R = 30
-    fwhm_list = np.ndarray(0)
+    stars, peaks, data, stdev = findstars(path, saturation, subframe=focus_star, return_data=True)
+    r = 30
+    fwhm_list = np.ndarray((0,))
     a = 0
     for star in stars:
         x_cent = star[0]
         y_cent = star[1]
-        star = data[y_cent-R:y_cent+R, x_cent-R:x_cent+R]
-        starx, stary = np.indices((star.shape))
-        r = np.sqrt((stary - R)**2 + (starx - R)**2)
+        star = data[y_cent-r:y_cent+r, x_cent-r:x_cent+r]
+        starx, stary = np.indices(star.shape)
+        r = np.sqrt((stary - r)**2 + (starx - r)**2)
         r = r.astype(np.int)
 
         tbin = np.bincount(r.ravel(), star.ravel())
@@ -163,29 +168,30 @@ def Radial_Average(path, saturation):
             mean = np.mean(radialprofile)
             sigma = np.std(radialprofile)
             try:
-                popt, pcov = curve_fit(GaussianFit, f, radialprofile, p0=[1/(np.sqrt(2*np.pi)), mean, sigma])
+                popt, pcov = curve_fit(gaussianfit, f, radialprofile, p0=[1 / (np.sqrt(2 * np.pi)), mean, sigma])
                 g = np.linspace(0, len(radialprofile), 10*len(radialprofile))
-                function = GaussianFit(g, *popt)
+                function = gaussianfit(g, *popt)
             except:
                 logging.debug("Could not find a Gaussian Fit...skipping to the next star")
                 continue
             run = True
+            fwhm = None
             for x in range(len(g)):
-                if run == True:
+                if run:
                     if function[x] <= (1/2):
-                        FWHM = 2*g[x]
-                        fwhm_list = np.append(fwhm_list, FWHM)
+                        fwhm = 2*g[x]
+                        fwhm_list = np.append(fwhm_list, fwhm)
                         run = False
-                elif run == False:
+                elif not run:
                     break
                 
             if a < 1:
                 plt.plot(f, radialprofile, 'b+:', label='data')
-                plt.plot(f, GaussianFit(f, *popt), 'ro:', label='fit')
-                plt.plot([0, FWHM/2], [1/2, 1/2], 'g-.')
-                plt.plot([FWHM/2, FWHM/2], [0, 1/2], 'g-.', label='HWHM')
+                plt.plot(f, gaussianfit(f, *popt), 'ro:', label='fit')
+                plt.plot([0, fwhm/2], [1/2, 1/2], 'g-.')
+                plt.plot([fwhm/2, fwhm/2], [0, 1/2], 'g-.', label='HWHM')
                 plt.legend()
-                plt.xlabel('x position, HWHM = {}'.format(FWHM/2))
+                plt.xlabel('x position, HWHM = {}'.format(fwhm/2))
                 plt.ylabel('normalized counts')
                 plt.grid()
                 plt.savefig(r'C:/Users/GMU Observtory1/-omegalambda/test/GaussianPlot.png')

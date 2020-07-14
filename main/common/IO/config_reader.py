@@ -3,8 +3,9 @@ import logging
 
 _config = None
 
+
 def get_config():
-    '''
+    """
 
     Raises
     ------
@@ -18,7 +19,7 @@ def get_config():
         Based off of a dictionary generated from a .json config file.  Global object to be passed anywhere
         it is needed.
 
-    '''
+    """
     global _config
     if _config is None:
         logging.error('Global config object was called before being initialized')
@@ -27,13 +28,17 @@ def get_config():
         logging.debug('Global config object was called')
         return _config
 
-class Config():
+
+class Config:
     
-    def __init__(self, cooler_setpoint=None, cooler_idle_setpoint=None, cooler_settle_time=None, maximum_jog=None, site_latitude=None, 
-                 site_longitude=None, humidity_limit=None, wind_limit=None, weather_freq=None, cloud_cover_limit=None, min_reopen_time=None, plate_scale=None, saturation=None,
-                 focus_exposure_multiplier=None, initial_focus_delta=None, long_focus_tolerance=None, quick_focus_tolerance=None, focus_max_distance=None, 
-                 guiding_threshold=None, guider_ra_dampening=None, guider_dec_dampening=None, guider_max_move=None, data_directory=None, home_directory=None, calibration_time=None):
-        '''
+    def __init__(self, cooler_setpoint=None, cooler_idle_setpoint=None, cooler_settle_time=None, maximum_jog=None,
+                 site_latitude=None, site_longitude=None, humidity_limit=None, wind_limit=None, weather_freq=None,
+                 cloud_cover_limit=None, min_reopen_time=None, plate_scale=None, saturation=None,
+                 focus_exposure_multiplier=None, initial_focus_delta=None, long_focus_tolerance=None,
+                 quick_focus_tolerance=None, focus_max_distance=None, guiding_threshold=None, guider_ra_dampening=None,
+                 guider_dec_dampening=None, guider_max_move=None, data_directory=None, home_directory=None,
+                 calibration_time=None):
+        """
 
         Parameters
         ----------
@@ -60,22 +65,27 @@ class Config():
         min_reopen_time : INT or FLOAT, optional
             Minimum wait time to reopen (in minutes) after a weather check has gone off.  Our default is 30 minutes.
         plate_scale : FLOAT, optional
-            CCD camera conversion factor between pixels and arcseconds, in arcseconds/pixel.  Our default is 0.350 arcseconds/pixel.
+            CCD camera conversion factor between pixels and arcseconds, in arcseconds/pixel.  Our default is
+            0.350 arcseconds/pixel.
         saturation : INT, optional
-            CCD camera saturation limit for exposure in counts.  This is more like the exposure linearity limit, after which you'd prefer
-            not to have targets pass.  Our default is 20,000 counts.
+            CCD camera saturation limit for exposure in counts.  This is more like the exposure linearity limit, after
+            which you'd prefer not to have targets pass.  Our default is 20,000 counts.
         focus_exposure_multiplier : FLOAT, optional
-            Multiplier for exposure times on focusing images.  The multiplier is applied to the exposure time for the current ticket.  Our default is 0.5.
+            Multiplier for exposure times on focusing images.  The multiplier is applied to the exposure time for the
+            current ticket.  Our default is 0.5.
         initial_focus_delta : INT, optional
             Initial number of steps the focuser will move for each adjustment.  Our default is 10 steps.
         long_focus_tolerance : FLOAT, optional
-            Leniency for how close to get the focus within the minimum found during initial focusing, in arcseconds.  Our default is 1.0 arcsecond.
+            Leniency for how close to get the focus within the minimum found during initial focusing, in
+            arcseconds. Our default is 1.0 arcsecond.
         quick_focus_tolerance : FLOAT, optional
-            Leniency for how far to let the focus drift before correcting over the course of the night, in arcseconds.  Our default is 2.0 arcseconds.
+            Leniency for how far to let the focus drift before correcting over the course of the night, in
+            arcseconds. Our default is 2.0 arcseconds.
         focus_max_distance : INT, optional
             Maximum distance away from the initial focus position that the focuser can move.  Our default is 100 steps.
         guiding_threshold : FLOAT, optional
-            How far to let a star drift, in arcseconds, before making a guiding correction. Our default is 20 arcseconds.
+            How far to let a star drift, in arcseconds, before making a guiding correction. Our default is 20
+            arcseconds.
         guider_ra_dampening : FLOAT, optional
             Dampening coefficient for guider telescope corrections on the RA axis.  Our default is 0.75.
         guider_dec_dampening : FLOAT, optional
@@ -83,19 +93,21 @@ class Config():
         guider_max_move : FLOAT, optional
             The maximum distance in arcseconds that the guider can make adjustments for.  Our default is 100 arcseconds.
         data_directory : STR, optional
-            Where images and other data are saved on the computer.  Our default is H:/Observatory Files/Observing Sessions/2020_Data.
+            Where images and other data are saved on the computer.  Our default is
+            H:/Observatory Files/Observing Sessions/2020_Data.
         home_directory : STR, optional
             Where the home of our code base is.  Our default is C:/Users/GMU Observtory1/-omegalambda.
         calibration_time : STR, optional
-            If darks and flats should be taken at the start or end of a given observing session.  Can be str "start" or "end."  If "start", it will take darks
-            and flats for ALL observing tickets at the start of the night.  If "end", it will take darks and flats for all FINISHED tickets at the end of the night.
+            If darks and flats should be taken at the start or end of a given observing session.  Can be str "start"
+            or "end."  If "start", it will take darks and flats for ALL observing tickets at the start of the night.
+            If "end", it will take darks and flats for all FINISHED tickets at the end of the night.
             Our default is "end".
 
         Returns
         -------
         None.
 
-        '''
+        """
         self.cooler_setpoint = cooler_setpoint                      
         self.cooler_idle_setpoint = cooler_idle_setpoint            
         self.cooler_settle_time = cooler_settle_time                
@@ -111,9 +123,10 @@ class Config():
         self.saturation = saturation
         self.focus_exposure_multiplier = focus_exposure_multiplier
         self.initial_focus_delta = initial_focus_delta
-        self.long_focus_tolerance = long_focus_tolerance/self.plate_scale       # These two are converted back into pixels for use in the focuser module
+        self.long_focus_tolerance = long_focus_tolerance/self.plate_scale
         self.quick_focus_tolerance = quick_focus_tolerance/self.plate_scale
-        self.focus_max_distance = focus_max_distance     
+        # These two are converted back into pixels for use in the focuser module
+        self.focus_max_distance = focus_max_distance
         self.guiding_threshold = int(guiding_threshold/self.plate_scale)
         self.guider_ra_dampening = guider_ra_dampening
         self.guider_dec_dampening = guider_dec_dampening
@@ -124,7 +137,7 @@ class Config():
         
     @staticmethod
     def deserialized(text):
-        '''
+        """
 
         Parameters
         ----------
@@ -139,11 +152,11 @@ class Config():
             Global config class object to be used by any other process that needs it.  Once it has been created,
             it can be called repeatedly thereafter using get_config.
 
-        '''
+        """
         return json.loads(text, object_hook=_dict_to_config_object)
     
     def serialized(self):
-        '''
+        """
 
         Returns
         -------
@@ -151,15 +164,16 @@ class Config():
             A way to use the config class object as a traditional dictionary, rather than the self-properties
             defined in __init__.
 
-        '''
+        """
         return self.__dict__
-    
-def _dict_to_config_object(dict):
-    '''
+
+
+def _dict_to_config_object(dic):
+    """
 
     Parameters
     ----------
-    dict : DICT
+    dic : DICT
         A dictionary of our config file, generated using json.loads from deserialized.
 
     Returns
@@ -167,16 +181,20 @@ def _dict_to_config_object(dict):
     _config : CLASS INSTANCE OBJECT of Config
         Global config class object that is also returned by deserialized.
 
-    '''
+    """
     global _config
-    _config = Config(cooler_setpoint=dict['cooler_setpoint'], cooler_idle_setpoint=dict['cooler_idle_setpoint'],
-                     cooler_settle_time=dict['cooler_settle_time'], site_latitude=dict['site_latitude'], site_longitude=dict['site_longitude'], 
-                     maximum_jog=dict['maximum_jog'], humidity_limit=dict['humidity_limit'], wind_limit=dict['wind_limit'], weather_freq=dict['weather_freq'],
-                     cloud_cover_limit=dict['cloud_cover_limit'], min_reopen_time=dict['min_reopen_time'], plate_scale=dict['plate_scale'], saturation=dict['saturation'], 
-                     focus_exposure_multiplier=dict['focus_exposure_multiplier'], initial_focus_delta=dict['initial_focus_delta'], 
-                     long_focus_tolerance=dict['long_focus_tolerance'], quick_focus_tolerance=dict['quick_focus_tolerance'],
-                     focus_max_distance=dict['focus_max_distance'], guiding_threshold=dict['guiding_threshold'], guider_ra_dampening=dict['guider_ra_dampening'],
-                     guider_dec_dampening=dict['guider_dec_dampening'], guider_max_move=dict['guider_max_move'], data_directory=dict['data_directory'], 
-                     home_directory=dict['home_directory'], calibration_time=dict['calibration_time'])
+    _config = Config(cooler_setpoint=dic['cooler_setpoint'], cooler_idle_setpoint=dic['cooler_idle_setpoint'],
+                     cooler_settle_time=dic['cooler_settle_time'], site_latitude=dic['site_latitude'],
+                     site_longitude=dic['site_longitude'], maximum_jog=dic['maximum_jog'],
+                     humidity_limit=dic['humidity_limit'], wind_limit=dic['wind_limit'],
+                     weather_freq=dic['weather_freq'], cloud_cover_limit=dic['cloud_cover_limit'],
+                     min_reopen_time=dic['min_reopen_time'], plate_scale=dic['plate_scale'],
+                     saturation=dic['saturation'], focus_exposure_multiplier=dic['focus_exposure_multiplier'],
+                     initial_focus_delta=dic['initial_focus_delta'], long_focus_tolerance=dic['long_focus_tolerance'],
+                     quick_focus_tolerance=dic['quick_focus_tolerance'], focus_max_distance=dic['focus_max_distance'],
+                     guiding_threshold=dic['guiding_threshold'], guider_ra_dampening=dic['guider_ra_dampening'],
+                     guider_dec_dampening=dic['guider_dec_dampening'], guider_max_move=dic['guider_max_move'],
+                     data_directory=dic['data_directory'], home_directory=dic['home_directory'],
+                     calibration_time=dic['calibration_time'])
     logging.info('Global config object has been created')
     return _config

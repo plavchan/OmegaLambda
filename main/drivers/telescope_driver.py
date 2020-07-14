@@ -9,10 +9,10 @@ global_config_object = ObjectReader(Reader(r'C:\Users\GMU Observtory1\-omegalamb
 tel_obj = Telescope()
 
 tel_obj.start()
-tel_obj.onThread(tel_obj.Unpark)
+tel_obj.onThread(tel_obj.unpark)
 #tel_obj.Unpark()
-tel_obj.onThread(tel_obj.Slew, 4.5, -14.33)
-tel_obj.onThread(tel_obj.Park)
+tel_obj.onThread(tel_obj.slew, 4.5, -14.33)
+tel_obj.onThread(tel_obj.park)
 tel_obj.onThread(tel_obj.disconnect)
 tel_obj.onThread(tel_obj.stop)
 

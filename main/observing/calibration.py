@@ -8,10 +8,11 @@ from ..common.util import filereader_utils
 from ..common.datatype import filter_wheel
 from ..controller.hardware import Hardware
 
+
 class Calibration(Hardware):
     
     def __init__(self, camera_obj, flatlamp_obj, image_directory):
-        '''
+        """
         Initializes the calibration module as a subclass of hardware.
 
         Parameters
@@ -27,7 +28,7 @@ class Calibration(Hardware):
         -------
         None.
 
-        '''
+        """
         self.camera = camera_obj
         self.flatlamp = flatlamp_obj
         self.image_directory = image_directory
@@ -40,7 +41,7 @@ class Calibration(Hardware):
         super(Calibration, self).__init__(name='Calibration')
         
     def take_flats(self, ticket):
-        '''
+        """
         Description
         -----------
         Takes flatfield images for a target.
@@ -55,10 +56,10 @@ class Calibration(Hardware):
         bool
             True if successful, otherwise False.
 
-        '''
+        """
         self.flats_done.clear()
-        self.flatlamp.onThread(self.flatlamp.TurnOn)
-        lamp = self.flatlamp.lamp_done.wait(timeout = 60)
+        self.flatlamp.onThread(self.flatlamp.turn_on)
+        lamp = self.flatlamp.lamp_done.wait(timeout=60)
         if not lamp:
             return False
         filt = ticket.filter
@@ -66,17 +67,24 @@ class Calibration(Hardware):
             filters = [filt]
         elif type(filt) is list:
             filters = filt
-        try: os.mkdir(os.path.join(self.image_directory, 'Flats_{}'.format(ticket.name)))
-        except: logging.warning('Could not create flat folder, or folder already exists...')
+        else:
+            logging.error('Filter argument is wrong type')
+            return
+        try:
+            os.mkdir(os.path.join(self.image_directory, 'Flats_{}'.format(ticket.name)))
+        except:
+            logging.warning('Could not create flat folder, or folder already exists...')
         for f in filters:
             j = 0
             while j < 10:
                 image_name = 'Flat_{0:d}s_{1:s}-{2:04d}.fits'.format(self.filter_exp_times[f], f, j + 1)
                 self.camera.onThread(self.camera.expose, self.filter_exp_times[f], self.filterwheel_dict[f], 
-                                     save_path=os.path.join(self.image_directory, r'Flats_{}'.format(ticket.name), image_name), type='light')
+                                     save_path=os.path.join(self.image_directory, r'Flats_{}'.format(ticket.name),
+                                                            image_name), type='light')
                 self.camera.image_done.wait()
-                median = filereader_utils.MedianCounts(os.path.join(self.image_directory, r'Flats_{}'.format(ticket.name), image_name))
-                if median > (3*self.config_dict.saturation/4) and median < self.config_dict.saturation:
+                median = filereader_utils.mediancounts(os.path.join(
+                    self.image_directory, r'Flats_{}'.format(ticket.name), image_name))
+                if (3 * self.config_dict.saturation / 4) < median < self.config_dict.saturation:
                     j += 1
                 if f in ('b', 'uv', 'Ha'):
                     if median < (3*self.config_dict.saturation/4):
@@ -88,15 +96,15 @@ class Calibration(Hardware):
                         self.filter_exp_times[f] += 2
                     elif median > self.config_dict.saturation:
                         self.filter_exp_times[f] -= 2
-        self.flatlamp.onThread(self.flatlamp.TurnOff)
-        lamp = self.flatlamp.lamp_done.wait(timeout = 60)
+        self.flatlamp.onThread(self.flatlamp.turn_off)
+        lamp = self.flatlamp.lamp_done.wait(timeout=60)
         if not lamp:
             return False
         self.flats_done.set()
         return True
         
     def take_darks(self, ticket):
-        '''
+        """
         Description
         -----------
         Takes dark images for a target.
@@ -111,27 +119,34 @@ class Calibration(Hardware):
         bool
             True if successful, otherwise False.
 
-        '''
+        """
         self.darks_done.clear()
         filt = ticket.filter
         if type(filt) is str:
             filters = [filt]
         elif type(filt) is list:
             filters = filt
-        try: os.mkdir(os.path.join(self.image_directory, 'Darks_{}'.format(ticket.name)))
-        except: logging.warning('Could not create dark folder, or folder already exists...')
+        else:
+            logging.error('Filter argument is wrong type')
+            return
+        try:
+            os.mkdir(os.path.join(self.image_directory, 'Darks_{}'.format(ticket.name)))
+        except:
+            logging.warning('Could not create dark folder, or folder already exists...')
         check = True
         for f in filters:
             for j in range(10):
                 image_name = 'Dark_{0:d}s-{1:04d}.fits'.format(self.filter_exp_times[f], j + 1)
-                self.camera.onThread(self.camera.expose, self.filter_exp_times[f], self.filterwheel_dict[f],
-                                     save_path=os.path.join(self.image_directory, r'Darks_{}'.format(ticket.name), image_name), type='dark')
+                self.camera.onThread(self.camera.expose, self.filter_exp_times[f], 0,
+                                     save_path=os.path.join(self.image_directory, r'Darks_{}'.format(ticket.name),
+                                                            image_name), type='dark')
             if self.filter_exp_times[f] == ticket.exp_time:
                 check = False
         if check:
             for k in range(10):
                 image_name = 'Dark_{0:d}s-{1:04d}.fits'.format(ticket.exp_time, k + 1)
-                self.camera.onThread(self.camera.expose, ticket.exp_time, self.filterwheel_dict[f],
-                                     save_path=os.path.join(self.image_directory, r'Darks_{}'.format(ticket.name), image_name), type='dark')
+                self.camera.onThread(self.camera.expose, ticket.exp_time, 0,
+                                     save_path=os.path.join(self.image_directory, r'Darks_{}'.format(ticket.name),
+                                                            image_name), type='dark')
         self.darks_done.set()
         return True

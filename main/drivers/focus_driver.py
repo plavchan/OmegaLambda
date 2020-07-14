@@ -20,7 +20,7 @@ fp.start()
 try: os.mkdir(os.path.join(config_dict.data_directory, r'20200629'))
 except: pass
 
-fp.onThread(fp.StartupFocusProcedure, int(config_dict.focus_exposure_multiplier*10), 4,
+fp.onThread(fp.startup_focus_procedure, int(config_dict.focus_exposure_multiplier * 10), 4,
             config_dict.initial_focus_delta, os.path.join(config_dict.data_directory, r'20200629'),
             config_dict.long_focus_tolerance, config_dict.focus_max_distance)
 
