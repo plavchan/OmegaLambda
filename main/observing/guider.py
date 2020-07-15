@@ -117,12 +117,12 @@ class Guider(Hardware):
         self.camera.image_done.wait()
         newest_image = self.find_newest_image(image_path)
         star = self.find_guide_star(newest_image)
-        x_0 = star[0]
-        y_0 = star[1]
+        x_initial = star[0]
+        y_initial = star[1]
         while self.guiding.isSet():
             self.camera.image_done.wait()
             newest_image = self.find_newest_image(image_path)
-            star = self.find_guide_star(newest_image, subframe=(x_0, y_0))
+            star = self.find_guide_star(newest_image, subframe=(x_initial, y_initial))
             x_0 = 250
             y_0 = 250
             x = star[0]
@@ -143,8 +143,8 @@ class Guider(Hardware):
                     logging.warning('Guide star has moved substantially between images...If the telescope did not move '
                                     'suddenly, the guide star most likely has become saturated and the guider has '
                                     'picked a new star.')
-                    x_0 = x
-                    y_0 = y
+                    x_initial += (x - x_0)
+                    y_initial += (y - y_0)
                 elif jog_distance < self.config_dict.guider_max_move:
                     logging.debug('Guider is making an adjustment in RA')
                     self.telescope.onThread(self.telescope.jog, direction, jog_distance)
@@ -165,8 +165,8 @@ class Guider(Hardware):
                     logging.warning('Guide star has moved substantially between images...If the telescope did not move '
                                     'suddenly, the guide star most likely has become saturated and the guider has '
                                     'picked a new star.')
-                    x_0 = x
-                    y_0 = y
+                    x_initial += (x - x_0)
+                    y_initial += (y - y_0)
                 elif jog_distance < self.config_dict.guider_max_move:
                     logging.debug('Guider is making an adjustment in Dec')
                     self.telescope.onThread(self.telescope.jog, direction, jog_distance)
