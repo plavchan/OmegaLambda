@@ -146,19 +146,19 @@ def radial_average(path, saturation):
     """
     global focus_star
     stars, peaks, data, stdev = findstars(path, saturation, subframe=focus_star, return_data=True)
-    r = 30
+    r_ = 30
     fwhm_list = np.ndarray((0,))
     a = 0
     for star in stars:
         x_cent = star[0]
         y_cent = star[1]
-        ymin = int(y_cent-r)
-        ymax = int(y_cent+r)
-        xmin = int(x_cent-r)
-        xmax = int(x_cent+r)
+        ymin = int(y_cent-r_)
+        ymax = int(y_cent+r_)
+        xmin = int(x_cent-r_)
+        xmax = int(x_cent+r_)
         star = data[ymin:ymax, xmin:xmax]
         starx, stary = np.indices(star.shape)
-        r = np.sqrt((stary - r)**2 + (starx - r)**2)
+        r = np.sqrt((stary - r_)**2 + (starx - r_)**2)
         r = r.astype(np.int)
 
         tbin = np.bincount(r.ravel(), star.ravel())
