@@ -121,6 +121,7 @@ class FocusProcedures(Hardware):
                 self.focuser.adjusting.wait()
                 i += 1
                 fwhm_values.append(fwhm)
+                focus_positions.append(current_position)
                 continue
             elif fwhm <= last_fwhm:
                 # Better FWHM -- Keep going
