@@ -39,7 +39,8 @@ class Guider(Hardware):
         """
         Description
         -----------
-        Finds the brightest unsaturated star in an image to be used as a guiding star.
+        Finds the brightest unsaturated star in an image to be used as a guiding star.  If there is a subframe, it
+        will instead try to find the star closest to the center of the subframe.
 
         Parameters
         ----------
@@ -51,7 +52,7 @@ class Guider(Hardware):
 
         Returns
         -------
-        brightest_unsaturated_star : TUPLE
+        guider_star : TUPLE
             Tuple with x-coordinate and y-coordinate of the star in the image.
 
         """
