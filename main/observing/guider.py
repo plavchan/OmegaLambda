@@ -127,6 +127,7 @@ class Guider(Hardware):
             y_0 = 250
             x = star[0]
             y = star[1]
+            logging.debug('Guide star relative coordinates: x={}, y={}'.format(x, y))
             if abs(x - x_0) >= self.config_dict.guiding_threshold:
                 xdistance = x - x_0
                 direction = None

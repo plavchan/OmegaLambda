@@ -79,7 +79,7 @@ class FocusProcedures(Hardware):
         last_fwhm = None
         fwhm_values = []
         focus_positions = []
-        while True:
+        while i < 10:
             if self.camera.crashed.isSet() or self.focuser.crashed.isSet():
                 logging.error('The camera or focuser has crashed...focus procedures cannot continue.')
                 break
@@ -120,6 +120,7 @@ class FocusProcedures(Hardware):
                 self.focuser.onThread(self.focuser.focus_adjust, last)
                 self.focuser.adjusting.wait()
                 i += 1
+                fwhm_values.append(fwhm)
                 continue
             elif fwhm <= last_fwhm:
                 # Better FWHM -- Keep going
@@ -138,6 +139,7 @@ class FocusProcedures(Hardware):
                     self.focuser.adjusting.wait()
                     last = "in"
             last_fwhm = fwhm
+            logging.debug('Found fwhm={} for the last image'.format(fwhm))
             fwhm_values.append(fwhm)
             focus_positions.append(current_position)
             i += 1
@@ -160,7 +162,12 @@ class FocusProcedures(Hardware):
         minfocus = np.round(xfit[minindex])
         logging.info('Autofocus achieved a FWHM of {} pixels!'.format(fwhm))
         logging.info('The theoretical minimum focus was calculated to be at position {}'.format(minfocus))
-        
+        if abs(initial_position - minfocus) <= self.config_dict.focus_max_distance:
+            self.focuser.onThread(self.focuser.absolute_move, minfocus)
+        else:
+            logging.info('Calculated minimum focus is out of range of the focuser movement restrictions. '
+                         'This is probably due to an error in the calculations.')
+
         self.focused.set()
         self.FWHM = fwhm
     

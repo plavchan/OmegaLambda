@@ -2,7 +2,7 @@
 import logging
 import statistics
 import numpy as np
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 import photutils
 from astropy.io import fits
@@ -148,7 +148,7 @@ def radial_average(path, saturation):
     stars, peaks, data, stdev = findstars(path, saturation, subframe=focus_star, return_data=True)
     r_ = 30
     fwhm_list = np.ndarray((0,))
-    a = 0
+    # a = 0
     for star in stars:
         x_cent = star[0]
         y_cent = star[1]
@@ -189,17 +189,17 @@ def radial_average(path, saturation):
                 elif not run:
                     break
                 
-            if a < 1:
-                plt.plot(f, radialprofile, 'b+:', label='data')
-                plt.plot(f, gaussianfit(f, *popt), 'ro:', label='fit')
-                plt.plot([0, fwhm/2], [1/2, 1/2], 'g-.')
-                plt.plot([fwhm/2, fwhm/2], [0, 1/2], 'g-.', label='HWHM')
-                plt.legend()
-                plt.xlabel('x position, HWHM = {}'.format(fwhm/2))
-                plt.ylabel('normalized counts')
-                plt.grid()
-                plt.savefig(r'C:/Users/GMU Observtory1/-omegalambda/test/GaussianPlot.png')
-                a += 1
+            # if a < 1:
+            #     plt.plot(f, radialprofile, 'b+:', label='data')
+            #     plt.plot(f, gaussianfit(f, *popt), 'ro:', label='fit')
+            #     plt.plot([0, fwhm/2], [1/2, 1/2], 'g-.')
+            #     plt.plot([fwhm/2, fwhm/2], [0, 1/2], 'g-.', label='HWHM')
+            #     plt.legend()
+            #     plt.xlabel('x position, HWHM = {}'.format(fwhm/2))
+            #     plt.ylabel('normalized counts')
+            #     plt.grid()
+            #     plt.savefig(r'C:/Users/GMU Observtory1/-omegalambda/test/GaussianPlot.png')
+            #     a += 1
     
     fwhm_list = [i for i in fwhm_list if i > 3]
     if fwhm_list:
