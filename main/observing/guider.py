@@ -123,6 +123,8 @@ class Guider(Hardware):
             self.camera.image_done.wait()
             newest_image = self.find_newest_image(image_path)
             star = self.find_guide_star(newest_image, subframe=(x_0, y_0))
+            x_0 = 250
+            y_0 = 250
             x = star[0]
             y = star[1]
             if abs(x - x_0) >= self.config_dict.guiding_threshold:

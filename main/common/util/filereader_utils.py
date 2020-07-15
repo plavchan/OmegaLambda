@@ -208,15 +208,15 @@ def radial_average(path, saturation):
         print('No fwhm calculations can be made from the image')
         return None
     
-    i = 0
-    j = 0
-    while i < len(stars) - j:
-        if peaks[i] >= saturation:
-            peaks.pop(i)
-            stars.pop(i)
-            j += 1
-        i += 1
-    maxindex = peaks.index(max(peaks))
-    focus_star = stars[maxindex]
+    # i = 0
+    # j = 0
+    # while i < len(stars) - j:
+    #     if peaks[i] >= saturation:
+    #         peaks.pop(i)
+    #         stars.pop(i)
+    #         j += 1
+    #     i += 1
+    # maxindex = peaks.index(max(peaks))
+    # focus_star = stars[maxindex]
     
     return fwhm_med

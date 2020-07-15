@@ -76,6 +76,7 @@ class FocusProcedures(Hardware):
         fwhm = None
         i = 0
         j = 0
+        last_fwhm = None
         fwhm_values = []
         focus_positions = []
         while True:
@@ -113,20 +114,21 @@ class FocusProcedures(Hardware):
                 self.focuser.adjusting.wait()
                 last = "in"
             
-            elif abs(fwhm - fwhm_values[i - 1]) <= 3:
-                # Focus noise control -- If less than 3 pixels different (about 1"), it will keep moving in
-                # that direction and check again vs. the previous last_FWHM
+            elif abs(fwhm - last_fwhm) <= 1:
+                # Focus noise control -- If less than 1 pixel different (about 0.35"), it will keep moving in
+                # that direction and check again vs. the previous last_fwhm
                 self.focuser.onThread(self.focuser.focus_adjust, last)
                 self.focuser.adjusting.wait()
                 i += 1
-            elif fwhm <= fwhm_values[i - 1]:
+                continue
+            elif fwhm <= last_fwhm:
                 # Better FWHM -- Keep going
                 self.focuser.onThread(self.focuser.focus_adjust, last)
                 self.focuser.adjusting.wait()
-            elif fwhm > fwhm_values[i - 1]:
+            elif fwhm > last_fwhm:
                 # Worse FWHM -- Switch directions
                 if i > 1:
-                    minimum = fwhm_values[i - 1]
+                    minimum = last_fwhm
                 if last == "in":
                     self.focuser.onThread(self.focuser.focus_adjust, "out")
                     self.focuser.adjusting.wait()
@@ -135,6 +137,7 @@ class FocusProcedures(Hardware):
                     self.focuser.onThread(self.focuser.focus_adjust, "in")
                     self.focuser.adjusting.wait()
                     last = "in"
+            last_fwhm = fwhm
             fwhm_values.append(fwhm)
             focus_positions.append(current_position)
             i += 1
@@ -194,6 +197,8 @@ class FocusProcedures(Hardware):
                     continue
             newest_image = max(paths, key=os.path.getctime)
             fwhm = filereader_utils.radial_average(newest_image, self.config_dict.saturation)
+            if not self.FWHM:
+                self.FWHM = fwhm
             if abs(fwhm - self.FWHM) >= self.config_dict.quick_focus_tolerance:
                 self.focuser.onThread(self.focuser.focus_adjust, move)
                 self.focuser.adjusting.wait()
