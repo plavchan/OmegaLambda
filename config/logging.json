@@ -21,8 +21,8 @@
 			"filename": "C:\\Users\\GMU Observtory1\\-omegalambda\\logger\\omegalambda_log.log",
 			"formatter": "detailed",
 			"level": "DEBUG",
-			"maxBytes": 10485760,
-			"backupCount": 10
+			"maxBytes": 10000000,
+			"backupCount": 9
 			}
 		},
 	"root": {
