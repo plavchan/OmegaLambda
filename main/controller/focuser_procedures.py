@@ -93,6 +93,9 @@ class FocusProcedures(Hardware):
             if abs(current_position - initial_position) >= self.config_dict.focus_max_distance:
                 logging.error('Focuser has stepped too far away from initial position and could not find a focus.')
                 break
+            if fwhm is None:
+                logging.warning('No fwhm could be calculated...trying again')
+                continue
             if minimum is not None and abs(fwhm - minimum) < self.config_dict.long_focus_tolerance:
                 break
             if not fwhm:

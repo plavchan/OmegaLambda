@@ -202,7 +202,11 @@ def radial_average(path, saturation):
                 a += 1
     
     fwhm_list = [i for i in fwhm_list if i > 3]
-    fwhm_med = statistics.median(fwhm_list)
+    if fwhm_list:
+        fwhm_med = statistics.median(fwhm_list)
+    else:
+        print('No fwhm calculations can be made from the image')
+        return None
     
     i = 0
     j = 0
