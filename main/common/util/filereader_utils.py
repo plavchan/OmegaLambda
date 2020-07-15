@@ -152,7 +152,11 @@ def radial_average(path, saturation):
     for star in stars:
         x_cent = star[0]
         y_cent = star[1]
-        star = data[y_cent-r:y_cent+r, x_cent-r:x_cent+r]
+        ymin = int(y_cent-r)
+        ymax = int(y_cent+r)
+        xmin = int(x_cent-r)
+        xmax = int(x_cent+r)
+        star = data[ymin:ymax, xmin:xmax]
         starx, stary = np.indices(star.shape)
         r = np.sqrt((stary - r)**2 + (starx - r)**2)
         r = r.astype(np.int)
