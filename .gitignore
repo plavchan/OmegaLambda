@@ -7,6 +7,8 @@ resources/weather_status/*
 test/*
 !test/test.json
 !test/json_test_driver.py
+!test/guider_test_driver.py
+!test/focuser_test_driver.py
 logger/*.log
 logger/*.log.*
 observation_tickets/*

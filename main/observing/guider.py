@@ -1,6 +1,7 @@
 import threading
 import logging
 import os
+import numpy as np
 
 from ..controller.hardware import Hardware
 from ..common.IO import config_reader
@@ -31,7 +32,7 @@ class Guider(Hardware):
         self.telescope = telescope_obj
         self.config_dict = config_reader.get_config()
         self.guiding = threading.Event()
-        
+
         super(Guider, self).__init__(name='Guider')
                 
     def find_guide_star(self, path, subframe=None):
@@ -55,17 +56,33 @@ class Guider(Hardware):
 
         """
         stars, peaks = filereader_utils.findstars(path, self.config_dict.saturation, subframe=subframe)
-        i = 0
-        j = 0
-        while i < len(stars) - j:
-            if peaks[i] >= self.config_dict.saturation:
-                peaks.pop(i)
-                stars.pop(i)
-                j += 1
-            i += 1
-        maxindex = peaks.index(max(peaks))
-        brightest_unsaturated_star = stars[maxindex]
-        return brightest_unsaturated_star
+        if not subframe:
+            i = 0
+            j = 0
+            while i < len(stars) - j:
+                if peaks[i] >= self.config_dict.saturation:
+                    peaks.pop(i)
+                    stars.pop(i)
+                    j += 1
+                i += 1
+            if peaks:
+                maxindex = peaks.index(max(peaks))
+                guider_star = stars[maxindex]
+            else:
+                guider_star = None
+        else:
+            minsep = 1000
+            minstar = None
+            for star in stars:
+                distance = np.sqrt((star[0]-250)**2 + (star[1]-250)**2)
+                if distance < minsep:
+                    minsep = distance
+                    minstar = star
+            if minstar:
+                guider_star = minstar
+            else:
+                guider_star = None
+        return guider_star
 
     @staticmethod
     def find_newest_image(image_path):
@@ -120,9 +137,13 @@ class Guider(Hardware):
         x_initial = star[0]
         y_initial = star[1]
         while self.guiding.isSet():
+            moved = False
             self.camera.image_done.wait()
             newest_image = self.find_newest_image(image_path)
             star = self.find_guide_star(newest_image, subframe=(x_initial, y_initial))
+            if not star:
+                logging.warning('Guider could not find a suitable guide star...waiting for next image to try again.')
+                continue
             x_0 = 250
             y_0 = 250
             x = star[0]
@@ -150,6 +171,7 @@ class Guider(Hardware):
                     logging.debug('Guider is making an adjustment in RA')
                     self.telescope.onThread(self.telescope.jog, direction, jog_distance)
                     self.telescope.slew_done.wait()
+                    moved = True
             if abs(y - y_0) >= self.config_dict.guiding_threshold:
                 ydistance = y - y_0
                 direction = None
@@ -172,7 +194,10 @@ class Guider(Hardware):
                     logging.debug('Guider is making an adjustment in Dec')
                     self.telescope.onThread(self.telescope.jog, direction, jog_distance)
                     self.telescope.slew_done.wait()
-                
+                    moved = True
+            if moved:
+                self.camera.image_done.wait()
+
     def stop_guiding(self):
         """
         Description
