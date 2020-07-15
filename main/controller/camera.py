@@ -132,18 +132,18 @@ class Camera(Hardware):
             self.disconnect()
             return False
 
-    def expose(self, exposure_time, _filter, save_path=None, _type="light"):
+    def expose(self, exposure_time, filter, save_path=None, type="light"):
         """
         Parameters
         ----------
         exposure_time : INT
             Exposure time of the image in seconds.
-        _filter : INT
+        filter : INT
             Which filter to expose in.
         save_path : STR, optional
             File path to where the image should be saved. The default is None, which will not
             save the image.
-        _type : STR, INT optional
+        type : STR, INT optional
             Image type to be taken. Posssible ARGS:
             "light", "dark", 1, 0. The default is "light".
 
@@ -154,16 +154,16 @@ class Camera(Hardware):
         while self.crashed.isSet():
             time.sleep(1)
         with self.exposing:
-            if _type == "light":
-                _type = 1
-            elif _type == "dark":
-                _type = 0
+            if type == "light":
+                type = 1
+            elif type == "dark":
+                type = 0
             else:
                 print("ERROR: Invalid exposure type.")
                 return
             logging.debug('Exposing image')
             self.Camera.SetFullFrame()
-            self.Camera.Expose(exposure_time, _type, _filter)
+            self.Camera.Expose(exposure_time, type, filter)
             check = self._image_ready()
             if save_path is None:
                 return

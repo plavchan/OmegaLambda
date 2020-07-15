@@ -22,7 +22,7 @@ class Telescope(Hardware):
         # Threading event sets flags and allows threads to interact with each other
         super(Telescope, self).__init__(name='Telescope')       # Calls Hardware.__init__ with the name 'Telescope'
         
-    def check_coordinate_limit(self, ra, dec, _time=None):
+    def check_coordinate_limit(self, ra, dec, time=None):
         """
 
         Parameters
@@ -31,7 +31,7 @@ class Telescope(Hardware):
             Target object's right ascension in hours.
         dec : FLOAT
             Target object's declination in degrees.
-        _time : CLASS INSTANCE OBJECT of DATETIME.DATETIME, optional
+        time : CLASS INSTANCE OBJECT of DATETIME.DATETIME, optional
             Time at which these coordinates will need to be converted to Altitude/Azimuth. The default is None,
             which will convert them for the current date/time.
 
@@ -43,7 +43,7 @@ class Telescope(Hardware):
 
         """
         (az, alt) = conversion_utils.convert_radec_to_altaz(ra, dec, self.config_dict.site_latitude,
-                                                            self.config_dict.site_longitude, _time)
+                                                            self.config_dict.site_longitude, time)
         logging.debug('Checking coordinates for telescope slew...')
         if alt <= 15 or dec > 90:
             logging.debug('Coordinates not good.  Aborting slew.')
@@ -237,7 +237,7 @@ class Telescope(Hardware):
                 self.slew(self.Telescope.RightAscension + distance, self.Telescope.Declination)
             logging.info('Telescope is jogging')
     
-    def slewaltaz(self, az, alt, _time=None, tracking=False):
+    def slewaltaz(self, az, alt, time=None, tracking=False):
         """
 
         Parameters
@@ -246,7 +246,7 @@ class Telescope(Hardware):
             Azimuth in degrees of the target to slew to.
         alt : FLOAT
             Altitude in degrees of the target to slew to.
-        _time : CLASS INSTANCE OBJECT of DATETIME.DATETIME, optional
+        time : CLASS INSTANCE OBJECT of DATETIME.DATETIME, optional
             The time for which the conversion to ra/dec should be done. The default is None,
             which converts them for the current time.
         tracking : BOOL, optional
@@ -262,7 +262,7 @@ class Telescope(Hardware):
             return logging.error("Cannot slew below 15 degrees altitude.")
         else:
             (ra, dec) = conversion_utils.convert_altaz_to_radec(az, alt, self.config_dict.site_latitude,
-                                                                self.config_dict.site_longitude, _time)
+                                                                self.config_dict.site_longitude, time)
             self.slew(ra, dec, tracking)
             logging.info('Slewing to Alt/Az')
     
