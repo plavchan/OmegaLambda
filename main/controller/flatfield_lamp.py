@@ -56,10 +56,14 @@ class FlatLamp(Hardware):
 
         """
         self.lamp_done.clear()
-        self.ser.write('1'.encode())
-        print('The flat lamp is now on')
-        self.status = 'on'
-        self.lamp_done.set()
+        try:
+            self.ser.write('1'.encode())
+        except:
+            logging.error('Could not turn on the flatfield lamp')
+        else:
+            print('The flat lamp is now on')
+            self.status = 'on'
+            self.lamp_done.set()
        
     def turn_off(self):
         """
