@@ -149,14 +149,17 @@ class FocusProcedures(Hardware):
         plt.close()
         
         minindex = np.where(yfit == min(yfit))
-        minfocus = np.round(xfit[minindex])
-        logging.info('Autofocus achieved a FWHM of {} pixels!'.format(fwhm))
-        logging.info('The theoretical minimum focus was calculated to be at position {}'.format(minfocus))
-        if abs(initial_position - minfocus) <= self.config_dict.focus_max_distance:
-            self.focuser.onThread(self.focuser.absolute_move, minfocus)
+        if (minindex == np.where(yfit == yfit[0])) or (minindex == np.where(yfit == yfit[-1])):
+            logging.warning('Parabolic fit has failed and fit an incorrect parabola.  Cannot calculate minimum focus.')
         else:
-            logging.info('Calculated minimum focus is out of range of the focuser movement restrictions. '
-                         'This is probably due to an error in the calculations.')
+            minfocus = np.round(xfit[minindex])
+            logging.info('Autofocus achieved a FWHM of {} pixels!'.format(fwhm))
+            logging.info('The theoretical minimum focus was calculated to be at position {}'.format(minfocus))
+            if abs(initial_position - minfocus) <= self.config_dict.focus_max_distance:
+                self.focuser.onThread(self.focuser.absolute_move, minfocus)
+            else:
+                logging.info('Calculated minimum focus is out of range of the focuser movement restrictions. '
+                             'This is probably due to an error in the calculations.')
 
         self.focused.set()
         self.FWHM = fwhm

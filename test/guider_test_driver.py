@@ -28,16 +28,21 @@ def find_guide_star(path, iteration, subframe=None):
     """
     stars, peaks, data, stdev = filereader_utils.findstars(path, 20000, subframe=subframe, return_data=True)
     if not subframe:
-        i = 0
+        i = 1
         j = 0
-        while i < len(stars) - j:
-            if peaks[i] >= 20000:
+        while i < len(stars) - 1 - j:
+            dist_next = sqrt((stars[i][0] - stars[i+1][0])**2 + (stars[i][1] - stars[i+1][1])**2)
+            dist_prev = sqrt((stars[i][0] - stars[i-1][0])**2 + (stars[i][1] - stars[i-1][1])**2)
+            if peaks[i] >= 20000 or dist_next < 100 or dist_prev < 100:
                 peaks.pop(i)
                 stars.pop(i)
                 j += 1
             i += 1
-        maxindex = peaks.index(max(peaks))
-        guider_star = stars[maxindex]
+        if len(peaks) >= 3:
+            maxindex = peaks.index(max(peaks[1:len(peaks)-1]))
+            guider_star = stars[maxindex]
+        else:
+            guider_star = None
     else:
         minsep = 1000
         minstar = None

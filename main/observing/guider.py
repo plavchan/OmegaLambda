@@ -58,16 +58,18 @@ class Guider(Hardware):
         """
         stars, peaks = filereader_utils.findstars(path, self.config_dict.saturation, subframe=subframe)
         if not subframe:
-            i = 0
+            i = 1
             j = 0
-            while i < len(stars) - j:
-                if peaks[i] >= self.config_dict.saturation:
+            while i < len(stars) - 1 - j:
+                dist_next = np.sqrt((stars[i][0] - stars[i + 1][0]) ** 2 + (stars[i][1] - stars[i + 1][1]) ** 2)
+                dist_prev = np.sqrt((stars[i][0] - stars[i - 1][0]) ** 2 + (stars[i][1] - stars[i - 1][1]) ** 2)
+                if peaks[i] >= self.config_dict.saturation or dist_next < 100 or dist_prev < 100:
                     peaks.pop(i)
                     stars.pop(i)
                     j += 1
                 i += 1
-            if peaks:
-                maxindex = peaks.index(max(peaks))
+            if len(peaks) >= 3:
+                maxindex = peaks.index(max(peaks[1:len(peaks)-1]))
                 guider_star = stars[maxindex]
             else:
                 guider_star = None

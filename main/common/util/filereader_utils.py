@@ -59,7 +59,7 @@ def findstars(path, saturation, subframe=None, return_data=False):
     data = (image - median)**2
     threshold = photutils.detect_threshold(image, nsigma=5)
     if not subframe:
-        starfound = photutils.find_peaks(data, threshold=threshold, box_size=50, border_width=250,
+        starfound = photutils.find_peaks(data, threshold=threshold, box_size=50, border_width=500,
                                          centroid_func=photutils.centroids.centroid_com)
     else:
         r = 250

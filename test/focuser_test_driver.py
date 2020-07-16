@@ -77,6 +77,9 @@ def focus_test():
     plt.close()
 
     minindex = np.where(yfit == min(yfit))
+    if (minindex == np.where(yfit == yfit[0])) or (minindex == np.where(yfit == yfit[-1])):
+        print('Parabolic fit has failed and fit an incorrect parabola.  Cannot calculate minimum focus.')
+        return
     minfocus = np.round(xfit[minindex])
     print('Autofocus achieved a FWHM of {} pixels!'.format(fwhm))
     print('The theoretical minimum focus was calculated to be at position {}'.format(minfocus))
@@ -86,6 +89,7 @@ def focus_test():
     else:
         print('Calculated minimum focus is out of range of the focuser movement restrictions. '
               'This is probably due to an error in the calculations.')
+    return
 
 if __name__ == '__main__':
     focus_test()
