@@ -18,6 +18,7 @@ class FlatLamp(Hardware):
         None.
 
         """
+        super(FlatLamp, self).__init__(name='FlatLamp')
         self.ser = serial.Serial()
         self.ser.baudrate = 9600
         self.status = None
@@ -32,10 +33,17 @@ class FlatLamp(Hardware):
         else:
             logging.critical('Cannot find flatfield lamp port')
             return
-        
+        self.check_flatlamp_connection()
         self.lamp_done = threading.Event()
-        super(FlatLamp, self).__init__(name='FlatLamp')
-        
+
+    def check_flatlamp_connection(self):
+        try:
+            self.ser.open()
+        except:
+            logging.error('Could not connect to flatlamp')
+        else:
+            logging.info('Flatlamp has successfully connected')
+
     def turn_on(self):
         """
         Description
@@ -48,14 +56,10 @@ class FlatLamp(Hardware):
 
         """
         self.lamp_done.clear()
-        try:
-            self.ser.write('1'.encode())
-        except:
-            logging.error('Could not turn on the flatfield lamp')
-        else: 
-            print('The flat lamp is now on')
-            self.status = 'on'
-            self.lamp_done.set()
+        self.ser.write('1'.encode())
+        print('The flat lamp is now on')
+        self.status = 'on'
+        self.lamp_done.set()
        
     def turn_off(self):
         """

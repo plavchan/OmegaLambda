@@ -109,9 +109,8 @@ class Hardware(threading.Thread):
         elif self.label == 'Focuser':
             self.Focuser = comobj
             self.check_connection()
-        elif self.label == 'FlatLamp':
-            self.check_connection()
-        elif self.label == 'FocusProcedures' or self.label == 'Guider' or self.label == 'Calibration':
+        elif self.label == 'FocusProcedures' or self.label == 'Guider' or self.label == 'Calibration' \
+                or self.label == 'FlatLamp':
             pass
         else:
             logging.error("Invalid hardware name")
@@ -184,14 +183,6 @@ class Hardware(threading.Thread):
                 print("ERROR: Could not connect to dome")
             else:
                 print("Dome has successfully connected")
-        elif self.label == 'FlatLamp':
-            try: 
-                self.ser.open()
-                self.ser.write('0'.encode())
-            except:
-                print("ERROR: Flatfield lamp did not connect successfully.")
-            else:
-                print("Flatfield Lamp has successfully connected")
         elif self.label == 'Focuser':
             self.Focuser.actOpenComm()
             time.sleep(2)
