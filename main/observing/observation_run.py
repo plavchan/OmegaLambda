@@ -539,6 +539,7 @@ class ObservationRun:
         self.focus_procedures.onThread(self.focus_procedures.stop)
         self.guider.onThread(self.guider.stop)
         self.flatlamp.onThread(self.flatlamp.stop)
+        self.calibration.onThread(self.calibration.stop)
     
     def _shutdown_procedure(self, calibration):
         """

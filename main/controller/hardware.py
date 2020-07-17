@@ -44,7 +44,7 @@ class Hardware(threading.Thread):
         
         self.config_dict = config_reader.get_config()                           # Gets the global config object
         self.live_connection = threading.Event()
-        
+
     def onThread(self, function, *args, **kwargs):
         """
 
@@ -65,25 +65,19 @@ class Hardware(threading.Thread):
         """
         self.q.put((function, args, kwargs))
         logging.debug('A class method has been put on the {} queue'.format(self.label))
-        
-    def run(self):
+
+    def _choose_type(self):
         """
         Description
         -----------
-        Started by calling Hardware.start() [as a subclass of threading.Thread].
-        Creates a hardware-specific thread for the camera, telescope, or dome that dispatches the
-        correct COM object and starts a loop that continuously checks the queue to see if any
-        function calls have been passed via onThread.
-
-        Only stops once self.running has been set to False by calling self.stop.
+        Chooses the correct COM object to dispatch based on the hardware class name.
 
         Returns
         -------
-        None.
+        None
 
         """
-        pythoncom.CoInitialize()
-        dispatch_dict = {'Camera': 'MaxIm.CCDCamera', 'Telescope': 'ASCOM.SoftwareBisque.Telescope', 
+        dispatch_dict = {'Camera': 'MaxIm.CCDCamera', 'Telescope': 'ASCOM.SoftwareBisque.Telescope',
                          'Dome': 'ASCOMDome.Dome', 'Focuser': 'RoboFocus.FocusControl'}
         if self.label in dispatch_dict:
             comobj = win32com.client.Dispatch(dispatch_dict[self.label])
@@ -109,11 +103,29 @@ class Hardware(threading.Thread):
         elif self.label == 'Focuser':
             self.Focuser = comobj
             self.check_connection()
-        elif self.label == 'FocusProcedures' or self.label == 'Guider' or self.label == 'Calibration' \
-                or self.label == 'FlatLamp':
+        elif self.label in ('Guider', 'Calibration', 'FocusProcedures', 'FlatLamp'):
             pass
         else:
             logging.error("Invalid hardware name")
+
+    def run(self):
+        """
+        Description
+        -----------
+        Started by calling Hardware.start() [as a subclass of threading.Thread].
+        Creates a hardware-specific thread for the camera, telescope, or dome that dispatches the
+        correct COM object and starts a loop that continuously checks the queue to see if any
+        function calls have been passed via onThread.
+
+        Only stops once self.running has been set to False by calling self.stop.
+
+        Returns
+        -------
+        None.
+
+        """
+        pythoncom.CoInitialize()
+        self._choose_type()
         while not self.stopping.isSet():
             logging.debug("{0:s} thread is alive".format(self.label))
             try:
