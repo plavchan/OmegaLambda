@@ -67,14 +67,15 @@ def focus_test():
     fit = np.polyfit(x, y, 2)
     xfit = np.linspace(med - 50, med + 50, 100)
     yfit = fit[0] * (xfit ** 2) + fit[1] * xfit + fit[2]
-    plt.figure()
-    plt.plot(x, y, 'bo', label='Raw data')
-    plt.plot(xfit, yfit, 'r-', label='Parabolic fit')
-    plt.legend()
-    plt.xlabel('Focus Positions (units)')
-    plt.ylabel('FWHM value (pixels)')
+    fig, ax = plt.subplots()
+    ax.plot(x, y, 'bo', label='Raw data')
+    ax.plot(xfit, yfit, 'r-', label='Parabolic fit')
+    ax.legend()
+    ax.set_xlabel('Focus Positions (units)')
+    ax.set_ylabel('FWHM value (pixels)')
+    ax.set_title('Focus Position Graph')
+    ax.grid()
     plt.savefig(os.path.join(r'C:/Users/GMU Observtory1/-omegalambda/test/FocusPlot.png'))
-    plt.close()
 
     minindex = np.where(yfit == min(yfit))
     if (minindex == np.where(yfit == yfit[0])) or (minindex == np.where(yfit == yfit[-1])):
