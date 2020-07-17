@@ -67,7 +67,7 @@ def find_guide_star(path, iteration, subframe=None):
 def guide_test_func():
 
     star = find_guide_star(
-        r'H:\Observatory Files\Observing Sessions\2020_Data\20200714\TOI_2022-01_120s_r-0010.fits', 1
+        r'H:\Observatory Files\Observing Sessions\2020_Data\20200711\TIC273035189-12_120s_R-0090.fit', 1
     )
     x_initial = star[0]
     y_initial = star[1]
@@ -75,16 +75,16 @@ def guide_test_func():
     while i < 10:
         moved = False
         star = find_guide_star(
-            r'H:\Observatory Files\Observing Sessions\2020_Data\20200714\TOI_2022-01_120s_r-{0:04d}.fits'.format(i + 11),
+            r'H:\Observatory Files\Observing Sessions\2020_Data\20200711\TIC273035189-12_120s_R-{0:04d}.fit'.format(i + 91),
             iteration=i+2, subframe=(x_initial, y_initial))
         x_0 = 250
         y_0 = 250
         x = star[0]
         y = star[1]
-        print('Image number: {0:04d}'.format(i + 11))
+        print('Image number: {0:04d}'.format(i + 91))
         print('Initial coordinates: x={}, y={}'.format(x_initial, y_initial))
         print('Guide star relative coordinates: x={}, y={}'.format(x, y))
-        if abs(x - x_0) >= 20.0:
+        if abs(x - x_0) >= 25.0:
             xdistance = x - x_0
             direction = None
             if xdistance >= 0:
@@ -106,7 +106,7 @@ def guide_test_func():
                 print('Guider is making an adjustment in RA')
                 print('Jog distance x: {} pixels'.format(jog_distance))
                 moved = True
-        if abs(y - y_0) >= 20:
+        if abs(y - y_0) >= 25.0:
             ydistance = y - y_0
             direction = None
             if ydistance >= 0:
