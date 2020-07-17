@@ -37,6 +37,8 @@ class Conditions(threading.Thread):
         # Threading events to set flags and interact between threads
         self.config_dict = config_reader.get_config()                       # Global config dictionary
         self.weather_url = 'http://weather.cos.gmu.edu/Current_Monitor.htm'
+        self.backup_weather_url = 'https://weather.com/weather/hourbyhour/' + \
+                                  'l/e8321c2fb1f8234f40bf92ce494921d94e657d54cc2c01f1882755e04b761dee'
         # GMU COS Website for humitiy and wind
         self.rain_url = 'https://weather.com/weather/radar/interactive/' + \
                         'l/b63f24c17cc4e2d086c987ce32b2927ba388be79872113643d2ef82b2b13e813'
@@ -113,32 +115,65 @@ class Conditions(threading.Thread):
         """
         self.weather = urllib.request.urlopen(self.weather_url)
         header = requests.head(self.weather_url).headers
+        backup = False
         if 'Last-Modified' in header:
             update_time = time_utils.convert_to_datetime_utc(header['Last-Modified'])
             diff = datetime.datetime.now(datetime.timezone.utc) - update_time
             if diff > datetime.timedelta(minutes=30):
                 # Checking when the web page was last modified (may be outdated)
-                logging.warning("GMU COS Weather Station Web site has not updated in the last 30 minutes!")
-                # Implement backup weather station
+                logging.warning("GMU COS Weather Station Web site has not updated in the last 30 minutes! "
+                                "Using backup weather.com to find humidity/wind/rain instead.")
+                backup = True
         else: 
             logging.warning("GMU COS Weather Station Web site did not return a last modified timestamp"
                             "it may be outdated!")
-            # Implement backup weather station
-        with open(os.path.join(self.config_dict.home_directory, r'resources\weather_status\weather.txt'), 'w') as file:
-            # Writes the html code to a text file
-            for line in self.weather:
-                file.write(str(line)+'\n')
-                
-        with open(os.path.join(self.config_dict.home_directory, r'resources\weather_status\weather.txt'), 'r') as file:
-            # Reads the text file to find humidity, wind, rain
-            text = file.read()
-            conditions = re.findall(r'<font color="#3366FF">(.+?)</font>', text)
-            humidity = float(conditions[1].replace('%', ''))
-            wind = float(re.search('[+-]?\d+\.\d+', conditions[3]).group())
-            rain = float(re.search('[+-]?\d+\.\d+', conditions[5]).group())
-            
-            return humidity, wind, rain
-        
+            backup = True
+
+        if not backup:
+            with open(os.path.join(self.config_dict.home_directory, r'resources\weather_status\weather.txt'), 'w') as \
+                    file:
+                # Writes the html code to a text file
+                for line in self.weather:
+                    file.write(str(line)+'\n')
+
+            with open(os.path.join(self.config_dict.home_directory, r'resources\weather_status\weather.txt'), 'r') as \
+                    file:
+                # Reads the text file to find humidity, wind, rain
+                text = file.read()
+                conditions = re.findall(r'<font color="#3366FF">(.+?)</font>', text)
+                humidity = float(conditions[1].replace('%', ''))
+                wind = float(re.search(r'[+-]?\d+\.\d+', conditions[3]).group())
+                rain = float(re.search(r'[+-]?\d+\.\d+', conditions[5]).group())
+
+                return humidity, wind, rain
+        else:
+            s = requests.Session()
+            weather_request = s.get(self.backup_weather_url, headers={'User-Agent': 'Mozilla/5.0'})
+
+            with open(os.path.join(self.config_dict.home_directory, r'resources\weather_status\weather.txt'), 'w') as \
+                    file:
+                # Writes the html code to a text file
+                file.write(str(weather_request.content))
+
+            with open(os.path.join(self.config_dict.home_directory, r'resources\weather_status\weather.txt'), 'r') as \
+                    file:
+                # Reads the text file to find humidity, wind, rain
+                text = file.read()
+                humidity = re.search(r'<span data-testid="PercentageValue" class="_-_-components-src-molecule-' +
+                                     r'DaypartDetails-DetailsTable-DetailsTable--value--2YD0-">(.+?)</span>',
+                                     text).group(1)
+                wind = re.search(r'<span data-testid="Wind" class="_-_-components-src-atom-WeatherData-Wind-Wind' +
+                                 r'--windWrapper--3Ly7c undefined">(.+?)</span>', text).group(1)
+
+                humidity = float(humidity.replace('%', ''))
+                test_wind = re.search(r'[+-]?\d+\.\d+', wind)
+                if test_wind:
+                    wind = float(test_wind.group())
+                else:
+                    wind = int(re.search(r'[+-]?\d', wind).group())
+                rain = None
+                return humidity, wind, rain
+
     def rain_check(self):
         """
 
