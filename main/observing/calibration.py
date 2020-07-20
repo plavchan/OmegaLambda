@@ -86,7 +86,7 @@ class Calibration(Hardware):
                     self.image_directory, r'Flats_{}'.format(ticket.name), image_name))
                 if (3 * self.config_dict.saturation / 4) < median < self.config_dict.saturation:
                     j += 1
-                if f in ('b', 'uv', 'Ha'):
+                elif f in ('b', 'uv', 'Ha'):
                     if median < (3*self.config_dict.saturation/4):
                         self.filter_exp_times[f] += 10
                     elif median > self.config_dict.saturation:
@@ -140,6 +140,7 @@ class Calibration(Hardware):
                 self.camera.onThread(self.camera.expose, self.filter_exp_times[f], 0,
                                      save_path=os.path.join(self.image_directory, r'Darks_{}'.format(ticket.name),
                                                             image_name), type='dark')
+                self.camera.image_done.wait()
             if self.filter_exp_times[f] == ticket.exp_time:
                 check = False
         if check:
@@ -148,5 +149,6 @@ class Calibration(Hardware):
                 self.camera.onThread(self.camera.expose, ticket.exp_time, 0,
                                      save_path=os.path.join(self.image_directory, r'Darks_{}'.format(ticket.name),
                                                             image_name), type='dark')
+                self.camera.image_done.wait()
         self.darks_done.set()
         return True

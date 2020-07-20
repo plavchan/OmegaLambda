@@ -152,50 +152,42 @@ class Guider(Hardware):
             x = star[0]
             y = star[1]
             logging.debug('Guide star relative coordinates: x={}, y={}'.format(x, y))
-            if abs(x - x_0) >= self.config_dict.guiding_threshold:
+            separation = np.sqrt((x - x_0)**2 + (y - y_0)**2)
+            if separation >= self.config_dict.guiding_threshold:
                 xdistance = x - x_0
-                direction = None
+                ydistance = y - y_0
+                xdirection = None
                 if xdistance >= 0:
-                    direction = 'right'
+                    xdirection = 'right'
                 # Star has moved right in the image, so we want to move it back left,
                 # meaning we need to move the telescope right
                 elif xdistance < 0:
-                    direction = 'left'
+                    xdirection = 'left'
                 # Star has moved left in the image, so we want to move it back right,
                 # meaning we need to move the telescope left
-                jog_distance = abs(xdistance)*self.config_dict.plate_scale*self.config_dict.guider_ra_dampening
-                if jog_distance >= self.config_dict.guider_max_move:
-                    logging.warning('Guide star has moved substantially between images...If the telescope did not move '
-                                    'suddenly, the guide star most likely has become saturated and the guider has '
-                                    'picked a new star.')
-                    x_initial += (x - x_0)
-                    y_initial += (y - y_0)
-                elif jog_distance < self.config_dict.guider_max_move:
-                    logging.debug('Guider is making an adjustment in RA')
-                    self.telescope.onThread(self.telescope.jog, direction, jog_distance)
-                    self.telescope.slew_done.wait()
-                    moved = True
-            if abs(y - y_0) >= self.config_dict.guiding_threshold:
-                ydistance = y - y_0
-                direction = None
+                ydirection = None
                 if ydistance >= 0:
-                    direction = 'up'
+                    ydirection = 'up'
                 # Star has moved up in the image, so we want to move it back down,
                 # meaning we need to move the telescope up
                 elif ydistance < 0:
-                    direction = 'down'
+                    ydirection = 'down'
                 # Star has moved down in the image, so we want to move it back up,
                 # meaning we need to move the telescope down
-                jog_distance = abs(ydistance)*self.config_dict.plate_scale*self.config_dict.guider_dec_dampening
-                if jog_distance >= self.config_dict.guider_max_move:
+                xjog_distance = abs(xdistance)*self.config_dict.plate_scale*self.config_dict.guider_ra_dampening
+                yjog_distance = abs(ydistance)*self.config_dict.plate_scale*self.config_dict.guider_dec_dampening
+                jog_separation = np.sqrt(xjog_distance**2 + yjog_distance**2)
+                if jog_separation >= self.config_dict.guider_max_move:
                     logging.warning('Guide star has moved substantially between images...If the telescope did not move '
                                     'suddenly, the guide star most likely has become saturated and the guider has '
                                     'picked a new star.')
                     x_initial += (x - x_0)
                     y_initial += (y - y_0)
-                elif jog_distance < self.config_dict.guider_max_move:
-                    logging.debug('Guider is making an adjustment in Dec')
-                    self.telescope.onThread(self.telescope.jog, direction, jog_distance)
+                elif jog_separation < self.config_dict.guider_max_move:
+                    logging.debug('Guider is making an adjustment')
+                    self.telescope.onThread(self.telescope.jog, xdirection, xjog_distance)
+                    self.telescope.slew_done.wait()
+                    self.telescope.onThread(self.telescope.jog, ydirection, yjog_distance)
                     self.telescope.slew_done.wait()
                     moved = True
             if moved:

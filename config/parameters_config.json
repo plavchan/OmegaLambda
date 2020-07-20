@@ -17,7 +17,7 @@
 	"long_focus_tolerance": 1,
 	"quick_focus_tolerance": 2,
 	"focus_max_distance": 100,
-	"guiding_threshold": 25.0,
+	"guiding_threshold": 30.0,
 	"guider_ra_dampening": 0.75,
 	"guider_dec_dampening": 0.5,
 	"guider_max_move": 100,

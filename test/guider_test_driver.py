@@ -1,7 +1,7 @@
 from ..main.common.util import filereader_utils
 import matplotlib.pyplot as plt
 import photutils
-from numpy import sqrt
+import numpy as np
 
 
 def find_guide_star(path, iteration, subframe=None):
@@ -31,8 +31,8 @@ def find_guide_star(path, iteration, subframe=None):
         i = 1
         j = 0
         while i < len(stars) - 1 - j:
-            dist_next = sqrt((stars[i][0] - stars[i+1][0])**2 + (stars[i][1] - stars[i+1][1])**2)
-            dist_prev = sqrt((stars[i][0] - stars[i-1][0])**2 + (stars[i][1] - stars[i-1][1])**2)
+            dist_next = np.sqrt((stars[i][0] - stars[i+1][0])**2 + (stars[i][1] - stars[i+1][1])**2)
+            dist_prev = np.sqrt((stars[i][0] - stars[i-1][0])**2 + (stars[i][1] - stars[i-1][1])**2)
             if peaks[i] >= 20000 or dist_next < 100 or dist_prev < 100:
                 peaks.pop(i)
                 stars.pop(i)
@@ -47,7 +47,7 @@ def find_guide_star(path, iteration, subframe=None):
         minsep = 1000
         minstar = None
         for star in stars:
-            distance = sqrt((star[0] - 250) ** 2 + (star[1] - 250) ** 2)
+            distance = np.sqrt((star[0] - 250) ** 2 + (star[1] - 250) ** 2)
             if distance < minsep:
                 minsep = distance
                 minstar = star
@@ -67,7 +67,7 @@ def find_guide_star(path, iteration, subframe=None):
 def guide_test_func():
 
     star = find_guide_star(
-        r'H:\Observatory Files\Observing Sessions\2020_Data\20200711\TIC273035189-12_120s_R-0090.fit', 1
+        r'H:\Observatory Files\Observing Sessions\2020_Data\20200718\TOI_1482-01_30s_R-0044.fit', 1
     )
     x_initial = star[0]
     y_initial = star[1]
@@ -75,60 +75,51 @@ def guide_test_func():
     while i < 10:
         moved = False
         star = find_guide_star(
-            r'H:\Observatory Files\Observing Sessions\2020_Data\20200711\TIC273035189-12_120s_R-{0:04d}.fit'.format(i + 91),
+            r'H:\Observatory Files\Observing Sessions\2020_Data\20200718\TOI_1482-01_30s_R-{0:04d}.fit'.format(i + 45),
             iteration=i+2, subframe=(x_initial, y_initial))
         x_0 = 250
         y_0 = 250
         x = star[0]
         y = star[1]
-        print('Image number: {0:04d}'.format(i + 91))
+        print('Image number: {0:04d}'.format(i + 45))
         print('Initial coordinates: x={}, y={}'.format(x_initial, y_initial))
         print('Guide star relative coordinates: x={}, y={}'.format(x, y))
-        if abs(x - x_0) >= 25.0:
+        separation = np.sqrt((x - x_0) ** 2 + (y - y_0) ** 2)
+        if separation >= 30.0:
             xdistance = x - x_0
-            direction = None
+            ydistance = y - y_0
+            xdirection = None
             if xdistance >= 0:
-                direction = 'right'
+                xdirection = 'right'
             # Star has moved right in the image, so we want to move it back left,
             # meaning we need to move the telescope right
             elif xdistance < 0:
-                direction = 'left'
+                xdirection = 'left'
             # Star has moved left in the image, so we want to move it back right,
             # meaning we need to move the telescope left
-            jog_distance = abs(xdistance) * 0.75
-            if jog_distance >= 100:
-                print('Guide star has moved substantially between images...If the telescope did not move '
-                      'suddenly, the guide star most likely has become saturated and the guider has '
-                      'picked a new star.')
-                x_initial += (x - x_0)
-                y_initial += (y - y_0)
-            elif jog_distance < 100:
-                print('Guider is making an adjustment in RA')
-                print('Jog distance x: {} pixels'.format(jog_distance))
-                moved = True
-        if abs(y - y_0) >= 25.0:
-            ydistance = y - y_0
-            direction = None
+            ydirection = None
             if ydistance >= 0:
-                direction = 'up'
+                ydirection = 'up'
             # Star has moved up in the image, so we want to move it back down,
             # meaning we need to move the telescope up
             elif ydistance < 0:
-                direction = 'down'
+                ydirection = 'down'
             # Star has moved down in the image, so we want to move it back up,
             # meaning we need to move the telescope down
-            jog_distance = abs(ydistance)*0.50
-            if jog_distance >= 100:
+            xjog_distance = abs(xdistance) * 0.350 * 0.75
+            yjog_distance = abs(ydistance) * 0.350 * 0.50
+            jog_separation = np.sqrt(xjog_distance ** 2 + yjog_distance ** 2)
+            if jog_separation >= 100:
                 print('Guide star has moved substantially between images...If the telescope did not move '
                       'suddenly, the guide star most likely has become saturated and the guider has '
                       'picked a new star.')
                 x_initial += (x - x_0)
                 y_initial += (y - y_0)
-            elif jog_distance < 100:
-                print('Guider is making an adjustment in Dec')
-                print('Jog distance y: {} pixels'.format(jog_distance))
+            elif jog_separation < 100:
+                print('Guider is making an adjustment')
+                print('x-jog direction: {}; y-jog direction: {}'.format(xdirection, ydirection))
+                print('x-jog distance: {}; y-jog distance: {}'.format(xjog_distance/0.350, yjog_distance/0.350))
                 moved = True
-            print('Moved = {}'.format(moved))
         i += 1
         if moved:
             i += 1
