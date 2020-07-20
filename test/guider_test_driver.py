@@ -90,35 +90,30 @@ def guide_test_func():
             ydistance = y - y_0
             if xdistance == 0:
                 if ydistance > 0:
-                    angle = (1 / 2) * np.pi
+                    angle = (1/2)*np.pi
                 else:
-                    angle = (3 / 2) * np.pi
-            elif ydistance == 0:
-                if xdistance > 0:
-                    angle = 0
-                else:
-                    angle = np.pi
+                    angle = (-1/2)*np.pi
             else:
-                angle = abs(np.arctan(ydistance / xdistance))
-            if (xdistance > 0 and ydistance > 0) or (xdistance < 0 and ydistance < 0):
-                deltangle = angle - np.pi
-            else:
-                deltangle = angle + np.pi
+                angle = np.arctan(ydistance / xdistance)
+                if xdistance < 0:
+                    angle += np.pi
+            guideangle = np.pi/2
+            deltangle = angle - guideangle
             xdirection = None
-            if xdistance >= 0:
+            if (-np.pi/2 <= deltangle <= np.pi/2) or ((3/2)*np.pi <= deltangle <= 2*np.pi):
                 xdirection = 'right'
             # Star has moved right in the image, so we want to move it back left,
             # meaning we need to move the telescope right
-            elif xdistance < 0:
+            else:
                 xdirection = 'left'
             # Star has moved left in the image, so we want to move it back right,
             # meaning we need to move the telescope left
             ydirection = None
-            if ydistance >= 0:
+            if 0 <= deltangle <= np.pi:
                 ydirection = 'up'
             # Star has moved up in the image, so we want to move it back down,
             # meaning we need to move the telescope up
-            elif ydistance < 0:
+            else:
                 ydirection = 'down'
             # Star has moved down in the image, so we want to move it back up,
             # meaning we need to move the telescope down

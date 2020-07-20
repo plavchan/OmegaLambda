@@ -174,8 +174,8 @@ class Guider(Hardware):
                     ydirection = 'down'
                 # Star has moved down in the image, so we want to move it back up,
                 # meaning we need to move the telescope down
-                xjog_distance = abs(x - x_0)*self.config_dict.plate_scale*self.config_dict.guider_ra_dampening
-                yjog_distance = abs(y - y_0)*self.config_dict.plate_scale*self.config_dict.guider_dec_dampening
+                xjog_distance = abs(xdistance)*self.config_dict.plate_scale*self.config_dict.guider_ra_dampening
+                yjog_distance = abs(ydistance)*self.config_dict.plate_scale*self.config_dict.guider_dec_dampening
                 jog_separation = np.sqrt(xjog_distance**2 + yjog_distance**2)
                 if jog_separation >= self.config_dict.guider_max_move:
                     logging.warning('Guide star has moved substantially between images...If the telescope did not move '
