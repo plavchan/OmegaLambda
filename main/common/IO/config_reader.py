@@ -1,5 +1,6 @@
 import json
 import logging
+from numpy import pi
 
 _config = None
 
@@ -36,8 +37,8 @@ class Config:
                  cloud_cover_limit=None, min_reopen_time=None, plate_scale=None, saturation=None,
                  focus_exposure_multiplier=None, initial_focus_delta=None, long_focus_tolerance=None,
                  quick_focus_tolerance=None, focus_max_distance=None, guiding_threshold=None, guider_ra_dampening=None,
-                 guider_dec_dampening=None, guider_max_move=None, data_directory=None, home_directory=None,
-                 calibration_time=None):
+                 guider_dec_dampening=None, guider_max_move=None, guider_angle=None, data_directory=None,
+                 home_directory=None, calibration_time=None):
         """
 
         Parameters
@@ -92,6 +93,9 @@ class Config:
             Dampening coefficient for guider telescope corrections on the Dec axis.  Our default is 0.5.
         guider_max_move : FLOAT, optional
             The maximum distance in arcseconds that the guider can make adjustments for.  Our default is 100 arcseconds.
+        guider_angle : FLOAT, optional
+            The clocking angle of the CCD camera's x and y axes against the RA and Dec axes of the telescope, in
+            degrees from a range of 0 to 360.  Our default is 0.0 degrees.
         data_directory : STR, optional
             Where images and other data are saved on the computer.  Our default is
             H:/Observatory Files/Observing Sessions/2020_Data.
@@ -131,6 +135,7 @@ class Config:
         self.guider_ra_dampening = guider_ra_dampening
         self.guider_dec_dampening = guider_dec_dampening
         self.guider_max_move = guider_max_move
+        self.guider_angle = guider_angle*pi/180
         self.data_directory = data_directory                     
         self.home_directory = home_directory                        
         self.calibration_time = calibration_time
@@ -194,7 +199,7 @@ def _dict_to_config_object(dic):
                      quick_focus_tolerance=dic['quick_focus_tolerance'], focus_max_distance=dic['focus_max_distance'],
                      guiding_threshold=dic['guiding_threshold'], guider_ra_dampening=dic['guider_ra_dampening'],
                      guider_dec_dampening=dic['guider_dec_dampening'], guider_max_move=dic['guider_max_move'],
-                     data_directory=dic['data_directory'], home_directory=dic['home_directory'],
-                     calibration_time=dic['calibration_time'])
+                     guider_angle=dic['guider_angle'], data_directory=dic['data_directory'],
+                     home_directory=dic['home_directory'], calibration_time=dic['calibration_time'])
     logging.info('Global config object has been created')
     return _config

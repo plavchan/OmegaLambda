@@ -174,8 +174,8 @@ class Guider(Hardware):
                     ydirection = 'down'
                 # Star has moved down in the image, so we want to move it back up,
                 # meaning we need to move the telescope down
-                xjog_distance = abs(xdistance)*self.config_dict.plate_scale*self.config_dict.guider_ra_dampening
-                yjog_distance = abs(ydistance)*self.config_dict.plate_scale*self.config_dict.guider_dec_dampening
+                xjog_distance = abs(x - x_0)*self.config_dict.plate_scale*self.config_dict.guider_ra_dampening
+                yjog_distance = abs(y - y_0)*self.config_dict.plate_scale*self.config_dict.guider_dec_dampening
                 jog_separation = np.sqrt(xjog_distance**2 + yjog_distance**2)
                 if jog_separation >= self.config_dict.guider_max_move:
                     logging.warning('Guide star has moved substantially between images...If the telescope did not move '
@@ -185,6 +185,7 @@ class Guider(Hardware):
                     y_initial += (y - y_0)
                 elif jog_separation < self.config_dict.guider_max_move:
                     logging.debug('Guider is making an adjustment')
+                    # Assumes clocking angle b/w RA/Dec and Image X/Y is 0
                     self.telescope.onThread(self.telescope.jog, xdirection, xjog_distance)
                     self.telescope.slew_done.wait()
                     self.telescope.onThread(self.telescope.jog, ydirection, yjog_distance)

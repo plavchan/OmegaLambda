@@ -21,6 +21,7 @@
 	"guider_ra_dampening": 0.75,
 	"guider_dec_dampening": 0.5,
 	"guider_max_move": 100,
+	"guider_angle": 0.0,
 	"data_directory": "H:/Observatory Files/Observing Sessions/2020_Data",
 	"home_directory": "C:/Users/GMU Observtory1/-omegalambda",
 	"calibration_time": "end"
