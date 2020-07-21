@@ -156,26 +156,37 @@ class Guider(Hardware):
             if separation >= self.config_dict.guiding_threshold:
                 xdistance = x - x_0
                 ydistance = y - y_0
-                xdirection = None
-                if xdistance >= 0:
+                if xdistance == 0:
+                    if ydistance > 0:
+                        angle = (1/2)*np.pi
+                    else:
+                        angle = (-1/2)*np.pi
+                else:
+                    angle = np.arctan(ydistance/xdistance)
+                    if xdistance < 0:
+                        angle += np.pi
+                deltangle = angle - self.config_dict.guider_angle
+                # Assumes guider angle (angle b/w RA/Dec axes and Image X/Y axes) is constant
+                if ((-1/2)*np.pi <= deltangle <= (1/2)*np.pi) or ((3/2)*np.pi <= deltangle <= 2*np.pi):
                     xdirection = 'right'
                 # Star has moved right in the image, so we want to move it back left,
                 # meaning we need to move the telescope right
-                elif xdistance < 0:
+                else:
                     xdirection = 'left'
                 # Star has moved left in the image, so we want to move it back right,
                 # meaning we need to move the telescope left
-                ydirection = None
-                if ydistance >= 0:
+                if 0 <= deltangle <= np.pi:
                     ydirection = 'up'
                 # Star has moved up in the image, so we want to move it back down,
                 # meaning we need to move the telescope up
-                elif ydistance < 0:
+                else:
                     ydirection = 'down'
                 # Star has moved down in the image, so we want to move it back up,
                 # meaning we need to move the telescope down
-                xjog_distance = abs(xdistance)*self.config_dict.plate_scale*self.config_dict.guider_ra_dampening
-                yjog_distance = abs(ydistance)*self.config_dict.plate_scale*self.config_dict.guider_dec_dampening
+                xjog_distance = abs(separation * np.cos(deltangle)) * self.config_dict.plate_scale * \
+                    self.config_dict.guider_ra_dampening
+                yjog_distance = abs(separation * np.sin(deltangle)) * self.config_dict.plate_scale * \
+                    self.config_dict.guider_dec_dampening
                 jog_separation = np.sqrt(xjog_distance**2 + yjog_distance**2)
                 if jog_separation >= self.config_dict.guider_max_move:
                     logging.warning('Guide star has moved substantially between images...If the telescope did not move '
@@ -185,7 +196,6 @@ class Guider(Hardware):
                     y_initial += (y - y_0)
                 elif jog_separation < self.config_dict.guider_max_move:
                     logging.debug('Guider is making an adjustment')
-                    # Assumes clocking angle b/w RA/Dec and Image X/Y is 0
                     self.telescope.onThread(self.telescope.jog, xdirection, xjog_distance)
                     self.telescope.slew_done.wait()
                     self.telescope.onThread(self.telescope.jog, ydirection, yjog_distance)
