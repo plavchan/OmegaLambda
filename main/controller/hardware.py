@@ -47,6 +47,11 @@ class Hardware(threading.Thread):
 
     def onThread(self, function, *args, **kwargs):
         """
+        Description
+        -----------
+        Used to put a function on a specific thread other than the main thread.  This will put said function
+        on that thread's queue and will be called as soon as the thread is ready to receive such a request.  Threads
+        check for new function calls once every second when they are not already running a function.
 
         Parameters
         ----------
@@ -141,7 +146,8 @@ class Hardware(threading.Thread):
         Description
         -----------
         Sets self.running to False, which stops the run method from executing.
-        Must be called via onThread.
+        Should be called via onThread, otherwise a thread may be stopped before it can finish executing a previous
+        function call.
 
         Returns
         -------
@@ -173,7 +179,7 @@ class Hardware(threading.Thread):
                     self.Camera.LinkEnabled = True
                     self.live_connection.set()
                 except:
-                    print("ERROR: Could not connect to camera")
+                    logging.error("Could not connect to camera")
                 else:
                     print("Camera has successfully connected")
         elif self.label == 'Telescope':
@@ -182,7 +188,7 @@ class Hardware(threading.Thread):
                     self.Telescope.Connected = True
                     self.live_connection.set()
                 except:
-                    print("ERROR: Could not connect to the telescope")
+                    logging.error("Could not connect to the telescope")
                 else:
                     print("Telescope has successfully connected")
             else:
@@ -192,7 +198,7 @@ class Hardware(threading.Thread):
                 self.Dome.Connected = True
                 self.live_connection.set()
             except:
-                print("ERROR: Could not connect to dome")
+                logging.error("Could not connect to dome")
             else:
                 print("Dome has successfully connected")
         elif self.label == 'Focuser':
@@ -202,6 +208,6 @@ class Hardware(threading.Thread):
                 print("Focuser has successfully connected")
                 self.live_connection.set()
             else:
-                print("ERROR: Could not connect to focuser")
+                logging.error("Could not connect to focuser")
         else:
             print("Invalid hardware type to check connection for")

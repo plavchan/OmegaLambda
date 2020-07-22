@@ -95,7 +95,7 @@ class Config:
             The maximum distance in arcseconds that the guider can make adjustments for.  Our default is 100 arcseconds.
         guider_angle : FLOAT, optional
             The clocking angle of the CCD camera's x and y axes against the RA and Dec axes of the telescope, in
-            degrees from a range of 0 to 360.  Our default is 0.0 degrees.
+            degrees.  Our default is 0.0 degrees.
         data_directory : STR, optional
             Where images and other data are saved on the computer.  Our default is
             H:/Observatory Files/Observing Sessions/2020_Data.

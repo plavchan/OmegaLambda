@@ -319,9 +319,9 @@ class ObservationRun:
             img_count = self.take_images(ticket.name, ticket.num, ticket.exp_time,
                                          ticket.filter, ticket.end_time, self.image_directory,
                                          True)
-            self.focus_procedures.onThread(self.focus_procedures.stop_constant_focusing)
+            self.focus_procedures.stop_constant_focusing()
             if ticket.self_guide:
-                self.guider.onThread(self.guider.stop_guiding)
+                self.guider.stop_guiding()
             return img_count, ticket.num
         
         else:
@@ -331,9 +331,9 @@ class ObservationRun:
                                                     [ticket.filter[i]], ticket.end_time, self.image_directory,
                                                     False)
                 img_count += img_count_filter
-            self.focus_procedures.onThread(self.focus_procedures.stop_constant_focusing)
+            self.focus_procedures.stop_constant_focusing()
             if ticket.self_guide:
-                self.guider.onThread(self.guider.stop_guiding)
+                self.guider.stop_guiding()
             return img_count, ticket.num * len(ticket.filter)
 
     def take_images(self, name, num, exp_time, _filter, end_time, path, cycle_filter):
@@ -444,18 +444,27 @@ class ObservationRun:
             logging.error('{} is not responding.  Restarting...'.format(program))
             time.sleep(5)
             prog_dict[program][0].crashed.clear()
-            subprocess.call('taskkill /f /im {}'.format(program))        # TODO: Maybe add check if os = windows?
+            subprocess.call('taskkill /f /im {}'.format(program))
             time.sleep(5)
             prog_dict[program][0] = prog_dict[program][1]()
-            # TODO: Restart FocusProcedures & Guider too if cam/focus/telescope crashes
             prog_dict[program][0].start()
             time.sleep(5)
             if program in ('MaxIm_DL.exe', 'RoboFocus.exe'):
+                self.focus_procedures.stop_constant_focusing()
+                self.focus_procedures.onThread(self.focus_procedures.stop)
                 time.sleep(5)
                 self.focus_procedures = FocusProcedures(self.focuser, self.camera)
                 self.focus_procedures.start()
                 time.sleep(5)
                 self.focus_procedures.onThread(self.focus_procedures.constant_focus_procedure, self.image_directory)
+            if program in ('MaxIm_DL.exe', 'TheSkyX.exe') and self.current_ticket.self_guide is True:
+                self.guider.stop_guiding()
+                self.guider.onThread(self.guider.stop)
+                time.sleep(5)
+                self.guider = Guider(self.camera, self.telescope)
+                self.guider.start()
+                time.sleep(5)
+                self.guider.onThread(self.guider.guiding_procedure, self.image_directory)
             return True
         else:
             return False
@@ -532,6 +541,8 @@ class ObservationRun:
         self.flatlamp.onThread(self.flatlamp.disconnect)
         
         self.conditions.stop.set()
+        self.focus_procedures.stop_constant_focusing()      # Should already be stopped, but just in case
+        self.guider.stop_guiding()                          # Should already be stopped, but just in case
         self.camera.onThread(self.camera.stop)
         self.telescope.onThread(self.telescope.stop)
         self.dome.onThread(self.dome.stop)

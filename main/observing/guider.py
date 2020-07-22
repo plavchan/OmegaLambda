@@ -209,6 +209,8 @@ class Guider(Hardware):
         Description
         -----------
         Stops the GuidingProcedure from running.
+        Must NOT be called with onThread, otherwise the guider will be stuck in constant guiding and won't ever
+        get to execute stop.
 
         Returns
         -------

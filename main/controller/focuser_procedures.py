@@ -73,10 +73,10 @@ class FocusProcedures(Hardware):
         initial_position = self.focuser.position
         last = None
         fwhm = None
-        i = 0
         last_fwhm = None
         fwhm_values = []
         focus_positions = []
+        i = 0
         while i < 10:
             if self.camera.crashed.isSet() or self.focuser.crashed.isSet():
                 logging.error('The camera or focuser has crashed...focus procedures cannot continue.')
@@ -102,7 +102,6 @@ class FocusProcedures(Hardware):
                 self.focuser.onThread(self.focuser.focus_adjust, "in")
                 self.focuser.adjusting.wait()
                 last = "in"
-            
             elif abs(fwhm - last_fwhm) <= 0.5:
                 # Focus noise control -- If less than 0.5 pixels different (about 0.175"), it will keep moving in
                 # that direction and check again vs. the previous last_fwhm
@@ -135,19 +134,23 @@ class FocusProcedures(Hardware):
         data = sorted(zip(focus_positions, fwhm_values))
         x = [_[0] for _ in data]
         y = [_[1] for _ in data]
-        med = statistics.median(x)
-        fit = np.polyfit(x, y, 2)
-        xfit = np.linspace(med - 50, med + 50, 100)
-        yfit = fit[0]*(xfit**2) + fit[1]*xfit + fit[2]
-        fig, ax = plt.subplots()
-        ax.plot(x, y, 'bo', label='Raw data')
-        ax.plot(xfit, yfit, 'r-', label='Parabolic fit')
-        ax.legend()
-        ax.set_xlabel('Focus Positions (units)')
-        ax.set_ylabel('FWHM value (pixels)')
-        ax.set_title('Focus Positions Graph')
-        ax.grid()
-        plt.savefig(os.path.join(self.config_dict.home_directory, r'test/FocusPlot.png'))
+        if len(x) >= 3 and len(y) >= 3:
+            med = statistics.median(x)
+            fit = np.polyfit(x, y, 2)
+            xfit = np.linspace(med - 50, med + 50, 100)
+            yfit = fit[0]*(xfit**2) + fit[1]*xfit + fit[2]
+            fig, ax = plt.subplots()
+            ax.plot(x, y, 'bo', label='Raw data')
+            ax.plot(xfit, yfit, 'r-', label='Parabolic fit')
+            ax.legend()
+            ax.set_xlabel('Focus Positions (units)')
+            ax.set_ylabel('FWHM value (pixels)')
+            ax.set_title('Focus Positions Graph')
+            ax.grid()
+            plt.savefig(os.path.join(self.config_dict.home_directory, r'test/FocusPlot.png'))
+        else:
+            logging.warning('Not enough focus data to produce a parabolic fit.')
+            return
 
         minindex = np.where(yfit == min(yfit))
         if (minindex == np.where(yfit == yfit[0])) or (minindex == np.where(yfit == yfit[-1])):
@@ -164,6 +167,7 @@ class FocusProcedures(Hardware):
 
         self.focused.set()
         self.FWHM = fwhm
+        return
     
     def constant_focus_procedure(self, image_path):
         """
@@ -221,6 +225,8 @@ class FocusProcedures(Hardware):
         Description
         -----------
         Stops the continuous focusing procedure that is used while taking images.
+        Must NOT be called with onThread, otherwise the focuser will be stuck on constant focusing on won't ever get
+        to execute stop.
 
         Returns
         -------
