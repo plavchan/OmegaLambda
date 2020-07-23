@@ -115,16 +115,19 @@ class ObservationRun:
                 time.sleep(60*self.config_dict.min_reopen_time)
                 sunset_epoch_milli = time_utils.datetime_to_epoch_milli_converter(sunset_time)
                 current_epoch_milli = time_utils.datetime_to_epoch_milli_converter(datetime.datetime.now(self.tz))
-                time.sleep((sunset_epoch_milli - current_epoch_milli)/1000)
+                if sunset_epoch_milli > current_epoch_milli:
+                    time.sleep((sunset_epoch_milli - current_epoch_milli)/1000)
                 logging.info('The Sun should now be setting again...observing will resume shortly.')
                 if not self.conditions.weather_alert.isSet():
                     check = True
                     if not self.current_ticket:
                         self.observe()
-                    elif self.current_ticket.end_time <= datetime.datetime.now(self.tz):
+                    elif self.current_ticket.end_time > datetime.datetime.now(self.tz):
                         self._startup_procedure()
                         self._ticket_slew(self.current_ticket)
                         self.focus_target(self.current_ticket)
+                    elif self.current_ticket != self.observation_request_list[-1]:
+                        self._startup_procedure()
                 else: 
                     print('Weather is still too poor to resume observing.')
                     self.everything_ok()
@@ -132,12 +135,14 @@ class ObservationRun:
                 time.sleep(60*self.config_dict.min_reopen_time)
                 while self.conditions.weather_alert.isSet():
                     time.sleep(self.config_dict.weather_freq*60)
-                if not self.conditions.weather_alert.isSet() and \
-                        self.current_ticket.end_time <= datetime.datetime.now(self.tz):
-                    self._startup_procedure()
-                    self._ticket_slew(self.current_ticket)
-                    self.focus_target(self.current_ticket)
+                if not self.conditions.weather_alert.isSet():
                     check = True
+                    if self.current_ticket.end_time > datetime.datetime.now(self.tz):
+                        self._startup_procedure()
+                        self._ticket_slew(self.current_ticket)
+                        self.focus_target(self.current_ticket)
+                    elif self.current_ticket != self.observation_request_list[-1]:
+                        self._startup_procedure()
         else:
             check = True
         return check
@@ -412,7 +417,7 @@ class ObservationRun:
                 else:
                     image_num += 1
             i += 1
-        return i
+        return i+1
     
     def crash_check(self, program):
         """
