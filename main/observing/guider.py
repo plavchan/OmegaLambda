@@ -192,8 +192,10 @@ class Guider(Hardware):
                     logging.warning('Guide star has moved substantially between images...If the telescope did not move '
                                     'suddenly, the guide star most likely has become saturated and the guider has '
                                     'picked a new star.')
-                    x_initial += (x - x_0)
-                    y_initial += (y - y_0)
+                    # Changes initial absolute coordinates to match the "new" guide star
+                    new_star = self.find_guide_star(newest_image)
+                    x_initial = new_star[0]
+                    y_initial = new_star[1]
                 elif jog_separation < self.config_dict.guider_max_move:
                     logging.debug('Guider is making an adjustment')
                     self.telescope.onThread(self.telescope.jog, xdirection, xjog_distance)
