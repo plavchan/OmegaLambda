@@ -221,7 +221,6 @@ class ObservationRun:
         -------
         None.
         """
-        print('calibration %s' % self.calibration_toggle)
         if self.config_dict.calibration_time == "start" and self.calibration_toggle == 'store_true':
             calibration = True
         else:
