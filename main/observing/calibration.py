@@ -76,7 +76,7 @@ class Calibration(Hardware):
             logging.warning('Could not create flat folder, or folder already exists...')
         for f in filters:
             j = 0
-            while j < 10:
+            while j < 5:
                 image_name = 'Flat_{0:d}s_{1:s}-{2:04d}.fits'.format(self.filter_exp_times[f], f, j + 1)
                 self.camera.onThread(self.camera.expose, self.filter_exp_times[f], self.filterwheel_dict[f], 
                                      save_path=os.path.join(self.image_directory, r'Flats_{}'.format(ticket.name),
@@ -84,18 +84,21 @@ class Calibration(Hardware):
                 self.camera.image_done.wait()
                 median = filereader_utils.mediancounts(os.path.join(
                     self.image_directory, r'Flats_{}'.format(ticket.name), image_name))
-                if (3 * self.config_dict.saturation / 4) < median < self.config_dict.saturation:
+                if j == 0 and median < self.config_dict.saturation:
+                    # Calculate exposure time
+                    desired = 15000
+                    scale_factor = desired/median
+                    self.filter_exp_times[f] = int(self.filter_exp_times[f]*scale_factor)
+                    if self.filter_exp_times[f] <= 1:
+                        self.filter_exp_times[f] = 1
                     j += 1
-                elif f in ('b', 'uv', 'Ha'):
-                    if median < (3*self.config_dict.saturation/4):
-                        self.filter_exp_times[f] += 10
-                    elif median > self.config_dict.saturation:
-                        self.filter_exp_times[f] -= 10
+                elif j == 0 and median >= self.config_dict.saturation:
+                    self.filter_exp_times[f] = self.filter_exp_times[f]//2
+                    if self.filter_exp_times[f] <= 1:
+                        self.filter_exp_times[f] = 1
                 else:
-                    if median < (3*self.config_dict.saturation/4):
-                        self.filter_exp_times[f] += 2
-                    elif median > self.config_dict.saturation:
-                        self.filter_exp_times[f] -= 2
+                    j += 1
+                    continue
         self.flatlamp.onThread(self.flatlamp.turn_off)
         lamp = self.flatlamp.lamp_done.wait(timeout=60)
         if not lamp:
@@ -135,7 +138,7 @@ class Calibration(Hardware):
             logging.warning('Could not create dark folder, or folder already exists...')
         check = True
         for f in filters:
-            for j in range(10):
+            for j in range(5):
                 image_name = 'Dark_{0:d}s-{1:04d}.fits'.format(self.filter_exp_times[f], j + 1)
                 self.camera.onThread(self.camera.expose, self.filter_exp_times[f], 0,
                                      save_path=os.path.join(self.image_directory, r'Darks_{}'.format(ticket.name),
@@ -144,7 +147,7 @@ class Calibration(Hardware):
             if self.filter_exp_times[f] == ticket.exp_time:
                 check = False
         if check:
-            for k in range(10):
+            for k in range(5):
                 image_name = 'Dark_{0:d}s-{1:04d}.fits'.format(ticket.exp_time, k + 1)
                 self.camera.onThread(self.camera.expose, ticket.exp_time, 0,
                                      save_path=os.path.join(self.image_directory, r'Darks_{}'.format(ticket.name),

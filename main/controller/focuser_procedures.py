@@ -77,6 +77,7 @@ class FocusProcedures(Hardware):
         fwhm_values = []
         focus_positions = []
         i = 0
+        errors = 0
         while i < 10:
             if self.camera.crashed.isSet() or self.focuser.crashed.isSet():
                 logging.error('The camera or focuser has crashed...focus procedures cannot continue.')
@@ -94,7 +95,12 @@ class FocusProcedures(Hardware):
                 break
             if not fwhm:
                 logging.warning('No fwhm could be calculated...trying again')
-                continue
+                errors += 1
+                if errors < 3:
+                    continue
+                else:
+                    logging.critical('Cannot focus on target')
+                    break
             if i == 0:
                 # First cycle
                 self.focuser.onThread(self.focuser.focus_adjust, "in")

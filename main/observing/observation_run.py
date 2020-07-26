@@ -128,7 +128,7 @@ class ObservationRun:
                         self.focus_target(self.current_ticket)
                     elif self.current_ticket != self.observation_request_list[-1]:
                         self._startup_procedure()
-                else: 
+                else:
                     print('Weather is still too poor to resume observing.')
                     self.everything_ok()
             elif not self.conditions.sun:
@@ -176,10 +176,10 @@ class ObservationRun:
                 self.take_calibration_images(beginning=True)
             self.dome.onThread(self.dome.move_shutter, 'open')
             self.dome.onThread(self.dome.home)
-            self.telescope.onThread(self.telescope.unpark)
         elif not initial_check:
             self.shutdown()
             return
+        self.telescope.onThread(self.telescope.unpark)
         self.camera.onThread(self.camera.cooler_ready)
         self.dome.onThread(self.dome.slave_dome_to_scope, True)
         return initial_shutter
@@ -221,7 +221,8 @@ class ObservationRun:
         -------
         None.
         """
-        if self.config_dict.calibration_time == "start" and self.calibration_toggle is True:
+        print('calibration %s' % self.calibration_toggle)
+        if self.config_dict.calibration_time == "start" and self.calibration_toggle == 'store_true':
             calibration = True
         else:
             calibration = False
@@ -295,10 +296,17 @@ class ObservationRun:
             focus_exposure = 1
         elif focus_exposure >= 30:
             focus_exposure = 30
+        if self.crash_check('RoboFocus.exe'):
+            time.sleep(10)
         self.focus_procedures.onThread(self.focus_procedures.startup_focus_procedure, focus_exposure,
                                        self.filterwheel_dict[focus_filter], self.image_directory)
         while not self.focus_procedures.focused.isSet():
-            self.crash_check('RoboFocus.exe')
+            if self.crash_check('RoboFocus.exe'):
+                self.focus_procedures.stop()
+                self.focus_procedures = FocusProcedures(self.focuser, self.camera)
+                time.sleep(5)
+                self.focus_procedures.onThread(self.focus_procedures.startup_focus_procedure, focus_exposure,
+                                               self.filterwheel_dict[focus_filter], self.image_directory)
             time.sleep(10)
         
     def run_ticket(self, ticket):

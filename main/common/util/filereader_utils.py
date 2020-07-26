@@ -200,7 +200,7 @@ def radial_average(path, saturation):
             #     plt.grid()
             #     plt.savefig(r'C:/Users/GMU Observtory1/-omegalambda/test/GaussianPlot.png')
             #     a += 1
-    
+
     fwhm_list = [i for i in fwhm_list if i > 3]
     if fwhm_list:
         fwhm_med = statistics.median(fwhm_list)
