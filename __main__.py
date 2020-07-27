@@ -51,7 +51,8 @@ def main():
                             'Note this will also stop the program from taking any darks and flats if the calibration '
                             'time is set to end.')
     run_driver.add_argument('--nocalibration', '-nc', action='store_false', default='store_true', dest='calibration',
-                            help='Use this option if you do not want to take any darks and flats.')
+                            help='This option is a placeholder for future additions.  Currently it will not do '
+                                 'anything.')
     run_driver.set_defaults(func=cli_run)
     
     args = parser.parse_args()

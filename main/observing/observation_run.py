@@ -14,11 +14,11 @@ from ..common.datatype import filter_wheel
 from ..controller.camera import Camera
 from ..controller.telescope import Telescope
 from ..controller.dome import Dome
-from ..controller.focuser_control import Focuser
-from ..controller.focuser_procedures import FocusProcedures
-from ..controller.flatfield_lamp import FlatLamp
-from .calibration import Calibration
-from .guider import Guider
+# from ..controller.focuser_control import Focuser
+# from ..controller.focuser_procedures import FocusProcedures
+# from ..controller.flatfield_lamp import FlatLamp
+# from .calibration import Calibration
+# from .guider import Guider
 from .condition_checker import Conditions
 
 
@@ -54,13 +54,13 @@ class ObservationRun:
         self.telescope = Telescope()
         self.dome = Dome()
         self.conditions = Conditions()
-        self.focuser = Focuser()
-        self.flatlamp = FlatLamp()
+        # self.focuser = Focuser()
+        # self.flatlamp = FlatLamp()
         
         # Initializes higher level structures - focuser, guider, and calibration
-        self.focus_procedures = FocusProcedures(self.focuser, self.camera)
-        self.calibration = Calibration(self.camera, self.flatlamp, self.image_directory)
-        self.guider = Guider(self.camera, self.telescope)
+        # self.focus_procedures = FocusProcedures(self.focuser, self.camera)
+        # self.calibration = Calibration(self.camera, self.flatlamp, self.image_directory)
+        # self.guider = Guider(self.camera, self.telescope)
         
         # Initializes config objects
         self.filterwheel_dict = filter_wheel.get_filter().filter_position_dict()
@@ -71,11 +71,11 @@ class ObservationRun:
         self.camera.start()
         self.telescope.start()
         self.dome.start()
-        self.focuser.start()
-        self.focus_procedures.start()
-        self.flatlamp.start()
-        self.calibration.start()
-        self.guider.start()
+        # self.focuser.start()
+        # self.focus_procedures.start()
+        # self.flatlamp.start()
+        # self.calibration.start()
+        # self.guider.start()
         
     def everything_ok(self):
         """
@@ -101,9 +101,9 @@ class ObservationRun:
         elif not self.dome.live_connection.wait(timeout=10):
             check = False
             logging.error('Dome connection timeout')
-        elif not self.focuser.live_connection.wait(timeout=10):
-            check = False
-            logging.error('Focuser connection timeout')
+        # elif not self.focuser.live_connection.wait(timeout=10):
+        #     check = False
+        #     logging.error('Focuser connection timeout')
         elif self.conditions.weather_alert.isSet():
             self._shutdown_procedure(calibration=True)
             if self.conditions.sun:
@@ -125,7 +125,7 @@ class ObservationRun:
                     elif self.current_ticket.end_time > datetime.datetime.now(self.tz):
                         self._startup_procedure()
                         self._ticket_slew(self.current_ticket)
-                        self.focus_target(self.current_ticket)
+                        # self.focus_target(self.current_ticket)
                     elif self.current_ticket != self.observation_request_list[-1]:
                         self._startup_procedure()
                 else:
@@ -140,7 +140,7 @@ class ObservationRun:
                     if self.current_ticket.end_time > datetime.datetime.now(self.tz):
                         self._startup_procedure()
                         self._ticket_slew(self.current_ticket)
-                        self.focus_target(self.current_ticket)
+                        # self.focus_target(self.current_ticket)
                     elif self.current_ticket != self.observation_request_list[-1]:
                         self._startup_procedure()
         else:
@@ -169,11 +169,11 @@ class ObservationRun:
         time.sleep(2)
         initial_shutter = self.dome.shutter
         if initial_shutter in (1, 3, 4) and initial_check is True:
-            if calibration:
-                self.camera.onThread(self.camera.cooler_ready)
-                self.camera.cooler_settle.wait()
-                print('Taking darks and flats...')
-                self.take_calibration_images(beginning=True)
+            # if calibration:
+            #     self.camera.onThread(self.camera.cooler_ready)
+            #     self.camera.cooler_settle.wait()
+            #     print('Taking darks and flats...')
+            #     self.take_calibration_images(beginning=True)
             self.dome.onThread(self.dome.move_shutter, 'open')
             self.dome.onThread(self.dome.home)
         elif not initial_check:
@@ -240,7 +240,7 @@ class ObservationRun:
                 self.dome.move_done.wait()
                 self.dome.shutter_done.wait()
             self.camera.cooler_settle.wait()
-            self.focus_target(ticket)
+            # self.focus_target(ticket)
             
             self.tz = ticket.start_time.tzinfo
             current_time = datetime.datetime.now(self.tz)
@@ -267,46 +267,46 @@ class ObservationRun:
             calibration = False
         self.shutdown(calibration)
         
-    def focus_target(self, ticket):
-        """
-        Description
-        -----------
-        Starts the focus procedures module to focus on the current target.
-
-        Parameters
-        ----------
-        ticket : ObservationTicket Object
-            Created from json_reader and object_reader.
-
-        Returns
-        -------
-        None.
-
-        """
-        if type(ticket.filter) is list:
-            focus_filter = [ticket.filter[0]]
-        elif type(ticket.filter) is str:
-            focus_filter = ticket.filter
-        else:
-            logging.error('Filter argument is wrong type')
-            return
-        focus_exposure = int(self.config_dict.focus_exposure_multiplier*ticket.exp_time)
-        if focus_exposure <= 0: 
-            focus_exposure = 1
-        elif focus_exposure >= 30:
-            focus_exposure = 30
-        if self.crash_check('RoboFocus.exe'):
-            time.sleep(10)
-        self.focus_procedures.onThread(self.focus_procedures.startup_focus_procedure, focus_exposure,
-                                       self.filterwheel_dict[focus_filter], self.image_directory)
-        while not self.focus_procedures.focused.isSet():
-            if self.crash_check('RoboFocus.exe'):
-                self.focus_procedures.stop()
-                self.focus_procedures = FocusProcedures(self.focuser, self.camera)
-                time.sleep(5)
-                self.focus_procedures.onThread(self.focus_procedures.startup_focus_procedure, focus_exposure,
-                                               self.filterwheel_dict[focus_filter], self.image_directory)
-            time.sleep(10)
+    # def focus_target(self, ticket):
+    #     """
+    #     Description
+    #     -----------
+    #     Starts the focus procedures module to focus on the current target.
+    #
+    #     Parameters
+    #     ----------
+    #     ticket : ObservationTicket Object
+    #         Created from json_reader and object_reader.
+    #
+    #     Returns
+    #     -------
+    #     None.
+    #
+    #     """
+    #     if type(ticket.filter) is list:
+    #         focus_filter = [ticket.filter[0]]
+    #     elif type(ticket.filter) is str:
+    #         focus_filter = ticket.filter
+    #     else:
+    #         logging.error('Filter argument is wrong type')
+    #         return
+    #     focus_exposure = int(self.config_dict.focus_exposure_multiplier*ticket.exp_time)
+    #     if focus_exposure <= 0:
+    #         focus_exposure = 1
+    #     elif focus_exposure >= 30:
+    #         focus_exposure = 30
+    #     if self.crash_check('RoboFocus.exe'):
+    #         time.sleep(10)
+    #     self.focus_procedures.onThread(self.focus_procedures.startup_focus_procedure, focus_exposure,
+    #                                    self.filterwheel_dict[focus_filter], self.image_directory)
+    #     while not self.focus_procedures.focused.isSet():
+    #         if self.crash_check('RoboFocus.exe'):
+    #             self.focus_procedures.stop()
+    #             self.focus_procedures = FocusProcedures(self.focuser, self.camera)
+    #             time.sleep(5)
+    #             self.focus_procedures.onThread(self.focus_procedures.startup_focus_procedure, focus_exposure,
+    #                                            self.filterwheel_dict[focus_filter], self.image_directory)
+    #         time.sleep(10)
         
     def run_ticket(self, ticket):
         """
@@ -324,16 +324,16 @@ class ObservationRun:
             The total number of images that are specified on the
             observation ticket.
         """
-        self.focus_procedures.onThread(self.focus_procedures.constant_focus_procedure, self.image_directory)
-        if ticket.self_guide:
-            self.guider.onThread(self.guider.guiding_procedure, self.image_directory)
+        # self.focus_procedures.onThread(self.focus_procedures.constant_focus_procedure, self.image_directory)
+        # if ticket.self_guide:
+        #     self.guider.onThread(self.guider.guiding_procedure, self.image_directory)
         if ticket.cycle_filter:
             img_count = self.take_images(ticket.name, ticket.num, ticket.exp_time,
                                          ticket.filter, ticket.end_time, self.image_directory,
                                          True)
-            self.focus_procedures.stop_constant_focusing()
-            if ticket.self_guide:
-                self.guider.stop_guiding()
+            # self.focus_procedures.stop_constant_focusing()
+            # if ticket.self_guide:
+            #     self.guider.stop_guiding()
             return img_count, ticket.num
         
         else:
@@ -343,9 +343,9 @@ class ObservationRun:
                                                     [ticket.filter[i]], ticket.end_time, self.image_directory,
                                                     False)
                 img_count += img_count_filter
-            self.focus_procedures.stop_constant_focusing()
-            if ticket.self_guide:
-                self.guider.stop_guiding()
+            # self.focus_procedures.stop_constant_focusing()
+            # if ticket.self_guide:
+            #     self.guider.stop_guiding()
             return img_count, ticket.num * len(ticket.filter)
 
     def take_images(self, name, num, exp_time, _filter, end_time, path, cycle_filter):
@@ -410,8 +410,8 @@ class ObservationRun:
             
             if self.crash_check('MaxIm_DL.exe'):
                 continue
-            if self.crash_check('RoboFocus.exe'):
-                pass
+            # if self.crash_check('RoboFocus.exe'):
+            #     pass
             
             if cycle_filter:
                 if names_list:
@@ -451,7 +451,7 @@ class ObservationRun:
             
         if not responding:
             prog_dict = {'MaxIm_DL.exe': [self.camera, Camera], 'TheSkyX.exe': [self.telescope, Telescope],
-                         'ASCOMDome.exe': [self.dome, Dome], 'RoboFocus.exe': [self.focuser, Focuser]}
+                         'ASCOMDome.exe': [self.dome, Dome]}
             prog_dict[program][0].crashed.set()
             logging.error('{} is not responding.  Restarting...'.format(program))
             time.sleep(5)
@@ -461,57 +461,57 @@ class ObservationRun:
             prog_dict[program][0] = prog_dict[program][1]()
             prog_dict[program][0].start()
             time.sleep(5)
-            if program in ('MaxIm_DL.exe', 'RoboFocus.exe'):
-                self.focus_procedures.stop_constant_focusing()
-                self.focus_procedures.onThread(self.focus_procedures.stop)
-                time.sleep(5)
-                self.focus_procedures = FocusProcedures(self.focuser, self.camera)
-                self.focus_procedures.start()
-                time.sleep(5)
-                self.focus_procedures.onThread(self.focus_procedures.constant_focus_procedure, self.image_directory)
-            if program in ('MaxIm_DL.exe', 'TheSkyX.exe') and self.current_ticket.self_guide is True:
-                self.guider.stop_guiding()
-                self.guider.onThread(self.guider.stop)
-                time.sleep(5)
-                self.guider = Guider(self.camera, self.telescope)
-                self.guider.start()
-                time.sleep(5)
-                self.guider.onThread(self.guider.guiding_procedure, self.image_directory)
+            # if program in ('MaxIm_DL.exe', 'RoboFocus.exe'):
+            #     self.focus_procedures.stop_constant_focusing()
+            #     self.focus_procedures.onThread(self.focus_procedures.stop)
+            #     time.sleep(5)
+            #     self.focus_procedures = FocusProcedures(self.focuser, self.camera)
+            #     self.focus_procedures.start()
+            #     time.sleep(5)
+            #     self.focus_procedures.onThread(self.focus_procedures.constant_focus_procedure, self.image_directory)
+            # if program in ('MaxIm_DL.exe', 'TheSkyX.exe') and self.current_ticket.self_guide is True:
+            #     self.guider.stop_guiding()
+            #     self.guider.onThread(self.guider.stop)
+            #     time.sleep(5)
+            #     self.guider = Guider(self.camera, self.telescope)
+            #     self.guider.start()
+            #     time.sleep(5)
+            #     self.guider.onThread(self.guider.guiding_procedure, self.image_directory)
             return True
         else:
             return False
         
-    def take_calibration_images(self, beginning=False):
-        """
-        Description
-        -----------
-        Takes flats and darks for the current observation ticket and
-        any previous ones.
-
-        Parameters
-        ----------
-        beginning : BOOL, optional
-            True if taking images before observations start, otherwise False. The default is False.
-
-        Returns
-        -------
-        None.
-
-        """
-        if not beginning:
-            self.telescope.slew_done.wait()
-            self.dome.move_done.wait()
-            self.dome.shutter_done.wait()
-        for i in range(len(self.observation_request_list)):
-            if self.calibrated_tickets[i]:
-                continue
-            self.calibration.onThread(self.calibration.take_flats, self.observation_request_list[i])
-            self.calibration.flats_done.wait()
-            self.calibration.onThread(self.calibration.take_darks, self.observation_request_list[i])
-            self.calibration.darks_done.wait()
-            self.calibrated_tickets[i] = 1
-            if self.current_ticket == self.observation_request_list[i] and beginning is False:
-                break
+    # def take_calibration_images(self, beginning=False):
+    #     """
+    #     Description
+    #     -----------
+    #     Takes flats and darks for the current observation ticket and
+    #     any previous ones.
+    #
+    #     Parameters
+    #     ----------
+    #     beginning : BOOL, optional
+    #         True if taking images before observations start, otherwise False. The default is False.
+    #
+    #     Returns
+    #     -------
+    #     None.
+    #
+    #     """
+    #     if not beginning:
+    #         self.telescope.slew_done.wait()
+    #         self.dome.move_done.wait()
+    #         self.dome.shutter_done.wait()
+    #     for i in range(len(self.observation_request_list)):
+    #         if self.calibrated_tickets[i]:
+    #             continue
+    #         self.calibration.onThread(self.calibration.take_flats, self.observation_request_list[i])
+    #         self.calibration.flats_done.wait()
+    #         self.calibration.onThread(self.calibration.take_darks, self.observation_request_list[i])
+    #         self.calibration.darks_done.wait()
+    #         self.calibrated_tickets[i] = 1
+    #         if self.current_ticket == self.observation_request_list[i] and beginning is False:
+    #             break
     
     def shutdown(self, calibration=False):
         """
@@ -549,20 +549,20 @@ class ObservationRun:
         self.camera.onThread(self.camera.disconnect)
         self.telescope.onThread(self.telescope.disconnect)
         self.dome.onThread(self.dome.disconnect)
-        self.focuser.onThread(self.focuser.disconnect)
-        self.flatlamp.onThread(self.flatlamp.disconnect)
+        # self.focuser.onThread(self.focuser.disconnect)
+        # self.flatlamp.onThread(self.flatlamp.disconnect)
         
         self.conditions.stop.set()
-        self.focus_procedures.stop_constant_focusing()      # Should already be stopped, but just in case
-        self.guider.stop_guiding()                          # Should already be stopped, but just in case
+        # self.focus_procedures.stop_constant_focusing()      # Should already be stopped, but just in case
+        # self.guider.stop_guiding()                          # Should already be stopped, but just in case
         self.camera.onThread(self.camera.stop)
         self.telescope.onThread(self.telescope.stop)
         self.dome.onThread(self.dome.stop)
-        self.focuser.onThread(self.focuser.stop)
-        self.focus_procedures.onThread(self.focus_procedures.stop)
-        self.guider.onThread(self.guider.stop)
-        self.flatlamp.onThread(self.flatlamp.stop)
-        self.calibration.onThread(self.calibration.stop)
+        # self.focuser.onThread(self.focuser.stop)
+        # self.focus_procedures.onThread(self.focus_procedures.stop)
+        # self.guider.onThread(self.guider.stop)
+        # self.flatlamp.onThread(self.flatlamp.stop)
+        # self.calibration.onThread(self.calibration.stop)
     
     def _shutdown_procedure(self, calibration):
         """
@@ -584,9 +584,9 @@ class ObservationRun:
         self.telescope.onThread(self.telescope.park)
         self.dome.onThread(self.dome.park)
         self.dome.onThread(self.dome.move_shutter, 'close')
-        if calibration:
-            print('Taking flats and darks...')
-            self.take_calibration_images()
+        # if calibration:
+        #     print('Taking flats and darks...')
+        #     self.take_calibration_images()
         
         self.camera.onThread(self.camera.cooler_set, False)
         self.telescope.slew_done.wait()
