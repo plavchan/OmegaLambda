@@ -183,7 +183,7 @@ class Telescope(Hardware):
             logging.error("Invalid pulse guide direction")
             return False
         
-        duration = duration*1000
+        duration *= 1000
         # Convert seconds to milliseconds, used by internal telescope calls
         self._is_ready()
         try:
@@ -224,7 +224,7 @@ class Telescope(Hardware):
             rate = rates_key[direction]
             distance = distance_key[direction]
         else:
-            print('Invalid jog direction')
+            logging.error('Invalid jog direction')
             return
         if distance < 30*60:                            # Less than 30', pulse guide
             duration = (distance/3600)/rate         

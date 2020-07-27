@@ -62,7 +62,7 @@ class Config:
         weather_freq : INT, optional
             Frequency of weather checks in minutes.  Our default is 10 minutes.
         cloud_cover_limit : FLOAT, optional
-            Limit for percentage of sky around Fairfax to be covered by clouds before closing up.  Our default is 50%.
+            Limit for percentage of sky around Fairfax to be covered by clouds before closing up.  Our default is 75%.
         min_reopen_time : INT or FLOAT, optional
             Minimum wait time to reopen (in minutes) after a weather check has gone off.  Our default is 30 minutes.
         plate_scale : FLOAT, optional
@@ -70,26 +70,26 @@ class Config:
             0.350 arcseconds/pixel.
         saturation : INT, optional
             CCD camera saturation limit for exposure in counts.  This is more like the exposure linearity limit, after
-            which you'd prefer not to have targets pass.  Our default is 20,000 counts.
+            which you'd prefer not to have targets pass.  Our default is 25,000 counts.
         focus_exposure_multiplier : FLOAT, optional
             Multiplier for exposure times on focusing images.  The multiplier is applied to the exposure time for the
-            current ticket.  Our default is 0.5.
+            current ticket.  Our default is 0.33.
         initial_focus_delta : INT, optional
-            Initial number of steps the focuser will move for each adjustment.  Our default is 10 steps.
+            Initial number of steps the focuser will move for each adjustment.  Our default is 15 steps.
         quick_focus_tolerance : FLOAT, optional
             Leniency for how far to let the focus drift before correcting over the course of the night, in
-            arcseconds. Our default is 2.0 arcseconds.
+            arcseconds. Our default is 1.25 arcseconds.
         focus_max_distance : INT, optional
             Maximum distance away from the initial focus position that the focuser can move.  Our default is 100 steps.
         guiding_threshold : FLOAT, optional
-            How far to let a star drift, in arcseconds, before making a guiding correction. Our default is 20
+            How far to let a star drift, in arcseconds, before making a guiding correction. Our default is 10
             arcseconds.
         guider_ra_dampening : FLOAT, optional
             Dampening coefficient for guider telescope corrections on the RA axis.  Our default is 0.75.
         guider_dec_dampening : FLOAT, optional
             Dampening coefficient for guider telescope corrections on the Dec axis.  Our default is 0.5.
         guider_max_move : FLOAT, optional
-            The maximum distance in arcseconds that the guider can make adjustments for.  Our default is 100 arcseconds.
+            The maximum distance in arcseconds that the guider can make adjustments for.  Our default is 30 arcseconds.
         guider_angle : FLOAT, optional
             The clocking angle of the CCD camera's x and y axes against the RA and Dec axes of the telescope, in
             degrees.  Our default is 0.0 degrees.

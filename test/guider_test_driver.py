@@ -67,7 +67,7 @@ def find_guide_star(path, iteration, subframe=None):
 def guide_test_func():
 
     star = find_guide_star(
-        r'H:\Observatory Files\Observing Sessions\2020_Data\20200711\TIC273035189-12_120s_R-0090.fit', 1
+        r'H:\Observatory Files\Observing Sessions\2020_Data\20200726\HIP-xxxxGuidertest_15s_r-0009.fits', 1
     )
     x_initial = star[0]
     y_initial = star[1]
@@ -75,13 +75,13 @@ def guide_test_func():
     while i < 10:
         moved = False
         star = find_guide_star(
-            r'H:\Observatory Files\Observing Sessions\2020_Data\20200711\TIC273035189-12_120s_R-{0:04d}.fit'.format(i + 91),
+            r'H:\Observatory Files\Observing Sessions\2020_Data\20200726\HIP-xxxxGuidertest_15s_r-{0:04d}.fits'.format(i + 10),
             iteration=i+2, subframe=(x_initial, y_initial))
         x_0 = 250
         y_0 = 250
         x = star[0]
         y = star[1]
-        print('Image number: {0:04d}'.format(i + 91))
+        print('Image number: {0:04d}'.format(i + 10))
         print('Initial coordinates: x={}, y={}'.format(x_initial, y_initial))
         print('Guide star relative coordinates: x={}, y={}'.format(x, y))
         separation = np.sqrt((x - x_0) ** 2 + (y - y_0) ** 2)
@@ -97,7 +97,7 @@ def guide_test_func():
                 angle = np.arctan(ydistance / xdistance)
                 if xdistance < 0:
                     angle += np.pi
-            guideangle = np.pi/2
+            guideangle = 0
             deltangle = angle - guideangle
             xdirection = None
             if (-np.pi/2 <= deltangle <= np.pi/2) or ((3/2)*np.pi <= deltangle <= 2*np.pi):
