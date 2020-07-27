@@ -71,9 +71,7 @@ class FocusProcedures(Hardware):
         self.focuser.onThread(self.focuser.current_position)
         time.sleep(2)
         initial_position = self.focuser.position
-        last = None
         fwhm = None
-        last_fwhm = None
         fwhm_values = []
         focus_positions = []
         i = 0
@@ -101,37 +99,16 @@ class FocusProcedures(Hardware):
                 else:
                     logging.critical('Cannot focus on target')
                     break
-            if i == 0:
-                # First cycle
+            if i < 5:
                 self.focuser.onThread(self.focuser.focus_adjust, "in")
                 self.focuser.adjusting.wait()
-                self.focuser.onThread(self.focuser.focus_adjust, "in")
+            elif i == 5:
+                self.focuser.onThread(self.focuser.absolute_move,
+                                      int(initial_position + self.config_dict.initial_focus_delta))
                 self.focuser.adjusting.wait()
-                last = "in"
-            elif abs(fwhm - last_fwhm) <= 0.5:
-                # Focus noise control -- If less than 0.5 pixels different (about 0.175"), it will keep moving in
-                # that direction and check again vs. the previous last_fwhm
-                self.focuser.onThread(self.focuser.focus_adjust, last)
+            elif i > 5:
+                self.focuser.onThread(self.focuser.focus_adjust, "out")
                 self.focuser.adjusting.wait()
-                i += 1
-                fwhm_values.append(fwhm)
-                focus_positions.append(current_position)
-                continue
-            elif fwhm <= last_fwhm:
-                # Better FWHM -- Keep going
-                self.focuser.onThread(self.focuser.focus_adjust, last)
-                self.focuser.adjusting.wait()
-            elif fwhm > last_fwhm:
-                # Worse FWHM -- Switch directions
-                if last == "in":
-                    self.focuser.onThread(self.focuser.focus_adjust, "out")
-                    self.focuser.adjusting.wait()
-                    last = "out"
-                elif last == "out":
-                    self.focuser.onThread(self.focuser.focus_adjust, "in")
-                    self.focuser.adjusting.wait()
-                    last = "in"
-            last_fwhm = fwhm
             logging.debug('Found fwhm={} for the last image'.format(fwhm))
             fwhm_values.append(fwhm)
             focus_positions.append(current_position)
@@ -198,18 +175,13 @@ class FocusProcedures(Hardware):
                                                     and self.focuser.crashed.isSet() is False):
             logging.debug('Continuous focusing procedure is active...')
             self.camera.image_done.wait()
-            images = os.listdir(image_path)
-            paths = []
-            for fname in images:
-                full_path = os.path.join(image_path, fname)
-                if os.path.isfile(full_path):
-                    paths.append(full_path)
-                else:
-                    continue
-            newest_image = max(paths, key=os.path.getctime)
+            newest_image = self.get_newest_image(image_path)
             fwhm = filereader_utils.radial_average(newest_image, self.config_dict.saturation)
             if not self.FWHM:
                 self.FWHM = fwhm
+            if not fwhm:
+                logging.debug('Constant focusing could not find a fwhm for the recent image.  Skipping...')
+                continue
             if abs(fwhm - self.FWHM) >= self.config_dict.quick_focus_tolerance:
                 self.focuser.onThread(self.focuser.focus_adjust, move)
                 self.focuser.adjusting.wait()
@@ -217,15 +189,42 @@ class FocusProcedures(Hardware):
                 continue
             
             self.camera.image_done.wait()
-            self.camera.onThread(self.camera.get_FWHM)
-            time.sleep(1)
-            next_fwhm = self.camera.fwhm
+            newest_image = self.get_newest_image(image_path)
+            next_fwhm = filereader_utils.radial_average(newest_image, self.config_dict.saturation)
+            if not next_fwhm or not fwhm:
+                logging.debug('Constant focusing could not find a fwhm for the recent image.  Skipping...')
+                continue
             if next_fwhm <= fwhm:
                 continue
             elif next_fwhm > fwhm:
                 move = 'out'
                 self.focuser.onThread(self.focuser.focus_adjust, move)
-                
+
+    @staticmethod
+    def get_newest_image(image_path):
+        """
+
+        Parameters
+        ----------
+        image_path : STR
+            File path to the images being saved by the camera.
+
+        Returns
+        -------
+        newest_image : STR
+            Full path to the most recently created image file in the given directory.
+        """
+        images = os.listdir(image_path)
+        paths = []
+        for fname in images:
+            full_path = os.path.join(image_path, fname)
+            if os.path.isfile(full_path):
+                paths.append(full_path)
+            else:
+                continue
+        newest_image = max(paths, key=os.path.getctime)
+        return newest_image
+
     def stop_constant_focusing(self):
         """
         Description

@@ -35,10 +35,10 @@ class Config:
     def __init__(self, cooler_setpoint=None, cooler_idle_setpoint=None, cooler_settle_time=None, maximum_jog=None,
                  site_latitude=None, site_longitude=None, humidity_limit=None, wind_limit=None, weather_freq=None,
                  cloud_cover_limit=None, min_reopen_time=None, plate_scale=None, saturation=None,
-                 focus_exposure_multiplier=None, initial_focus_delta=None, long_focus_tolerance=None,
-                 quick_focus_tolerance=None, focus_max_distance=None, guiding_threshold=None, guider_ra_dampening=None,
+                 focus_exposure_multiplier=None, initial_focus_delta=None, quick_focus_tolerance=None,
+                 focus_max_distance=None, guiding_threshold=None, guider_ra_dampening=None,
                  guider_dec_dampening=None, guider_max_move=None, guider_angle=None, data_directory=None,
-                 home_directory=None, calibration_time=None):
+                 home_directory=None, calibration_time=None, calibration_num=None):
         """
 
         Parameters
@@ -76,9 +76,6 @@ class Config:
             current ticket.  Our default is 0.5.
         initial_focus_delta : INT, optional
             Initial number of steps the focuser will move for each adjustment.  Our default is 10 steps.
-        long_focus_tolerance : FLOAT, optional
-            Leniency for how close to get the focus within the minimum found during initial focusing, in
-            arcseconds. Our default is 1.0 arcsecond.
         quick_focus_tolerance : FLOAT, optional
             Leniency for how far to let the focus drift before correcting over the course of the night, in
             arcseconds. Our default is 2.0 arcseconds.
@@ -106,6 +103,10 @@ class Config:
             or "end."  If "start", it will take darks and flats for ALL observing tickets at the start of the night.
             If "end", it will take darks and flats for all FINISHED tickets at the end of the night.
             Our default is "end".
+        calibration_num : INT, optional
+            The number of darks and flats that should be taken per target.  Note that there will be one set of flats
+            with this number of exposures, but two sets of darks, each with this number of exposures: one to match
+            the flat exposure time and the other to match the science exposure time.  Our default is 10.
 
         Returns
         -------
@@ -127,7 +128,6 @@ class Config:
         self.saturation = saturation
         self.focus_exposure_multiplier = focus_exposure_multiplier
         self.initial_focus_delta = initial_focus_delta
-        self.long_focus_tolerance = long_focus_tolerance/self.plate_scale
         self.quick_focus_tolerance = quick_focus_tolerance/self.plate_scale
         # These two are converted back into pixels for use in the focuser module
         self.focus_max_distance = focus_max_distance
@@ -139,6 +139,7 @@ class Config:
         self.data_directory = data_directory                     
         self.home_directory = home_directory                        
         self.calibration_time = calibration_time
+        self.calibration_num = int(calibration_num)
         
     @staticmethod
     def deserialized(text):
@@ -195,11 +196,11 @@ def _dict_to_config_object(dic):
                      weather_freq=dic['weather_freq'], cloud_cover_limit=dic['cloud_cover_limit'],
                      min_reopen_time=dic['min_reopen_time'], plate_scale=dic['plate_scale'],
                      saturation=dic['saturation'], focus_exposure_multiplier=dic['focus_exposure_multiplier'],
-                     initial_focus_delta=dic['initial_focus_delta'], long_focus_tolerance=dic['long_focus_tolerance'],
-                     quick_focus_tolerance=dic['quick_focus_tolerance'], focus_max_distance=dic['focus_max_distance'],
-                     guiding_threshold=dic['guiding_threshold'], guider_ra_dampening=dic['guider_ra_dampening'],
-                     guider_dec_dampening=dic['guider_dec_dampening'], guider_max_move=dic['guider_max_move'],
-                     guider_angle=dic['guider_angle'], data_directory=dic['data_directory'],
-                     home_directory=dic['home_directory'], calibration_time=dic['calibration_time'])
+                     initial_focus_delta=dic['initial_focus_delta'], quick_focus_tolerance=dic['quick_focus_tolerance'],
+                     focus_max_distance=dic['focus_max_distance'], guiding_threshold=dic['guiding_threshold'],
+                     guider_ra_dampening=dic['guider_ra_dampening'], guider_dec_dampening=dic['guider_dec_dampening'],
+                     guider_max_move=dic['guider_max_move'], guider_angle=dic['guider_angle'],
+                     data_directory=dic['data_directory'], home_directory=dic['home_directory'],
+                     calibration_time=dic['calibration_time'], calibration_num=dic['calibration_num'])
     logging.info('Global config object has been created')
     return _config

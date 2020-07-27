@@ -91,7 +91,9 @@ class Focuser(Hardware):
         None.
 
         """
+        self.adjusting.clear()
         self.Focuser.actGoToPosition(int(position))
+        self.adjusting.set()
         
     def abort_focus_move(self):
         """

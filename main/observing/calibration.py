@@ -76,7 +76,7 @@ class Calibration(Hardware):
             logging.warning('Could not create flat folder, or folder already exists...')
         for f in filters:
             j = 0
-            while j < 10:
+            while j < self.config_dict.calibration_num:
                 image_name = 'Flat_{0:d}s_{1:s}-{2:04d}.fits'.format(self.filter_exp_times[f], f, j + 1)
                 self.camera.onThread(self.camera.expose, self.filter_exp_times[f], self.filterwheel_dict[f], 
                                      save_path=os.path.join(self.image_directory, r'Flats_{}'.format(ticket.name),
@@ -98,7 +98,6 @@ class Calibration(Hardware):
                         self.filter_exp_times[f] = 1
                 else:
                     j += 1
-                    continue
         self.flatlamp.onThread(self.flatlamp.turn_off)
         lamp = self.flatlamp.lamp_done.wait(timeout=60)
         if not lamp:
@@ -138,7 +137,7 @@ class Calibration(Hardware):
             logging.warning('Could not create dark folder, or folder already exists...')
         check = True
         for f in filters:
-            for j in range(10):
+            for j in range(self.config_dict.calibration_num):
                 image_name = 'Dark_{0:d}s-{1:04d}.fits'.format(self.filter_exp_times[f], j + 1)
                 self.camera.onThread(self.camera.expose, self.filter_exp_times[f], 0,
                                      save_path=os.path.join(self.image_directory, r'Darks_{}'.format(ticket.name),
@@ -147,7 +146,7 @@ class Calibration(Hardware):
             if self.filter_exp_times[f] == ticket.exp_time:
                 check = False
         if check:
-            for k in range(10):
+            for k in range(self.config_dict.calibration_num):
                 image_name = 'Dark_{0:d}s-{1:04d}.fits'.format(ticket.exp_time, k + 1)
                 self.camera.onThread(self.camera.expose, ticket.exp_time, 0,
                                      save_path=os.path.join(self.image_directory, r'Darks_{}'.format(ticket.name),

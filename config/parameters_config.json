@@ -14,8 +14,7 @@
 	"saturation": 25000,
 	"focus_exposure_multiplier": 0.33,
 	"initial_focus_delta": 15,
-	"long_focus_tolerance": 1,
-	"quick_focus_tolerance": 2,
+	"quick_focus_tolerance": 1.25,
 	"focus_max_distance": 100,
 	"guiding_threshold": 10.0,
 	"guider_ra_dampening": 0.75,
@@ -24,6 +23,7 @@
 	"guider_angle": 0.0,
 	"data_directory": "H:/Observatory Files/Observing Sessions/2020_Data",
 	"home_directory": "C:/Users/GMU Observtory1/-omegalambda",
-	"calibration_time": "end"
+	"calibration_time": "end",
+	"calibration_num": 10
 	}
 }
