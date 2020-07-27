@@ -2,6 +2,10 @@ from ..main.common.util import filereader_utils
 import matplotlib.pyplot as plt
 import photutils
 import numpy as np
+from ..main.controller.telescope import Telescope
+from ..main.common.IO.json_reader import Reader
+from ..main.common.datatype.object_reader import ObjectReader
+import time
 
 
 def find_guide_star(path, iteration, subframe=None):
@@ -67,7 +71,7 @@ def find_guide_star(path, iteration, subframe=None):
 def guide_test_func():
 
     star = find_guide_star(
-        r'H:\Observatory Files\Observing Sessions\2020_Data\20200726\HIP-xxxxGuidertest_15s_r-0009.fits', 1
+        r'H:\Observatory Files\Observing Sessions\2020_Data\20200726\HIP-xxxxGuidertest_15s_r-0019.fits', 1
     )
     x_initial = star[0]
     y_initial = star[1]
@@ -75,13 +79,13 @@ def guide_test_func():
     while i < 10:
         moved = False
         star = find_guide_star(
-            r'H:\Observatory Files\Observing Sessions\2020_Data\20200726\HIP-xxxxGuidertest_15s_r-{0:04d}.fits'.format(i + 10),
+            r'H:\Observatory Files\Observing Sessions\2020_Data\20200726\HIP-xxxxGuidertest_15s_r-{0:04d}.fits'.format(18 - i),
             iteration=i+2, subframe=(x_initial, y_initial))
         x_0 = 250
         y_0 = 250
         x = star[0]
         y = star[1]
-        print('Image number: {0:04d}'.format(i + 10))
+        print('Image number: {0:04d}'.format(18 - i))
         print('Initial coordinates: x={}, y={}'.format(x_initial, y_initial))
         print('Guide star relative coordinates: x={}, y={}'.format(x, y))
         separation = np.sqrt((x - x_0) ** 2 + (y - y_0) ** 2)
@@ -134,6 +138,10 @@ def guide_test_func():
                 print('Delta Angle: {}'.format(deltangle))
                 print('Separation: {}'.format(separation))
                 print('Direction: {} {}'.format(xdirection, ydirection))
+                tel.onThread(tel.jog, xdirection, xjog_distance)
+                tel.slew_done.wait()
+                tel.onThread(tel.jog, ydirection, yjog_distance)
+                tel.slew_done.wait()
                 moved = True
         i += 1
         if moved:
@@ -141,4 +149,13 @@ def guide_test_func():
 
 
 if __name__ == '__main__':
+    config = ObjectReader(Reader(r'C:/Users/GMU Observtory1/-omegalambda/config/parameters_config.json'))
+    tel = Telescope()
+    tel.start()
+    time.sleep(5)
+    tel.onThread(tel.unpark)
     guide_test_func()
+    time.sleep(5)
+    tel.onThread(tel.park)
+    tel.onThread(tel.disconnect)
+    tel.onThread(tel.stop)
