@@ -3,6 +3,7 @@ import threading
 import queue
 import time
 import logging
+import pywintypes
 
 import pythoncom
 import win32com.client
@@ -178,7 +179,7 @@ class Hardware(threading.Thread):
                 try: 
                     self.Camera.LinkEnabled = True
                     self.live_connection.set()
-                except:
+                except (AttributeError, pywintypes.com_error):
                     logging.error("Could not connect to camera")
                 else:
                     print("Camera has successfully connected")
@@ -187,7 +188,7 @@ class Hardware(threading.Thread):
                 try: 
                     self.Telescope.Connected = True
                     self.live_connection.set()
-                except:
+                except (AttributeError, pywintypes.com_error):
                     logging.error("Could not connect to the telescope")
                 else:
                     print("Telescope has successfully connected")
@@ -197,7 +198,7 @@ class Hardware(threading.Thread):
             try: 
                 self.Dome.Connected = True
                 self.live_connection.set()
-            except:
+            except (AttributeError, pywintypes.com_error):
                 logging.error("Could not connect to dome")
             else:
                 print("Dome has successfully connected")

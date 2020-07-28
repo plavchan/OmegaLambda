@@ -104,7 +104,6 @@ def guide_test_func():
                     angle += np.pi
             guideangle = 0
             deltangle = angle - guideangle
-            xdirection = None
             if (-np.pi/2 <= deltangle <= np.pi/2) or ((3/2)*np.pi <= deltangle <= 2*np.pi):
                 xdirection = 'right'
             # Star has moved right in the image, so we want to move it back left,
@@ -113,7 +112,6 @@ def guide_test_func():
                 xdirection = 'left'
             # Star has moved left in the image, so we want to move it back right,
             # meaning we need to move the telescope left
-            ydirection = None
             if 0 <= deltangle <= np.pi:
                 ydirection = 'up'
             # Star has moved up in the image, so we want to move it back down,
@@ -122,17 +120,15 @@ def guide_test_func():
                 ydirection = 'down'
             # Star has moved down in the image, so we want to move it back up,
             # meaning we need to move the telescope down
-            xjog_distance = abs(separation * np.cos(deltangle)) * 0.350 * \
-                            0.75
-            yjog_distance = abs(separation * np.sin(deltangle)) * 0.350 * \
-                            0.50
+            xjog_distance = abs(separation * np.cos(deltangle)) * 0.350 * 0.75
+            yjog_distance = abs(separation * np.sin(deltangle)) * 0.350 * 0.50
             jog_separation = np.sqrt(xjog_distance ** 2 + yjog_distance ** 2)
             if jog_separation >= 100:
                 print('Guide star has moved substantially between images...If the telescope did not move '
                       'suddenly, the guide star most likely has become saturated and the guider has '
                       'picked a new star.')
-                new_star = self.find_guide_star(r'H:\Observatory Files\Observing Sessions\2020_Data\20200726\HIP-' +
-                                                r'xxxxGuidertest_15s_r-{0:04d}.fits'.format(i + 10))
+                new_star = find_guide_star(r'H:\Observatory Files\Observing Sessions\2020_Data\20200726\HIP-' +
+                                           r'xxxxGuidertest_15s_r-{0:04d}.fits'.format(i + 10), 0)
                 x_initial = new_star[0]
                 y_initial = new_star[1]
             elif jog_separation < 100:

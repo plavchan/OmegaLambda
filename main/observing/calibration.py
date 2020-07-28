@@ -68,12 +68,10 @@ class Calibration(Hardware):
         elif type(filt) is list:
             filters = filt
         else:
-            logging.error('Filter argument is wrong type')
+            logging.error('Filter argument must be string or list')
             return
-        try:
+        if not os.path.exists(os.path.join(self.image_directory, 'Flats_{}'.format(ticket.name))):
             os.mkdir(os.path.join(self.image_directory, 'Flats_{}'.format(ticket.name)))
-        except:
-            logging.warning('Could not create flat folder, or folder already exists...')
         for f in filters:
             j = 0
             while j < self.config_dict.calibration_num:
@@ -99,9 +97,7 @@ class Calibration(Hardware):
                 else:
                     j += 1
         self.flatlamp.onThread(self.flatlamp.turn_off)
-        lamp = self.flatlamp.lamp_done.wait(timeout=60)
-        if not lamp:
-            return False
+        self.flatlamp.lamp_done.wait(timeout=60)
         self.flats_done.set()
         return True
         
@@ -131,10 +127,8 @@ class Calibration(Hardware):
         else:
             logging.error('Filter argument is wrong type')
             return
-        try:
+        if not os.path.exists(os.path.join(self.image_directory, 'Darks_{}'.format(ticket.name))):
             os.mkdir(os.path.join(self.image_directory, 'Darks_{}'.format(ticket.name)))
-        except:
-            logging.warning('Could not create dark folder, or folder already exists...')
         check = True
         for f in filters:
             for j in range(self.config_dict.calibration_num):

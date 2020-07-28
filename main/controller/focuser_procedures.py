@@ -67,10 +67,8 @@ class FocusProcedures(Hardware):
         global startup_focuses
         self.focused.clear()
         
-        try:
+        if not os.path.exists(os.path.join(image_path, r'focuser_calibration_images')):
             os.mkdir(os.path.join(image_path, r'focuser_calibration_images'))
-        except:
-            logging.error('Could not create subdirectory for focusing images, or directory already exists...')
         # Creates new sub-directory for focuser images
         self.focuser.onThread(self.focuser.set_focus_delta, self.config_dict.initial_focus_delta)
         self.focuser.onThread(self.focuser.current_position)

@@ -1,6 +1,7 @@
 import time
 import threading
 import logging
+# import pywintypes
 
 from .hardware import Hardware
 
