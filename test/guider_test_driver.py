@@ -71,7 +71,7 @@ def find_guide_star(path, iteration, subframe=None):
 def guide_test_func():
 
     star = find_guide_star(
-        r'H:\Observatory Files\Observing Sessions\2020_Data\20200726\HIP-xxxxGuidertest_15s_r-0019.fits', 1
+        r'H:\Observatory Files\Observing Sessions\2020_Data\20200726\HIP-xxxxGuidertest_15s_r-0009.fits', 1
     )
     x_initial = star[0]
     y_initial = star[1]
@@ -79,13 +79,14 @@ def guide_test_func():
     while i < 10:
         moved = False
         star = find_guide_star(
-            r'H:\Observatory Files\Observing Sessions\2020_Data\20200726\HIP-xxxxGuidertest_15s_r-{0:04d}.fits'.format(18 - i),
+            r'H:\Observatory Files\Observing Sessions\2020_Data\20200726\HIP-' +
+            r'xxxxGuidertest_15s_r-{0:04d}.fits'.format(i + 10),
             iteration=i+2, subframe=(x_initial, y_initial))
         x_0 = 250
         y_0 = 250
         x = star[0]
         y = star[1]
-        print('Image number: {0:04d}'.format(18 - i))
+        print('Image number: {0:04d}'.format(i + 10))
         print('Initial coordinates: x={}, y={}'.format(x_initial, y_initial))
         print('Guide star relative coordinates: x={}, y={}'.format(x, y))
         separation = np.sqrt((x - x_0) ** 2 + (y - y_0) ** 2)
@@ -130,8 +131,10 @@ def guide_test_func():
                 print('Guide star has moved substantially between images...If the telescope did not move '
                       'suddenly, the guide star most likely has become saturated and the guider has '
                       'picked a new star.')
-                x_initial += (x - x_0)
-                y_initial += (y - y_0)
+                new_star = self.find_guide_star(r'H:\Observatory Files\Observing Sessions\2020_Data\20200726\HIP-' +
+                                                r'xxxxGuidertest_15s_r-{0:04d}.fits'.format(i + 10))
+                x_initial = new_star[0]
+                y_initial = new_star[1]
             elif jog_separation < 100:
                 print('Guider is making an adjustment')
                 print('xdistance: {}; ydistance: {}'.format(xjog_distance, yjog_distance))

@@ -1,9 +1,11 @@
 # Focusing procedures
 import os
+import sys
 import logging
 import time
 import threading
 import statistics
+import msvcrt
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -11,9 +13,11 @@ from .hardware import Hardware
 from ..common.IO import config_reader
 from ..common.util import filereader_utils
 
+startup_focuses = 0
+
 
 class FocusProcedures(Hardware):
-    
+
     def __init__(self, focus_obj, camera_obj):
         """
         Initializes focusprocedures as a subclass of hardware.
@@ -60,6 +64,7 @@ class FocusProcedures(Hardware):
         None.
 
         """
+        global startup_focuses
         self.focused.clear()
         
         try:
@@ -99,12 +104,15 @@ class FocusProcedures(Hardware):
                 else:
                     logging.critical('Cannot focus on target')
                     break
+            self.focuser.onThread(self.focuser.set_focus_delta, self.config_dict.initial_focus_delta)
             if i < 5:
+                if i == 0:
+                    self.focuser.onThread(self.focuser.set_focus_delta, self.config_dict.initial_focus_delta*2)
                 self.focuser.onThread(self.focuser.focus_adjust, "in")
                 self.focuser.adjusting.wait()
             elif i == 5:
                 self.focuser.onThread(self.focuser.absolute_move,
-                                      int(initial_position + self.config_dict.initial_focus_delta))
+                                      int(initial_position + self.config_dict.initial_focus_delta*2))
                 self.focuser.adjusting.wait()
             elif i > 5:
                 self.focuser.onThread(self.focuser.focus_adjust, "out")
@@ -113,10 +121,13 @@ class FocusProcedures(Hardware):
             fwhm_values.append(fwhm)
             focus_positions.append(current_position)
             i += 1
+        startup_focuses += 1
         
         data = sorted(zip(focus_positions, fwhm_values))
         x = [_[0] for _ in data]
         y = [_[1] for _ in data]
+        xfit = None
+        yfit = None
         if len(x) >= 3 and len(y) >= 3:
             med = statistics.median(x)
             fit = np.polyfit(x, y, 2)
@@ -131,13 +142,27 @@ class FocusProcedures(Hardware):
             ax.set_title('Focus Positions Graph')
             ax.grid()
             plt.savefig(os.path.join(self.config_dict.home_directory, r'test/FocusPlot.png'))
-        else:
-            logging.warning('Not enough focus data to produce a parabolic fit.')
+        elif startup_focuses <= 1:
+            try:
+                answer = self.input_with_timeout(
+                    "Focuser has failed to produce a good parabolic fit.  Would you like to try again? (y/n) \n"
+                    "You have 30 seconds to answer; on timeout the program will automatically refocus: ", 30
+                )
+                if answer == 'y':
+                    self.startup_focus_procedure(exp_time, _filter, image_path)
+                elif answer == 'n':
+                    self.focuser.onThread(self.focuser.absolute_move, initial_position)
+                    self.focuser.adjusting.wait()
+            except TimeoutExpired:
+                self.focuser.onThread(self.focuser.absolute_move, initial_position)
+                self.focuser.adjusting.wait()
             return
 
         minindex = np.where(yfit == min(yfit))
         if (minindex == np.where(yfit == yfit[0])) or (minindex == np.where(yfit == yfit[-1])):
             logging.warning('Parabolic fit has failed and fit an incorrect parabola.  Cannot calculate minimum focus.')
+            self.focuser.onThread(self.focuser.absolute_move, initial_position)
+            self.focuser.adjusting.wait()
         else:
             minfocus = np.round(xfit[minindex])
             logging.info('Autofocus achieved a FWHM of {} pixels!'.format(fwhm))
@@ -147,7 +172,8 @@ class FocusProcedures(Hardware):
             else:
                 logging.info('Calculated minimum focus is out of range of the focuser movement restrictions. '
                              'This is probably due to an error in the calculations.')
-
+                self.focuser.onThread(self.focuser.absolute_move, initial_position)
+                self.focuser.adjusting.wait()
         self.focused.set()
         self.FWHM = fwhm
         return
@@ -225,6 +251,34 @@ class FocusProcedures(Hardware):
         newest_image = max(paths, key=os.path.getctime)
         return newest_image
 
+    @staticmethod
+    def input_with_timeout(prompt, timeout, timer=time.monotonic):
+        """
+
+        Parameters
+        ----------
+        prompt : STR
+            Input prompt to give the user
+        timeout : INT or FLOAT
+            Time in seconds the user has to give a response
+        timer : time.monotonic
+            Timer object from time module
+
+        Returns
+        -------
+        msvcrt.getwche()
+            A single character typed by the user -- meant to be user for 'y' / 'n' responses.
+            If the user does not type anything, a special TimeoutExpired exception is raised.
+        """
+        sys.stdout.write(prompt)
+        sys.stdout.flush()
+        endtime = timer() + timeout
+        while timer() < endtime:
+            if msvcrt.kbhit():
+                return msvcrt.getwche()
+            time.sleep(0.04)
+        raise TimeoutExpired
+
     def stop_constant_focusing(self):
         """
         Description
@@ -240,3 +294,13 @@ class FocusProcedures(Hardware):
         """
         logging.debug('Stopping continuous focusing')
         self.continuous_focusing.clear()
+
+
+class TimeoutExpired(Exception):
+    """
+    Description
+    -----------
+    To be used only for input_with_timeout.  An exception that does not stop/prevent any threads or the main thread
+    from running, and is just used to check if the input has timed out or not.
+    """
+    pass
