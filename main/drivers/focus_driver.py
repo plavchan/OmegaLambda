@@ -17,8 +17,8 @@ fp = FocusProcedures(cam_obj)
 
 cam_obj.start()
 fp.start()
-try: os.mkdir(os.path.join(config_dict.data_directory, r'20200629'))
-except: pass
+if not os.path.exists(os.path.join(config_dict.data_directory, r'20200629')):
+    os.mkdir(os.path.join(config_dict.data_directory, r'20200629'))
 
 fp.onThread(fp.startup_focus_procedure, int(config_dict.focus_exposure_multiplier * 10), 4,
             config_dict.initial_focus_delta, os.path.join(config_dict.data_directory, r'20200629'),

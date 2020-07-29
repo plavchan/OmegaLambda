@@ -110,6 +110,7 @@ class Telescope(Hardware):
         self._is_ready()
         try: 
             self.Telescope.Unpark()
+            self.Telescope.Tracking = True
         except: 
             print("ERROR: Error unparking telescope tracking")
             return False
@@ -227,7 +228,7 @@ class Telescope(Hardware):
             logging.error('Invalid jog direction')
             return
         if distance < 30*60:                            # Less than 30', pulse guide
-            duration = (distance/3600)/rate         
+            duration = (abs(distance)/3600)/rate
             self.pulse_guide(direction, duration)
             
         elif distance >= 30*60:                         # More than 30', slew normally

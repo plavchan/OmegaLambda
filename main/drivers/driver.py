@@ -59,7 +59,7 @@ def run(obs_tickets, data=None, config=None, _filter=None, logger=None, shutdown
         else:
             global_config = ObjectReader(Reader(
                 os.path.abspath(os.path.join(current_path, r'../../config/parameters_config.json'))))
-    except:
+    except Exception:
         logging.critical('Could not read or parse config file')
 
     try: 
@@ -68,21 +68,19 @@ def run(obs_tickets, data=None, config=None, _filter=None, logger=None, shutdown
         else:
             global_filter = ObjectReader(Reader(
                 os.path.abspath(os.path.join(current_path, r'../../config/fw_config.json'))))
-    except:
+    except Exception:
         logging.critical('Error initializing global filter object')
     
     config_dict = config_reader.get_config()
-    folder = None
-    try:
-        if data:
-            folder = r'{}'.format(data)     # Reads as a raw string
-        else:
-            folder = os.path.join(config_dict.data_directory, datetime.datetime.now().strftime('%Y%m%d'))
-        os.mkdir(folder)
-    except:
-        logging.warning('Could not create directory, or directory already exists')
+    if data:
+        folder = r'{}'.format(data)     # Reads as a raw string
     else:
+        folder = os.path.join(config_dict.data_directory, datetime.datetime.now().strftime('%Y%m%d'))
+    if not os.path.exists(folder):
+        os.makedirs(folder)
         print('New directory for tonight\'s observing has been made!')
+    else:
+        print('Directory for tonight\'s observing already exists!')
     
     observation_request_list = []
     if os.path.isfile(obs_tickets[0]):
@@ -119,7 +117,7 @@ def read_ticket(ticket):
 
     """
     if not os.path.isfile(ticket):
-        logging.critical('Invalid file path to obsevation ticket')
+        logging.critical('Invalid file path to observation ticket')
         return None
     try:
         object_reader = ObjectReader(Reader(ticket))
@@ -160,8 +158,8 @@ def check_ticket(ticket):
     elif type(ticket.ra) is not float:
         print('Error reading ticket: ra formatting error...')
         return False
-    elif ticket.ra < 0:
-        print('Error reading ticket: negative ra...')
+    elif ticket.ra < 0 or ticket.ra > 24:
+        print('Error reading ticket: ra not between 0 and 24 hrs')
         return False
     elif type(ticket.dec) is not float:
         print('Error reading ticket: dec formatting error...')
