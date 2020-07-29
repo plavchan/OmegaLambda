@@ -13,10 +13,10 @@ from .hardware import Hardware
 from ..common.IO import config_reader
 from ..common.util import filereader_utils
 
-startup_focuses = 0
-
 
 class FocusProcedures(Hardware):
+
+    startup_focuses = 0
 
     def __init__(self, focus_obj, camera_obj):
         """
@@ -64,7 +64,6 @@ class FocusProcedures(Hardware):
         None.
 
         """
-        global startup_focuses
         self.focused.clear()
         
         if not os.path.exists(os.path.join(image_path, r'focuser_calibration_images')):
@@ -119,7 +118,7 @@ class FocusProcedures(Hardware):
             fwhm_values.append(fwhm)
             focus_positions.append(current_position)
             i += 1
-        startup_focuses += 1
+        FocusProcedures.startup_focuses += 1
         
         data = sorted(zip(focus_positions, fwhm_values))
         x = [_[0] for _ in data]
@@ -140,7 +139,7 @@ class FocusProcedures(Hardware):
             ax.set_title('Focus Positions Graph')
             ax.grid()
             plt.savefig(os.path.join(self.config_dict.home_directory, r'test/FocusPlot.png'))
-        elif startup_focuses <= 1:
+        elif FocusProcedures.startup_focuses <= 1:
             try:
                 answer = self.input_with_timeout(
                     "Focuser has failed to produce a good parabolic fit.  Would you like to try again? (y/n) \n"
