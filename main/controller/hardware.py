@@ -55,12 +55,12 @@ class Hardware(threading.Thread):
 
         Parameters
         ----------
-        function : FUNCTION
+        function : BOUND METHOD
             A class method that is to be put in the thread queue and called on the
             appropriate thread.
-        *args : ANY TYPE
+        *args : ANY
             The arguments to be passed to the class method.
-        **kwargs : ANY TYPE
+        **kwargs : ANY
             The keyword arguments to be passed to the class method.
 
         Returns
