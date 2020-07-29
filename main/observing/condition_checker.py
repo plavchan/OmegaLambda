@@ -1,6 +1,7 @@
 # Condition Checker
 
 import urllib.request
+import urllib.error
 import requests
 import os
 import re
@@ -97,7 +98,7 @@ class Conditions(threading.Thread):
         try:
             urllib.request.urlopen('http://google.com')
             return True
-        except:
+        except (urllib.error.URLError, urllib.error.HTTPError):
             return False
    
     def weather_check(self):

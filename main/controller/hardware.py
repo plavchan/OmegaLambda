@@ -12,8 +12,11 @@ from ..common.IO import config_reader
 
 
 class Hardware(threading.Thread):
-    
-    def __init__(self, name, loop_time=1.0/60):
+
+    config_dict = config_reader.get_config()  # Gets the config object as a class variable
+    timeout = 1.0/60
+
+    def __init__(self, name):
         """
         Initializes hardware as a subclass of threading.Thread.
 
@@ -22,8 +25,6 @@ class Hardware(threading.Thread):
         name : STR
             Details the name of the hardware object.  Important for naming the thread
             and calling the correct dispatch functions.
-        loop_time : FLOAT, optional
-            The time that the queue will wait for a function call before cycling on. The default is 1.0/60.
 
         Returns
         -------
@@ -31,7 +32,6 @@ class Hardware(threading.Thread):
 
         """
         self.q = queue.Queue()
-        self.timeout = loop_time
         self.label = name
         self.stopping = threading.Event()
         self.crashed = threading.Event()
@@ -43,7 +43,6 @@ class Hardware(threading.Thread):
         self.ser = None
         super(Hardware, self).__init__(name=self.label + '-Th')               # Called threading.Thread.__init__
         
-        self.config_dict = config_reader.get_config()                           # Gets the global config object
         self.live_connection = threading.Event()
 
     def onThread(self, function, *args, **kwargs):
