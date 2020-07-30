@@ -24,6 +24,15 @@ class Telescope(Hardware):
         super(Telescope, self).__init__(name='Telescope')       # Calls Hardware.__init__ with the name 'Telescope'
 
     def check_connection(self):
+        """
+        Description
+        -----------
+        Overwrites base class.  Checks for telescope connection specifically.
+
+        Returns
+        -------
+
+        """
         logging.info('Checking connection for the {}'.format(self.label))
         self.live_connection.clear()
         if not self.Telescope.Connected:

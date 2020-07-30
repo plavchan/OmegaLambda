@@ -21,6 +21,15 @@ class Focuser(Hardware):
         super(Focuser, self).__init__(name='Focuser')      # calls Hardware.__init__ with the name 'focuser'
 
     def check_connection(self):
+        """
+        Description
+        -----------
+        Overwrites base class.  Checks for focuser connection specifically.
+
+        Returns
+        -------
+
+        """
         logging.info('Checking connection for the {}'.format(self.label))
         self.live_connection.clear()
         self.Focuser.actOpenComm()

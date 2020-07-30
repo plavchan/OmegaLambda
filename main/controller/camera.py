@@ -23,6 +23,15 @@ class Camera(Hardware):
         super(Camera, self).__init__(name='Camera')
 
     def check_connection(self):
+        """
+        Description
+        -----------
+        Overwrites base class.  Checks for camera connection specifically.
+
+        Returns
+        -------
+
+        """
         logging.info('Checking connection for the {}'.format(self.label))
         self.live_connection.clear()
         if self.Camera.LinkEnabled:

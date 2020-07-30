@@ -36,6 +36,15 @@ class FlatLamp(Hardware):
         self.lamp_done = threading.Event()
 
     def check_connection(self):
+        """
+        Description
+        -----------
+        Overwrites base class.  Checks for flatfield lamp connection specifically.
+
+        Returns
+        -------
+
+        """
         logging.info("Check connection for the {}".format(self.label))
         self.live_connection.clear()
         try:

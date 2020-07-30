@@ -24,6 +24,15 @@ class Dome(Hardware):
         super(Dome, self).__init__(name='Dome')
 
     def check_connection(self):
+        """
+        Description
+        -----------
+        Overwrites base class.  Checks for dome connection specifically.
+
+        Returns
+        -------
+
+        """
         logging.info('Checking connection for the {}'.format(self.label))
         self.live_connection.clear()
         try:
