@@ -1,5 +1,6 @@
 import logging
 import threading
+import time
 
 from .hardware import Hardware
 
@@ -18,7 +19,18 @@ class Focuser(Hardware):
         self.adjusting = threading.Event()
         self.position = None
         super(Focuser, self).__init__(name='Focuser')      # calls Hardware.__init__ with the name 'focuser'
-        
+
+    def check_connection(self):
+        logging.info('Checking connection for the {}'.format(self.label))
+        self.live_connection.clear()
+        self.Focuser.actOpenComm()
+        time.sleep(2)
+        if self.Focuser.getCommStatus():
+            print("Focuser has successfully connected")
+            self.live_connection.set()
+        else:
+            logging.error("Could not connect to focuser")
+
     def set_focus_delta(self, amount):
         """
 

@@ -2,6 +2,7 @@ import time
 import threading
 import logging
 import subprocess
+import pywintypes
 
 from .hardware import Hardware
 
@@ -21,7 +22,18 @@ class Dome(Hardware):
         self.shutter_done = threading.Event()
         self.shutter = None
         super(Dome, self).__init__(name='Dome')
-        
+
+    def check_connection(self):
+        logging.info('Checking connection for the {}'.format(self.label))
+        self.live_connection.clear()
+        try:
+            self.Dome.Connected = True
+            self.live_connection.set()
+        except (AttributeError, pywintypes.com_error):
+            logging.error("Could not connect to dome")
+        else:
+            print("Dome has successfully connected")
+
     def _is_ready(self):
         """
         Description

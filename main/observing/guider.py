@@ -134,11 +134,18 @@ class Guider(Hardware):
 
         """
         self.guiding.set()
-        self.camera.image_done.wait()
-        newest_image = self.find_newest_image(image_path)
-        star = self.find_guide_star(newest_image)
-        x_initial = star[0]
-        y_initial = star[1]
+        x_initial = 0
+        y_initial = 0
+        while self.guiding.isSet():
+            self.camera.image_done.wait()
+            newest_image = self.find_newest_image(image_path)
+            star = self.find_guide_star(newest_image)
+            if not star:
+                logging.warning('Guider could not find a suitable guide star...waiting for next image to try again.')
+            else:
+                x_initial = star[0]
+                y_initial = star[1]
+                break
         while self.guiding.isSet():
             moved = False
             self.camera.image_done.wait()

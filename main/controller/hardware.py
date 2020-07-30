@@ -3,7 +3,6 @@ import threading
 import queue
 import time
 import logging
-import pywintypes
 
 import pythoncom
 import win32com.client
@@ -13,7 +12,6 @@ from ..common.IO import config_reader
 
 class Hardware(threading.Thread):
 
-    config_dict = config_reader.get_config()  # Gets the config object as a class variable
     timeout = 1.0/60
 
     def __init__(self, name):
@@ -42,7 +40,8 @@ class Hardware(threading.Thread):
         self.Focuser = None
         self.ser = None
         super(Hardware, self).__init__(name=self.label + '-Th')               # Called threading.Thread.__init__
-        
+
+        self.config_dict = config_reader.get_config()  # Gets the config object as a class variable
         self.live_connection = threading.Event()
 
     def onThread(self, function, *args, **kwargs):
@@ -79,11 +78,13 @@ class Hardware(threading.Thread):
 
         Returns
         -------
-        None
+        check : BOOL
+            True if the hardware could find the correct object to connect to, otherwise False.
 
         """
         dispatch_dict = {'Camera': 'MaxIm.CCDCamera', 'Telescope': 'ASCOM.SoftwareBisque.Telescope',
                          'Dome': 'ASCOMDome.Dome', 'Focuser': 'RoboFocus.FocusControl'}
+        chosen = True
         if self.label in dispatch_dict:
             comobj = win32com.client.Dispatch(dispatch_dict[self.label])
         else:
@@ -108,10 +109,14 @@ class Hardware(threading.Thread):
         elif self.label == 'Focuser':
             self.Focuser = comobj
             self.check_connection()
-        elif self.label in ('Guider', 'Calibration', 'FocusProcedures', 'FlatLamp'):
+        elif self.label == 'FlatLamp':
+            self.check_connection()
+        elif self.label in ('Guider', 'Calibration', 'FocusProcedures'):
             pass
         else:
             logging.error("Invalid hardware name")
+            chosen = False
+        return chosen
 
     def run(self):
         """
@@ -130,7 +135,10 @@ class Hardware(threading.Thread):
 
         """
         pythoncom.CoInitialize()
-        self._choose_type()
+        check = self._choose_type()
+        if not check:
+            pythoncom.CoUninitialize()
+            return
         while not self.stopping.isSet():
             logging.debug("{0:s} thread is alive".format(self.label))
             try:
@@ -162,7 +170,7 @@ class Hardware(threading.Thread):
         Description
         -----------
         Depending on which type of hardware, this will check if it has been properly connected
-        or not from the dispatch commands.
+        or not from the dispatch commands.  It is overriden by most child classes of hardware.
 
         Returns
         -------
@@ -170,44 +178,32 @@ class Hardware(threading.Thread):
 
         """
         logging.info('Checking connection for the {}'.format(self.label))
-        self.live_connection.clear()
-        if self.label == 'Camera':
-            if self.Camera.LinkEnabled:
-                print("Camera is already connected")
-            else:
-                try: 
-                    self.Camera.LinkEnabled = True
-                    self.live_connection.set()
-                except (AttributeError, pywintypes.com_error):
-                    logging.error("Could not connect to camera")
-                else:
-                    print("Camera has successfully connected")
-        elif self.label == 'Telescope':
-            if not self.Telescope.Connected:
-                try: 
-                    self.Telescope.Connected = True
-                    self.live_connection.set()
-                except (AttributeError, pywintypes.com_error):
-                    logging.error("Could not connect to the telescope")
-                else:
-                    print("Telescope has successfully connected")
-            else:
-                print("Already connected")
-        elif self.label == 'Dome':
-            try: 
-                self.Dome.Connected = True
-                self.live_connection.set()
-            except (AttributeError, pywintypes.com_error):
-                logging.error("Could not connect to dome")
-            else:
-                print("Dome has successfully connected")
-        elif self.label == 'Focuser':
-            self.Focuser.actOpenComm()
-            time.sleep(2)
-            if self.Focuser.getCommStatus():
-                print("Focuser has successfully connected")
-                self.live_connection.set()
-            else:
-                logging.error("Could not connect to focuser")
-        else:
-            print("Invalid hardware type to check connection for")
+        print("Invalid hardware type to check connection for: {}".format(self.label))
+
+    def cooler_set(self, toggle):
+        """
+        Description
+        -----------
+        Purposefully left empty to be overriden by Camera subclass.
+
+        """
+        print("Invalid hardware to set the cooler for: {}".format(self.label))
+
+    @classmethod
+    def new_loop_time(cls, loop_time):
+        """
+        Description
+        -----------
+        Resets the Hardware loop time to the specified value for all Hardware classes.
+
+        Parameters
+        ----------
+        loop_time : INT or FLOAT
+            How quickly the queue will loop and check for new functions to execute, in seconds.
+
+        Returns
+        -------
+        None
+
+        """
+        cls.timeout = loop_time

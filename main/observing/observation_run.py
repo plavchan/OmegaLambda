@@ -284,7 +284,7 @@ class ObservationRun:
 
         """
         if type(ticket.filter) is list:
-            focus_filter = [ticket.filter[0]]
+            focus_filter = str(ticket.filter[0])
         elif type(ticket.filter) is str:
             focus_filter = ticket.filter
         else:

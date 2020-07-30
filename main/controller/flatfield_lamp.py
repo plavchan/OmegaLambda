@@ -33,12 +33,14 @@ class FlatLamp(Hardware):
         else:
             logging.critical('Cannot find flatfield lamp port')
             return
-        self.check_flatlamp_connection()
         self.lamp_done = threading.Event()
 
-    def check_flatlamp_connection(self):
+    def check_connection(self):
+        logging.info("Check connection for the {}".format(self.label))
+        self.live_connection.clear()
         try:
             self.ser.open()
+            self.live_connection.set()
         except:
             logging.error('Could not connect to flatlamp')
         else:

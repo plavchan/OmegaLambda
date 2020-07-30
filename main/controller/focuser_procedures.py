@@ -150,6 +150,10 @@ class FocusProcedures(Hardware):
                 elif answer == 'n':
                     self.focuser.onThread(self.focuser.absolute_move, initial_position)
                     self.focuser.adjusting.wait()
+                else:
+                    print('Invalid answer...')
+                    self.focuser.onThread(self.focuser.absolute_move, initial_position)
+                    self.focuser.adjusting.wait()
             except TimeoutExpired:
                 self.focuser.onThread(self.focuser.absolute_move, initial_position)
                 self.focuser.adjusting.wait()
