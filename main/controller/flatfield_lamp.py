@@ -45,7 +45,7 @@ class FlatLamp(Hardware):
         -------
 
         """
-        logging.info("Check connection for the {}".format(self.label))
+        logging.info("Checking connection for the {}".format(self.label))
         self.live_connection.clear()
         try:
             self.ser.open()
@@ -53,7 +53,7 @@ class FlatLamp(Hardware):
         except:
             logging.error('Could not connect to flatlamp')
         else:
-            logging.info('Flatlamp has successfully connected')
+            print('Flatlamp has successfully connected')
 
     def turn_on(self):
         """

@@ -143,20 +143,29 @@ class FocusProcedures(Hardware):
             try:
                 answer = self.input_with_timeout(
                     "Focuser has failed to produce a good parabolic fit.  Would you like to try again? (y/n) \n"
-                    "You have 30 seconds to answer; on timeout the program will automatically refocus: ", 30
+                    "You have 30 seconds to answer; on timeout the program will not refocus: \n", 30
                 )
-                if answer == 'y':
-                    self.startup_focus_procedure(exp_time, _filter, image_path)
-                elif answer == 'n':
-                    self.focuser.onThread(self.focuser.absolute_move, initial_position)
-                    self.focuser.adjusting.wait()
-                else:
-                    print('Invalid answer...')
-                    self.focuser.onThread(self.focuser.absolute_move, initial_position)
-                    self.focuser.adjusting.wait()
             except TimeoutExpired:
                 self.focuser.onThread(self.focuser.absolute_move, initial_position)
                 self.focuser.adjusting.wait()
+                self.focused.set()
+                return
+            if answer == 'y':
+                self.startup_focus_procedure(exp_time, _filter, image_path)
+            elif answer == 'n':
+                self.focuser.onThread(self.focuser.absolute_move, initial_position)
+                self.focuser.adjusting.wait()
+                self.focused.set()
+                return
+            else:
+                print('Invalid answer...resetting focus to initial position.')
+                self.focuser.onThread(self.focuser.absolute_move, initial_position)
+                self.focuser.adjusting.wait()
+                self.focused.set()
+                return
+        else:
+            logging.warning('The focuser still could not find a good focus.')
+            self.focused.set()
             return
 
         minindex = np.where(yfit == min(yfit))

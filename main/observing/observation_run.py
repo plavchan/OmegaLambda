@@ -8,7 +8,7 @@ import subprocess
 # import threading
 import numpy as np
 
-from ..common.util import time_utils, conversion_utils      # and filereader_utils
+from ..common.util import time_utils, conversion_utils
 from ..common.IO import config_reader
 from ..common.datatype import filter_wheel
 from ..controller.camera import Camera
