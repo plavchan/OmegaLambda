@@ -152,6 +152,8 @@ class FocusProcedures(Hardware):
                 return
             if answer == 'y':
                 self.startup_focus_procedure(exp_time, _filter, image_path)
+                self.focused.set()
+                return
             elif answer == 'n':
                 self.focuser.onThread(self.focuser.absolute_move, initial_position)
                 self.focuser.adjusting.wait()
