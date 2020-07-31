@@ -61,6 +61,7 @@ def run(obs_tickets, data=None, config=None, _filter=None, logger=None, shutdown
                 os.path.abspath(os.path.join(current_path, r'../../config/parameters_config.json'))))
     except Exception:
         logging.critical('Could not read or parse config file')
+        return
 
     try: 
         if _filter:
@@ -70,6 +71,7 @@ def run(obs_tickets, data=None, config=None, _filter=None, logger=None, shutdown
                 os.path.abspath(os.path.join(current_path, r'../../config/fw_config.json'))))
     except Exception:
         logging.critical('Error initializing global filter object')
+        return
     
     config_dict = config_reader.get_config()
     if data:

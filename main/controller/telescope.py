@@ -2,6 +2,7 @@ import threading
 import logging
 import time
 import subprocess
+import pywintypes
 
 from ..common.util import conversion_utils
 from .hardware import Hardware
@@ -21,7 +22,30 @@ class Telescope(Hardware):
         self.slew_done = threading.Event()
         # Threading event sets flags and allows threads to interact with each other
         super(Telescope, self).__init__(name='Telescope')       # Calls Hardware.__init__ with the name 'Telescope'
-        
+
+    def check_connection(self):
+        """
+        Description
+        -----------
+        Overwrites base class.  Checks for telescope connection specifically.
+
+        Returns
+        -------
+
+        """
+        logging.info('Checking connection for the {}'.format(self.label))
+        self.live_connection.clear()
+        if not self.Telescope.Connected:
+            try:
+                self.Telescope.Connected = True
+                self.live_connection.set()
+            except (AttributeError, pywintypes.com_error):
+                logging.error("Could not connect to the telescope")
+            else:
+                print("Telescope has successfully connected")
+        else:
+            print("Already connected")
+
     def check_coordinate_limit(self, ra, dec, time=None):
         """
 

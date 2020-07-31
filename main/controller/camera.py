@@ -1,7 +1,7 @@
 import time
 import threading
 import logging
-# import pywintypes
+import pywintypes
 
 from .hardware import Hardware
 
@@ -21,7 +21,30 @@ class Camera(Hardware):
         self.image_done = threading.Event()
         self.exposing = threading.Lock()
         super(Camera, self).__init__(name='Camera')
-        
+
+    def check_connection(self):
+        """
+        Description
+        -----------
+        Overwrites base class.  Checks for camera connection specifically.
+
+        Returns
+        -------
+
+        """
+        logging.info('Checking connection for the {}'.format(self.label))
+        self.live_connection.clear()
+        if self.Camera.LinkEnabled:
+            print("Camera is already connected")
+        else:
+            try:
+                self.Camera.LinkEnabled = True
+                self.live_connection.set()
+            except (AttributeError, pywintypes.com_error):
+                logging.error("Could not connect to camera")
+            else:
+                print("Camera has successfully connected")
+
     def cooler_set(self, toggle):
         """
 

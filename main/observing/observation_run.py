@@ -1,14 +1,12 @@
 import datetime
 import time
 import os
-import math
 import re
 import logging
 import subprocess
 # import threading
-import numpy as np
 
-from ..common.util import time_utils, conversion_utils      # and filereader_utils
+from ..common.util import time_utils, conversion_utils
 from ..common.IO import config_reader
 from ..common.datatype import filter_wheel
 from ..controller.camera import Camera
@@ -35,6 +33,9 @@ class ObservationRun:
             Directory to which the images will be saved to.
         shutdown_toggle : BOOL
             Whether or not to shut down after finished with observations.
+        calibration_toggle : BOOL
+            Whether or not to take calibration images at the specified calibration time in the configuration
+            file.
 
         Returns
         -------
@@ -43,7 +44,7 @@ class ObservationRun:
         # Basic parameters
         self.image_directory = image_directory
         self.observation_request_list = observation_request_list
-        self.calibrated_tickets = np.zeros(len(observation_request_list))
+        self.calibrated_tickets = [0] * len(observation_request_list)
         self.current_ticket = None
         self.shutdown_toggle = shutdown_toggle
         self.calibration_toggle = calibration_toggle
@@ -91,20 +92,23 @@ class ObservationRun:
             good to continue observation.
 
         """
-        check = None
+        check = True
         if not self.camera.live_connection.wait(timeout=10):
             check = False
             logging.error('Camera connection timeout')
-        elif not self.telescope.live_connection.wait(timeout=10):
+        if not self.telescope.live_connection.wait(timeout=10):
             check = False
             logging.error('Telescope connection timeout')
-        elif not self.dome.live_connection.wait(timeout=10):
+        if not self.dome.live_connection.wait(timeout=10):
             check = False
             logging.error('Dome connection timeout')
-        # elif not self.focuser.live_connection.wait(timeout=10):
+        # if not self.focuser.live_connection.wait(timeout=10):
         #     check = False
         #     logging.error('Focuser connection timeout')
-        elif self.conditions.weather_alert.isSet():
+        # if not self.flatlamp.live_connection.wait(timeout=10):
+        #     self.calibration_toggle = False
+        #     logging.warning('Flatlamp connection timeout...may not be able to take calibration images.')
+        if self.conditions.weather_alert.isSet():
             self._shutdown_procedure(calibration=True)
             if self.conditions.sun:
                 sunset_time = conversion_utils.get_sunset(datetime.datetime.now(self.tz),
@@ -143,8 +147,6 @@ class ObservationRun:
                         # self.focus_target(self.current_ticket)
                     elif self.current_ticket != self.observation_request_list[-1]:
                         self._startup_procedure()
-        else:
-            check = True
         return check
 
     def _startup_procedure(self, calibration=False):
@@ -221,7 +223,7 @@ class ObservationRun:
         -------
         None.
         """
-        if self.config_dict.calibration_time == "start" and self.calibration_toggle == 'store_true':
+        if self.config_dict.calibration_time == "start" and self.calibration_toggle is True:
             calibration = True
         else:
             calibration = False
@@ -284,7 +286,7 @@ class ObservationRun:
     #
     #     """
     #     if type(ticket.filter) is list:
-    #         focus_filter = [ticket.filter[0]]
+    #         focus_filter = str(ticket.filter[0])
     #     elif type(ticket.filter) is str:
     #         focus_filter = ticket.filter
     #     else:
@@ -415,9 +417,9 @@ class ObservationRun:
             
             if cycle_filter:
                 if names_list:
-                    image_num = math.floor(image_base[_filter[(i + 1) % num_filters]] + ((i + 1) / num_filters))
+                    image_num = int(image_base[_filter[(i + 1) % num_filters]] + ((i + 1) / num_filters))
                 else:
-                    image_num = math.floor(1 + ((i + 1)/num_filters))
+                    image_num = int(1 + ((i + 1)/num_filters))
             elif not cycle_filter:
                 if names_list:
                     image_num = image_base[_filter[(i + 1) % num_filters]] + (i + 1)
@@ -533,7 +535,7 @@ class ObservationRun:
             self._shutdown_procedure(calibration=calibration)
             self.stop_threads()
         else:
-            pass
+            return
         
     def stop_threads(self):
         """
