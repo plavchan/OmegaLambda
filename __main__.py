@@ -46,11 +46,11 @@ def main():
                             help='Manual file path to the filter wheel config json file.')
     run_driver.add_argument('--logger', '-l', metavar='PATH', dest='logger',
                             help='Manual file path to the logging config json file.')
-    run_driver.add_argument('--noshutdown', '-ns', action='store_false', default='store_true', dest='shutdown',
+    run_driver.add_argument('--noshutdown', '-ns', action='store_false', dest='shutdown',
                             help='Use this option if you do not want to shutdown after running the tickets. '
                             'Note this will also stop the program from taking any darks and flats if the calibration '
                             'time is set to end.')
-    run_driver.add_argument('--nocalibration', '-nc', action='store_false', default='store_true', dest='calibration',
+    run_driver.add_argument('--nocalibration', '-nc', action='store_false', dest='calibration',
                             help='Use this option if you do not want to take any darks and flats.')
     run_driver.set_defaults(func=cli_run)
     

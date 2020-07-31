@@ -5,7 +5,6 @@ import re
 import logging
 import subprocess
 # import threading
-import numpy as np
 
 from ..common.util import time_utils, conversion_utils
 from ..common.IO import config_reader
@@ -45,7 +44,7 @@ class ObservationRun:
         # Basic parameters
         self.image_directory = image_directory
         self.observation_request_list = observation_request_list
-        self.calibrated_tickets = np.zeros(len(observation_request_list))
+        self.calibrated_tickets = [0] * len(observation_request_list)
         self.current_ticket = None
         self.shutdown_toggle = shutdown_toggle
         self.calibration_toggle = calibration_toggle
@@ -93,20 +92,23 @@ class ObservationRun:
             good to continue observation.
 
         """
-        check = None
+        check = True
         if not self.camera.live_connection.wait(timeout=10):
             check = False
             logging.error('Camera connection timeout')
-        elif not self.telescope.live_connection.wait(timeout=10):
+        if not self.telescope.live_connection.wait(timeout=10):
             check = False
             logging.error('Telescope connection timeout')
-        elif not self.dome.live_connection.wait(timeout=10):
+        if not self.dome.live_connection.wait(timeout=10):
             check = False
             logging.error('Dome connection timeout')
-        elif not self.focuser.live_connection.wait(timeout=10):
+        if not self.focuser.live_connection.wait(timeout=10):
             check = False
             logging.error('Focuser connection timeout')
-        elif self.conditions.weather_alert.isSet():
+        if not self.flatlamp.live_connection.wait(timeout=10):
+            self.calibration_toggle = False
+            logging.warning('Flatlamp connection timeout...may not be able to take calibration images.')
+        if self.conditions.weather_alert.isSet():
             self._shutdown_procedure(calibration=True)
             if self.conditions.sun:
                 sunset_time = conversion_utils.get_sunset(datetime.datetime.now(self.tz),
@@ -145,8 +147,6 @@ class ObservationRun:
                         self.focus_target(self.current_ticket)
                     elif self.current_ticket != self.observation_request_list[-1]:
                         self._startup_procedure()
-        else:
-            check = True
         return check
 
     def _startup_procedure(self, calibration=False):
@@ -223,7 +223,7 @@ class ObservationRun:
         -------
         None.
         """
-        if self.config_dict.calibration_time == "start" and self.calibration_toggle == 'store_true':
+        if self.config_dict.calibration_time == "start" and self.calibration_toggle is True:
             calibration = True
         else:
             calibration = False
@@ -535,7 +535,7 @@ class ObservationRun:
             self._shutdown_procedure(calibration=calibration)
             self.stop_threads()
         else:
-            pass
+            return
         
     def stop_threads(self):
         """
