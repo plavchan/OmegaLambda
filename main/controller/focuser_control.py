@@ -121,7 +121,8 @@ class Focuser(Hardware):
 
         Returns
         -------
-        None.
+        bool
+            True if successful, otherwise False.
 
         """
         if not self.crashed.isSet():
