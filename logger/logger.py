@@ -23,20 +23,6 @@ class Logger:
         self.logger_config = ObjectReader(Reader(config))
         logging.config.dictConfig(self.logger_config.ticket)
 
-        self.start()
-
-    @staticmethod
-    def start():
-        """
-        Description
-        -----------
-        States that the logger module has been started.
-
-        Returns
-        -------
-        None.
-
-        """
         logging.info('Initialized logging module')
 
     @staticmethod

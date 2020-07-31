@@ -50,11 +50,17 @@ class Focuser(Hardware):
 
         Returns
         -------
-        None.
+        bool
+            True if successful, otherwise False.
 
         """
-        self.Focuser.setDelta(int(amount))
-        logging.debug('Focuser delta changed')
+        if not self.crashed.isSet():
+            self.Focuser.setDelta(int(amount))
+            logging.debug('Focuser delta changed')
+            return True
+        else:
+            logging.warning('Focuser has crashed...cannot set focus delta at this time')
+            return False
         
     def current_position(self):
         """
@@ -83,22 +89,28 @@ class Focuser(Hardware):
 
         Returns
         -------
-        None.
+        bool
+            True if successful, otherwise False.
 
         """
-        self.adjusting.clear()
-        if amount is not None:
-            self.set_focus_delta(amount)
-        if direction == "in":
-            self.Focuser.actIn()
-            logging.info('Focuser moved in')
-        elif direction == "out":
-            self.Focuser.actOut()
-            logging.info('Focuser moved out')
+        if not self.crashed.isSet():
+            self.adjusting.clear()
+            if amount is not None:
+                self.set_focus_delta(amount)
+            if direction == "in":
+                self.Focuser.actIn()
+                logging.info('Focuser moved in')
+            elif direction == "out":
+                self.Focuser.actOut()
+                logging.info('Focuser moved out')
+            else:
+                logging.error('Invalid focus move direction')
+            self.adjusting.set()
         else:
-            logging.error('Invalid focus move direction')
-        self.adjusting.set()
-            
+            logging.warning('Focuser has crashed...cannot adjust focus position at this time')
+            return False
+        return True
+
     def absolute_move(self, position):
         """
 
@@ -112,9 +124,14 @@ class Focuser(Hardware):
         None.
 
         """
-        self.adjusting.clear()
-        self.Focuser.actGoToPosition(int(position))
-        self.adjusting.set()
+        if not self.crashed.isSet():
+            self.adjusting.clear()
+            self.Focuser.actGoToPosition(int(position))
+            self.adjusting.set()
+        else:
+            logging.warning('Focuser has crashed...cannot move to absolute position at this time.')
+            return False
+        return True
         
     def abort_focus_move(self):
         """
@@ -127,7 +144,10 @@ class Focuser(Hardware):
         None.
 
         """
-        self.Focuser.actStop()
+        if not self.crashed.isSet():
+            self.Focuser.actStop()
+        else:
+            pass
         
     def disconnect(self):
         """
@@ -140,7 +160,10 @@ class Focuser(Hardware):
         None.
 
         """
-        self.Focuser.actCloseComm()
-        self.live_connection.clear()
+        if not self.crashed.isSet():
+            self.Focuser.actCloseComm()
+            self.live_connection.clear()
+        else:
+            pass
         
 # Robofocus documentation: http://www.robofocus.com/documents/robofocusins31.pdf

@@ -78,10 +78,18 @@ class FocusProcedures(Hardware):
         focus_positions = []
         i = 0
         errors = 0
+        crash_loops = 0
         while i < 10:
             if self.camera.crashed.isSet() or self.focuser.crashed.isSet():
-                logging.error('The camera or focuser has crashed...focus procedures cannot continue.')
-                break
+                if crash_loops <= 4:
+                    logging.warning('The camera or focuser has crashed...waiting for potential recovery.')
+                    time.sleep(10)
+                    crash_loops += 1
+                    continue
+                elif crash_loops > 4:
+                    logging.error('The camera or focuser has still not recovered from crashing...focus procedures '
+                                  'cannot continue.')
+                    break
             image_name = '{0:s}_{1:d}s-{2:04d}.fits'.format('FocuserImage', exp_time, i + 1)
             path = os.path.join(image_path, r'focuser_calibration_images', image_name)
             self.camera.onThread(self.camera.expose, exp_time, _filter, save_path=path, type="light")
@@ -106,14 +114,14 @@ class FocusProcedures(Hardware):
                 if i == 0:
                     self.focuser.onThread(self.focuser.set_focus_delta, self.config_dict.initial_focus_delta*2)
                 self.focuser.onThread(self.focuser.focus_adjust, "in")
-                self.focuser.adjusting.wait()
+                self.focuser.adjusting.wait(timeout=30)
             elif i == 5:
                 self.focuser.onThread(self.focuser.absolute_move,
                                       int(initial_position + self.config_dict.initial_focus_delta*2))
-                self.focuser.adjusting.wait()
+                self.focuser.adjusting.wait(timeout=30)
             elif i > 5:
                 self.focuser.onThread(self.focuser.focus_adjust, "out")
-                self.focuser.adjusting.wait()
+                self.focuser.adjusting.wait(timeout=30)
             logging.debug('Found fwhm={} for the last image'.format(fwhm))
             fwhm_values.append(fwhm)
             focus_positions.append(current_position)
@@ -145,7 +153,7 @@ class FocusProcedures(Hardware):
                 )
             except TimeoutExpired:
                 self.focuser.onThread(self.focuser.absolute_move, initial_position)
-                self.focuser.adjusting.wait()
+                self.focuser.adjusting.wait(timeout=30)
                 self.focused.set()
                 return
             if answer == 'y':
@@ -154,13 +162,13 @@ class FocusProcedures(Hardware):
                 return
             elif answer == 'n':
                 self.focuser.onThread(self.focuser.absolute_move, initial_position)
-                self.focuser.adjusting.wait()
+                self.focuser.adjusting.wait(timeout=30)
                 self.focused.set()
                 return
             else:
                 print('Invalid answer...resetting focus to initial position.')
                 self.focuser.onThread(self.focuser.absolute_move, initial_position)
-                self.focuser.adjusting.wait()
+                self.focuser.adjusting.wait(timeout=30)
                 self.focused.set()
                 return
         else:
@@ -172,7 +180,7 @@ class FocusProcedures(Hardware):
         if (minindex == np.where(yfit == yfit[0])) or (minindex == np.where(yfit == yfit[-1])):
             logging.warning('Parabolic fit has failed and fit an incorrect parabola.  Cannot calculate minimum focus.')
             self.focuser.onThread(self.focuser.absolute_move, initial_position)
-            self.focuser.adjusting.wait()
+            self.focuser.adjusting.wait(timeout=30)
         else:
             minfocus = np.round(xfit[minindex])
             logging.info('Autofocus achieved a FWHM of {} pixels!'.format(fwhm))
@@ -183,7 +191,7 @@ class FocusProcedures(Hardware):
                 logging.info('Calculated minimum focus is out of range of the focuser movement restrictions. '
                              'This is probably due to an error in the calculations.')
                 self.focuser.onThread(self.focuser.absolute_move, initial_position)
-                self.focuser.adjusting.wait()
+                self.focuser.adjusting.wait(timeout=30)
         self.focused.set()
         self.FWHM = fwhm
         return
@@ -220,7 +228,7 @@ class FocusProcedures(Hardware):
                 continue
             if abs(fwhm - self.FWHM) >= self.config_dict.quick_focus_tolerance:
                 self.focuser.onThread(self.focuser.focus_adjust, move)
-                self.focuser.adjusting.wait()
+                self.focuser.adjusting.wait(timeout=30)
             else:
                 continue
             
