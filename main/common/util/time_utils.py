@@ -1,5 +1,4 @@
 import datetime
-import math
 import logging
 
 import pytz
@@ -22,7 +21,7 @@ def rounddown_300(x):
 
     """
     logging.debug('Called time_utils function')
-    return (math.floor(x/300))*300
+    return int(x/300)*300
 
 
 def convert_to_datetime_utc(date):

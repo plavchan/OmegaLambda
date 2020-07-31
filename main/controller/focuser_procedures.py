@@ -123,8 +123,6 @@ class FocusProcedures(Hardware):
         data = sorted(zip(focus_positions, fwhm_values))
         x = [_[0] for _ in data]
         y = [_[1] for _ in data]
-        xfit = None
-        yfit = None
         if len(x) >= 3 and len(y) >= 3:
             med = statistics.median(x)
             fit = np.polyfit(x, y, 2)

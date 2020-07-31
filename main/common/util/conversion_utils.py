@@ -1,4 +1,4 @@
-import math
+import numpy as np
 import datetime
 
 from astropy import units as u
@@ -6,48 +6,6 @@ from astropy.coordinates import SkyCoord, FK5, get_sun
 from astropy.time import Time
 
 from . import time_utils
-
-
-def convert_degrees_to_radians(degrees):
-    """
-    Parameters
-    ----------
-    degrees: LIST, FLOAT
-        Value in degrees
-
-    Returns
-    -------
-    LIST, FLOAT
-        Degree value(s) in Radians
-    """
-    if type(degrees) is list:
-        result = []
-        for element in degrees:
-            result.append(element*math.pi/180)
-        return result
-    else:
-        return degrees * math.pi / 180
-
-
-def convert_radians_to_degrees(radians):
-    """
-    Parameters
-    ---------
-    radians: LIST, FLOAT
-        Any value in Radians
-
-    Returns
-    -------
-    LIST, FLOAT
-        Radian value(s) in degrees
-    """
-    if type(radians) is list:
-        result = []
-        for element in radians:
-            result.append(element*180/math.pi)
-        return result
-    else:
-        return radians * 180 / math.pi
 
 
 def get_decha_from_altaz(azimuth, altitude, latitude):
@@ -68,14 +26,14 @@ def get_decha_from_altaz(azimuth, altitude, latitude):
     HA : FLOAT
         The calculated hour angle of intended target.
     """
-    (azimuth_r, altitude_r, latitude_r) = convert_degrees_to_radians([azimuth, altitude, latitude])
-    dec_r = math.asin(math.sin(altitude_r)*math.sin(latitude_r)
-                      + math.cos(altitude_r)*math.cos(latitude_r)*math.cos(azimuth_r))
-    ha_r = math.acos((math.sin(altitude_r)
-                      - math.sin(latitude_r)*math.sin(dec_r))/(math.cos(latitude_r)*math.cos(dec_r)))
-    if math.sin(azimuth_r) > 0:
-        ha_r = 2*math.pi - ha_r
-    (dec, HA) = convert_radians_to_degrees([dec_r, ha_r])
+    (azimuth_r, altitude_r, latitude_r) = np.radians([azimuth, altitude, latitude])
+    dec_r = np.arcsin(np.sin(altitude_r)*np.sin(latitude_r)
+                      + np.cos(altitude_r)*np.cos(latitude_r)*np.cos(azimuth_r))
+    ha_r = np.arccos((np.sin(altitude_r)
+                      - np.sin(latitude_r)*np.sin(dec_r))/(np.cos(latitude_r)*np.cos(dec_r)))
+    if np.sin(azimuth_r) > 0:
+        ha_r = 2*np.pi - ha_r
+    (dec, HA) = np.degrees([dec_r, ha_r])
     return dec, HA
 
 
@@ -102,7 +60,7 @@ def convert_altaz_to_radec(azimuth, altitude, latitude, longitude, time):
         The calculated Declination from Alt/Az.
     """
     lst = time_utils.get_local_sidereal_time(longitude, time)
-    lst = lst*15
+    lst *= 15
     (dec, HA) = get_decha_from_altaz(azimuth, altitude, latitude)
     ra = (lst - HA)/15
     while ra < 0:
@@ -140,12 +98,12 @@ def convert_radec_to_altaz(ra, dec, latitude, longitude, time):
         ha += 360
     while ha > 360:
         ha -= 360
-    (dec_r, latitude_r, longitude_r, HA_r) = convert_degrees_to_radians([dec, latitude, longitude, ha])
-    alt_r = math.asin(math.sin(dec_r)*math.sin(latitude_r)+math.cos(dec_r)*math.cos(latitude_r)*math.cos(HA_r))
-    az_r = math.acos((math.sin(dec_r) - math.sin(alt_r)*math.sin(latitude_r))/(math.cos(alt_r)*math.cos(latitude_r)))
-    if math.sin(HA_r) > 0:
-        az_r = 2*math.pi - az_r
-    (az, alt) = convert_radians_to_degrees([az_r, alt_r])
+    (dec_r, latitude_r, longitude_r, HA_r) = np.radians([dec, latitude, longitude, ha])
+    alt_r = np.arcsin(np.sin(dec_r)*np.sin(latitude_r)+np.cos(dec_r)*np.cos(latitude_r)*np.cos(HA_r))
+    az_r = np.arccos((np.sin(dec_r) - np.sin(alt_r)*np.sin(latitude_r))/(np.cos(alt_r)*np.cos(latitude_r)))
+    if np.sin(HA_r) > 0:
+        az_r = 2*np.pi - az_r
+    (az, alt) = np.degrees([az_r, alt_r])
     return az, alt
 
 

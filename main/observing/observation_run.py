@@ -1,7 +1,6 @@
 import datetime
 import time
 import os
-import math
 import re
 import logging
 import subprocess
@@ -35,6 +34,9 @@ class ObservationRun:
             Directory to which the images will be saved to.
         shutdown_toggle : BOOL
             Whether or not to shut down after finished with observations.
+        calibration_toggle : BOOL
+            Whether or not to take calibration images at the specified calibration time in the configuration
+            file.
 
         Returns
         -------
@@ -415,9 +417,9 @@ class ObservationRun:
             
             if cycle_filter:
                 if names_list:
-                    image_num = math.floor(image_base[_filter[(i + 1) % num_filters]] + ((i + 1) / num_filters))
+                    image_num = int(image_base[_filter[(i + 1) % num_filters]] + ((i + 1) / num_filters))
                 else:
-                    image_num = math.floor(1 + ((i + 1)/num_filters))
+                    image_num = int(1 + ((i + 1)/num_filters))
             elif not cycle_filter:
                 if names_list:
                     image_num = image_base[_filter[(i + 1) % num_filters]] + (i + 1)
