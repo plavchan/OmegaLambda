@@ -130,7 +130,7 @@ def savetxt():
     current_path = os.path.abspath(os.path.dirname(__file__))
     with open(os.path.join(current_path, r'{}.json'.format(name.get())), 'w+') as f:
         f.write('{\"type\": \"observation_ticket\",')
-        f.write('\n\"details\":{')
+        f.write('\n\"details\": {')
         f.write('\n\t\"name\": \"{}\",'.format(name.get()))
         f.write('\n\t\"ra\": \"{}\",'.format(ra.get()))
         f.write('\n\t\"dec\": \"{}\",'.format(dec.get()))
@@ -140,7 +140,7 @@ def savetxt():
         f.write('\n\t\"num\": {},'.format(n_exposures.get()))
         f.write('\n\t\"exp_time\": {},'.format(exposure_time.get()))
         f.write('\n\t\"self_guide\": {},'.format(self_guide_var))
-        f.write('\n\t\"guide\":{},'.format(guide_var))
+        f.write('\n\t\"guide\": {},'.format(guide_var))
         f.write('\n\t\"cycle_filter\": {}'.format(cycle_filter_var))
         f.write('\n\t}\n}')
 
