@@ -93,21 +93,21 @@ class ObservationRun:
 
         """
         check = True
-        if not self.camera.live_connection.wait(timeout=10):
-            check = False
-            logging.error('Camera connection timeout')
-        if not self.telescope.live_connection.wait(timeout=10):
-            check = False
-            logging.error('Telescope connection timeout')
-        if not self.dome.live_connection.wait(timeout=10):
-            check = False
-            logging.error('Dome connection timeout')
-        if not self.focuser.live_connection.wait(timeout=10):
-            check = False
-            logging.error('Focuser connection timeout')
-        if not self.flatlamp.live_connection.wait(timeout=10):
-            self.calibration_toggle = False
-            logging.warning('Flatlamp connection timeout...may not be able to take calibration images.')
+        connections = {
+            'Camera': self.camera,
+            'Telescope': self.telescope,
+            'Dome': self.dome,
+            'Focuser': self.focuser,
+            'FlatLamp': self.flatlamp
+        }
+        message = ''
+        for key, value in connections.items():
+            if not value.live_connection.wait(timeout=10):
+                message += key + ' '
+                check = False
+        if message:
+            logging.error('Hardware connection timeout: {}'.format(message))
+
         if self.conditions.weather_alert.isSet():
             self._shutdown_procedure(calibration=True)
             if self.conditions.sun:
@@ -285,11 +285,9 @@ class ObservationRun:
         None.
 
         """
-        if type(ticket.filter) is list:
-            focus_filter = str(ticket.filter[0])
-        elif type(ticket.filter) is str:
-            focus_filter = ticket.filter
-        else:
+        focus_filter = str(ticket.filter[0]) if type(ticket.filter) is list \
+            else ticket.filter if type(ticket.filter) is str else None
+        if not focus_filter:
             logging.error('Filter argument is wrong type')
             return
         focus_exposure = int(self.config_dict.focus_exposure_multiplier*ticket.exp_time)
@@ -390,15 +388,15 @@ class ObservationRun:
             if not self.everything_ok():
                 break
             current_filter = _filter[i % num_filters]
-            image_name = "{0:s}_{1:d}s_{2:s}-{3:04d}.fits".format(name, exp_time, current_filter, image_num)
+            image_name = "{0:s}_{1:d}s_{2:s}-{3:04d}.fits".format(name, exp_time, str(current_filter).upper(),
+                                                                  image_num)
             
             if i == 0 and os.path.exists(os.path.join(path, image_name)):
                 # Checks if images already exist (in the event of a crash)
                 for f in _filter:
                     names_list = [0]
                     for fname in os.listdir(path):
-                        n = re.search('{0:s}_{1:d}s_{2:s}-(.+?).fits'.format(name, exp_time, f), fname)
-                        if n:
+                        if n := re.search('{0:s}_{1:d}s_{2:s}-(.+?).fits'.format(name, exp_time, f), fname):
                             names_list.append(int(n.group(1)))
                     image_base[f] = max(names_list) + 1
                 
@@ -591,6 +589,6 @@ class ObservationRun:
             self.take_calibration_images()
         
         self.camera.onThread(self.camera.cooler_set, False)
-        self.telescope.slew_done.wait()
-        self.dome.move_done.wait()
-        self.dome.shutter_done.wait()
+        self.telescope.slew_done.wait(timeout=2*60)
+        self.dome.move_done.wait(timeout=5*60)
+        self.dome.shutter_done.wait(timeout=5*60)

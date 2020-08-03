@@ -178,11 +178,8 @@ class Camera(Hardware):
         while self.crashed.isSet():
             time.sleep(1)
         with self.exposing:
-            if type == "light":
-                type = 1
-            elif type == "dark":
-                type = 0
-            else:
+            type = 1 if type == "light" else 0 if type == "dark" else None
+            if type is None:
                 print("ERROR: Invalid exposure type.")
                 return
             logging.debug('Exposing image')

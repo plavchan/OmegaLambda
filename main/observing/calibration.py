@@ -33,7 +33,7 @@ class Calibration(Hardware):
         self.flatlamp = flatlamp_obj
         self.image_directory = image_directory
         self.filterwheel_dict = filter_wheel.get_filter().filter_position_dict()
-        self.filter_exp_times = {'clr': 5, 'uv': 240, 'b': 120, 'v': 16, 'r': 8, 'ir': 10, 'Ha': 120}
+        self.filter_exp_times = {'clr': 3, 'uv': 240, 'b': 120, 'v': 16, 'r': 8, 'ir': 10, 'Ha': 120}
         self.config_dict = config_reader.get_config()
         
         self.flats_done = threading.Event()
@@ -62,20 +62,18 @@ class Calibration(Hardware):
         lamp = self.flatlamp.lamp_done.wait(timeout=60)
         if not lamp:
             return False
-        filt = ticket.filter
-        if type(filt) is str:
-            filters = [filt]
-        elif type(filt) is list:
-            filters = filt
-        else:
-            logging.error('Filter argument must be string or list')
-            return
+        # ticket.filter should be either a string or a list of strings
+        filters = ticket.filter if type(ticket.filter) is list \
+            else [ticket.filter] if type(ticket.filter) is str else None
+        if not filters:
+            logging.error('Wrong data type for filter(s) argument')
+            return False
         if not os.path.exists(os.path.join(self.image_directory, 'Flats_{}'.format(ticket.name))):
             os.mkdir(os.path.join(self.image_directory, 'Flats_{}'.format(ticket.name)))
         for f in filters:
             j = 0
-            while j < self.config_dict.calibration_num:
-                image_name = 'Flat_{0:d}s_{1:s}-{2:04d}.fits'.format(self.filter_exp_times[f], f, j + 1)
+            while j < self.config_dict.calibration_num + 1:
+                image_name = 'Flat_{0:d}s_{1:s}-{2:04d}.fits'.format(self.filter_exp_times[f], str(f).upper(), j + 1)
                 self.camera.onThread(self.camera.expose, self.filter_exp_times[f], self.filterwheel_dict[f], 
                                      save_path=os.path.join(self.image_directory, r'Flats_{}'.format(ticket.name),
                                                             image_name), type='light')
@@ -119,14 +117,11 @@ class Calibration(Hardware):
 
         """
         self.darks_done.clear()
-        filt = ticket.filter
-        if type(filt) is str:
-            filters = [filt]
-        elif type(filt) is list:
-            filters = filt
-        else:
-            logging.error('Filter argument is wrong type')
-            return
+        filters = ticket.filter if type(ticket.filter) is list \
+            else [ticket.filter] if type(ticket.filter) is str else None
+        if not filters:
+            logging.error('Wrong data type for filter(s) argument')
+            return False
         if not os.path.exists(os.path.join(self.image_directory, 'Darks_{}'.format(ticket.name))):
             os.mkdir(os.path.join(self.image_directory, 'Darks_{}'.format(ticket.name)))
         check = True

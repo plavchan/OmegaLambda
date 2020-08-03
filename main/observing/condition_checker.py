@@ -73,10 +73,7 @@ class Conditions(threading.Thread):
                     (last_rain != R and last_rain is not None) or (radar is True) or (sun_elevation >= 0) or \
                     (cloud_cover is True):
                 self.weather_alert.set()
-                if sun_elevation >= 0:
-                    self.sun = True
-                else:
-                    self.sun = False
+                self.sun = True if sun_elevation >= 0 else False
                 logging.critical("Weather conditions have become too poor for continued observing,"
                                  "or the Sun is rising.")
             else:
@@ -143,9 +140,14 @@ class Conditions(threading.Thread):
                 text = file.read()
                 conditions = re.findall(r'<font color="#3366FF">(.+?)</font>', text)
                 humidity = float(conditions[1].replace('%', ''))
-                wind = float(re.search(r'[+-]?\d+\.\d+', conditions[3]).group())
-                rain = float(re.search(r'[+-]?\d+\.\d+', conditions[5]).group())
-
+                if test_wind := re.search(r'[+-]?\d+\.\d+', conditions[3]):
+                    wind = float(test_wind.group())
+                else:
+                    wind = None
+                if test_rain := re.search(r'[+-]?\d+\.\d+', conditions[5]):
+                    rain = float(test_rain.group())
+                else:
+                    rain = None
                 return humidity, wind, rain
         else:
             s = requests.Session()
@@ -167,8 +169,7 @@ class Conditions(threading.Thread):
                                  r'--windWrapper--3Ly7c undefined">(.+?)</span>', text).group(1)
 
                 humidity = float(humidity.replace('%', ''))
-                test_wind = re.search(r'[+-]?\d+\.\d+', wind)
-                if test_wind:
+                if test_wind := re.search(r'[+-]?\d+\.\d+', wind):
                     wind = float(test_wind.group())
                 else:
                     wind = int(re.search(r'[+-]?\d', wind).group())
@@ -221,8 +222,8 @@ class Conditions(threading.Thread):
             px = img.size[0]*img.size[1]
             colors = img.getcolors()
             if len(colors) > 1:     # Checks for any colors (green to red for rain) in the images
-                percent_colored = 1 - colors[-1][0] / px
-                if percent_colored >= 0.1:
+                percent_colored = (1 - colors[-1][0] / px) * 100
+                if percent_colored >= 10:
                     return True
                 else:
                     rain.append(1)

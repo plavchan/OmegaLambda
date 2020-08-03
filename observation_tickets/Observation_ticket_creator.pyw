@@ -65,12 +65,7 @@ def dst_check():
         Timezone offset from UTC, if daylight savings, offset is -04:00, else -05:00.
 
     """
-    
-    if time.localtime().tm_isdst == 1:
-        dst = '-04:00'
-    else:
-        dst = '-05:00'
-    return dst
+    return '-04:00' if time.localtime().tm_isdst == 1 else '-05:00'
 
     
 def truefalse_check():
@@ -89,18 +84,9 @@ def truefalse_check():
         Whether or not to cycle filter after every image, default is false.
 
     """
-    if self_guide.get() == 1:
-        self_guide_var = 'true'
-    else:
-        self_guide_var = 'false'
-    if guide.get() == 1:
-        guide_var = 'true'
-    else:
-        guide_var = 'false'
-    if cycle_filter.get() == 1:
-        cycle_filter_var = 'true'
-    else:
-        cycle_filter_var = 'false'
+    self_guide_var = 'true' if self_guide.get() == 1 else 'false'
+    guide_var = 'true' if guide.get() == 1 else 'false'
+    cycle_filter_var = 'true' if cycle_filter.get() == 1 else 'false'
         
     return self_guide_var, guide_var, cycle_filter_var
 

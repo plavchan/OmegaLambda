@@ -172,6 +172,7 @@ class Guider(Hardware):
                     angle = np.arctan(ydistance/xdistance)
                     if xdistance < 0:
                         angle += np.pi
+
                 deltangle = angle - self.config_dict.guider_angle
                 # Assumes guider angle (angle b/w RA/Dec axes and Image X/Y axes) is constant
                 if ((-1/2)*np.pi <= deltangle <= (1/2)*np.pi) or ((3/2)*np.pi <= deltangle <= 2*np.pi):

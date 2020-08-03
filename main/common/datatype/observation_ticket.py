@@ -49,27 +49,21 @@ class ObservationTicket:
             self.dec = dec
         elif type(ra) is str:
             parse = True
-            splitter = None
-            if ':' in ra:
-                splitter = ':'
-            elif 'h' in ra:
-                splitter = 'h|m|s|d'
-            elif ' ' in ra:
-                splitter = ' '
-            else:
+            splitter = ':' if ':' in ra else 'h|m|s|d' if 'h' in ra else ' ' if ' ' in ra else None
+            if not splitter:
                 self.ra = float(ra)
                 self.dec = float(dec)
                 parse = False
-            coord = {'ra': ra, 'dec': dec}
+            coords = {'ra': ra, 'dec': dec}
             if parse:
-                for key in coord:
-                    coord_split = re.split(splitter, coord[key])
+                for key in coords:
+                    coord_split = re.split(splitter, coords[key])
                     if float(coord_split[0]) > 0 or coord_split[0] == '+00' or coord_split[0] == '00':
-                        coord[key] = float(coord_split[0]) + float(coord_split[1])/60 + float(coord_split[2])/3600
+                        coords[key] = float(coord_split[0]) + float(coord_split[1])/60 + float(coord_split[2])/3600
                     elif float(coord_split[0]) < 0 or coord_split[0] == '-00':
-                        coord[key] = float(coord_split[0]) - float(coord_split[1])/60 - float(coord_split[2])/3600
-            self.ra = coord['ra']
-            self.dec = coord['dec']
+                        coords[key] = float(coord_split[0]) - float(coord_split[1])/60 - float(coord_split[2])/3600
+                self.ra = coords['ra']
+                self.dec = coords['dec']
         if start_time:
             self.start_time = datetime.datetime.strptime(start_time, "%Y-%m-%d %H:%M:%S%z")
         else:
