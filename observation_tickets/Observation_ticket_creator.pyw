@@ -65,12 +65,7 @@ def dst_check():
         Timezone offset from UTC, if daylight savings, offset is -04:00, else -05:00.
 
     """
-    
-    if time.localtime().tm_isdst == 1:
-        dst = '-04:00'
-    else:
-        dst = '-05:00'
-    return dst
+    return '-04:00' if time.localtime().tm_isdst == 1 else '-05:00'
 
     
 def truefalse_check():
@@ -89,18 +84,9 @@ def truefalse_check():
         Whether or not to cycle filter after every image, default is false.
 
     """
-    if self_guide.get() == 1:
-        self_guide_var = 'true'
-    else:
-        self_guide_var = 'false'
-    if guide.get() == 1:
-        guide_var = 'true'
-    else:
-        guide_var = 'false'
-    if cycle_filter.get() == 1:
-        cycle_filter_var = 'true'
-    else:
-        cycle_filter_var = 'false'
+    self_guide_var = 'true' if self_guide.get() == 1 else 'false'
+    guide_var = 'true' if guide.get() == 1 else 'false'
+    cycle_filter_var = 'true' if cycle_filter.get() == 1 else 'false'
         
     return self_guide_var, guide_var, cycle_filter_var
 
@@ -144,7 +130,7 @@ def savetxt():
     current_path = os.path.abspath(os.path.dirname(__file__))
     with open(os.path.join(current_path, r'{}.json'.format(name.get())), 'w+') as f:
         f.write('{\"type\": \"observation_ticket\",')
-        f.write('\n\"details\":{')
+        f.write('\n\"details\": {')
         f.write('\n\t\"name\": \"{}\",'.format(name.get()))
         f.write('\n\t\"ra\": \"{}\",'.format(ra.get()))
         f.write('\n\t\"dec\": \"{}\",'.format(dec.get()))
@@ -154,7 +140,7 @@ def savetxt():
         f.write('\n\t\"num\": {},'.format(n_exposures.get()))
         f.write('\n\t\"exp_time\": {},'.format(exposure_time.get()))
         f.write('\n\t\"self_guide\": {},'.format(self_guide_var))
-        f.write('\n\t\"guide\":{},'.format(guide_var))
+        f.write('\n\t\"guide\": {},'.format(guide_var))
         f.write('\n\t\"cycle_filter\": {}'.format(cycle_filter_var))
         f.write('\n\t}\n}')
 
