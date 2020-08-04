@@ -1,11 +1,8 @@
 # Focusing procedures
 import os
-import sys
 import logging
 import time
 import threading
-import statistics
-import msvcrt
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -132,7 +129,7 @@ class FocusProcedures(Hardware):
         x = [_[0] for _ in data]
         y = [_[1] for _ in data]
         if fit_status := (len(x) >= 3 and len(y) >= 3):
-            med = statistics.median(x)
+            med = np.median(x)
             fit = np.polyfit(x, y, 2)
             xfit = np.linspace(med - 50, med + 50, 100)
             yfit = fit[0]*(xfit**2) + fit[1]*xfit + fit[2]

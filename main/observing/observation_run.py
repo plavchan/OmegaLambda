@@ -423,7 +423,7 @@ class ObservationRun:
                 else:
                     image_num += 1
             i += 1
-        return i+1
+        return i
     
     def crash_check(self, program):
         """

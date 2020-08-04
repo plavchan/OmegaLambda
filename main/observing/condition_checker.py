@@ -112,7 +112,7 @@ class Conditions(threading.Thread):
             Current total rain in in. at Research Hall, from GMU COS weather station.
 
         """
-        self.weather = urllib.request.urlopen(self.weather_url)
+        s = requests.Session()
         header = requests.head(self.weather_url).headers
         backup = False
         if 'Last-Modified' in header:
@@ -124,56 +124,46 @@ class Conditions(threading.Thread):
                                 "Using backup weather.com to find humidity/wind/rain instead.")
                 backup = True
         else: 
-            logging.warning("GMU COS Weather Station Web site did not return a last modified timestamp"
+            logging.warning("GMU COS Weather Station Web site did not return a last modified timestamp, "
                             "it may be outdated!")
             backup = True
 
         target_path = os.path.abspath(os.path.join(self.current_directory,
                                                    r'..\..\resources\weather_status\weather.txt'))
         if not backup:
-            with open(target_path, 'w') as file:
-                # Writes the html code to a text file
-                for line in self.weather:
-                    file.write(str(line)+'\n')
-
-            with open(target_path, 'r') as file:
-                # Reads the text file to find humidity, wind, rain
-                text = file.read()
-                conditions = re.findall(r'<font color="#3366FF">(.+?)</font>', text)
-                humidity = float(conditions[1].replace('%', ''))
-                if test_wind := re.search(r'[+-]?\d+\.\d+', conditions[3]):
-                    wind = float(test_wind.group())
-                else:
-                    wind = None
-                if test_rain := re.search(r'[+-]?\d+\.\d+', conditions[5]):
-                    rain = float(test_rain.group())
-                else:
-                    rain = None
-                return humidity, wind, rain
-        else:
-            s = requests.Session()
-            weather_request = s.get(self.backup_weather_url, headers={'User-Agent': 'Mozilla/5.0'})
-
-            with open(target_path, 'w') as file:
-                # Writes the html code to a text file
-                file.write(str(weather_request.content))
-
-            with open(target_path, 'r') as file:
-                # Reads the text file to find humidity, wind, rain
-                text = file.read()
-                humidity = re.search(r'<span data-testid="PercentageValue" class="_-_-components-src-molecule-' +
-                                     r'DaypartDetails-DetailsTable-DetailsTable--value--2YD0-">(.+?)</span>',
-                                     text).group(1)
-                wind = re.search(r'<span data-testid="Wind" class="_-_-components-src-atom-WeatherData-Wind-Wind' +
-                                 r'--windWrapper--3Ly7c undefined">(.+?)</span>', text).group(1)
-
-                humidity = float(humidity.replace('%', ''))
-                if test_wind := re.search(r'[+-]?\d+\.\d+', wind):
-                    wind = float(test_wind.group())
-                else:
-                    wind = int(re.search(r'[+-]?\d', wind).group())
+            self.weather = s.get(self.weather_url)
+            conditions = re.findall(r'<font color="#3366FF">(.+?)</font>', self.weather.text)
+            humidity = float(conditions[1].replace('%', ''))
+            if test_wind := re.search(r'[+-]?\d+\.\d+', conditions[3]):
+                wind = float(test_wind.group())
+            else:
+                wind = None
+            if test_rain := re.search(r'[+-]?\d+\.\d+', conditions[5]):
+                rain = float(test_rain.group())
+            else:
                 rain = None
-                return humidity, wind, rain
+
+        else:
+            self.weather = s.get(self.backup_weather_url, headers={'User-Agent': 'Mozilla/5.0'})
+
+            humidity = re.search(r'<span data-testid="PercentageValue" class="_-_-components-src-molecule-' +
+                                 r'DaypartDetails-DetailsTable-DetailsTable--value--2YD0-">(.+?)</span>',
+                                 self.weather.text).group(1)
+            wind = re.search(r'<span data-testid="Wind" class="_-_-components-src-atom-WeatherData-Wind-Wind' +
+                             r'--windWrapper--3Ly7c undefined">(.+?)</span>', self.weather.text).group(1)
+
+            humidity = float(humidity.replace('%', ''))
+            if test_wind := re.search(r'[+-]?\d+\.\d+', wind):
+                wind = float(test_wind.group())
+            else:
+                wind = int(re.search(r'[+-]?\d', wind).group())
+            rain = None
+
+        with open(target_path, 'w') as file:
+            # Writes the html code to a text file
+            file.write(str(self.weather.content))
+
+        return humidity, wind, rain
 
     def rain_check(self):
         """
@@ -186,6 +176,9 @@ class Conditions(threading.Thread):
         """
         s = requests.Session()
         self.radar = s.get(self.rain_url, headers={'User-Agent': 'Mozilla/5.0'})
+        api_key = re.search(r'"SUN_V3_API_KEY":"(.+?)",', self.radar.text).group(1)
+        # API key needed to access radar images from the weather.com website
+
         target_path = os.path.abspath(os.path.join(self.current_directory, r'..\..\resources\weather_status\radar.txt'))
         with open(target_path, 'w') as file:
             # Writes weather.com html to a text file
@@ -196,11 +189,6 @@ class Conditions(threading.Thread):
         # Website radar images only update every 300 seconds
         if abs(epoch_sec - esec_round) < 10:
             time.sleep(10 - abs(epoch_sec - esec_round))
-        
-        with open(target_path, 'r') as file:
-            html = file.read()
-            api_key = re.search(r'"SUN_V3_API_KEY":"(.+?)",', html).group(1)
-            # Api key needed to access images, found from html
         
         coords = {0: '291:391:10', 1: '291:392:10', 2: '292:391:10', 3: '292:392:10'}
         # Radar map coordinates found by looking through html
