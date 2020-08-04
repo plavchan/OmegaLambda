@@ -1,4 +1,5 @@
 # Logging module
+import os
 import logging
 import logging.config
 import logging.handlers
@@ -21,6 +22,9 @@ class Logger:
 
         """
         self.logger_config = ObjectReader(Reader(config))
+        current_path = os.path.abspath(os.path.dirname(__file__))
+        self.logger_config.ticket['handlers']['file']['filename'] = os.path.abspath(os.path.join(
+            current_path, r'omegalambda_log.log'))
         logging.config.dictConfig(self.logger_config.ticket)
 
         logging.info('Initialized logging module')

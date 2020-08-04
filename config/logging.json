@@ -18,7 +18,7 @@
 			},
 		"file": {
 			"class": "logging.handlers.RotatingFileHandler",
-			"filename": "C:\\Users\\GMU Observtory1\\-omegalambda\\logger\\omegalambda_log.log",
+			"filename": "omegalambda_log.log",
 			"formatter": "detailed",
 			"level": "DEBUG",
 			"maxBytes": 10000000,

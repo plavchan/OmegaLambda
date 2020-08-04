@@ -1,6 +1,5 @@
 # Filereader Utils for Focuser & Guider
 import logging
-import statistics
 import numpy as np
 # import matplotlib.pyplot as plt
 
@@ -65,13 +64,9 @@ def findstars(path, saturation, subframe=None, return_data=False):
         r = 250
         x_cent = subframe[0]
         y_cent = subframe[1]
-        xmin = int(x_cent - r)
-        xmax = int(x_cent + r)
-        ymin = int(y_cent - r)
-        ymax = int(y_cent + r)
-        data_subframe = data[ymin:ymax, xmin:xmax]
-        image = image[ymin:ymax, xmin:xmax]
-        threshold = threshold[ymin:ymax, xmin:xmax]
+        data_subframe = data[int(y_cent-r):int(y_cent+r), int(x_cent-r):int(x_cent+r)]
+        image = image[int(y_cent-r):int(y_cent+r), int(x_cent-r):int(x_cent+r)]
+        threshold = threshold[int(y_cent-r):int(y_cent+r), int(x_cent-r):int(x_cent+r)]
         starfound = photutils.find_peaks(data_subframe, threshold=threshold, box_size=50, border_width=10,
                                          centroid_func=photutils.centroids.centroid_com)
     n = 0
@@ -141,22 +136,18 @@ def radial_average(path, saturation):
     Returns
     -------
     median_fwhm : INT
-        The median fwhm measurement of the stars in the fits image.
+        The median fwhm measurement of the stars in the fits image.  If no fwhm was found, returns None.
 
     """
     global focus_star
     stars, peaks, data, stdev = findstars(path, saturation, subframe=focus_star, return_data=True)
     r_ = 30
-    fwhm_list = np.ndarray((0,))
+    fwhm_list = []
     # a = 0
     for star in stars:
         x_cent = star[0]
         y_cent = star[1]
-        ymin = int(y_cent-r_)
-        ymax = int(y_cent+r_)
-        xmin = int(x_cent-r_)
-        xmax = int(x_cent+r_)
-        star = data[ymin:ymax, xmin:xmax]
+        star = data[int(y_cent-r_):int(y_cent+r_), int(x_cent-r_):int(x_cent+r_)]
         starx, stary = np.indices(star.shape)
         r = np.sqrt((stary - r_)**2 + (starx - r_)**2)
         r = r.astype(np.int)
@@ -166,44 +157,28 @@ def radial_average(path, saturation):
         radialprofile = tbin / nr
        
         if len(radialprofile) != 0:
-            maximum = max(radialprofile)
-            radialprofile = radialprofile/maximum
-            f = np.linspace(0, len(radialprofile), len(radialprofile))
+            radialprofile /= max(radialprofile)
+            f = np.linspace(0, len(radialprofile), len(radialprofile)+1)
             mean = np.mean(radialprofile)
             sigma = np.std(radialprofile)
             try:
                 popt, pcov = curve_fit(gaussianfit, f, radialprofile, p0=[1 / (np.sqrt(2 * np.pi)), mean, sigma])
-                g = np.linspace(0, len(radialprofile), 10*len(radialprofile))
-                function = gaussianfit(g, *popt)
+                g = np.linspace(0, len(radialprofile), 10*len(radialprofile)+1)
             except:
                 logging.debug("Could not find a Gaussian Fit...skipping to the next star")
                 continue
-            run = True
-            fwhm = None
-            for x in range(len(g)):
-                if run:
-                    if function[x] <= (1/2):
-                        fwhm = 2*g[x]
-                        fwhm_list = np.append(fwhm_list, fwhm)
-                        run = False
-                elif not run:
+            for x in g:
+                if gaussianfit(x, *popt) <= (1/2):
+                    fwhm = 2*x
+                    fwhm_list.append(fwhm)
                     break
-                
-            # if a < 1:
-            #     plt.plot(f, radialprofile, 'b+:', label='data')
-            #     plt.plot(f, gaussianfit(f, *popt), 'ro:', label='fit')
-            #     plt.plot([0, fwhm/2], [1/2, 1/2], 'g-.')
-            #     plt.plot([fwhm/2, fwhm/2], [0, 1/2], 'g-.', label='HWHM')
-            #     plt.legend()
-            #     plt.xlabel('x position, HWHM = {}'.format(fwhm/2))
-            #     plt.ylabel('normalized counts')
-            #     plt.grid()
-            #     plt.savefig(r'C:/Users/GMU Observtory1/-omegalambda/test/GaussianPlot.png')
-            #     a += 1
+        else:
+            logging.error('Radial profile has length of 0...')
+            return None
 
     fwhm_list = [i for i in fwhm_list if i > 3]
     if fwhm_list:
-        fwhm_med = statistics.median(fwhm_list)
+        fwhm_med = np.median(fwhm_list)
     else:
         print('No fwhm calculations can be made from the image')
         return None
@@ -224,3 +199,21 @@ def radial_average(path, saturation):
             focus_star = None
 
     return fwhm_med
+
+
+"""
+Gaussian plot for future reference:
+
+            if a < 1:
+                 plt.plot(f, radialprofile, 'b+:', label='data')
+                 plt.plot(f, gaussianfit(f, *popt), 'ro:', label='fit')
+                 plt.plot([0, fwhm/2], [1/2, 1/2], 'g-.')
+                 plt.plot([fwhm/2, fwhm/2], [0, 1/2], 'g-.', label='HWHM')
+                 plt.legend()
+                 plt.xlabel('x position, HWHM = {}'.format(fwhm/2))
+                 plt.ylabel('normalized counts')
+                 plt.grid()
+                 plt.savefig(r'C:/Users/GMU Observtory1/-omegalambda/test/GaussianPlot.png')
+                 a += 1
+
+"""
