@@ -131,7 +131,7 @@ class FocusProcedures(Hardware):
         data = sorted(zip(focus_positions, fwhm_values))
         x = [_[0] for _ in data]
         y = [_[1] for _ in data]
-        if len(x) >= 3 and len(y) >= 3:
+        if fit_status := (len(x) >= 3 and len(y) >= 3):
             med = statistics.median(x)
             fit = np.polyfit(x, y, 2)
             xfit = np.linspace(med - 50, med + 50, 100)
@@ -144,54 +144,26 @@ class FocusProcedures(Hardware):
             ax.set_ylabel('FWHM value (pixels)')
             ax.set_title('Focus Positions Graph')
             ax.grid()
-            plt.savefig(os.path.join(self.config_dict.home_directory, r'test/FocusPlot.png'))
-        elif FocusProcedures.startup_focuses <= 1:
-            try:
-                answer = self.input_with_timeout(
-                    "Focuser has failed to produce a good parabolic fit.  Would you like to try again? (y/n) \n"
-                    "You have 30 seconds to answer; on timeout the program will not refocus: \n", 30
-                )
-            except TimeoutExpired:
-                self.focuser.onThread(self.focuser.absolute_move, initial_position)
-                self.focuser.adjusting.wait(timeout=30)
-                self.focused.set()
-                return
-            if answer == 'y':
-                self.startup_focus_procedure(exp_time, _filter, image_path)
-                self.focused.set()
-                return
-            elif answer == 'n':
-                self.focuser.onThread(self.focuser.absolute_move, initial_position)
-                self.focuser.adjusting.wait(timeout=30)
-                self.focused.set()
-                return
-            else:
-                print('Invalid answer...resetting focus to initial position.')
-                self.focuser.onThread(self.focuser.absolute_move, initial_position)
-                self.focuser.adjusting.wait(timeout=30)
-                self.focused.set()
-                return
-        else:
-            logging.warning('The focuser still could not find a good focus.')
-            self.focused.set()
-            return
+            current_path = os.path.abspath(os.path.dirname(__file__))
+            target_path = os.path.abspath(os.path.join(current_path, r'../../test/FocusPlot.png'))
+            plt.savefig(target_path)
 
-        minindex = np.where(yfit == min(yfit))
-        if (minindex == np.where(yfit == yfit[0])) or (minindex == np.where(yfit == yfit[-1])):
-            logging.warning('Parabolic fit has failed and fit an incorrect parabola.  Cannot calculate minimum focus.')
+            minindex = np.where(yfit == min(yfit))
+            if (minindex == np.where(yfit == yfit[0])) or (minindex == np.where(yfit == yfit[-1])):
+                fit_status = False
+            else:
+                minfocus = np.round(xfit[minindex])
+                logging.info('Autofocus achieved a FWHM of {} pixels!'.format(fwhm))
+                logging.info('The theoretical minimum focus was calculated to be at position {}'.format(minfocus))
+                if abs(initial_position - minfocus) <= self.config_dict.focus_max_distance:
+                    self.focuser.onThread(self.focuser.absolute_move, minfocus)
+                else:
+                    fit_status = False
+        if not fit_status:
+            logging.error('The focuser either couldn\'t fit a correct parabola to the data, or couldn\'t '
+                          'move to the calculated minimum focus position.  Resetting to initial position.')
             self.focuser.onThread(self.focuser.absolute_move, initial_position)
             self.focuser.adjusting.wait(timeout=30)
-        else:
-            minfocus = np.round(xfit[minindex])
-            logging.info('Autofocus achieved a FWHM of {} pixels!'.format(fwhm))
-            logging.info('The theoretical minimum focus was calculated to be at position {}'.format(minfocus))
-            if abs(initial_position - minfocus) <= self.config_dict.focus_max_distance:
-                self.focuser.onThread(self.focuser.absolute_move, minfocus)
-            else:
-                logging.info('Calculated minimum focus is out of range of the focuser movement restrictions. '
-                             'This is probably due to an error in the calculations.')
-                self.focuser.onThread(self.focuser.absolute_move, initial_position)
-                self.focuser.adjusting.wait(timeout=30)
         self.focused.set()
         self.FWHM = fwhm
         return
@@ -269,34 +241,6 @@ class FocusProcedures(Hardware):
         newest_image = max(paths, key=os.path.getctime)
         return newest_image
 
-    @staticmethod
-    def input_with_timeout(prompt, timeout, timer=time.monotonic):
-        """
-
-        Parameters
-        ----------
-        prompt : STR
-            Input prompt to give the user
-        timeout : INT or FLOAT
-            Time in seconds the user has to give a response
-        timer : time.monotonic
-            Timer object from time module
-
-        Returns
-        -------
-        msvcrt.getwche()
-            A single character typed by the user -- meant to be user for 'y' / 'n' responses.
-            If the user does not type anything, a special TimeoutExpired exception is raised.
-        """
-        sys.stdout.write(prompt)
-        sys.stdout.flush()
-        endtime = timer() + timeout
-        while timer() < endtime:
-            if msvcrt.kbhit():
-                return msvcrt.getwche()
-            time.sleep(0.04)
-        raise TimeoutExpired
-
     def stop_constant_focusing(self):
         """
         Description
@@ -312,13 +256,3 @@ class FocusProcedures(Hardware):
         """
         logging.debug('Stopping continuous focusing')
         self.continuous_focusing.clear()
-
-
-class TimeoutExpired(Exception):
-    """
-    Description
-    -----------
-    To be used only for input_with_timeout.  An exception that does not stop/prevent any threads or the main thread
-    from running, and is just used to check if the input has timed out or not.
-    """
-    pass

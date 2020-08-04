@@ -45,6 +45,7 @@ class Conditions(threading.Thread):
                         'l/b63f24c17cc4e2d086c987ce32b2927ba388be79872113643d2ef82b2b13e813'
         # Weather.com radar for rain
         self.sun = False
+        self.current_directory = os.path.abspath(os.path.dirname(__file__))
         
     def run(self):
         """
@@ -127,15 +128,15 @@ class Conditions(threading.Thread):
                             "it may be outdated!")
             backup = True
 
+        target_path = os.path.abspath(os.path.join(self.current_directory,
+                                                   r'..\..\resources\weather_status\weather.txt'))
         if not backup:
-            with open(os.path.join(self.config_dict.home_directory, r'resources\weather_status\weather.txt'), 'w') as \
-                    file:
+            with open(target_path, 'w') as file:
                 # Writes the html code to a text file
                 for line in self.weather:
                     file.write(str(line)+'\n')
 
-            with open(os.path.join(self.config_dict.home_directory, r'resources\weather_status\weather.txt'), 'r') as \
-                    file:
+            with open(target_path, 'r') as file:
                 # Reads the text file to find humidity, wind, rain
                 text = file.read()
                 conditions = re.findall(r'<font color="#3366FF">(.+?)</font>', text)
@@ -153,13 +154,11 @@ class Conditions(threading.Thread):
             s = requests.Session()
             weather_request = s.get(self.backup_weather_url, headers={'User-Agent': 'Mozilla/5.0'})
 
-            with open(os.path.join(self.config_dict.home_directory, r'resources\weather_status\weather.txt'), 'w') as \
-                    file:
+            with open(target_path, 'w') as file:
                 # Writes the html code to a text file
                 file.write(str(weather_request.content))
 
-            with open(os.path.join(self.config_dict.home_directory, r'resources\weather_status\weather.txt'), 'r') as \
-                    file:
+            with open(target_path, 'r') as file:
                 # Reads the text file to find humidity, wind, rain
                 text = file.read()
                 humidity = re.search(r'<span data-testid="PercentageValue" class="_-_-components-src-molecule-' +
@@ -187,7 +186,8 @@ class Conditions(threading.Thread):
         """
         s = requests.Session()
         self.radar = s.get(self.rain_url, headers={'User-Agent': 'Mozilla/5.0'})
-        with open(os.path.join(self.config_dict.home_directory, r'resources\weather_status\radar.txt'), 'w') as file:
+        target_path = os.path.abspath(os.path.join(self.current_directory, r'..\..\resources\weather_status\radar.txt'))
+        with open(target_path, 'w') as file:
             # Writes weather.com html to a text file
             file.write(str(self.radar.text))
             
@@ -197,7 +197,7 @@ class Conditions(threading.Thread):
         if abs(epoch_sec - esec_round) < 10:
             time.sleep(10 - abs(epoch_sec - esec_round))
         
-        with open(os.path.join(self.config_dict.home_directory, r'resources\weather_status\radar.txt'), 'r') as file:
+        with open(target_path, 'r') as file:
             html = file.read()
             api_key = re.search(r'"SUN_V3_API_KEY":"(.+?)",', html).group(1)
             # Api key needed to access images, found from html
@@ -210,15 +210,15 @@ class Conditions(threading.Thread):
                    + '&ts={}'.format(str(esec_round))
                    + '&xyz={}'.format(coords[key]) + '&apiKey={}'.format(api_key))
             # Constructs url of 4 nearest radar images
+            path_to_images = os.path.abspath(os.path.join(
+                self.current_directory, r'..\..\resources\weather_status\radar-img{0:04}.png'.format(key + 1)))
             
-            with open(os.path.join(self.config_dict.home_directory,
-                                   r'resources\weather_status\radar-img{0:04d}.png'.format(key + 1)), 'wb') as file:
+            with open(path_to_images, 'wb') as file:
                 req = s.get(url, headers={'User-Agent': 'Mozilla/5.0'})
                 file.write(req.content)
                 # Writes 4 images to local png files
             
-            img = Image.open(os.path.join(self.config_dict.home_directory,
-                                          r'resources\weather_status\radar-img{0:04d}.png'.format(key + 1)))
+            img = Image.open(path_to_images)
             px = img.size[0]*img.size[1]
             colors = img.getcolors()
             if len(colors) > 1:     # Checks for any colors (green to red for rain) in the images
@@ -265,17 +265,16 @@ class Conditions(threading.Thread):
             url = 'https://www.ssec.wisc.edu/data/geo/images/goes-16/animation_images/' + \
                 '{}_{}{}_{}_{}_conus.gif'.format(satellite, year, day, _time, conus_band)
             req = s.get(url, headers={'User-Agent': 'Mozilla/5.0'})
-        
-        with open(os.path.join(self.config_dict.home_directory, r'resources\weather_status\cloud-img.gif'), 'wb') \
-                as file:
+        target_path = os.path.abspath(os.path.join(self.current_directory,
+                                                   r'..\..\resources\weather_status\cloud-img.gif'))
+        with open(target_path, 'wb') as file:
             file.write(req.content)
         
-        if os.stat(os.path.join(self.config_dict.home_directory, r'resources\weather_status\cloud-img.gif')).st_size \
-                <= 2000:
+        if os.stat(target_path).st_size <= 2000:
             logging.error('Cloud coverage image cannot be retrieved')
             return False
         
-        img = Image.open(os.path.join(self.config_dict.home_directory, r'resources/weather_status/cloud-img.gif'))
+        img = Image.open(target_path)
         img_array = np.array(img)
         img_array = img_array.astype('float64')
         # fairfax coordinates ~300, 1350

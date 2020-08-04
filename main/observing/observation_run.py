@@ -304,8 +304,7 @@ class ObservationRun:
                 self.focus_procedures.stop()
                 self.focus_procedures = FocusProcedures(self.focuser, self.camera)
                 time.sleep(5)
-                self.focus_procedures.onThread(self.focus_procedures.startup_focus_procedure, focus_exposure,
-                                               self.filterwheel_dict[focus_filter], self.image_directory)
+                break
             time.sleep(10)
         
     def run_ticket(self, ticket):
@@ -396,11 +395,12 @@ class ObservationRun:
                 for f in _filter:
                     names_list = [0]
                     for fname in os.listdir(path):
-                        if n := re.search('{0:s}_{1:d}s_{2:s}-(.+?).fits'.format(name, exp_time, f), fname):
+                        if n := re.search('{0:s}_{1:d}s_{2:s}-(.+?).fits'.format(name, exp_time, str(f).upper()),
+                                          fname):
                             names_list.append(int(n.group(1)))
                     image_base[f] = max(names_list) + 1
                 
-                image_name = "{0:s}_{1:d}s_{2:s}-{3:04d}.fits".format(name, exp_time, current_filter,
+                image_name = "{0:s}_{1:d}s_{2:s}-{3:04d}.fits".format(name, exp_time, str(current_filter).upper(),
                                                                       image_base[current_filter])
                 
             self.camera.onThread(self.camera.expose, 
@@ -410,8 +410,7 @@ class ObservationRun:
             
             if self.crash_check('MaxIm_DL.exe'):
                 continue
-            if self.crash_check('RoboFocus.exe'):
-                pass
+            self.crash_check('RoboFocus.exe')
             
             if cycle_filter:
                 if names_list:
@@ -445,13 +444,16 @@ class ObservationRun:
             False.
 
         """
+        prog_dict = {'MaxIm_DL.exe': [self.camera, Camera], 'TheSkyX.exe': [self.telescope, Telescope],
+                     'ASCOMDome.exe': [self.dome, Dome], 'RoboFocus.exe': [self.focuser, Focuser]}
+        if program not in prog_dict.keys():
+            logging.error('Unrecognized program name to perform a crash check for.')
+            return False
         cmd = 'tasklist /FI "IMAGENAME eq %s" /FI "STATUS eq running"' % program
         status = subprocess.Popen(cmd, stdout=subprocess.PIPE).stdout.read()
         responding = program in str(status)
             
         if not responding:
-            prog_dict = {'MaxIm_DL.exe': [self.camera, Camera], 'TheSkyX.exe': [self.telescope, Telescope],
-                         'ASCOMDome.exe': [self.dome, Dome], 'RoboFocus.exe': [self.focuser, Focuser]}
             prog_dict[program][0].crashed.set()
             logging.error('{} is not responding.  Restarting...'.format(program))
             time.sleep(5)
@@ -499,9 +501,10 @@ class ObservationRun:
 
         """
         if not beginning:
-            self.telescope.slew_done.wait()
-            self.dome.move_done.wait()
-            self.dome.shutter_done.wait()
+            time.sleep(5)
+            self.telescope.slew_done.wait(timeout=2*60)
+            self.dome.move_done.wait(timeout=5*60)
+            self.dome.shutter_done.wait(timeout=5*60)
         for i in range(len(self.observation_request_list)):
             if self.calibrated_tickets[i]:
                 continue

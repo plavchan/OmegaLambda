@@ -38,7 +38,7 @@ class Config:
                  focus_exposure_multiplier=None, initial_focus_delta=None, quick_focus_tolerance=None,
                  focus_max_distance=None, guiding_threshold=None, guider_ra_dampening=None,
                  guider_dec_dampening=None, guider_max_move=None, guider_angle=None, data_directory=None,
-                 home_directory=None, calibration_time=None, calibration_num=None):
+                 calibration_time=None, calibration_num=None):
         """
 
         Parameters
@@ -96,8 +96,6 @@ class Config:
         data_directory : STR, optional
             Where images and other data are saved on the computer.  Our default is
             H:/Observatory Files/Observing Sessions/2020_Data.
-        home_directory : STR, optional
-            Where the home of our code base is.  Our default is C:/Users/GMU Observtory1/-omegalambda.
         calibration_time : STR, optional
             If darks and flats should be taken at the start or end of a given observing session.  Can be str "start"
             or "end."  If "start", it will take darks and flats for ALL observing tickets at the start of the night.
@@ -137,7 +135,6 @@ class Config:
         self.guider_max_move = guider_max_move
         self.guider_angle = guider_angle*pi/180
         self.data_directory = data_directory                     
-        self.home_directory = home_directory                        
         self.calibration_time = calibration_time
         self.calibration_num = int(calibration_num)
         
@@ -200,7 +197,7 @@ def _dict_to_config_object(dic):
                      focus_max_distance=dic['focus_max_distance'], guiding_threshold=dic['guiding_threshold'],
                      guider_ra_dampening=dic['guider_ra_dampening'], guider_dec_dampening=dic['guider_dec_dampening'],
                      guider_max_move=dic['guider_max_move'], guider_angle=dic['guider_angle'],
-                     data_directory=dic['data_directory'], home_directory=dic['home_directory'],
-                     calibration_time=dic['calibration_time'], calibration_num=dic['calibration_num'])
+                     data_directory=dic['data_directory'], calibration_time=dic['calibration_time'],
+                     calibration_num=dic['calibration_num'])
     logging.info('Global config object has been created')
     return _config

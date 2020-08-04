@@ -72,22 +72,25 @@ class Calibration(Hardware):
             os.mkdir(os.path.join(self.image_directory, 'Flats_{}'.format(ticket.name)))
         for f in filters:
             j = 0
-            while j < self.config_dict.calibration_num + 1:
+            scaled = False
+            while j < self.config_dict.calibration_num:
                 image_name = 'Flat_{0:d}s_{1:s}-{2:04d}.fits'.format(self.filter_exp_times[f], str(f).upper(), j + 1)
+                if scaled:
+                    image_name = image_name.replace('.fits', '-final.fits')
                 self.camera.onThread(self.camera.expose, self.filter_exp_times[f], self.filterwheel_dict[f], 
                                      save_path=os.path.join(self.image_directory, r'Flats_{}'.format(ticket.name),
                                                             image_name), type='light')
                 self.camera.image_done.wait()
                 median = filereader_utils.mediancounts(os.path.join(
                     self.image_directory, r'Flats_{}'.format(ticket.name), image_name))
-                if j == 0 and median < self.config_dict.saturation:
+                if scaled is False and median < self.config_dict.saturation:
                     # Calculate exposure time
                     desired = 15000
                     scale_factor = desired/median
                     self.filter_exp_times[f] = int(self.filter_exp_times[f]*scale_factor)
                     if self.filter_exp_times[f] <= 1:
                         self.filter_exp_times[f] = 1
-                    j += 1
+                    scaled = True
                 elif j == 0 and median >= self.config_dict.saturation:
                     self.filter_exp_times[f] = self.filter_exp_times[f]//2
                     if self.filter_exp_times[f] <= 1:
