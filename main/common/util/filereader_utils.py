@@ -158,7 +158,7 @@ def radial_average(path, saturation):
        
         if len(radialprofile) != 0:
             radialprofile /= max(radialprofile)
-            f = np.linspace(0, len(radialprofile), len(radialprofile))
+            f = np.linspace(0, len(radialprofile), len(radialprofile)+1)
             mean = np.mean(radialprofile)
             sigma = np.std(radialprofile)
             try:
