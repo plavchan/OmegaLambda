@@ -108,45 +108,45 @@ class ObservationRun:
         if message:
             logging.error('Hardware connection timeout: {}'.format(message))
 
-        # if self.conditions.weather_alert.isSet():
-        #     self._shutdown_procedure(calibration=True)
-        #     if self.conditions.sun:
-        #         sunset_time = conversion_utils.get_sunset(datetime.datetime.now(self.tz),
-        #                                                   self.config_dict.site_latitude,
-        #                                                   self.config_dict.site_longitude)
-        #         logging.info('The Sun has risen above the horizon...observing will stop until the Sun sets again '
-        #                      'at {}.'.format(sunset_time.strftime('%Y-%m-%d %H:%M:%S%z')))
-        #         time.sleep(60*self.config_dict.min_reopen_time)
-        #         sunset_epoch_milli = time_utils.datetime_to_epoch_milli_converter(sunset_time)
-        #         current_epoch_milli = time_utils.datetime_to_epoch_milli_converter(datetime.datetime.now(self.tz))
-        #         if sunset_epoch_milli > current_epoch_milli:
-        #             time.sleep((sunset_epoch_milli - current_epoch_milli)/1000)
-        #         logging.info('The Sun should now be setting again...observing will resume shortly.')
-        #         if not self.conditions.weather_alert.isSet():
-        #             check = True
-        #             if not self.current_ticket:
-        #                 self.observe()
-        #             elif self.current_ticket.end_time > datetime.datetime.now(self.tz):
-        #                 self._startup_procedure()
-        #                 self._ticket_slew(self.current_ticket)
-        #                 self.focus_target(self.current_ticket)
-        #             elif self.current_ticket != self.observation_request_list[-1]:
-        #                 self._startup_procedure()
-        #         else:
-        #             print('Weather is still too poor to resume observing.')
-        #             self.everything_ok()
-        #     elif not self.conditions.sun:
-        #         time.sleep(60*self.config_dict.min_reopen_time)
-        #         while self.conditions.weather_alert.isSet():
-        #             time.sleep(self.config_dict.weather_freq*60)
-        #         if not self.conditions.weather_alert.isSet():
-        #             check = True
-        #             if self.current_ticket.end_time > datetime.datetime.now(self.tz):
-        #                 self._startup_procedure()
-        #                 self._ticket_slew(self.current_ticket)
-        #                 self.focus_target(self.current_ticket)
-        #             elif self.current_ticket != self.observation_request_list[-1]:
-        #                 self._startup_procedure()
+        if self.conditions.weather_alert.isSet():
+            self._shutdown_procedure(calibration=True)
+            if self.conditions.sun:
+                sunset_time = conversion_utils.get_sunset(datetime.datetime.now(self.tz),
+                                                          self.config_dict.site_latitude,
+                                                          self.config_dict.site_longitude)
+                logging.info('The Sun has risen above the horizon...observing will stop until the Sun sets again '
+                             'at {}.'.format(sunset_time.strftime('%Y-%m-%d %H:%M:%S%z')))
+                time.sleep(60*self.config_dict.min_reopen_time)
+                sunset_epoch_milli = time_utils.datetime_to_epoch_milli_converter(sunset_time)
+                current_epoch_milli = time_utils.datetime_to_epoch_milli_converter(datetime.datetime.now(self.tz))
+                if sunset_epoch_milli > current_epoch_milli:
+                    time.sleep((sunset_epoch_milli - current_epoch_milli)/1000)
+                logging.info('The Sun should now be setting again...observing will resume shortly.')
+                if not self.conditions.weather_alert.isSet():
+                    check = True
+                    if not self.current_ticket:
+                        self.observe()
+                    elif self.current_ticket.end_time > datetime.datetime.now(self.tz):
+                        self._startup_procedure()
+                        self._ticket_slew(self.current_ticket)
+                        self.focus_target(self.current_ticket)
+                    elif self.current_ticket != self.observation_request_list[-1]:
+                        self._startup_procedure()
+                else:
+                    print('Weather is still too poor to resume observing.')
+                    self.everything_ok()
+            elif not self.conditions.sun:
+                time.sleep(60*self.config_dict.min_reopen_time)
+                while self.conditions.weather_alert.isSet():
+                    time.sleep(self.config_dict.weather_freq*60)
+                if not self.conditions.weather_alert.isSet():
+                    check = True
+                    if self.current_ticket.end_time > datetime.datetime.now(self.tz):
+                        self._startup_procedure()
+                        self._ticket_slew(self.current_ticket)
+                        self.focus_target(self.current_ticket)
+                    elif self.current_ticket != self.observation_request_list[-1]:
+                        self._startup_procedure()
         return check
 
     def _startup_procedure(self, calibration=False):
@@ -176,7 +176,7 @@ class ObservationRun:
                 self.camera.cooler_settle.wait()
                 print('Taking darks and flats...')
                 self.take_calibration_images(beginning=True)
-            # self.dome.onThread(self.dome.move_shutter, 'open')
+            self.dome.onThread(self.dome.move_shutter, 'open')
             self.dome.onThread(self.dome.home)
         elif not initial_check:
             self.shutdown()
@@ -240,7 +240,7 @@ class ObservationRun:
                 return
             if initial_shutter in (1, 3, 4):
                 self.dome.move_done.wait()
-                # self.dome.shutter_done.wait()
+                self.dome.shutter_done.wait()
             self.camera.cooler_settle.wait()
             self.focus_target(ticket)
 
@@ -513,7 +513,7 @@ class ObservationRun:
             time.sleep(5)
             self.telescope.slew_done.wait(timeout=2*60)
             self.dome.move_done.wait(timeout=5*60)
-            # self.dome.shutter_done.wait(timeout=5*60)
+            self.dome.shutter_done.wait(timeout=5*60)
         for i in range(len(self.observation_request_list)):
             if self.calibrated_tickets[i]:
                 continue
@@ -595,7 +595,7 @@ class ObservationRun:
         self.dome.onThread(self.dome.slave_dome_to_scope, False)
         self.telescope.onThread(self.telescope.park)
         self.dome.onThread(self.dome.park)
-        # self.dome.onThread(self.dome.move_shutter, 'close')
+        self.dome.onThread(self.dome.move_shutter, 'close')
         if calibration:
             print('Taking flats and darks...')
             self.take_calibration_images()
@@ -603,4 +603,4 @@ class ObservationRun:
         self.camera.onThread(self.camera.cooler_set, False)
         self.telescope.slew_done.wait(timeout=2*60)
         self.dome.move_done.wait(timeout=5*60)
-        # self.dome.shutter_done.wait(timeout=5*60)
+        self.dome.shutter_done.wait(timeout=5*60)
