@@ -19,7 +19,7 @@ class Camera(Hardware):
         """
         self.cooler_settle = threading.Event()
         self.image_done = threading.Event()
-        self.exposing = threading.Lock()
+        self.camera_lock = threading.Lock()
         super(Camera, self).__init__(name='Camera')
 
     def check_connection(self):
@@ -59,25 +59,26 @@ class Camera(Hardware):
         None.
 
         """
-        try:
-            self.Camera.CoolerOn = True
-        except:
-            logging.error("Could not turn on cooler")
-        
-        if self.Camera.CoolerOn and toggle is True:
+        with self.camera_lock:
             try:
-                self.Camera.TemperatureSetpoint = self.config_dict.cooler_setpoint
+                self.Camera.CoolerOn = True
             except:
-                logging.warning('Could not change camera cooler setpoint')
-            else:
-                print("Cooler Setpoint set to {0:.1f} C".format(self.Camera.TemperatureSetpoint))
-        elif toggle is False:
-            try:
-                self.Camera.TemperatureSetpoint = self.config_dict.cooler_idle_setpoint
-            except:
-                logging.warning('Could not change camera cooler setpoint')
-            else:
-                print("Cooler Setpoint set to {0:.1f} C".format(self.Camera.TemperatureSetpoint))
+                logging.error("Could not turn on cooler")
+
+            if self.Camera.CoolerOn and toggle is True:
+                try:
+                    self.Camera.TemperatureSetpoint = self.config_dict.cooler_setpoint
+                except:
+                    logging.warning('Could not change camera cooler setpoint')
+                else:
+                    print("Cooler Setpoint set to {0:.1f} C".format(self.Camera.TemperatureSetpoint))
+            elif toggle is False:
+                try:
+                    self.Camera.TemperatureSetpoint = self.config_dict.cooler_idle_setpoint
+                except:
+                    logging.warning('Could not change camera cooler setpoint')
+                else:
+                    print("Cooler Setpoint set to {0:.1f} C".format(self.Camera.TemperatureSetpoint))
 
     def _cooler_adjust(self):
         """
@@ -92,25 +93,26 @@ class Camera(Hardware):
         None.
 
         """
-        if not self.Camera.CoolerOn:
-            self.cooler_set(True)
-        
-        t_diff = abs(self.Camera.TemperatureSetpoint - self.Camera.Temperature)
-        power = self.Camera.CoolerPower
-    
-        if t_diff >= 0.1 and power >= 99:
-            if t_diff >= 10:
-                self.Camera.TemperatureSetpoint += 5
-            elif t_diff >= 5:
-                self.Camera.TemperatureSetpoint += 3
+        with self.camera_lock:
+            if not self.Camera.CoolerOn:
+                self.cooler_set(True)
+
+            t_diff = abs(self.Camera.TemperatureSetpoint - self.Camera.Temperature)
+            power = self.Camera.CoolerPower
+
+            if t_diff >= 0.1 and power >= 99:
+                if t_diff >= 10:
+                    self.Camera.TemperatureSetpoint += 5
+                elif t_diff >= 5:
+                    self.Camera.TemperatureSetpoint += 3
+                else:
+                    self.Camera.TemperatureSetpoint += 1
+                print("Cooler Setpoint adjusted to {0:.1f} C".format(self.Camera.TemperatureSetpoint))
+            elif t_diff <= 0.1 and power <= 40:
+                self.Camera.TemperatureSetpoint -= 1
+                print("Cooler Setpoint adjusted to {0:.1f} C".format(self.Camera.TemperatureSetpoint))
             else:
-                self.Camera.TemperatureSetpoint += 1
-            print("Cooler Setpoint adjusted to {0:.1f} C".format(self.Camera.TemperatureSetpoint))
-        elif t_diff <= 0.1 and power <= 40:
-            self.Camera.TemperatureSetpoint -= 1
-            print("Cooler Setpoint adjusted to {0:.1f} C".format(self.Camera.TemperatureSetpoint))
-        else:
-            pass
+                pass
     
     def cooler_ready(self):
         """
@@ -177,7 +179,7 @@ class Camera(Hardware):
         """
         while self.crashed.isSet():
             time.sleep(1)
-        with self.exposing:
+        with self.camera_lock:
             type = 1 if type == "light" else 0 if type == "dark" else None
             if type is None:
                 print("ERROR: Invalid exposure type.")

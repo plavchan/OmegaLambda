@@ -23,11 +23,7 @@ class FlatLamp(Hardware):
         self.ser.baudrate = 9600
         self.status = None
         ports = list(serial.tools.list_ports.comports())
-        arduino_ports = []
-        for port in ports:
-            if "Arduino" in port.description:
-                arduino_ports.append(port)
-        
+        arduino_ports = [port for port in ports if "Arduino" in port.description]
         if len(arduino_ports) >= 1:
             self.ser.port = arduino_ports[0].device
         else:

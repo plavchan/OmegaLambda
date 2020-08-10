@@ -81,10 +81,7 @@ class Guider(Hardware):
                 if distance < minsep:
                     minsep = distance
                     minstar = star
-            if minstar:
-                guider_star = minstar
-            else:
-                guider_star = None
+            guider_star = minstar if minstar else None
         return guider_star
 
     @staticmethod
@@ -106,13 +103,7 @@ class Guider(Hardware):
 
         """
         images = os.listdir(image_path)
-        paths = []
-        for fname in images:
-            full_path = os.path.join(image_path, fname)
-            if os.path.isfile(full_path):
-                paths.append(full_path)
-            else:
-                continue
+        paths = [full_path for fname in images if os.path.isfile(full_path := os.path.join(image_path, fname))]
         newest_image = max(paths, key=os.path.getctime)
         return newest_image
     

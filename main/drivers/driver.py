@@ -83,18 +83,13 @@ def run(obs_tickets, data=None, config=None, _filter=None, logger=None, shutdown
         print('New directory for tonight\'s observing has been made!')
     else:
         print('Directory for tonight\'s observing already exists!')
-    
-    observation_request_list = []
+
     if os.path.isfile(obs_tickets[0]):
-        for ticket in obs_tickets:
-            ticket_object = read_ticket(ticket)
-            if ticket_object:
-                observation_request_list.append(ticket_object)
+        observation_request_list = [ticket_object for ticket in obs_tickets
+                                    if (ticket_object := read_ticket(ticket))]
     else:
-        for filename in os.listdir(obs_tickets[0]):
-            ticket_object = read_ticket(os.path.join(obs_tickets[0], filename))
-            if ticket_object:
-                observation_request_list.append(ticket_object)
+        observation_request_list = [ticket_object for filename in os.listdir(obs_tickets[0])
+                                    if (ticket_object := read_ticket(os.path.join(obs_tickets[0], filename)))]
     
     observation_request_list.sort(key=start_time)
         
@@ -154,53 +149,60 @@ def check_ticket(ticket):
         True if the ticket looks good, False otherwise.
 
     """
+    check = True
     if type(ticket.name) is not str:
         print('Error reading ticket: name not a string...')
-        return False
-    elif type(ticket.ra) is not float:
+        check = False
+    if type(ticket.ra) is not float:
         print('Error reading ticket: ra formatting error...')
-        return False
-    elif ticket.ra < 0 or ticket.ra > 24:
+        check = False
+    if ticket.ra < 0 or ticket.ra > 24:
         print('Error reading ticket: ra not between 0 and 24 hrs')
-        return False
-    elif type(ticket.dec) is not float:
+        check = False
+    if type(ticket.dec) is not float:
         print('Error reading ticket: dec formatting error...')
-        return False
-    elif abs(ticket.dec) > 90:
+        check = False
+    if abs(ticket.dec) > 90:
         print('Error reading ticket: dec greater than +90 or less than -90...')
-        return False
-    elif type(ticket.start_time) is not datetime.datetime:
+        check = False
+    if type(ticket.start_time) is not datetime.datetime:
         print('Error reading ticket: start time formatting error...')
-        return False
-    elif type(ticket.end_time) is not datetime.datetime:
+        check = False
+    if type(ticket.end_time) is not datetime.datetime:
         print('Error reading ticket: end time formatting error...')
-        return False
-    elif type(ticket.filter) not in (str, list):
+        check = False
+    if type(ticket.filter) not in (str, list):
         print('Error reading ticket: filter not a string or list...')
-        return False
-    elif type(ticket.num) is not int:
+        check = False
+    if type(ticket.num) is not int:
         print('Error reading ticket: num not an integer...')
-        return False
-    elif ticket.num <= 0:
+        check = False
+    if ticket.num <= 0:
         print('Error reading ticket: num must be > 0.')
-        return False
-    elif type(ticket.exp_time) not in (int, float):
-        print('Error reading ticket: exp_time not an integer or float...')
-        return False
-    elif ticket.exp_time <= 0:
-        print('Error reading ticket: exp_time must be > 0.')
-        return False
-    elif type(ticket.self_guide) is not bool:
+        check = False
+    if type(ticket.exp_time) not in (int, float, list):
+        print('Error reading ticket: exp_time not an integer, float, or list...')
+        check = False
+    if ticket.exp_time:
+        e_times = [ticket.exp_time] if type(ticket.exp_time) in (int, float) else ticket.exp_time
+        filts = [ticket.filter] if type(ticket.filter) is str else ticket.filter
+        for num in e_times:
+            if num <= 0:
+                print('Error reading ticket: exp_time must be > 0.')
+                check = False
+        if len(e_times) > 1 and (len(e_times) != len(filts)):
+            print('Error: number of filters and number of exposure times must match!')
+            check = False
+    if type(ticket.self_guide) is not bool:
         print('Error reading ticket: self_guide not a boolean...')
-        return False
-    elif type(ticket.guide) is not bool:
+        check = False
+    if type(ticket.guide) is not bool:
         print('Error reading ticket: guide not a boolean...')
-        return False
-    elif type(ticket.cycle_filter) is not bool:
+        check = False
+    if type(ticket.cycle_filter) is not bool:
         print('Error reading ticket: cycle_filter not a boolean...')
-        return False
-    else:
-        return True
+        check = False
+    return check
 
 
 def start_time(ticket_object):

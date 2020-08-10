@@ -17,6 +17,7 @@ class Focuser(Hardware):
 
         """
         self.adjusting = threading.Event()
+        self.adjustment_lock = threading.Lock()
         self.position = None
         super(Focuser, self).__init__(name='Focuser')      # calls Hardware.__init__ with the name 'focuser'
 
@@ -55,9 +56,10 @@ class Focuser(Hardware):
 
         """
         if not self.crashed.isSet():
-            self.Focuser.setDelta(int(amount))
-            logging.debug('Focuser delta changed')
-            return True
+            with self.adjustment_lock:
+                self.Focuser.setDelta(int(amount))
+                logging.debug('Focuser delta changed')
+                return True
         else:
             logging.warning('Focuser has crashed...cannot set focus delta at this time')
             return False
@@ -95,17 +97,18 @@ class Focuser(Hardware):
         """
         if not self.crashed.isSet():
             self.adjusting.clear()
-            if amount is not None:
-                self.set_focus_delta(amount)
-            if direction == "in":
-                self.Focuser.actIn()
-                logging.info('Focuser moved in')
-            elif direction == "out":
-                self.Focuser.actOut()
-                logging.info('Focuser moved out')
-            else:
-                logging.error('Invalid focus move direction')
-            self.adjusting.set()
+            with self.adjustment_lock:
+                if amount is not None:
+                    self.set_focus_delta(amount)
+                if direction == "in":
+                    self.Focuser.actIn()
+                    logging.info('Focuser moved in')
+                elif direction == "out":
+                    self.Focuser.actOut()
+                    logging.info('Focuser moved out')
+                else:
+                    logging.error('Invalid focus move direction')
+                self.adjusting.set()
         else:
             logging.warning('Focuser has crashed...cannot adjust focus position at this time')
             return False
@@ -126,9 +129,10 @@ class Focuser(Hardware):
 
         """
         if not self.crashed.isSet():
-            self.adjusting.clear()
-            self.Focuser.actGoToPosition(int(position))
-            self.adjusting.set()
+            with self.adjustment_lock:
+                self.adjusting.clear()
+                self.Focuser.actGoToPosition(int(position))
+                self.adjusting.set()
         else:
             logging.warning('Focuser has crashed...cannot move to absolute position at this time.')
             return False

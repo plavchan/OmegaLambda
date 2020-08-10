@@ -33,7 +33,7 @@ class Calibration(Hardware):
         self.flatlamp = flatlamp_obj
         self.image_directory = image_directory
         self.filterwheel_dict = filter_wheel.get_filter().filter_position_dict()
-        self.filter_exp_times = {'clr': 3, 'uv': 240, 'b': 120, 'v': 16, 'r': 8, 'ir': 10, 'Ha': 120}
+        self.filter_exp_times = {'clr': 3, 'uv': 120, 'b': 120, 'v': 16, 'r': 8, 'ir': 10, 'Ha': 120}
         self.config_dict = config_reader.get_config()
         
         self.flats_done = threading.Event()
@@ -95,8 +95,15 @@ class Calibration(Hardware):
                     self.filter_exp_times[f] = self.filter_exp_times[f]//2
                     if self.filter_exp_times[f] <= 1:
                         self.filter_exp_times[f] = 1
+                        scaled = True
                 else:
                     j += 1
+        files = os.listdir(os.path.join(self.image_directory, 'Flats_{}'.format(ticket.name)))
+        for file in files:
+            file = os.path.join(self.image_directory, 'Flats_{}'.format(ticket.name), file)
+            if 'final' not in str(file):
+                os.remove(file)
+        print('Test flats removed!')
         self.flatlamp.onThread(self.flatlamp.turn_off)
         self.flatlamp.lamp_done.wait(timeout=60)
         self.flats_done.set()
@@ -125,22 +132,37 @@ class Calibration(Hardware):
         if not filters:
             logging.error('Wrong data type for filter(s) argument')
             return False
+        exp_times = ticket.exp_time if type(ticket.exp_time) is list \
+            else [ticket.exp_time] if type(ticket.exp_time) in (int, float) else None
+        if not exp_times:
+            logging.error('Wrong data type for exp_time(s) argument')
+            return False
         if not os.path.exists(os.path.join(self.image_directory, 'Darks_{}'.format(ticket.name))):
             os.mkdir(os.path.join(self.image_directory, 'Darks_{}'.format(ticket.name)))
-        check = True
         for f in filters:
             for j in range(self.config_dict.calibration_num):
                 image_name = 'Dark_{0:d}s-{1:04d}.fits'.format(self.filter_exp_times[f], j + 1)
+                match = False
+                for name in os.listdir(os.path.join(self.image_directory, 'Darks_{}'.format(ticket.name))):
+                    if name == image_name:
+                        match = True
+                if match:
+                    continue
                 self.camera.onThread(self.camera.expose, self.filter_exp_times[f], 0,
                                      save_path=os.path.join(self.image_directory, r'Darks_{}'.format(ticket.name),
                                                             image_name), type='dark')
                 self.camera.image_done.wait()
-            if self.filter_exp_times[f] == ticket.exp_time:
-                check = False
-        if check:
+
+        for exp_time in exp_times:
             for k in range(self.config_dict.calibration_num):
-                image_name = 'Dark_{0:d}s-{1:04d}.fits'.format(ticket.exp_time, k + 1)
-                self.camera.onThread(self.camera.expose, ticket.exp_time, 0,
+                image_name = 'Dark_{0:d}s-{1:04d}.fits'.format(int(exp_time), k + 1)
+                match = False
+                for name in os.listdir(os.path.join(self.image_directory, 'Darks_{}'.format(ticket.name))):
+                    if name == image_name:
+                        match = True
+                if match:
+                    continue
+                self.camera.onThread(self.camera.expose, int(exp_time), 0,
                                      save_path=os.path.join(self.image_directory, r'Darks_{}'.format(ticket.name),
                                                             image_name), type='dark')
                 self.camera.image_done.wait()

@@ -228,13 +228,7 @@ class FocusProcedures(Hardware):
             Full path to the most recently created image file in the given directory.
         """
         images = os.listdir(image_path)
-        paths = []
-        for fname in images:
-            full_path = os.path.join(image_path, fname)
-            if os.path.isfile(full_path):
-                paths.append(full_path)
-            else:
-                continue
+        paths = [full_path for fname in images if os.path.isfile(full_path := os.path.join(image_path, fname))]
         newest_image = max(paths, key=os.path.getctime)
         return newest_image
 

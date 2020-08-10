@@ -20,6 +20,7 @@ class Telescope(Hardware):
 
         """
         self.slew_done = threading.Event()
+        self.movement_lock = threading.Lock()
         # Threading event sets flags and allows threads to interact with each other
         super(Telescope, self).__init__(name='Telescope')       # Calls Hardware.__init__ with the name 'Telescope'
 
@@ -108,9 +109,10 @@ class Telescope(Hardware):
             print("Telescope is at park")
             return True
         self._is_ready()
-        try: 
-            self.Telescope.Tracking = False
-            self.Telescope.Park()
+        try:
+            with self.movement_lock:
+                self.Telescope.Tracking = False
+                self.Telescope.Park()
                 
         except: 
             print("ERROR: Could not park telescope")
@@ -132,9 +134,10 @@ class Telescope(Hardware):
 
         """
         self._is_ready()
-        try: 
-            self.Telescope.Unpark()
-            self.Telescope.Tracking = True
+        try:
+            with self.movement_lock:
+                self.Telescope.Unpark()
+                self.Telescope.Tracking = True
         except: 
             print("ERROR: Error unparking telescope tracking")
             return False
@@ -169,10 +172,11 @@ class Telescope(Hardware):
             return False
         else:
             self._is_ready()
-            try: 
-                logging.info('Slewing to RA/Dec')
-                self.Telescope.SlewToCoordinates(ra, dec)
-                self.Telescope.Tracking = tracking
+            try:
+                with self.movement_lock:
+                    logging.info('Slewing to RA/Dec')
+                    self.Telescope.SlewToCoordinates(ra, dec)
+                    self.Telescope.Tracking = tracking
             except:
                 logging.error("Error slewing to target")
             self._is_ready()
@@ -212,7 +216,8 @@ class Telescope(Hardware):
         # Convert seconds to milliseconds, used by internal telescope calls
         self._is_ready()
         try:
-            self.Telescope.PulseGuide(direction_num, duration)
+            with self.movement_lock:
+                self.Telescope.PulseGuide(direction_num, duration)
         except:
             logging.error("Could not pulse guide")
             return False
@@ -286,10 +291,11 @@ class Telescope(Hardware):
         if alt <= 15:
             return logging.error("Cannot slew below 15 degrees altitude.")
         else:
-            (ra, dec) = conversion_utils.convert_altaz_to_radec(az, alt, self.config_dict.site_latitude,
-                                                                self.config_dict.site_longitude, time)
-            self.slew(ra, dec, tracking)
-            logging.info('Slewing to Alt/Az')
+            with self.movement_lock:
+                (ra, dec) = conversion_utils.convert_altaz_to_radec(az, alt, self.config_dict.site_latitude,
+                                                                    self.config_dict.site_longitude, time)
+                self.slew(ra, dec, tracking)
+                logging.info('Slewing to Alt/Az')
     
     def abort(self):
         """
