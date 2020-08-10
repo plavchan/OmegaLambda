@@ -20,6 +20,7 @@ class Dome(Hardware):
         """
         self.move_done = threading.Event()
         self.shutter_done = threading.Event()
+        self.dome_move_lock = threading.Lock()
         self.shutter = None
         super(Dome, self).__init__(name='Dome')
 
@@ -87,7 +88,8 @@ class Dome(Hardware):
         """
         self._is_ready()
         try:
-            self.Dome.FindHome()
+            with self.dome_move_lock:
+                self.Dome.FindHome()
         except:
             logging.error('Dome cannot find home')
         else: 
@@ -115,7 +117,8 @@ class Dome(Hardware):
             return True
         self._is_ready()
         try:
-            self.Dome.Park()
+            with self.dome_move_lock:
+                self.Dome.Park()
         except: 
             logging.error("Error parking dome")
             return False
@@ -140,9 +143,10 @@ class Dome(Hardware):
         self.shutter_done.clear()
         self._is_ready()
         if open_or_close == 'open':
-            self.Dome.OpenShutter()
-            print("Shutter is opening")
-            time.sleep(2)
+            with self.dome_move_lock:
+                self.Dome.OpenShutter()
+                print("Shutter is opening")
+                time.sleep(2)
             while self.Dome.ShutterStatus in (1, 2, 4):
                 time.sleep(5)
             time.sleep(2)
@@ -151,9 +155,10 @@ class Dome(Hardware):
             else:
                 logging.error('Dome did not open correctly.')
         elif open_or_close == 'close':
-            self.Dome.CloseShutter()
-            print("Shutter is closing")
-            time.sleep(2)
+            with self.dome_move_lock:
+                self.Dome.CloseShutter()
+                print("Shutter is closing")
+                time.sleep(2)
             while self.Dome.ShutterStatus in (0, 3, 4):
                 time.sleep(5)
             time.sleep(2)
@@ -182,7 +187,8 @@ class Dome(Hardware):
         self._is_ready()
         if toggle is True:
             try:
-                self.Dome.Slaved = True
+                with self.dome_move_lock:
+                    self.Dome.Slaved = True
             except:
                 logging.error("Cannot sync dome to scope")
             else: 
@@ -213,7 +219,8 @@ class Dome(Hardware):
         self.move_done.clear()
         self._is_ready()
         try:
-            self.Dome.SlewtoAzimuth(azimuth)
+            with self.dome_move_lock:
+                self.Dome.SlewtoAzimuth(azimuth)
         except:
             logging.error("Error slewing dome")
         else: 

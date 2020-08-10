@@ -22,13 +22,13 @@ class ObservationTicket:
             Start time of first exposure. The default is None.
         end_time : STR, optional
             End time of last exposure. The default is None.
-        _filter : LIST, optional
+        _filter : STR or LIST, optional
             List of filters that will be used during observing session.
             The default is None.
         num : INT, optional
             Number of exposures. The default is None.
-        exp_time : INT, optional
-            Exposure time of each image in seconds. The default is None.
+        exp_time : INT or LIST, optional
+            Exposure time of each image in seconds.  List order must match the order of filters.  The default is None.
         self_guide : BOOL, optional
            If True, self-guiding module will activate, keeping the telescope
            pointed steady at the same target with minor adjustments. The default is None.

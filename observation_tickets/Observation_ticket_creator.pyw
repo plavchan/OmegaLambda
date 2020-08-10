@@ -18,7 +18,7 @@ def box_labels():
     tk.Label(master, text='Observation End Time').grid(row=4)
     tk.Label(master, text='Filter(s)').grid(row=5)
     tk.Label(master, text='Number of Exposures').grid(row=6)
-    tk.Label(master, text='Exposure Time').grid(row=7)
+    tk.Label(master, text='Exposure Time(s)').grid(row=7)
 
 
 def exampletxt():
@@ -91,11 +91,16 @@ def truefalse_check():
     return self_guide_var, guide_var, cycle_filter_var
 
 
-def filter_split():
+def list_split(entry):
     """
     Description
     -----------
     Formats inputted filters correctly
+
+    Parameters
+    ----------
+    entry : tk.Entry
+        Which entry box to parse.
 
     Returns
     -------
@@ -103,13 +108,11 @@ def filter_split():
         Properly formatted filter(s).
 
     """
-    j = filter_.get()
-    k = j.replace(' ', '')
-    i = k.split(",")
-    if len(i) == 1:
-        i = '\"{}\"'.format(j)
-    else:
-        i = json.dumps(i)
+    i = entry.get().replace(' ', '').split(",")
+    if entry == exposure_time:
+        i = [int(t) for t in i] if len(i) > 1 else int(i[0])
+    elif entry == filter_:
+        i = json.dumps(i) if len(i) > 1 else '\"{}\"'.format(i[0])
     return i
 
 
@@ -126,7 +129,8 @@ def savetxt():
     """
     dst = dst_check()
     self_guide_var, guide_var, cycle_filter_var = truefalse_check()
-    i = filter_split()
+    i = list_split(filter_)
+    j = list_split(exposure_time)
     current_path = os.path.abspath(os.path.dirname(__file__))
     with open(os.path.join(current_path, r'{}.json'.format(name.get())), 'w+') as f:
         f.write('{\"type\": \"observation_ticket\",')
@@ -138,7 +142,7 @@ def savetxt():
         f.write('\n\t\"end_time\": \"{}{}\",'.format(end_time.get(), dst))
         f.write('\n\t\"filter\": {},'.format(i))
         f.write('\n\t\"num\": {},'.format(n_exposures.get()))
-        f.write('\n\t\"exp_time\": {},'.format(exposure_time.get()))
+        f.write('\n\t\"exp_time\": {},'.format(j))
         f.write('\n\t\"self_guide\": {},'.format(self_guide_var))
         f.write('\n\t\"guide\": {},'.format(guide_var))
         f.write('\n\t\"cycle_filter\": {}'.format(cycle_filter_var))

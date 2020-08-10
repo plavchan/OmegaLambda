@@ -49,12 +49,13 @@ class ObservationRun:
         self.shutdown_toggle = shutdown_toggle
         self.calibration_toggle = calibration_toggle
         self.tz = observation_request_list[0].start_time.tzinfo
-        
+
         # Initializes all relevant hardware
         self.camera = Camera()
         self.telescope = Telescope()
         self.dome = Dome()
         self.conditions = Conditions()
+
         # self.focuser = Focuser()
         # self.flatlamp = FlatLamp()
         
@@ -62,11 +63,11 @@ class ObservationRun:
         # self.focus_procedures = FocusProcedures(self.focuser, self.camera)
         # self.calibration = Calibration(self.camera, self.flatlamp, self.image_directory)
         # self.guider = Guider(self.camera, self.telescope)
-        
+
         # Initializes config objects
         self.filterwheel_dict = filter_wheel.get_filter().filter_position_dict()
         self.config_dict = config_reader.get_config()
-        
+
         # Starts the threads
         self.conditions.start()
         self.camera.start()
@@ -77,7 +78,7 @@ class ObservationRun:
         # self.flatlamp.start()
         # self.calibration.start()
         # self.guider.start()
-        
+
     def everything_ok(self):
         """
         Description
@@ -166,7 +167,7 @@ class ObservationRun:
 
         """
         initial_check = self.everything_ok()
-        
+
         self.camera.onThread(self.camera.cooler_set, True)
         self.dome.onThread(self.dome.shutter_position)
         time.sleep(2)
@@ -186,7 +187,7 @@ class ObservationRun:
         self.camera.onThread(self.camera.cooler_ready)
         self.dome.onThread(self.dome.slave_dome_to_scope, True)
         return initial_shutter
-    
+
     def _ticket_slew(self, ticket):
         """
 
@@ -229,10 +230,10 @@ class ObservationRun:
         else:
             calibration = False
         initial_shutter = self._startup_procedure(calibration)
-        
+
         for ticket in self.observation_request_list:
             self.current_ticket = ticket
-            if not self.everything_ok(): 
+            if not self.everything_ok():
                 self.shutdown()
                 return
             self.crash_check('TheSkyX.exe')
@@ -243,8 +244,9 @@ class ObservationRun:
                 self.dome.move_done.wait()
                 self.dome.shutter_done.wait()
             self.camera.cooler_settle.wait()
+
             # self.focus_target(ticket)
-            
+
             self.tz = ticket.start_time.tzinfo
             current_time = datetime.datetime.now(self.tz)
             if ticket.start_time > current_time:
@@ -253,28 +255,29 @@ class ObservationRun:
                 current_epoch_milli = time_utils.datetime_to_epoch_milli_converter(current_time)
                 start_time_epoch_milli = time_utils.datetime_to_epoch_milli_converter(ticket.start_time)
                 time.sleep((start_time_epoch_milli - current_epoch_milli)/1000)
-    
-            if not self.everything_ok(): 
+
+            if not self.everything_ok():
                 self.shutdown()
                 return
-            
+
             input("The program is ready to start taking images of {}.  Please take this time to "
                   "check the focus and pointing of the target.  When you are ready, press Enter: ".format(ticket.name))
             (taken, total) = self.run_ticket(ticket)
             print("{} out of {} exposures were taken for {}.  Moving on to next target.".format(taken, total,
                                                                                                 ticket.name))
-        
+
         if self.config_dict.calibration_time == "end" and self.calibration_toggle is True:
             calibration = True
         else:
             calibration = False
         self.shutdown(calibration)
-        
+
     # def focus_target(self, ticket):
     #     """
     #     Description
     #     -----------
     #     Starts the focus procedures module to focus on the current target.
+    #
     #     Parameters
     #     ----------
     #     ticket : ObservationTicket Object
@@ -287,10 +290,12 @@ class ObservationRun:
     #     """
     #     focus_filter = str(ticket.filter[0]) if type(ticket.filter) is list \
     #         else ticket.filter if type(ticket.filter) is str else None
+    #     focus_exp = int(ticket.exp_time[0]) if type(ticket.exp_time) is list \
+    #         else ticket.exp_time if type(ticket.exp_time) in (int, float) else None
     #     if not focus_filter:
     #         logging.error('Filter argument is wrong type')
     #         return
-    #     focus_exposure = int(self.config_dict.focus_exposure_multiplier*ticket.exp_time)
+    #     focus_exposure = int(self.config_dict.focus_exposure_multiplier*focus_exp)
     #     if focus_exposure <= 0:
     #         focus_exposure = 1
     #     elif focus_exposure >= 30:
@@ -306,7 +311,7 @@ class ObservationRun:
     #             time.sleep(5)
     #             break
     #         time.sleep(10)
-        
+
     def run_ticket(self, ticket):
         """
         Parameters
@@ -324,8 +329,11 @@ class ObservationRun:
             observation ticket.
         """
         # self.focus_procedures.onThread(self.focus_procedures.constant_focus_procedure, self.image_directory)
+        ticket.exp_time = [ticket.exp_time] if type(ticket.exp_time) in (int, float) else ticket.exp_time
+        ticket.filter = [ticket.filter] if type(ticket.filter) is str else ticket.filter
         # if ticket.self_guide:
         #     self.guider.onThread(self.guider.guiding_procedure, self.image_directory)
+
         if ticket.cycle_filter:
             img_count = self.take_images(ticket.name, ticket.num, ticket.exp_time,
                                          ticket.filter, ticket.end_time, self.image_directory,
@@ -334,11 +342,13 @@ class ObservationRun:
             # if ticket.self_guide:
             #     self.guider.stop_guiding()
             return img_count, ticket.num
-        
+
         else:
             img_count = 0
+            if len(ticket.exp_time) <= 1:
+                ticket.exp_time *= len(ticket.filter)
             for i in range(len(ticket.filter)):
-                img_count_filter = self.take_images(ticket.name, ticket.num, ticket.exp_time,
+                img_count_filter = self.take_images(ticket.name, ticket.num, [ticket.exp_time[i]],
                                                     [ticket.filter[i]], ticket.end_time, self.image_directory,
                                                     False)
                 img_count += img_count_filter
@@ -355,8 +365,8 @@ class ObservationRun:
             Name of target to be observed.
         num : INT
             Total number of exposures to be taken during the night.
-        exp_time : INT
-            The exposure time of each image.
+        exp_time : LIST
+            The exposure times of each image.
         _filter : LIST, STR
             The filters to be used during the night.
         end_time : datetime.datetime Object
@@ -374,6 +384,8 @@ class ObservationRun:
             The number of images taken for the current ticket.
         """
         num_filters = len(_filter)
+        num_exptimes = len(exp_time)
+        # num_filters and num_exptimes should always be equal, not sure if we need both
         image_num = 1
         names_list = []
         image_base = {}
@@ -387,7 +399,8 @@ class ObservationRun:
             if not self.everything_ok():
                 break
             current_filter = _filter[i % num_filters]
-            image_name = "{0:s}_{1:d}s_{2:s}-{3:04d}.fits".format(name, exp_time, str(current_filter).upper(),
+            current_exp = exp_time[i % num_exptimes]
+            image_name = "{0:s}_{1:d}s_{2:s}-{3:04d}.fits".format(name, int(current_exp), str(current_filter).upper(),
                                                                   image_num)
             
             if i == 0 and os.path.exists(os.path.join(path, image_name)):
@@ -395,18 +408,18 @@ class ObservationRun:
                 for f in _filter:
                     names_list = [0]
                     for fname in os.listdir(path):
-                        if n := re.search('{0:s}_{1:d}s_{2:s}-(.+?).fits'.format(name, exp_time, str(f).upper()),
+                        if n := re.search('{0:s}_{1:d}s_{2:s}-(.+?).fits'.format(name, int(current_exp), str(f).upper()),
                                           fname):
                             names_list.append(int(n.group(1)))
                     image_base[f] = max(names_list) + 1
                 
-                image_name = "{0:s}_{1:d}s_{2:s}-{3:04d}.fits".format(name, exp_time, str(current_filter).upper(),
+                image_name = "{0:s}_{1:d}s_{2:s}-{3:04d}.fits".format(name, int(current_exp), str(current_filter).upper(),
                                                                       image_base[current_filter])
                 
             self.camera.onThread(self.camera.expose, 
-                                 int(exp_time), self.filterwheel_dict[current_filter],
+                                 int(current_exp), self.filterwheel_dict[current_filter],
                                  os.path.join(path, image_name), "light")
-            self.camera.image_done.wait(timeout=exp_time*2 + 60)
+            self.camera.image_done.wait(timeout=int(current_exp)*2 + 60)
             
             if self.crash_check('MaxIm_DL.exe'):
                 continue
