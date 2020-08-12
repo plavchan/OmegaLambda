@@ -33,7 +33,7 @@ class Calibration(Hardware):
         self.flatlamp = flatlamp_obj
         self.image_directory = image_directory
         self.filterwheel_dict = filter_wheel.get_filter().filter_position_dict()
-        self.filter_exp_times = {'clr': 3, 'uv': 120, 'b': 120, 'v': 16, 'r': 8, 'ir': 10, 'Ha': 120}
+        self.filter_exp_times = {'clr': 3.0, 'uv': 120.0, 'b': 120.0, 'v': 16.0, 'r': 8.0, 'ir': 10.0, 'Ha': 120.0}
         self.config_dict = config_reader.get_config()
         
         self.flats_done = threading.Event()
@@ -74,7 +74,7 @@ class Calibration(Hardware):
             j = 0
             scaled = False
             while j < self.config_dict.calibration_num:
-                image_name = 'Flat_{0:d}s_{1:s}-{2:04d}.fits'.format(self.filter_exp_times[f], str(f).upper(), j + 1)
+                image_name = 'Flat_{0:.3f}s_{1:s}-{2:04d}.fits'.format(self.filter_exp_times[f], str(f).upper(), j + 1)
                 if scaled:
                     image_name = image_name.replace('.fits', '-final.fits')
                 self.camera.onThread(self.camera.expose, self.filter_exp_times[f], self.filterwheel_dict[f], 
@@ -87,14 +87,14 @@ class Calibration(Hardware):
                     # Calculate exposure time
                     desired = 15000
                     scale_factor = desired/median
-                    self.filter_exp_times[f] = int(self.filter_exp_times[f]*scale_factor)
-                    if self.filter_exp_times[f] <= 1:
-                        self.filter_exp_times[f] = 1
+                    self.filter_exp_times[f] *= scale_factor
+                    if self.filter_exp_times[f] <= 0.001:
+                        self.filter_exp_times[f] = 0.001
                     scaled = True
                 elif j == 0 and median >= self.config_dict.saturation:
-                    self.filter_exp_times[f] = self.filter_exp_times[f]//2
-                    if self.filter_exp_times[f] <= 1:
-                        self.filter_exp_times[f] = 1
+                    self.filter_exp_times[f] = self.filter_exp_times[f]/2
+                    if self.filter_exp_times[f] <= 0.001:
+                        self.filter_exp_times[f] = 0.001
                         scaled = True
                 else:
                     j += 1
@@ -141,28 +141,28 @@ class Calibration(Hardware):
             os.mkdir(os.path.join(self.image_directory, 'Darks_{}'.format(ticket.name)))
         for f in filters:
             for j in range(self.config_dict.calibration_num):
-                image_name = 'Dark_{0:d}s-{1:04d}.fits'.format(self.filter_exp_times[f], j + 1)
+                image_name = 'Dark_{0:.3f}s-{1:04d}.fits'.format(self.filter_exp_times[f], j + 1)
                 match = False
                 for name in os.listdir(os.path.join(self.image_directory, 'Darks_{}'.format(ticket.name))):
                     if name == image_name:
                         match = True
                 if match:
                     continue
-                self.camera.onThread(self.camera.expose, self.filter_exp_times[f], 0,
+                self.camera.onThread(self.camera.expose, self.filter_exp_times[f], 4,
                                      save_path=os.path.join(self.image_directory, r'Darks_{}'.format(ticket.name),
                                                             image_name), type='dark')
                 self.camera.image_done.wait()
 
         for exp_time in exp_times:
             for k in range(self.config_dict.calibration_num):
-                image_name = 'Dark_{0:d}s-{1:04d}.fits'.format(int(exp_time), k + 1)
+                image_name = 'Dark_{0:.3f}s-{1:04d}.fits'.format(exp_time, k + 1)
                 match = False
                 for name in os.listdir(os.path.join(self.image_directory, 'Darks_{}'.format(ticket.name))):
                     if name == image_name:
                         match = True
                 if match:
                     continue
-                self.camera.onThread(self.camera.expose, int(exp_time), 0,
+                self.camera.onThread(self.camera.expose, exp_time, 4,
                                      save_path=os.path.join(self.image_directory, r'Darks_{}'.format(ticket.name),
                                                             image_name), type='dark')
                 self.camera.image_done.wait()

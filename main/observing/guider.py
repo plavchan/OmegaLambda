@@ -138,7 +138,6 @@ class Guider(Hardware):
                 y_initial = star[1]
                 break
         while self.guiding.isSet():
-            moved = False
             self.camera.image_done.wait()
             newest_image = self.find_newest_image(image_path)
             star = self.find_guide_star(newest_image, subframe=(x_initial, y_initial))
@@ -168,20 +167,12 @@ class Guider(Hardware):
                 # Assumes guider angle (angle b/w RA/Dec axes and Image X/Y axes) is constant
                 if ((-1/2)*np.pi <= deltangle <= (1/2)*np.pi) or ((3/2)*np.pi <= deltangle <= 2*np.pi):
                     xdirection = 'right'
-                # Star has moved right in the image, so we want to move it back left,
-                # meaning we need to move the telescope right
                 else:
                     xdirection = 'left'
-                # Star has moved left in the image, so we want to move it back right,
-                # meaning we need to move the telescope left
                 if 0 <= deltangle <= np.pi:
-                    ydirection = 'up'
-                # Star has moved up in the image, so we want to move it back down,
-                # meaning we need to move the telescope up
-                else:
                     ydirection = 'down'
-                # Star has moved down in the image, so we want to move it back up,
-                # meaning we need to move the telescope down
+                else:
+                    ydirection = 'up'
                 xjog_distance = abs(separation * np.cos(deltangle)) * self.config_dict.plate_scale * \
                     self.config_dict.guider_ra_dampening
                 yjog_distance = abs(separation * np.sin(deltangle)) * self.config_dict.plate_scale * \
@@ -197,13 +188,17 @@ class Guider(Hardware):
                     y_initial = new_star[1]
                 elif jog_separation < self.config_dict.guider_max_move:
                     logging.debug('Guider is making an adjustment')
+                    # print('xdistance: {}\"; ydistance: {}\"'.format(xjog_distance, yjog_distance))
+                    # print('Delta Angle: {} rad'.format(deltangle))
+                    # print('Separation: {} px'.format(separation))
+                    # print('Move Direction: {} {}'.format(xdirection, ydirection))
+                    # print('Plate Scale: {}\"/px'.format(self.config_dict.plate_scale))
+                    # print('RA Dampening: {}x'.format(self.config_dict.guider_ra_dampening))
+                    # print('Dec Dampening: {}x'.format(self.config_dict.guider_dec_dampening))
                     self.telescope.onThread(self.telescope.jog, xdirection, xjog_distance)
                     self.telescope.slew_done.wait()
                     self.telescope.onThread(self.telescope.jog, ydirection, yjog_distance)
                     self.telescope.slew_done.wait()
-                    moved = True
-            if moved:
-                self.camera.image_done.wait()
 
     def stop_guiding(self):
         """

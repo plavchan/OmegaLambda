@@ -27,7 +27,7 @@ class ObservationTicket:
             The default is None.
         num : INT, optional
             Number of exposures. The default is None.
-        exp_time : INT or LIST, optional
+        exp_time : FLOAT or LIST, optional
             Exposure time of each image in seconds.  List order must match the order of filters.  The default is None.
         self_guide : BOOL, optional
            If True, self-guiding module will activate, keeping the telescope

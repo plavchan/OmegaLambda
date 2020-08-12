@@ -95,7 +95,7 @@ def run(obs_tickets, data=None, config=None, _filter=None, logger=None, shutdown
         
     run_object = ObservationRun(observation_request_list, folder, shutdown, calibration)
     run_object.observe()
-    
+
     log_object.stop()
 
 
@@ -187,8 +187,8 @@ def check_ticket(ticket):
         e_times = [ticket.exp_time] if type(ticket.exp_time) in (int, float) else ticket.exp_time
         filts = [ticket.filter] if type(ticket.filter) is str else ticket.filter
         for num in e_times:
-            if num <= 0:
-                print('Error reading ticket: exp_time must be > 0.')
+            if num < 0.001:
+                print('Error reading ticket: exp_time must be >= 0.001')
                 check = False
         if len(e_times) > 1 and (len(e_times) != len(filts)):
             print('Error: number of filters and number of exposure times must match!')

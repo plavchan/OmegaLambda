@@ -3,13 +3,13 @@
 	"name": "test1234",
 	"ra": "10h 53m 43.7123s",
 	"dec": "-02d 07m 45.138s",
-	"start_time": "2020-08-10 10:00:00-04:00",
-	"end_time": "2020-08-10 23:00:00-04:00",
+	"start_time": "2020-08-12 10:00:00-04:00",
+	"end_time": "2020-08-12 23:00:00-04:00",
 	"filter": ["r", "v"],
-	"num": 6,
-	"exp_time": [4, 5],
+	"num": 1,
+	"exp_time": [0.001, 4.234],
 	"self_guide": true,
 	"guide": false,
-	"cycle_filter": true
+	"cycle_filter": false
 	}
 }

@@ -8,8 +8,6 @@ from astropy.io import fits
 from astropy.stats import sigma_clipped_stats
 from scipy.optimize import curve_fit
 
-focus_star = None
-
 
 def mediancounts(image_path):
     """
@@ -90,6 +88,7 @@ def findstars(path, saturation, subframe=None, return_data=False):
         stars.append(star)
         peaks.append(peak)
         n += 1
+
     if not return_data:
         return stars, peaks
     else:
@@ -139,8 +138,7 @@ def radial_average(path, saturation):
         The median fwhm measurement of the stars in the fits image.  If no fwhm was found, returns None.
 
     """
-    global focus_star
-    stars, peaks, data, stdev = findstars(path, saturation, subframe=focus_star, return_data=True)
+    stars, peaks, data, stdev = findstars(path, saturation, return_data=True)
     r_ = 30
     fwhm_list = []
     # a = 0
@@ -157,24 +155,34 @@ def radial_average(path, saturation):
         radialprofile = tbin / nr
        
         if len(radialprofile) != 0:
-            radialprofile /= max(radialprofile)
+            maximum = max(radialprofile)
+            if maximum == 0:
+                continue
+            else:
+                radialprofile = radialprofile / maximum
             f = np.linspace(0, len(radialprofile), len(radialprofile)+1)
             mean = np.mean(radialprofile)
             sigma = np.std(radialprofile)
             try:
                 popt, pcov = curve_fit(gaussianfit, f, radialprofile, p0=[1 / (np.sqrt(2 * np.pi)), mean, sigma])
                 g = np.linspace(0, len(radialprofile), 10*len(radialprofile)+1)
+                function = gaussianfit(g, *popt)
+                for x in range(len(function)):
+                    if function[x] <= (1/2):
+                        fwhm = 2*g[x]
+                        fwhm_list.append(fwhm)
+                        break
             except:
-                logging.debug("Could not find a Gaussian Fit...skipping to the next star")
-                continue
-            for x in g:
-                if gaussianfit(x, *popt) <= (1/2):
-                    fwhm = 2*x
-                    fwhm_list.append(fwhm)
-                    break
+                logging.debug("Could not find a Gaussian Fit...using whole pixel values to estimate fwhm")
+                for x in range(len(radialprofile)):
+                    if radialprofile[x] <= (1/2):
+                        fwhm = 2*f[x]
+                        fwhm_list.append(fwhm)
+                        break
+
         else:
             logging.error('Radial profile has length of 0...')
-            return None
+            continue
 
     fwhm_list = [i for i in fwhm_list if i > 3]
     if fwhm_list:
@@ -182,21 +190,6 @@ def radial_average(path, saturation):
     else:
         print('No fwhm calculations can be made from the image')
         return None
-
-    if not focus_star:
-        i = 0
-        j = 0
-        while i < len(stars) - j:
-            if peaks[i] >= saturation:
-                peaks.pop(i)
-                stars.pop(i)
-                j += 1
-            i += 1
-        if peaks:
-            maxindex = peaks.index(max(peaks))
-            focus_star = stars[maxindex]
-        else:
-            focus_star = None
 
     return fwhm_med
 

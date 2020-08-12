@@ -162,7 +162,7 @@ class Camera(Hardware):
         """
         Parameters
         ----------
-        exposure_time : INT
+        exposure_time : FLOAT or INT
             Exposure time of the image in seconds.
         filter : INT
             Which filter to expose in.

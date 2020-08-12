@@ -68,29 +68,29 @@ def find_guide_star(path, iteration, subframe=None):
     return guider_star
 
 
-def guide_test_func():
+def guide_test_func(config):
 
     star = find_guide_star(
-        r'H:\Observatory Files\Observing Sessions\2020_Data\20200726\HIP-xxxxGuidertest_15s_r-0009.fits', 1
+        r'H:\Observatory Files\Observing Sessions\2020_Data\20200811\TOI_2038-01_40s_R-0001.fits', 1
     )
     x_initial = star[0]
     y_initial = star[1]
+    x_list = []
+    y_list = []
     i = 0
-    while i < 10:
-        moved = False
+    while i < 263:
         star = find_guide_star(
-            r'H:\Observatory Files\Observing Sessions\2020_Data\20200726\HIP-' +
-            r'xxxxGuidertest_15s_r-{0:04d}.fits'.format(i + 10),
+            r'H:\Observatory Files\Observing Sessions\2020_Data\20200811\TOI_2038-01_40s_R-{0:04d}.fits'.format(i + 2),
             iteration=i+2, subframe=(x_initial, y_initial))
         x_0 = 250
         y_0 = 250
         x = star[0]
         y = star[1]
-        print('Image number: {0:04d}'.format(i + 10))
+        print('Image number: {0:04d}'.format(i + 2))
         print('Initial coordinates: x={}, y={}'.format(x_initial, y_initial))
         print('Guide star relative coordinates: x={}, y={}'.format(x, y))
         separation = np.sqrt((x - x_0) ** 2 + (y - y_0) ** 2)
-        if separation >= 30.0:
+        if separation >= 0.1/0.350:
             xdistance = x - x_0
             ydistance = y - y_0
             if xdistance == 0:
@@ -113,48 +113,63 @@ def guide_test_func():
             # Star has moved left in the image, so we want to move it back right,
             # meaning we need to move the telescope left
             if 0 <= deltangle <= np.pi:
-                ydirection = 'up'
+                ydirection = 'down'
             # Star has moved up in the image, so we want to move it back down,
             # meaning we need to move the telescope up
             else:
-                ydirection = 'down'
+                ydirection = 'up'
             # Star has moved down in the image, so we want to move it back up,
             # meaning we need to move the telescope down
-            xjog_distance = abs(separation * np.cos(deltangle)) * 0.350 * 0.75
-            yjog_distance = abs(separation * np.sin(deltangle)) * 0.350 * 0.50
+            xjog_distance = abs(separation * np.cos(deltangle)) * 0.350 * 1
+            yjog_distance = abs(separation * np.sin(deltangle)) * 0.350 * 1
             jog_separation = np.sqrt(xjog_distance ** 2 + yjog_distance ** 2)
-            if jog_separation >= 100:
+            if jog_separation >= 30:
                 print('Guide star has moved substantially between images...If the telescope did not move '
                       'suddenly, the guide star most likely has become saturated and the guider has '
                       'picked a new star.')
-                new_star = find_guide_star(r'H:\Observatory Files\Observing Sessions\2020_Data\20200726\HIP-' +
-                                           r'xxxxGuidertest_15s_r-{0:04d}.fits'.format(i + 10), 0)
+                new_star = find_guide_star(r'H:\Observatory Files\Observing Sessions\2020_Data\20200811\TOI'
+                                           r'_2038-01_40s_R-{0:04d}.fits'.format(i + 2), 0)
                 x_initial = new_star[0]
                 y_initial = new_star[1]
-            elif jog_separation < 100:
+            elif jog_separation < 30:
                 print('Guider is making an adjustment')
                 print('xdistance: {}; ydistance: {}'.format(xjog_distance, yjog_distance))
                 print('Delta Angle: {}'.format(deltangle))
                 print('Separation: {}'.format(separation))
                 print('Direction: {} {}'.format(xdirection, ydirection))
-                tel.onThread(tel.jog, xdirection, xjog_distance)
-                tel.slew_done.wait()
-                tel.onThread(tel.jog, ydirection, yjog_distance)
-                tel.slew_done.wait()
-                moved = True
+                print('Plate Scale: {}'.format(config.ticket.plate_scale))
+                print('RA Dampening: {}'.format(config.ticket.guider_ra_dampening))
+                print('Dec Dampening: {}'.format(config.ticket.guider_dec_dampening))
+                # tel.onThread(tel.jog, xdirection, xjog_distance)
+                # tel.slew_done.wait()
+                # tel.onThread(tel.jog, ydirection, yjog_distance)
+                # tel.slew_done.wait()
+            x_list.append(x)
+            y_list.append(y)
         i += 1
-        if moved:
-            i += 1
+    make_plot(x_list, y_list)
+
+
+def make_plot(x, y):
+    t = np.linspace(0, len(x)-1, len(x))
+    plt.figure()
+    plt.plot(t, x, 'bo:', label='x position')
+    plt.plot(t, y, 'ro:', label='y position')
+    plt.legend()
+    plt.grid()
+    plt.xlabel('Time')
+    plt.ylabel('Position (px)')
+    plt.savefig(r'C:\Users\GMU Observtory1\-omegalambda\test\guider_position_plot-2.png')
 
 
 if __name__ == '__main__':
     config = ObjectReader(Reader(r'C:/Users/GMU Observtory1/-omegalambda/config/parameters_config.json'))
-    tel = Telescope()
-    tel.start()
+    # tel = Telescope()
+    # tel.start()
+    # time.sleep(5)
+    # tel.onThread(tel.unpark)
+    guide_test_func(config)
     time.sleep(5)
-    tel.onThread(tel.unpark)
-    guide_test_func()
-    time.sleep(5)
-    tel.onThread(tel.park)
-    tel.onThread(tel.disconnect)
-    tel.onThread(tel.stop)
+    # tel.onThread(tel.park)
+    # tel.onThread(tel.disconnect)
+    # tel.onThread(tel.stop)

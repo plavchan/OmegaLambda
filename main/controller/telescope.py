@@ -109,15 +109,17 @@ class Telescope(Hardware):
             print("Telescope is at park")
             return True
         self._is_ready()
-        try:
-            with self.movement_lock:
-                self.Telescope.Tracking = False
+        with self.movement_lock:
+            try:
                 self.Telescope.Park()
-                
-        except: 
-            print("ERROR: Could not park telescope")
-            return False
-        else: 
+            except Exception as exc:
+                print("ERROR: Could not park telescope.  Exception: {}".format(exc))
+                return False
+            try:
+                self.Telescope.Tracking = False
+            except Exception as exc:
+                print("ERROR: Could not disable tracking.  Exception: {}".format(exc))
+
             logging.info('Telescope is parking, tracking off')
             print("Telescope is parking, tracking off")
             self._is_ready()
@@ -258,6 +260,7 @@ class Telescope(Hardware):
             return
         if distance < 30*60:                            # Less than 30', pulse guide
             duration = (abs(distance)/3600)/rate
+            logging.debug('Calculated Pulse Guide Duration: {} milliseconds'.format(duration*1000))
             self.pulse_guide(direction, duration)
             
         elif distance >= 30*60:                         # More than 30', slew normally

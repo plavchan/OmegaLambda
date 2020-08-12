@@ -41,6 +41,12 @@ class Focuser(Hardware):
         else:
             logging.error("Could not connect to focuser")
 
+    def _is_ready(self):
+        while self.Focuser.getCmdActive():
+            time.sleep(1)
+        if not self.Focuser.getCmdActive():
+            return
+
     def set_focus_delta(self, amount):
         """
 
@@ -57,6 +63,7 @@ class Focuser(Hardware):
         """
         if not self.crashed.isSet():
             with self.adjustment_lock:
+                self._is_ready()
                 self.Focuser.setDelta(int(amount))
                 logging.debug('Focuser delta changed')
                 return True
@@ -98,6 +105,7 @@ class Focuser(Hardware):
         if not self.crashed.isSet():
             self.adjusting.clear()
             with self.adjustment_lock:
+                self._is_ready()
                 if amount is not None:
                     self.set_focus_delta(amount)
                 if direction == "in":
@@ -131,6 +139,7 @@ class Focuser(Hardware):
         if not self.crashed.isSet():
             with self.adjustment_lock:
                 self.adjusting.clear()
+                self._is_ready()
                 self.Focuser.actGoToPosition(int(position))
                 self.adjusting.set()
         else:

@@ -109,7 +109,11 @@ class ObservationRun:
             logging.error('Hardware connection timeout: {}'.format(message))
 
         if self.conditions.weather_alert.isSet():
-            self._shutdown_procedure(calibration=True)
+            if (self.config_dict.calibration_time == "end") and (self.calibration_toggle is True):
+                calibration = True
+            else:
+                calibration = False
+            self._shutdown_procedure(calibration=calibration)
             if self.conditions.sun:
                 sunset_time = conversion_utils.get_sunset(datetime.datetime.now(self.tz),
                                                           self.config_dict.site_latitude,
@@ -201,11 +205,11 @@ class ObservationRun:
 
         """
         self.telescope.onThread(self.telescope.slew, ticket.ra, ticket.dec)
-        slew = self.telescope.slew_done.wait(timeout=60*3)
+        slew = self.telescope.slew_done.wait()
         if not slew:
             logging.error('Telescope slew has failed.  Retrying...')
             self.telescope.onThread(self.telescope.slew, ticket.ra, ticket.dec)
-            slew2 = self.telescope.slew_done.wait(timeout=60*2)
+            slew2 = self.telescope.slew_done.wait()
             if not slew2:
                 logging.critical('Telescope still cannot slew to target.  Cannot continue observing.')
                 return False
@@ -223,7 +227,7 @@ class ObservationRun:
         -------
         None.
         """
-        if self.config_dict.calibration_time == "start" and self.calibration_toggle is True:
+        if (self.config_dict.calibration_time == "start") and (self.calibration_toggle is True):
             calibration = True
         else:
             calibration = False
@@ -252,6 +256,10 @@ class ObservationRun:
                 current_epoch_milli = time_utils.datetime_to_epoch_milli_converter(current_time)
                 start_time_epoch_milli = time_utils.datetime_to_epoch_milli_converter(ticket.start_time)
                 time.sleep((start_time_epoch_milli - current_epoch_milli)/1000)
+            if ticket.end_time < current_time:
+                print("the end time {} of {} observation has already passed. "
+                      "Skipping to next target.".format(ticket.end_time.isoformat(), ticket.name))
+                continue
 
             if not self.everything_ok():
                 self.shutdown()
@@ -263,7 +271,7 @@ class ObservationRun:
             print("{} out of {} exposures were taken for {}.  Moving on to next target.".format(taken, total,
                                                                                                 ticket.name))
 
-        if self.config_dict.calibration_time == "end" and self.calibration_toggle is True:
+        if (self.config_dict.calibration_time == "end") and (self.calibration_toggle is True):
             calibration = True
         else:
             calibration = False
@@ -287,14 +295,14 @@ class ObservationRun:
         """
         focus_filter = str(ticket.filter[0]) if type(ticket.filter) is list \
             else ticket.filter if type(ticket.filter) is str else None
-        focus_exp = int(ticket.exp_time[0]) if type(ticket.exp_time) is list \
+        focus_exp = float(ticket.exp_time[0]) if type(ticket.exp_time) is list \
             else ticket.exp_time if type(ticket.exp_time) in (int, float) else None
         if not focus_filter:
             logging.error('Filter argument is wrong type')
             return
-        focus_exposure = int(self.config_dict.focus_exposure_multiplier*focus_exp)
-        if focus_exposure <= 0:
-            focus_exposure = 1
+        focus_exposure = self.config_dict.focus_exposure_multiplier*focus_exp
+        if focus_exposure <= 0.001:
+            focus_exposure = 0.001
         elif focus_exposure >= 30:
             focus_exposure = 30
         if self.crash_check('RoboFocus.exe'):
@@ -396,24 +404,24 @@ class ObservationRun:
                 break
             current_filter = _filter[i % num_filters]
             current_exp = exp_time[i % num_exptimes]
-            image_name = "{0:s}_{1:d}s_{2:s}-{3:04d}.fits".format(name, int(current_exp), str(current_filter).upper(),
-                                                                  image_num)
+            image_name = "{0:s}_{1:.3f}s_{2:s}-{3:04d}.fits".format(name, current_exp, str(current_filter).upper(),
+                                                                    image_num)
             
             if i == 0 and os.path.exists(os.path.join(path, image_name)):
                 # Checks if images already exist (in the event of a crash)
                 for f in _filter:
                     names_list = [0]
                     for fname in os.listdir(path):
-                        if n := re.search('{0:s}_{1:d}s_{2:s}-(.+?).fits'.format(name, int(current_exp), str(f).upper()),
+                        if n := re.search('{0:s}_{1:.3f}s_{2:s}-(.+?).fits'.format(name, current_exp, str(f).upper()),
                                           fname):
                             names_list.append(int(n.group(1)))
                     image_base[f] = max(names_list) + 1
                 
-                image_name = "{0:s}_{1:d}s_{2:s}-{3:04d}.fits".format(name, int(current_exp), str(current_filter).upper(),
-                                                                      image_base[current_filter])
+                image_name = "{0:s}_{1:.3f}s_{2:s}-{3:04d}.fits".format(name, current_exp, str(current_filter).upper(),
+                                                                        image_base[current_filter])
                 
             self.camera.onThread(self.camera.expose, 
-                                 int(current_exp), self.filterwheel_dict[current_filter],
+                                 current_exp, self.filterwheel_dict[current_filter],
                                  os.path.join(path, image_name), "light")
             self.camera.image_done.wait(timeout=int(current_exp)*2 + 60)
             
@@ -509,11 +517,6 @@ class ObservationRun:
         None.
 
         """
-        if not beginning:
-            time.sleep(5)
-            self.telescope.slew_done.wait(timeout=2*60)
-            self.dome.move_done.wait(timeout=5*60)
-            self.dome.shutter_done.wait(timeout=5*60)
         for i in range(len(self.observation_request_list)):
             if self.calibrated_tickets[i]:
                 continue
@@ -543,6 +546,7 @@ class ObservationRun:
         """
         if self.shutdown_toggle or self.conditions.weather_alert.isSet():
             self._shutdown_procedure(calibration=calibration)
+            time.sleep(1)
             self.stop_threads()
         else:
             return
@@ -563,7 +567,7 @@ class ObservationRun:
         self.dome.onThread(self.dome.disconnect)
         self.focuser.onThread(self.focuser.disconnect)
         self.flatlamp.onThread(self.flatlamp.disconnect)
-        
+
         self.conditions.stop.set()
         self.focus_procedures.stop_constant_focusing()      # Should already be stopped, but just in case
         self.guider.stop_guiding()                          # Should already be stopped, but just in case
@@ -571,10 +575,11 @@ class ObservationRun:
         self.telescope.onThread(self.telescope.stop)
         self.dome.onThread(self.dome.stop)
         self.focuser.onThread(self.focuser.stop)
-        self.focus_procedures.onThread(self.focus_procedures.stop)
-        self.guider.onThread(self.guider.stop)
+        self.focus_procedures.stop()
+        self.guider.stop()
         self.flatlamp.onThread(self.flatlamp.stop)
         self.calibration.onThread(self.calibration.stop)
+        time.sleep(5)
     
     def _shutdown_procedure(self, calibration):
         """
@@ -596,11 +601,12 @@ class ObservationRun:
         self.telescope.onThread(self.telescope.park)
         self.dome.onThread(self.dome.park)
         self.dome.onThread(self.dome.move_shutter, 'close')
+        time.sleep(1)
+        self.telescope.slew_done.wait()
+        self.dome.move_done.wait()
+        self.dome.shutter_done.wait()
         if calibration:
             print('Taking flats and darks...')
             self.take_calibration_images()
         
         self.camera.onThread(self.camera.cooler_set, False)
-        self.telescope.slew_done.wait(timeout=2*60)
-        self.dome.move_done.wait(timeout=5*60)
-        self.dome.shutter_done.wait(timeout=5*60)
