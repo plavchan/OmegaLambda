@@ -2,6 +2,7 @@ from ..main.common.util import filereader_utils
 import matplotlib.pyplot as plt
 import photutils
 import numpy as np
+import re
 from ..main.controller.telescope import Telescope
 from ..main.common.IO.json_reader import Reader
 from ..main.common.datatype.object_reader import ObjectReader
@@ -63,7 +64,7 @@ def find_guide_star(path, iteration, subframe=None):
     plt.imshow(data, cmap='YlGn')
     apertures = photutils.CircularAperture(guider_star, r=6)
     apertures.plot(color='blue', lw=1.5, alpha=0.5)
-    plt.savefig(r'C:/Users/GMU Observtory1/-omegalambda/test/guider_test_plot-{}.png'.format(iteration))
+    # plt.savefig(r'C:/Users/GMU Observtory1/-omegalambda/test/guider_test_plot-{}.png'.format(iteration))
     plt.close()
     return guider_star
 
@@ -140,26 +141,49 @@ def guide_test_func(config):
                 print('Plate Scale: {}'.format(config.ticket.plate_scale))
                 print('RA Dampening: {}'.format(config.ticket.guider_ra_dampening))
                 print('Dec Dampening: {}'.format(config.ticket.guider_dec_dampening))
+                with open(r'C:\Users\GMU Observtory1\-omegalambda\test\guider_data.txt', 'a') as file:
+                    file.write('Image number: {}\n'.format(i + 2))
+                    file.write('Pixel coordinates: x={}, y={}\n'.format(x, y))
+                    file.write('xdistance: {}; ydistance: {}\n'.format(xjog_distance, yjog_distance))
+                    file.write('Delta Angle: {}\n'.format(deltangle))
+                    file.write('Separation: {}\n'.format(separation))
+                    file.write('Direction: {} {}\n'.format(xdirection, ydirection))
+                    file.write('Plate Scale: {}\n'.format(config.ticket.plate_scale))
+                    file.write('RA Dampening: {}\n'.format(config.ticket.guider_ra_dampening))
+                    file.write('Dec Dampening: {}\n\n'.format(config.ticket.guider_dec_dampening))
                 # tel.onThread(tel.jog, xdirection, xjog_distance)
                 # tel.slew_done.wait()
                 # tel.onThread(tel.jog, ydirection, yjog_distance)
                 # tel.slew_done.wait()
-            x_list.append(x)
-            y_list.append(y)
         i += 1
-    make_plot(x_list, y_list)
 
 
 def make_plot(x, y):
     t = np.linspace(0, len(x)-1, len(x))
     plt.figure()
-    plt.plot(t, x, 'bo:', label='x position')
-    plt.plot(t, y, 'ro:', label='y position')
+    plt.plot(t, x, 'b-', label='x position')
+    plt.plot(t, y, 'r-', label='y position')
+    plt.ylim(230, 260)
+    yt = np.linspace(230, 260, 7)
+    plt.yticks(yt)
     plt.legend()
     plt.grid()
     plt.xlabel('Time')
     plt.ylabel('Position (px)')
-    plt.savefig(r'C:\Users\GMU Observtory1\-omegalambda\test\guider_position_plot-2.png')
+    plt.savefig(r'C:\Users\GMU Observtory1\-omegalambda\test\guider_position_plot-3.png')
+
+
+def read_file(path):
+    with open(path, 'r') as file:
+        x = []
+        y = []
+        for line in file:
+            if 'coordinates' in line:
+                x_c = re.search('x=(.+?),', line).group(1)
+                y_c = re.search(', y=(.+?)\n', line).group(1)
+                x.append(int(x_c))
+                y.append(int(y_c))
+        return x, y
 
 
 if __name__ == '__main__':
@@ -168,8 +192,11 @@ if __name__ == '__main__':
     # tel.start()
     # time.sleep(5)
     # tel.onThread(tel.unpark)
-    guide_test_func(config)
-    time.sleep(5)
+    # guide_test_func(config)
+    x, y = read_file(r'C:\Users\GMU Observtory1\-omegalambda\test\guider_data.txt')
+    # print(x, y)
+    make_plot(x, y)
+    # time.sleep(5)
     # tel.onThread(tel.park)
     # tel.onThread(tel.disconnect)
     # tel.onThread(tel.stop)
