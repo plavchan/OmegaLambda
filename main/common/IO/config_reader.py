@@ -129,10 +129,10 @@ class Config:
         self.quick_focus_tolerance = quick_focus_tolerance/self.plate_scale
         # These two are converted back into pixels for use in the focuser module
         self.focus_max_distance = focus_max_distance
-        self.guiding_threshold = int(guiding_threshold/self.plate_scale)
+        self.guiding_threshold = int(guiding_threshold/self.plate_scale)        # Input in arcsec, output in pixels
         self.guider_ra_dampening = guider_ra_dampening
         self.guider_dec_dampening = guider_dec_dampening
-        self.guider_max_move = guider_max_move
+        self.guider_max_move = guider_max_move                                  # Input in arcsec, output in arcsec
         self.guider_angle = guider_angle*pi/180
         self.data_directory = data_directory                     
         self.calibration_time = calibration_time

@@ -29,7 +29,7 @@ class Conditions(threading.Thread):
         None.
 
         """
-        super(Conditions, self).__init__(name='Conditions-Th')
+        super(Conditions, self).__init__(name='Conditions-Th', daemon=True)
         # Calls threading.Thread.__init__ with the name 'Conditions-Th'
         self.weather = None
         self.radar = None
@@ -75,8 +75,15 @@ class Conditions(threading.Thread):
                     (cloud_cover is True):
                 self.weather_alert.set()
                 self.sun = True if sun_elevation >= 0 else False
-                logging.critical("Weather conditions have become too poor for continued observing,"
-                                 "or the Sun is rising.")
+                message = ""
+                message += "| Humidity |" if H >= self.config_dict.humidity_limit else ""
+                message += "| Wind |" if W >= self.config_dict.wind_limit else ""
+                message += "| Rain |" if (last_rain != R and last_rain is not None) else ""
+                message += "| Nearby Rain |" if radar else ""
+                message += "| Sun Elevation |" if self.sun else ""
+                message += "| Clouds |" if cloud_cover else ""
+                logging.critical("Weather conditions have become too poor for continued observing. "
+                                 "Reason(s) for weather alert: {}".format(message))
             else:
                 logging.debug("Condition checker is alive: Last check false")
                 last_rain = R

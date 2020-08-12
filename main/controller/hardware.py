@@ -39,7 +39,7 @@ class Hardware(threading.Thread):
         self.Dome = None
         self.Focuser = None
         self.ser = None
-        super(Hardware, self).__init__(name=self.label + '-Th')               # Called threading.Thread.__init__
+        super(Hardware, self).__init__(name=self.label + '-Th', daemon=True)       # Called threading.Thread.__init__
 
         self.config_dict = config_reader.get_config()  # Gets the config object as a class variable
         self.live_connection = threading.Event()

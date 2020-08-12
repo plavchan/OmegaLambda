@@ -35,7 +35,7 @@ def exampletxt():
     tk.Label(master, text='Ex: 2020-07-03 10:00:00 (Must be in 24hrs local time)').grid(row=3, column=2)
     tk.Label(master, text='Ex: 2020-07-03 23:00:00 (Must be in 24hrs local time)').grid(row=4, column=2)
     tk.Label(master, text='Can be single filter or list. (clr, uv, b, v, r, ir, Ha)').grid(row=5, column=2)
-    tk.Label(master, text='Number of science exposures to be taken per filter').grid(row=6, column=2)
+    tk.Label(master, text='Number of science exposures to be taken').grid(row=6, column=2)
     tk.Label(master, text='Exposure time in seconds for each science image').grid(row=7, column=2)
     tk.Label(master, text='Enable self guiding').grid(row=8, column=2)
     tk.Label(master, text='Enable 3rd party guiding').grid(row=9, column=2)
@@ -110,7 +110,7 @@ def list_split(entry):
     """
     i = entry.get().replace(' ', '').split(",")
     if entry == exposure_time:
-        i = [int(t) for t in i] if len(i) > 1 else int(i[0])
+        i = [float(t) for t in i] if len(i) > 1 else float(i[0])
     elif entry == filter_:
         i = json.dumps(i) if len(i) > 1 else '\"{}\"'.format(i[0])
     return i

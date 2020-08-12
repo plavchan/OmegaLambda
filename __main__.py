@@ -1,4 +1,5 @@
 import argparse
+import sys
 
 from .main.drivers.driver import run
 
@@ -19,7 +20,8 @@ def cli_run(args):
     None.
 
     """
-    run(args.obs_tickets, args.data, args.config, args.filter, args.logger, args.shutdown, args.calibration)
+    run(args.obs_tickets, data=args.data, config=args.config, _filter=args.filter, logger=args.logger,
+        shutdown=args.shutdown, calibration=args.calibration)
 
 
 def main():
@@ -61,3 +63,4 @@ def main():
 
 if __name__ == '__main__':      # Run the main function when -omegalambda is called.
     main()
+    sys.exit()
