@@ -3,6 +3,7 @@ import logging
 import time
 import subprocess
 import pywintypes
+import win32com.client
 
 from ..common.util import conversion_utils
 from .hardware import Hardware
@@ -37,17 +38,36 @@ class Telescope(Hardware):
         logging.info('Checking connection for the {}'.format(self.label))
         self.live_connection.clear()
         if not self.Telescope.Connected:
-            try:
-                self.Telescope.Connected = True
-                self.live_connection.set()
-            except (AttributeError, pywintypes.com_error):
-                logging.error("Could not connect to the telescope")
-            else:
-                print("Telescope has successfully connected")
+            self.Telescope.Connected = True
+            self.live_connection.set()
         else:
             print("Already connected")
 
-    def check_coordinate_limit(self, ra, dec, time=None):
+    def _class_connect(self):
+        """
+        Description
+        -----------
+        Overrides base hardware class (not implemented).
+        Dispatches COM connection to telescope object and sets necessary parameters.
+        Should only ever be called from within the run method.
+
+        Returns
+        -------
+        BOOL
+            True if successful, otherwise False.
+        """
+        try:
+            self.Telescope = win32com.client.Dispatch("ASCOM.SoftwareBisque.Telescope")
+            self.Telescope.SlewSettleTime = 1
+            self.check_connection()
+        except (AttributeError, pywintypes.com_error):
+            logging.error('Could not connect to the telescope')
+            return False
+        else:
+            print('Telescope has successfully connected')
+        return True
+
+    def __check_coordinate_limit(self, ra, dec, time=None):
         """
 
         Parameters
@@ -169,7 +189,7 @@ class Telescope(Hardware):
         self.slew_done.clear()
         (ra, dec) = conversion_utils.convert_j2000_to_apparent(ra, dec)
         # Telescope internally uses apparent epoch coordinates, but we input in J2000
-        if self.check_coordinate_limit(ra, dec) is False:
+        if self.__check_coordinate_limit(ra, dec) is False:
             logging.error("Coordinates are outside of physical slew limits.")
             return False
         else:

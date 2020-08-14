@@ -3,6 +3,7 @@ import threading
 import logging
 import subprocess
 import pywintypes
+import win32com.client
 
 from .hardware import Hardware
 
@@ -36,13 +37,31 @@ class Dome(Hardware):
         """
         logging.info('Checking connection for the {}'.format(self.label))
         self.live_connection.clear()
+        self.Dome.Connected = True
+        self.live_connection.set()
+
+    def _class_connect(self):
+        """
+        Description
+        -----------
+        Overrides base hardware class (not implemented).
+        Dispatches COM connection to dome object and sets necessary parameters.
+        Should only ever be called from within the run method.
+
+        Returns
+        -------
+        BOOL
+            True if successful, otherwise False.
+        """
         try:
-            self.Dome.Connected = True
-            self.live_connection.set()
+            self.Dome = win32com.client.Dispatch("ASCOMDome.Dome")
+            self.check_connection()
         except (AttributeError, pywintypes.com_error):
-            logging.error("Could not connect to dome")
+            logging.error('Could not connect to dome')
+            return False
         else:
-            print("Dome has successfully connected")
+            print('Dome has successfully connected')
+        return True
 
     def _is_ready(self):
         """

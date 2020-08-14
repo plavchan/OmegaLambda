@@ -9,6 +9,8 @@
 	"wind_limit": 20,
 	"weather_freq": 10,
 	"cloud_cover_limit": 75,
+	"user_agent": "Mozilla/5.0",
+	"cloud_satellite": "goes-16",
 	"min_reopen_time": 30,
 	"plate_scale": 0.350,
 	"saturation": 25000,

@@ -45,7 +45,8 @@ class Conditions(threading.Thread):
                         'l/b63f24c17cc4e2d086c987ce32b2927ba388be79872113643d2ef82b2b13e813'
         # Weather.com radar for rain
         self.sun = False
-        self.current_directory = os.path.abspath(os.path.dirname(__file__))
+        current_directory = os.path.abspath(os.path.dirname(__file__))
+        self.weather_directory = os.path.join(current_directory, r'..', r'..', r'resources', r'weather_status')
         
     def run(self):
         """
@@ -64,21 +65,21 @@ class Conditions(threading.Thread):
             logging.error("Your internet connection requires attention.")
             return
         while not self.stop.isSet():
-            (H, W, R) = self.weather_check()
+            (humidity, wind, rain) = self.weather_check()
             radar = self.rain_check()
             sun_elevation = conversion_utils.get_sun_elevation(datetime.datetime.now(datetime.timezone.utc),
                                                                self.config_dict.site_latitude,
                                                                self.config_dict.site_longitude)
             cloud_cover = self.cloud_check()
-            if (H >= self.config_dict.humidity_limit) or (W >= self.config_dict.wind_limit) or \
-                    (last_rain != R and last_rain is not None) or (radar is True) or (sun_elevation >= 0) or \
+            if (humidity >= self.config_dict.humidity_limit) or (wind >= self.config_dict.wind_limit) or \
+                    (last_rain != rain and last_rain is not None) or (radar is True) or (sun_elevation >= 0) or \
                     (cloud_cover is True):
                 self.weather_alert.set()
                 self.sun = True if sun_elevation >= 0 else False
                 message = ""
-                message += "| Humidity |" if H >= self.config_dict.humidity_limit else ""
-                message += "| Wind |" if W >= self.config_dict.wind_limit else ""
-                message += "| Rain |" if (last_rain != R and last_rain is not None) else ""
+                message += "| Humidity |" if humidity >= self.config_dict.humidity_limit else ""
+                message += "| Wind |" if wind >= self.config_dict.wind_limit else ""
+                message += "| Rain |" if (last_rain != rain and last_rain is not None) else ""
                 message += "| Nearby Rain |" if radar else ""
                 message += "| Sun Elevation |" if self.sun else ""
                 message += "| Clouds |" if cloud_cover else ""
@@ -86,7 +87,7 @@ class Conditions(threading.Thread):
                                  "Reason(s) for weather alert: {}".format(message))
             else:
                 logging.debug("Condition checker is alive: Last check false")
-                last_rain = R
+                last_rain = rain
                 self.weather_alert.clear()
             self.stop.wait(timeout=self.config_dict.weather_freq*60)
 
@@ -135,8 +136,7 @@ class Conditions(threading.Thread):
                             "it may be outdated!")
             backup = True
 
-        target_path = os.path.abspath(os.path.join(self.current_directory,
-                                                   r'..\..\resources\weather_status\weather.txt'))
+        target_path = os.path.abspath(os.path.join(self.weather_directory, r'weather.txt'))
         if not backup:
             self.weather = s.get(self.weather_url)
             conditions = re.findall(r'<font color="#3366FF">(.+?)</font>', self.weather.text)
@@ -151,7 +151,7 @@ class Conditions(threading.Thread):
                 rain = None
 
         else:
-            self.weather = s.get(self.backup_weather_url, headers={'User-Agent': 'Mozilla/5.0'})
+            self.weather = s.get(self.backup_weather_url, headers={'User-Agent': self.config_dict.user_agent})
 
             humidity = re.search(r'<span data-testid="PercentageValue" class="_-_-components-src-molecule-' +
                                  r'DaypartDetails-DetailsTable-DetailsTable--value--2YD0-">(.+?)</span>',
@@ -182,11 +182,11 @@ class Conditions(threading.Thread):
 
         """
         s = requests.Session()
-        self.radar = s.get(self.rain_url, headers={'User-Agent': 'Mozilla/5.0'})
+        self.radar = s.get(self.rain_url, headers={'User-Agent': self.config_dict.user_agent})
         api_key = re.search(r'"SUN_V3_API_KEY":"(.+?)",', self.radar.text).group(1)
         # API key needed to access radar images from the weather.com website
 
-        target_path = os.path.abspath(os.path.join(self.current_directory, r'..\..\resources\weather_status\radar.txt'))
+        target_path = os.path.abspath(os.path.join(self.weather_directory, r'radar.txt'))
         with open(target_path, 'w') as file:
             # Writes weather.com html to a text file
             file.write(str(self.radar.text))
@@ -206,10 +206,10 @@ class Conditions(threading.Thread):
                    + '&xyz={}'.format(coords[key]) + '&apiKey={}'.format(api_key))
             # Constructs url of 4 nearest radar images
             path_to_images = os.path.abspath(os.path.join(
-                self.current_directory, r'..\..\resources\weather_status\radar-img{0:04}.png'.format(key + 1)))
+                self.weather_directory, r'radar-img{0:04}.png'.format(key + 1)))
             
             with open(path_to_images, 'wb') as file:
-                req = s.get(url, headers={'User-Agent': 'Mozilla/5.0'})
+                req = s.get(url, headers={'User-Agent': self.config_dict.user_agent})
                 file.write(req.content)
                 # Writes 4 images to local png files
             
@@ -243,7 +243,7 @@ class Conditions(threading.Thread):
             defined in the config file, otherwise False.
 
         """
-        satellite = 'goes-16'
+        satellite = self.config_dict.cloud_satellite
         day = int(time_utils.days_of_year())
         conus_band = 13
         _time = datetime.datetime.now(datetime.timezone.utc)
@@ -259,9 +259,8 @@ class Conditions(threading.Thread):
                 continue
             url = 'https://www.ssec.wisc.edu/data/geo/images/goes-16/animation_images/' + \
                 '{}_{}{}_{}_{}_conus.gif'.format(satellite, year, day, _time, conus_band)
-            req = s.get(url, headers={'User-Agent': 'Mozilla/5.0'})
-        target_path = os.path.abspath(os.path.join(self.current_directory,
-                                                   r'..\..\resources\weather_status\cloud-img.gif'))
+            req = s.get(url, headers={'User-Agent': self.config_dict.user_agent})
+        target_path = os.path.abspath(os.path.join(self.weather_directory, r'cloud-img.gif'))
         with open(target_path, 'wb') as file:
             file.write(req.content)
         

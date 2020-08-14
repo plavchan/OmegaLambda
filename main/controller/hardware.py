@@ -5,7 +5,6 @@ import time
 import logging
 
 import pythoncom
-import win32com.client
 
 from ..common.IO import config_reader
 
@@ -70,53 +69,17 @@ class Hardware(threading.Thread):
         self.q.put((function, args, kwargs))
         logging.debug('A class method has been put on the {} queue'.format(self.label))
 
-    def _choose_type(self):
+    def _class_connect(self):
         """
         Description
         -----------
-        Chooses the correct COM object to dispatch based on the hardware class name.
+        To be overriden by children classes where necessary.
 
         Returns
         -------
-        check : BOOL
-            True if the hardware could find the correct object to connect to, otherwise False.
-
+        None
         """
-        dispatch_dict = {'Camera': 'MaxIm.CCDCamera', 'Telescope': 'ASCOM.SoftwareBisque.Telescope',
-                         'Dome': 'ASCOMDome.Dome', 'Focuser': 'RoboFocus.FocusControl'}
-        chosen = True
-        if self.label in dispatch_dict:
-            comobj = win32com.client.Dispatch(dispatch_dict[self.label])
-        else:
-            comobj = None
-        if self.label == 'Camera':
-            self.Camera = comobj
-            self.Application = win32com.client.Dispatch("MaxIm.Application")
-            self.check_connection()
-            self.Camera.DisableAutoShutdown = True
-            # Setting basic configurations for the camera
-            self.Camera.AutoDownload = True
-            self.Application.LockApp = True
-            self.cooler_set(True)
-            # Starts the camera's cooler--method defined in camera.py
-        elif self.label == 'Telescope':
-            self.Telescope = comobj
-            self.Telescope.SlewSettleTime = 1
-            self.check_connection()
-        elif self.label == 'Dome':
-            self.Dome = comobj
-            self.check_connection()
-        elif self.label == 'Focuser':
-            self.Focuser = comobj
-            self.check_connection()
-        elif self.label == 'FlatLamp':
-            self.check_connection()
-        elif self.label in ('Guider', 'Calibration', 'FocusProcedures'):
-            pass
-        else:
-            logging.error("Invalid hardware name")
-            chosen = False
-        return chosen
+        raise NotImplementedError
 
     def run(self):
         """
@@ -135,8 +98,7 @@ class Hardware(threading.Thread):
 
         """
         pythoncom.CoInitialize()
-        check = self._choose_type()
-        if not check:
+        if not self._class_connect():
             pythoncom.CoUninitialize()
             return
         while not self.stopping.isSet():
@@ -178,16 +140,7 @@ class Hardware(threading.Thread):
 
         """
         logging.info('Checking connection for the {}'.format(self.label))
-        print("Invalid hardware type to check connection for: {}".format(self.label))
-
-    def cooler_set(self, toggle):
-        """
-        Description
-        -----------
-        Purposefully left empty to be overriden by Camera subclass.
-
-        """
-        print("Invalid hardware to set the cooler for: {}".format(self.label))
+        raise NotImplementedError
 
     @classmethod
     def new_loop_time(cls, loop_time):

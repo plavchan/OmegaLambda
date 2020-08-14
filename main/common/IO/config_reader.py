@@ -34,11 +34,11 @@ class Config:
     
     def __init__(self, cooler_setpoint=None, cooler_idle_setpoint=None, cooler_settle_time=None, maximum_jog=None,
                  site_latitude=None, site_longitude=None, humidity_limit=None, wind_limit=None, weather_freq=None,
-                 cloud_cover_limit=None, min_reopen_time=None, plate_scale=None, saturation=None,
-                 focus_exposure_multiplier=None, initial_focus_delta=None, quick_focus_tolerance=None,
-                 focus_max_distance=None, guiding_threshold=None, guider_ra_dampening=None,
-                 guider_dec_dampening=None, guider_max_move=None, guider_angle=None, data_directory=None,
-                 calibration_time=None, calibration_num=None):
+                 cloud_cover_limit=None, user_agent=None, cloud_satellite=None,
+                 min_reopen_time=None, plate_scale=None, saturation=None, focus_exposure_multiplier=None,
+                 initial_focus_delta=None, quick_focus_tolerance=None, focus_max_distance=None, guiding_threshold=None,
+                 guider_ra_dampening=None, guider_dec_dampening=None, guider_max_move=None, guider_angle=None,
+                 data_directory=None, calibration_time=None, calibration_num=None):
         """
 
         Parameters
@@ -63,6 +63,10 @@ class Config:
             Frequency of weather checks in minutes.  Our default is 10 minutes.
         cloud_cover_limit : FLOAT, optional
             Limit for percentage of sky around Fairfax to be covered by clouds before closing up.  Our default is 75%.
+        user_agent : STR, optional
+            Internet user agent for connections, specifically to weather.com.  Our default is Mozilla/5.0.
+        cloud_satellite : STR, optional
+            Which satellite to use to check for cloud cover.  Currently only supports goes-16.  Our default is goes-16.
         min_reopen_time : INT or FLOAT, optional
             Minimum wait time to reopen (in minutes) after a weather check has gone off.  Our default is 30 minutes.
         plate_scale : FLOAT, optional
@@ -121,6 +125,8 @@ class Config:
         self.wind_limit = wind_limit                         
         self.weather_freq = weather_freq 
         self.cloud_cover_limit = cloud_cover_limit
+        self.user_agent = user_agent
+        self.cloud_satellite = cloud_satellite
         self.min_reopen_time = min_reopen_time
         self.plate_scale = plate_scale
         self.saturation = saturation
@@ -191,6 +197,7 @@ def _dict_to_config_object(dic):
                      site_longitude=dic['site_longitude'], maximum_jog=dic['maximum_jog'],
                      humidity_limit=dic['humidity_limit'], wind_limit=dic['wind_limit'],
                      weather_freq=dic['weather_freq'], cloud_cover_limit=dic['cloud_cover_limit'],
+                     user_agent=dic['user_agent'], cloud_satellite=dic['cloud_satellite'],
                      min_reopen_time=dic['min_reopen_time'], plate_scale=dic['plate_scale'],
                      saturation=dic['saturation'], focus_exposure_multiplier=dic['focus_exposure_multiplier'],
                      initial_focus_delta=dic['initial_focus_delta'], quick_focus_tolerance=dic['quick_focus_tolerance'],
