@@ -114,6 +114,11 @@ class ObservationRun:
             else:
                 calibration = False
             self._shutdown_procedure(calibration=calibration)
+            if (self.current_ticket == self.observation_request_list[-1] or self.current_ticket is None) \
+                    and (self.observation_request_list[-1].end_time < datetime.datetime.now(self.tz)
+                         + datetime.timedelta(hours=3)):
+                logging.info('Close to end time of final ticket.  Stopping the code.')
+                return False
             if self.conditions.sun:
                 sunset_time = conversion_utils.get_sunset(datetime.datetime.now(self.tz),
                                                           self.config_dict.site_latitude,
@@ -139,7 +144,7 @@ class ObservationRun:
                 else:
                     print('Weather is still too poor to resume observing.')
                     self.everything_ok()
-            elif not self.conditions.sun:
+            else:
                 time.sleep(60*self.config_dict.min_reopen_time)
                 while self.conditions.weather_alert.isSet():
                     time.sleep(self.config_dict.weather_freq*60)
@@ -166,6 +171,7 @@ class ObservationRun:
         Initial_shutter : INT
             The position of the shutter before observing started.
             0 = open, 1 = closed, 2 = opening, 3 = closing, 4 = error.
+            -1 = failed hardware/weather check.
 
         """
         initial_check = self.everything_ok()
@@ -183,8 +189,9 @@ class ObservationRun:
             self.dome.onThread(self.dome.move_shutter, 'open')
             self.dome.onThread(self.dome.home)
         elif not initial_check:
-            self.shutdown()
-            return
+            if not self.conditions.weather_alert.isSet():
+                self.shutdown()
+            return -1
         self.telescope.onThread(self.telescope.unpark)
         self.camera.onThread(self.camera.cooler_ready)
         self.dome.onThread(self.dome.slave_dome_to_scope, True)
@@ -232,11 +239,14 @@ class ObservationRun:
         else:
             calibration = False
         initial_shutter = self._startup_procedure(calibration)
+        if initial_shutter == -1:
+            return
 
         for ticket in self.observation_request_list:
             self.current_ticket = ticket
             if not self.everything_ok():
-                self.shutdown()
+                if not self.conditions.weather_alert.isSet():
+                    self.shutdown()
                 return
             self.crash_check('TheSkyX.exe')
             self.crash_check('ASCOMDome.exe')
@@ -262,7 +272,8 @@ class ObservationRun:
                 continue
 
             if not self.everything_ok():
-                self.shutdown()
+                if not self.conditions.weather_alert.isSet():
+                    self.shutdown()
                 return
 
             input("The program is ready to start taking images of {}.  Please take this time to "
