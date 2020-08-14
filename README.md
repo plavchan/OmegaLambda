@@ -1,4 +1,4 @@
-# Welcome to OmegaLambda
+# Welcome to -OmegaLambda
 This is the complete code for automating the
 campus telescope at the George Mason University Observatory.
 <br>
