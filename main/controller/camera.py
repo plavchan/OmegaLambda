@@ -2,6 +2,7 @@ import time
 import threading
 import logging
 import pywintypes
+import win32com.client
 
 from .hardware import Hardware
 
@@ -37,13 +38,38 @@ class Camera(Hardware):
         if self.Camera.LinkEnabled:
             print("Camera is already connected")
         else:
-            try:
-                self.Camera.LinkEnabled = True
-                self.live_connection.set()
-            except (AttributeError, pywintypes.com_error):
-                logging.error("Could not connect to camera")
-            else:
-                print("Camera has successfully connected")
+            self.Camera.LinkEnabled = True
+            self.live_connection.set()
+
+    def _class_connect(self):
+        """
+        Description
+        -----------
+        Overrides base hardware class (not implemented).
+        Dispatches COM connection to camera object and sets necessary parameters.
+        Should only ever be called from within the run method.
+
+        Returns
+        -------
+        BOOL
+            True if successful, otherwise False.
+        """
+        try:
+            self.Camera = win32com.client.Dispatch("MaxIm.CCDCamera")
+            self.Application = win32com.client.Dispatch("MaxIm.Application")
+            self.check_connection()
+        except (AttributeError, pywintypes.com_error):
+            logging.error('Cannot connect to camera')
+            return False
+        else:
+            print('Camera has successfully connected')
+        # Setting basic configurations for the camera
+        self.Camera.DisableAutoShutdown = True
+        self.Camera.AutoDownload = True
+        self.Application.LockApp = True
+        # Starts the camera's cooler--method defined in camera.py
+        self.cooler_set(True)
+        return True
 
     def cooler_set(self, toggle):
         """

@@ -34,6 +34,19 @@ class Guider(Hardware):
         self.guiding = threading.Event()
 
         super(Guider, self).__init__(name='Guider')
+
+    def _class_connect(self):
+        """
+        Description
+        -----------
+        Overwrites base not implemented method.  However, nothing is necessary for the guider specifically,
+        so the method just passes.
+
+        Returns
+        -------
+        True : BOOL
+        """
+        return True
                 
     def find_guide_star(self, path, subframe=None):
         """

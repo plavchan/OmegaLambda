@@ -38,6 +38,19 @@ class FocusProcedures(Hardware):
         self.continuous_focusing = threading.Event()
         super(FocusProcedures, self).__init__(name='FocusProcedures')
 
+    def _class_connect(self):
+        """
+        Description
+        -----------
+        Overwrites base not implemented method.  However, nothing is necessary for the guider specifically,
+        so the method just passes.
+
+        Returns
+        -------
+        True : BOOL
+        """
+        return True
+
     def startup_focus_procedure(self, exp_time, _filter, image_path):
         """
         Description

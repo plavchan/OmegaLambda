@@ -1,6 +1,7 @@
 import logging
 import threading
 import time
+import win32com.client
 
 from .hardware import Hardware
 
@@ -29,7 +30,8 @@ class Focuser(Hardware):
 
         Returns
         -------
-
+        BOOL
+            True if successful, otherwise False.
         """
         logging.info('Checking connection for the {}'.format(self.label))
         self.live_connection.clear()
@@ -38,8 +40,27 @@ class Focuser(Hardware):
         if self.Focuser.getCommStatus():
             print("Focuser has successfully connected")
             self.live_connection.set()
+            return True
         else:
             logging.error("Could not connect to focuser")
+            return False
+
+    def _class_connect(self):
+        """
+        Description
+        -----------
+        Overrides base hardware class (not implemented).
+        Dispatches COM connection to focuser object and sets necessary parameters.
+        Should only ever be called from within the run method.
+
+        Returns
+        -------
+        BOOL
+            True if successful, otherwise False.
+        """
+        self.Focuser = win32com.client.Dispatch("RoboFocus.FocusControl")
+        check = self.check_connection()
+        return check
 
     def _is_ready(self):
         while self.Focuser.getCmdActive():

@@ -39,6 +39,19 @@ class Calibration(Hardware):
         self.flats_done = threading.Event()
         self.darks_done = threading.Event()
         super(Calibration, self).__init__(name='Calibration')
+
+    def _class_connect(self):
+        """
+        Description
+        -----------
+        Overwrites base not implemented method.  However, nothing is necessary for the guider specifically,
+        so the method just passes.
+
+        Returns
+        -------
+        True : BOOL
+        """
+        return True
         
     def take_flats(self, ticket):
         """

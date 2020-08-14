@@ -43,13 +43,29 @@ class FlatLamp(Hardware):
         """
         logging.info("Checking connection for the {}".format(self.label))
         self.live_connection.clear()
+        self.ser.open()
+        self.live_connection.set()
+
+    def _class_connect(self):
+        """
+        Description
+        -----------
+        Overrides base hardware class (not implemented).
+        Should only ever be called from within the run method.
+
+        Returns
+        -------
+        BOOL
+            True if successful, otherwise False.
+        """
         try:
-            self.ser.open()
-            self.live_connection.set()
+            self.check_connection()
         except:
             logging.error('Could not connect to flatlamp')
+            return False
         else:
             print('Flatlamp has successfully connected')
+        return True
 
     def turn_on(self):
         """
