@@ -118,6 +118,7 @@ class ObservationRun:
                     and (self.observation_request_list[-1].end_time < datetime.datetime.now(self.tz)
                          + datetime.timedelta(hours=3)):
                 logging.info('Close to end time of final ticket.  Stopping the code.')
+                self.stop_threads()
                 return False
             if self.conditions.sun:
                 sunset_time = conversion_utils.get_sunset(datetime.datetime.now(self.tz),
