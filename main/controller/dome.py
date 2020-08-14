@@ -134,11 +134,11 @@ class Dome(Hardware):
             print("Dome is at park")
             self.move_done.set()
             return True
-        self._is_ready()
         try:
             with self.dome_move_lock:
+                self._is_ready()
                 self.Dome.Park()
-        except: 
+        except pywintypes.com_error:
             logging.error("Error parking dome")
             return False
         else: 
