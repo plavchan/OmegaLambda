@@ -1,5 +1,6 @@
 import numpy as np
 import datetime
+from typing import Tuple, Union, Optional
 
 from astropy import units as u
 from astropy.coordinates import SkyCoord, FK5, get_sun
@@ -8,7 +9,7 @@ from astropy.time import Time
 from . import time_utils
 
 
-def get_decha_from_altaz(azimuth, altitude, latitude):
+def get_decha_from_altaz(azimuth: float, altitude: float, latitude: float) -> Tuple[float, float]:
     """
     Parameters
     ----------
@@ -37,7 +38,8 @@ def get_decha_from_altaz(azimuth, altitude, latitude):
     return dec, HA
 
 
-def convert_altaz_to_radec(azimuth, altitude, latitude, longitude, time):
+def convert_altaz_to_radec(azimuth: float, altitude: float, latitude: float, longitude: float,
+                           time: datetime.datetime) -> Tuple[float, float]:
     """
     Parameters
     ----------
@@ -70,7 +72,8 @@ def convert_altaz_to_radec(azimuth, altitude, latitude, longitude, time):
     return ra, dec
 
 
-def convert_radec_to_altaz(ra, dec, latitude, longitude, time):
+def convert_radec_to_altaz(ra: float, dec: float, latitude: float, longitude: float,
+                           time: datetime.datetime) -> Tuple[float, float]:
     """
     Parameters
     ----------
@@ -79,7 +82,7 @@ def convert_radec_to_altaz(ra, dec, latitude, longitude, time):
     dec : FLOAT
         Given declination of target.
     latitude : FLOAT
-        Lattitude of observatory.
+        Latitude of observatory.
     longitude : FLOAT
         Longitude of observatory.
     time : datetime.datetime object
@@ -107,7 +110,7 @@ def convert_radec_to_altaz(ra, dec, latitude, longitude, time):
     return az, alt
 
 
-def convert_j2000_to_apparent(ra, dec):
+def convert_j2000_to_apparent(ra: float, dec: float) -> Tuple[float, float]:
     """
     Parameters
     ----------
@@ -131,7 +134,7 @@ def convert_j2000_to_apparent(ra, dec):
     return coords_apparent.ra.hour, coords_apparent.dec.degree
 
 
-def get_sun_elevation(time, latitude, longitude):
+def get_sun_elevation(time: Union[str, datetime.datetime], latitude: float, longitude: float) -> float:
     """
     Parameters
     ----------
@@ -157,7 +160,7 @@ def get_sun_elevation(time, latitude, longitude):
     return alt
 
 
-def get_sunset(day, latitude, longitude):
+def get_sunset(day: Union[str, datetime.datetime], latitude: float, longitude: float) -> Optional[datetime.datetime]:
     """
     Parameters
     ----------

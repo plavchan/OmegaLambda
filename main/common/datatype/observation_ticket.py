@@ -2,12 +2,16 @@ import datetime
 import json
 import copy
 import re
+from typing import Union, List, Any, Optional, Dict
 
 
 class ObservationTicket:
 
-    def __init__(self, name=None, ra=None, dec=None, start_time=None, end_time=None,
-                 _filter=None, num=None, exp_time=None, self_guide=None, guide=None, cycle_filter=None):
+    def __init__(self, name: Optional[str] = None, ra: Optional[Union[str, float, int]] = None,
+                 dec: Optional[Union[str, float, int]] = None, start_time: Optional[str] = None,
+                 end_time: Optional[str] = None, _filter: Optional[Union[str, List[str]]] = None,
+                 num: Optional[int] = None, exp_time: Optional[Union[float, int, List[Union[float, int]]]] = None,
+                 self_guide: Optional[bool] = None, guide: Optional[bool] = None, cycle_filter: Optional[bool] = None):
         """
 
         Parameters
@@ -43,16 +47,16 @@ class ObservationTicket:
         -------
         None.
         """
-        self.name = name
+        self.name: Optional[str] = name
         if type(ra) is float:
-            self.ra = ra
-            self.dec = dec
+            self.ra: float = ra
+            self.dec: float = dec
         elif type(ra) is str:
             parse = True
             splitter = ':' if ':' in ra else 'h|m|s|d' if 'h' in ra else ' ' if ' ' in ra else None
             if not splitter:
-                self.ra = float(ra)
-                self.dec = float(dec)
+                self.ra: float = float(ra)
+                self.dec: float = float(dec)
                 parse = False
             coords = {'ra': ra, 'dec': dec}
             if parse:
@@ -62,28 +66,31 @@ class ObservationTicket:
                         coords[key] = float(coord_split[0]) + float(coord_split[1])/60 + float(coord_split[2])/3600
                     elif float(coord_split[0]) < 0 or coord_split[0] == '-00':
                         coords[key] = float(coord_split[0]) - float(coord_split[1])/60 - float(coord_split[2])/3600
-                self.ra = coords['ra']
-                self.dec = coords['dec']
+                self.ra: float = coords['ra']
+                self.dec: float = coords['dec']
+        else:
+            self.ra: Any = ra
+            self.dec: Any = dec
         if start_time:
-            self.start_time = datetime.datetime.strptime(start_time, "%Y-%m-%d %H:%M:%S%z")
+            self.start_time: datetime.datetime = datetime.datetime.strptime(start_time, "%Y-%m-%d %H:%M:%S%z")
         else:
-            self.start_time = start_time
+            self.start_time: Any = start_time
         if end_time:
-            self.end_time = datetime.datetime.strptime(end_time, "%Y-%m-%d %H:%M:%S%z")
+            self.end_time: datetime.datetime = datetime.datetime.strptime(end_time, "%Y-%m-%d %H:%M:%S%z")
         else:
-            self.end_time = end_time
-        self.filter = _filter
-        self.num = num
-        self.exp_time = exp_time
-        self.self_guide = self_guide
-        self.guide = guide
-        self.cycle_filter = cycle_filter
+            self.end_time: Any = end_time
+        self.filter: Union[str, List[str]] = _filter
+        self.num: int = num
+        self.exp_time: Union[float, int, List[Union[float, int]]] = exp_time
+        self.self_guide: bool = self_guide
+        self.guide: bool = guide
+        self.cycle_filter: bool = cycle_filter
 
         if not self.check_ticket():
             raise AttributeError
 
     @staticmethod
-    def deserialized(text):
+    def deserialized(text: str):
         """
         Parameters
         ----------
@@ -92,12 +99,12 @@ class ObservationTicket:
 
         Returns
         -------
-        Observation_Ticket OBJECT
-            Decoded .json string.
+        ObservationTicket
+            Global observationticket class object to be used by any other process that needs it.
         """
         return json.loads(text, object_hook=_dict_to_obs_object)
 
-    def serialized(self):
+    def serialized(self) -> Dict:
         """
         Returns
         -------
@@ -111,7 +118,7 @@ class ObservationTicket:
             copy_obj.end_time = copy_obj.end_time.isoformat()
         return copy_obj.__dict__
 
-    def check_ticket(self):
+    def check_ticket(self) -> bool:
         """
         Description
         -----------
@@ -125,17 +132,8 @@ class ObservationTicket:
 
         """
         check = True
-        if type(self.name) is not str:
-            print('Error reading ticket: name not a string...')
-            check = False
-        if type(self.ra) is not float:
-            print('Error reading ticket: ra formatting error...')
-            check = False
         if self.ra < 0 or self.ra > 24:
             print('Error reading ticket: ra not between 0 and 24 hrs')
-            check = False
-        if type(self.dec) is not float:
-            print('Error reading ticket: dec formatting error...')
             check = False
         if abs(self.dec) > 90:
             print('Error reading ticket: dec greater than +90 or less than -90...')
@@ -146,17 +144,8 @@ class ObservationTicket:
         if type(self.end_time) is not datetime.datetime:
             print('Error reading ticket: end time formatting error...')
             check = False
-        if type(self.filter) not in (str, list):
-            print('Error reading ticket: filter not a string or list...')
-            check = False
-        if type(self.num) is not int:
-            print('Error reading ticket: num not an integer...')
-            check = False
         if self.num <= 0:
             print('Error reading ticket: num must be > 0.')
-            check = False
-        if type(self.exp_time) not in (int, float, list):
-            print('Error reading ticket: exp_time not an integer, float, or list...')
             check = False
         if self.exp_time:
             e_times = [self.exp_time] if type(self.exp_time) in (int, float) else self.exp_time
@@ -168,19 +157,10 @@ class ObservationTicket:
             if len(e_times) > 1 and (len(e_times) != len(filts)):
                 print('Error: number of filters and number of exposure times must match!')
                 check = False
-        if type(self.self_guide) is not bool:
-            print('Error reading ticket: self_guide not a boolean...')
-            check = False
-        if type(self.guide) is not bool:
-            print('Error reading ticket: guide not a boolean...')
-            check = False
-        if type(self.cycle_filter) is not bool:
-            print('Error reading ticket: cycle_filter not a boolean...')
-            check = False
         return check
 
 
-def _dict_to_obs_object(dic):
+def _dict_to_obs_object(dic: Dict) -> ObservationTicket:
     """
     Parameters
     ----------

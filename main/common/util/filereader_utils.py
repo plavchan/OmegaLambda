@@ -2,6 +2,7 @@
 import logging
 import numpy as np
 # import matplotlib.pyplot as plt
+from typing import Union, Optional, Tuple
 
 import photutils
 from astropy.io import fits
@@ -9,7 +10,7 @@ from astropy.stats import sigma_clipped_stats
 from scipy.optimize import curve_fit
 
 
-def mediancounts(image_path):
+def mediancounts(image_path: str) -> float:
     """
     Parameters
     ----------
@@ -27,7 +28,8 @@ def mediancounts(image_path):
     return median
     
     
-def findstars(path, saturation, subframe=None, return_data=False):
+def findstars(path: str, saturation: Union[int, float], subframe: Optional[Tuple[int]] = None,
+              return_data: bool = False):
     """
     Description
     -----------
@@ -47,8 +49,9 @@ def findstars(path, saturation, subframe=None, return_data=False):
 
     Returns
     -------
-    LIST
-        List of stars, each star is a tuple with (x position, y position).
+    Tuple
+        Returns a tuple with the first element being a list of stars where each star is a tuple with
+        (x position, y position).  The second element is a list of peak count values.
 
     """
     image = fits.getdata(path)
@@ -119,7 +122,7 @@ def gaussianfit(x, a, x0, sigma):
     return a*np.exp(-(x-x0)**2/(2*sigma**2))
 
 
-def radial_average(path, saturation):
+def radial_average(path: str, saturation: Union[int, float]) -> Optional[Union[int, float, np.ndarray]]:
     """
     Description
     -----------
@@ -134,7 +137,7 @@ def radial_average(path, saturation):
 
     Returns
     -------
-    median_fwhm : INT
+    median_fwhm : FLOAT
         The median fwhm measurement of the stars in the fits image.  If no fwhm was found, returns None.
 
     """
