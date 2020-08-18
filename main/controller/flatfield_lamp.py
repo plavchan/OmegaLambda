@@ -2,6 +2,7 @@
 import logging
 import serial
 import serial.tools.list_ports
+from serial.serialutil import SerialException
 import threading
 
 from .hardware import Hardware
@@ -60,7 +61,7 @@ class FlatLamp(Hardware):
         """
         try:
             self.check_connection()
-        except:
+        except SerialException:
             logging.error('Could not connect to flatlamp')
             return False
         else:
@@ -81,7 +82,7 @@ class FlatLamp(Hardware):
         self.lamp_done.clear()
         try:
             self.ser.write('1'.encode())
-        except:
+        except SerialException:
             logging.error('Could not turn on the flatfield lamp')
         else:
             print('The flat lamp is now on')
@@ -102,7 +103,7 @@ class FlatLamp(Hardware):
         self.lamp_done.clear()
         try:
             self.ser.write('0'.encode())
-        except:
+        except SerialException:
             logging.error('Could not turn off the flatfield lamp')
         else: 
             print('The flat lamp is now off')
@@ -124,7 +125,7 @@ class FlatLamp(Hardware):
             self.turn_off()
         try:
             self.ser.close()
-        except:
+        except SerialException:
             logging.error('Could not disconnect from the flatfield lamp')
         else:
             print('The flat lamp has disconnected')

@@ -109,7 +109,7 @@ class Dome(Hardware):
         try:
             with self.dome_move_lock:
                 self.Dome.FindHome()
-        except:
+        except pywintypes.com_error:
             logging.error('Dome cannot find home')
         else: 
             print("Dome is homing")
@@ -208,7 +208,7 @@ class Dome(Hardware):
             try:
                 with self.dome_move_lock:
                     self.Dome.Slaved = True
-            except:
+            except pywintypes.com_error:
                 logging.error("Cannot sync dome to scope")
             else: 
                 print("Dome is syncing to scope")
@@ -217,7 +217,7 @@ class Dome(Hardware):
         elif toggle is False:
             try:
                 self.Dome.Slaved = False
-            except:
+            except pywintypes.com_error:
                 logging.error("Cannot stop syncing dome to scope")
             else: 
                 print("Dome is no longer syncing to scope")
@@ -240,7 +240,7 @@ class Dome(Hardware):
         try:
             with self.dome_move_lock:
                 self.Dome.SlewtoAzimuth(azimuth)
-        except:
+        except pywintypes.com_error:
             logging.error("Error slewing dome")
         else: 
             print("Dome is slewing to {} degrees".format(azimuth))
@@ -281,7 +281,7 @@ class Dome(Hardware):
                 self.Dome.Connected = False
                 self.live_conection.clear()
                 return True
-            except: 
+            except (AttributeError, pywintypes.com_error):
                 logging.error("Could not disconnect from dome")
                 subprocess.call('taskkill /f /im ASCOMDome.exe')
                 subprocess.Popen(r'"C:\Program Files (x86)\Common Files\ASCOM\Dome\ASCOMDome.exe"')

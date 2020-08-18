@@ -88,20 +88,20 @@ class Camera(Hardware):
         with self.camera_lock:
             try:
                 self.Camera.CoolerOn = True
-            except:
+            except (AttributeError, pywintypes.com_error):
                 logging.error("Could not turn on cooler")
 
             if self.Camera.CoolerOn and toggle is True:
                 try:
                     self.Camera.TemperatureSetpoint = self.config_dict.cooler_setpoint
-                except:
+                except (AttributeError, pywintypes.com_error):
                     logging.warning('Could not change camera cooler setpoint')
                 else:
                     print("Cooler Setpoint set to {0:.1f} C".format(self.Camera.TemperatureSetpoint))
             elif toggle is False:
                 try:
                     self.Camera.TemperatureSetpoint = self.config_dict.cooler_idle_setpoint
-                except:
+                except (AttributeError, pywintypes.com_error):
                     logging.warning('Could not change camera cooler setpoint')
                 else:
                     print("Cooler Setpoint set to {0:.1f} C".format(self.Camera.TemperatureSetpoint))
@@ -236,7 +236,7 @@ class Camera(Hardware):
                 self.cooler_set(False)
                 self.Camera.Quit()
                 self.live_connection.clear()
-            except:
+            except (AttributeError, pywintypes.com_error):
                 logging.error("Could not disconnect from camera")
             else:
                 print("Camera has successfully disconnected")

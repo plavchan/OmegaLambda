@@ -160,19 +160,19 @@ def radial_average(path, saturation):
                 continue
             else:
                 radialprofile = radialprofile / maximum
-            f = np.linspace(0, len(radialprofile), len(radialprofile)+1)
+            f = np.linspace(0, len(radialprofile)-1, len(radialprofile))
             mean = np.mean(radialprofile)
             sigma = np.std(radialprofile)
             try:
                 popt, pcov = curve_fit(gaussianfit, f, radialprofile, p0=[1 / (np.sqrt(2 * np.pi)), mean, sigma])
-                g = np.linspace(0, len(radialprofile), 10*len(radialprofile)+1)
+                g = np.linspace(0, len(radialprofile)-1, 10*len(radialprofile))
                 function = gaussianfit(g, *popt)
                 for x in range(len(function)):
                     if function[x] <= (1/2):
                         fwhm = 2*g[x]
                         fwhm_list.append(fwhm)
                         break
-            except:
+            except RuntimeError:
                 logging.debug("Could not find a Gaussian Fit...using whole pixel values to estimate fwhm")
                 for x in range(len(radialprofile)):
                     if radialprofile[x] <= (1/2):
