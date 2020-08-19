@@ -1,81 +1,250 @@
 import time
+import threading
+import logging
+import pywintypes
 import win32com.client
 
+from .hardware import Hardware
 
-class Camera():
+
+class Camera(Hardware):
     
     def __init__(self):
-        self.Camera = win32com.client.Dispatch("MaxIm.CCDCamera")  # Sets the camera connection path to the CCDCamera
-        self.Application = win32com.client.Dispatch("MaxIm.Application")
-        self.Camera.DisableAutoShutdown = True  # All of these settings are just basic camera setup settings.
-        self.Application.LockApp = True
-        self.Camera.AutoDownload = True
-        self.coolersetpoint = 5 #temporarily changed for testing purposes--should be -30 C normally
-        
-        self.check_connection()
-        self.coolerSet()
+        """
+        Initializes the camera as a subclass of Hardware.
+
+        Returns
+        -------
+        None.
+
+        """
+        self.cooler_settle = threading.Event()
+        self.image_done = threading.Event()
+        self.camera_lock = threading.Lock()
+        super(Camera, self).__init__(name='Camera')
 
     def check_connection(self):
+        """
+        Description
+        -----------
+        Overwrites base class.  Checks for camera connection specifically.
+
+        Returns
+        -------
+
+        """
+        logging.info('Checking connection for the {}'.format(self.label))
+        self.live_connection.clear()
         if self.Camera.LinkEnabled:
             print("Camera is already connected")
         else:
-            try: self.Camera.LinkEnabled = True
-            except: print("ERROR: Could not connect to camera")
-            else: print("Camera has successfully connected")
-        
-    def coolerSet(self):
-        try: self.Camera.CoolerOn = True
-        except: print("ERROR: Could not turn on cooler")
-        
-        if self.Camera.CoolerOn:
-            try: self.Camera.TemperatureSetpoint = self.coolersetpoint
-            except: pass
-            else: print("Cooler Setpoint set to {0:.1f} C".format(self.Camera.TemperatureSetpoint))
-        
-    def coolerAdjust(self):
-        if not self.Camera.CoolerOn:
-            self.coolerSet()
-        
-        if not self.Camera.ImageReady:
-            print("Camera is currently exposing--cooler setpoint not changed.")
-            
-        else:
-            T_diff = abs(self.Camera.TemperatureSetpoint - self.Camera.Temperature)
-            Power = self.Camera.CoolerPower
-        
-            if T_diff >= 1 and Power >= 99:
-                self.Camera.TemperatureSetpoint += 5
-                print("Cooler Setpoint adjusted to {0:.1f} C".format(self.Camera.TemperatureSetpoint))
-            
-            elif T_diff <= 0.1 and Power <= 40:
-                self.Camera.TemperatureSetpoint -= 5
-                print("Cooler Setpoint adjusted to {0:.1f} C".format(self.Camera.TemperatureSetpoint))
+            self.Camera.LinkEnabled = True
+            self.live_connection.set()
 
-    def expose(self, exposure_time, filter, save_path, type="light"):
-        if type == "light":
-            type = 1
-        elif type == "dark":
-            type = 0
+    def _class_connect(self):
+        """
+        Description
+        -----------
+        Overrides base hardware class (not implemented).
+        Dispatches COM connection to camera object and sets necessary parameters.
+        Should only ever be called from within the run method.
+
+        Returns
+        -------
+        BOOL
+            True if successful, otherwise False.
+        """
+        try:
+            self.Camera = win32com.client.Dispatch("MaxIm.CCDCamera")
+            self.Application = win32com.client.Dispatch("MaxIm.Application")
+            self.check_connection()
+        except (AttributeError, pywintypes.com_error):
+            logging.error('Cannot connect to camera')
+            return False
         else:
-            print("ERROR: Invalid exposure type.")
-            return
-        self.Camera.SetFullFrame()
-        self.Camera.Expose(exposure_time, type, filter)
-        while not self.Camera.ImageReady:
+            print('Camera has successfully connected')
+        # Setting basic configurations for the camera
+        self.Camera.DisableAutoShutdown = True
+        self.Camera.AutoDownload = True
+        self.Application.LockApp = True
+        # Starts the camera's cooler--method defined in camera.py
+        self.cooler_set(True)
+        return True
+
+    def cooler_set(self, toggle):
+        """
+
+        Parameters
+        ----------
+        toggle : BOOL
+            If True, will activate camera cooler, if False, will
+            set camera cooler temperature to idle temp.
+
+        Returns
+        -------
+        None.
+
+        """
+        with self.camera_lock:
+            try:
+                self.Camera.CoolerOn = True
+            except:
+                logging.error("Could not turn on cooler")
+
+            if self.Camera.CoolerOn and toggle is True:
+                try:
+                    self.Camera.TemperatureSetpoint = self.config_dict.cooler_setpoint
+                except:
+                    logging.warning('Could not change camera cooler setpoint')
+                else:
+                    print("Cooler Setpoint set to {0:.1f} C".format(self.Camera.TemperatureSetpoint))
+            elif toggle is False:
+                try:
+                    self.Camera.TemperatureSetpoint = self.config_dict.cooler_idle_setpoint
+                except:
+                    logging.warning('Could not change camera cooler setpoint')
+                else:
+                    print("Cooler Setpoint set to {0:.1f} C".format(self.Camera.TemperatureSetpoint))
+
+    def _cooler_adjust(self):
+        """
+        Description
+        -----------
+        Checks cooler power and current temp, and adjusts the setpoint
+        if the power is at 100% and the temperature is significantly different
+        from the setpoint.
+
+        Returns
+        -------
+        None.
+
+        """
+        with self.camera_lock:
+            if not self.Camera.CoolerOn:
+                self.cooler_set(True)
+
+            t_diff = abs(self.Camera.TemperatureSetpoint - self.Camera.Temperature)
+            power = self.Camera.CoolerPower
+
+            if t_diff >= 0.1 and power >= 99:
+                if t_diff >= 10:
+                    self.Camera.TemperatureSetpoint += 5
+                elif t_diff >= 5:
+                    self.Camera.TemperatureSetpoint += 3
+                else:
+                    self.Camera.TemperatureSetpoint += 1
+                print("Cooler Setpoint adjusted to {0:.1f} C".format(self.Camera.TemperatureSetpoint))
+            elif t_diff <= 0.1 and power <= 40:
+                self.Camera.TemperatureSetpoint -= 1
+                print("Cooler Setpoint adjusted to {0:.1f} C".format(self.Camera.TemperatureSetpoint))
+            else:
+                pass
+    
+    def cooler_ready(self):
+        """
+        Description
+        -----------
+        Waits for x minutes (set in config file) and then starts adjust the cooler setpoint
+        every minute until they reach equilibrium.
+
+        Returns
+        -------
+        None.
+
+        """
+        self.cooler_settle.clear()
+        t = 0
+        while not (self.Camera.TemperatureSetpoint - 0.1 <= self.Camera.Temperature <= self.Camera.TemperatureSetpoint
+                   + 0.1):
+            if t >= self.config_dict.cooler_settle_time:
+                self._cooler_adjust()
+            print("Waiting for cooler to settle...")
+            time.sleep(60)
+            t += 1
+        time.sleep(1)
+        print("Cooler has settled")
+        self.cooler_settle.set()
+        return
+    
+    def _image_ready(self):
+        """
+        Description
+        -----------
+        Checks to see if the previous image is ready for downloading.
+
+        Returns
+        -------
+        None.
+        """
+        while self.Camera.ImageReady is False and self.crashed.isSet() is False:
             time.sleep(1)
         if self.Camera.ImageReady:
-            self.Camera.SaveImage(save_path)
-            
-    def disconnect(self):
-        if self.Camera.LinkEnabled:
-            try: self.Camera.LinkEnabled = False
-            except: print("ERROR: Could not disconnect from camera")
-            else: print("Camera has successfully disconnected")
-        else: print("Camera is already disconnected")
+            return True
+        elif self.crashed.isSet():
+            self.disconnect()
+            return False
+
+    def expose(self, exposure_time, filter, save_path=None, type="light"):
+        """
+        Parameters
+        ----------
+        exposure_time : FLOAT or INT
+            Exposure time of the image in seconds.
+        filter : INT
+            Which filter to expose in.
+        save_path : STR, optional
+            File path to where the image should be saved. The default is None, which will not
+            save the image.
+        type : STR, INT optional
+            Image type to be taken. Posssible ARGS:
+            "light", "dark", 1, 0. The default is "light".
+
+        Returns
+        -------
+        None.
+        """
+        while self.crashed.isSet():
+            time.sleep(1)
+        with self.camera_lock:
+            type = 1 if type == "light" else 0 if type == "dark" else None
+            if type is None:
+                print("ERROR: Invalid exposure type.")
+                return
+            logging.debug('Exposing image')
+            self.Camera.SetFullFrame()
+            self.Camera.Expose(exposure_time, type, filter)
+            check = self._image_ready()
+            if save_path is None:
+                return
+            elif check:
+                self.Camera.SaveImage(save_path)
+                self.image_done.set()
+                self.image_done.clear()
                 
+    def disconnect(self):
+        """
+        Description
+        ----------
+        Disconnects the camera
+
+        Returns
+        -------
+        None.
+        """
+        if self.Camera.LinkEnabled:
+            try: 
+                self.cooler_set(False)
+                self.Camera.Quit()
+                self.live_connection.clear()
+            except:
+                logging.error("Could not disconnect from camera")
+            else:
+                print("Camera has successfully disconnected")
+        else:
+            print("Camera is already disconnected")
+
     def set_gain(self):
         pass
 
     def set_binning(self, factor):
         pass
-        

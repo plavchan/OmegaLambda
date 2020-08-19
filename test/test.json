@@ -1,15 +1,15 @@
 {"type": "observation_ticket",
 "details": {
-	"name": "TestTOI1234.01",
-	"ra": "23",
-	"dec": "3.5",
-	"start_time": "2020-05-04 10:00:00",
-	"end_time": "2020-05-04 17:00:00",
-	"filter": ["uv", "b", "r"],
+	"name": "test1234",
+	"ra": "10h 53m 43.7123s",
+	"dec": "-02d 07m 45.138s",
+	"start_time": "2020-08-14 10:00:00-04:00",
+	"end_time": "2020-08-14 18:00:00-04:00",
+	"filter": ["Ha", "uv", "b"],
 	"num": 6,
-	"exp_time": 2,
-	"self_guide": false,
-	"guide": true,
+	"exp_time": [9.921, 5, 0.012],
+	"self_guide": true,
+	"guide": false,
 	"cycle_filter": true
 	}
 }
