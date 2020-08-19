@@ -10,6 +10,6 @@
 	"exp_time": 2.541,
 	"self_guide": true,
 	"guide": false,
-	"cycle_filter": false
+	"cycle_filter": true
 	}
 }
