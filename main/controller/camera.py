@@ -123,7 +123,7 @@ class Camera(Hardware):
             if not self.Camera.CoolerOn:
                 self.cooler_set(True)
 
-            t_diff = abs(self.Camera.TemperatureSetpoint - self.Camera.Temperature)
+            t_diff = abs(self.Camera.Temperature - self.Camera.TemperatureSetpoint)
             power = self.Camera.CoolerPower
 
             if t_diff >= 0.1 and power >= 99:
@@ -154,10 +154,12 @@ class Camera(Hardware):
         """
         self.cooler_settle.clear()
         t = 0
-        while not (self.Camera.TemperatureSetpoint - 0.1 <= self.Camera.Temperature <= self.Camera.TemperatureSetpoint
-                   + 0.1):
+        while not (self.Camera.TemperatureSetpoint - 0.2 <= self.Camera.Temperature <= self.Camera.TemperatureSetpoint
+                   + 0.2):
             if t >= self.config_dict.cooler_settle_time:
                 self._cooler_adjust()
+            if self.Camera.Temperature < self.Camera.TemperatureSetpoint:
+                break
             print("Waiting for cooler to settle...")
             time.sleep(60)
             t += 1

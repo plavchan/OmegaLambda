@@ -113,7 +113,8 @@ class ObservationRun:
                 calibration = True
             else:
                 calibration = False
-            self._shutdown_procedure(calibration=calibration)
+            cooler = True if self.conditions.sun else False
+            self._shutdown_procedure(calibration=calibration, cooler=cooler)
             if (self.current_ticket == self.observation_request_list[-1] or self.current_ticket is None) \
                     and (self.observation_request_list[-1].end_time < datetime.datetime.now(self.tz)
                          + datetime.timedelta(hours=3)):
@@ -137,35 +138,39 @@ class ObservationRun:
                     if not self.current_ticket:
                         self.observe()
                     elif self.current_ticket.end_time > datetime.datetime.now(self.tz):
-                        self._startup_procedure()
+                        self._startup_procedure(cooler=cooler)
                         self._ticket_slew(self.current_ticket)
                         self.focus_target(self.current_ticket)
                     elif self.current_ticket != self.observation_request_list[-1]:
-                        self._startup_procedure()
+                        self._startup_procedure(cooler=cooler)
                 else:
                     print('Weather is still too poor to resume observing.')
                     self.everything_ok()
             else:
+                print("Waiting for {} minutes until possible reopen...".format(self.config_dict.min_reopen_time))
                 time.sleep(60*self.config_dict.min_reopen_time)
                 while self.conditions.weather_alert.isSet():
+                    print("Still waiting for good conditions to reopen.")
                     time.sleep(self.config_dict.weather_freq*60)
                 if not self.conditions.weather_alert.isSet():
                     check = True
                     if self.current_ticket.end_time > datetime.datetime.now(self.tz):
-                        self._startup_procedure()
+                        self._startup_procedure(cooler=cooler)
                         self._ticket_slew(self.current_ticket)
                         self.focus_target(self.current_ticket)
                     elif self.current_ticket != self.observation_request_list[-1]:
-                        self._startup_procedure()
+                        self._startup_procedure(cooler=cooler)
         return check
 
-    def _startup_procedure(self, calibration=False):
+    def _startup_procedure(self, calibration=False, cooler=True):
         """
         Parameters
         ----------
         calibration : BOOL, optional
             Whether or not to take calibration images at the beginning
             of the night. The default is False.
+        cooler : BOOL, optional
+            Whether or not to turn on the camera's cooler.  The default is True.
 
         Returns
         -------
@@ -176,8 +181,8 @@ class ObservationRun:
 
         """
         initial_check = self.everything_ok()
-
-        self.camera.onThread(self.camera.cooler_set, True)
+        if cooler:
+            self.camera.onThread(self.camera.cooler_set, True)
         self.dome.onThread(self.dome.shutter_position)
         time.sleep(2)
         initial_shutter = self.dome.shutter
@@ -593,7 +598,7 @@ class ObservationRun:
         self.calibration.onThread(self.calibration.stop)
         time.sleep(5)
     
-    def _shutdown_procedure(self, calibration):
+    def _shutdown_procedure(self, calibration, cooler=True):
         """
         Description
         ----------
@@ -603,6 +608,8 @@ class ObservationRun:
         ----------
         calibration : BOOL
             Whether or not to take calibration images at the end
+        cooler : BOOL, optional
+            Whether or not to turn off the cooler at the end of shutdown.  The default is True.
 
         Returns
         -------
@@ -620,5 +627,5 @@ class ObservationRun:
         if calibration:
             print('Taking flats and darks...')
             self.take_calibration_images()
-        
-        self.camera.onThread(self.camera.cooler_set, False)
+        if cooler:
+            self.camera.onThread(self.camera.cooler_set, False)
