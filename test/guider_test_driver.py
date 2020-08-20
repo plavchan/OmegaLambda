@@ -72,16 +72,16 @@ def find_guide_star(path, iteration, subframe=None):
 def guide_test_func(config):
 
     star = find_guide_star(
-        r'H:\Observatory Files\Observing Sessions\2020_Data\20200811\TOI_2038-01_40s_R-0001.fits', 1
+        r'H:\Observatory Files\Observing Sessions\2020_Data\20200819\TOI_1531-01_15.000s_R-0001.fits', 1
     )
     x_initial = star[0]
     y_initial = star[1]
     x_list = []
     y_list = []
     i = 0
-    while i < 263:
+    while i < 238:
         star = find_guide_star(
-            r'H:\Observatory Files\Observing Sessions\2020_Data\20200811\TOI_2038-01_40s_R-{0:04d}.fits'.format(i + 2),
+            r'H:\Observatory Files\Observing Sessions\2020_Data\20200819\TOI_1531-01_15.000s_R-{0:04d}.fits'.format(i + 2),
             iteration=i+2, subframe=(x_initial, y_initial))
         x_0 = 250
         y_0 = 250
@@ -128,8 +128,8 @@ def guide_test_func(config):
                 print('Guide star has moved substantially between images...If the telescope did not move '
                       'suddenly, the guide star most likely has become saturated and the guider has '
                       'picked a new star.')
-                new_star = find_guide_star(r'H:\Observatory Files\Observing Sessions\2020_Data\20200811\TOI'
-                                           r'_2038-01_40s_R-{0:04d}.fits'.format(i + 2), 0)
+                new_star = find_guide_star(r'H:\Observatory Files\Observing Sessions\2020_Data\20200819\TOI_1531-01'
+                                           r'_15.000s_R-{0:04d}.fits'.format(i + 2), 0)
                 x_initial = new_star[0]
                 y_initial = new_star[1]
             elif jog_separation < 30:
@@ -161,16 +161,27 @@ def guide_test_func(config):
 def make_plot(x, y):
     t = np.linspace(0, len(x)-1, len(x))
     plt.figure()
-    plt.plot(t, x, 'b-', label='x position')
-    plt.plot(t, y, 'r-', label='y position')
-    plt.ylim(230, 260)
-    yt = np.linspace(230, 260, 7)
+    plt.plot(t, x, 'b.-', label='x position')
+    plt.ylim(220, 270)
+    yt = np.linspace(220, 270, 11)
     plt.yticks(yt)
     plt.legend()
     plt.grid()
     plt.xlabel('Time')
     plt.ylabel('Position (px)')
-    plt.savefig(r'C:\Users\GMU Observtory1\-omegalambda\test\guider_position_plot-3.png')
+    plt.savefig(r'C:\Users\GMU Observtory1\-omegalambda\test\guider_position_plot-4x.png')
+    plt.close()
+
+    plt.figure()
+    plt.plot(t, y, 'r.-', label='y position')
+    plt.ylim(220, 270)
+    yt = np.linspace(220, 270, 11)
+    plt.yticks(yt)
+    plt.legend()
+    plt.grid()
+    plt.xlabel('Time')
+    plt.ylabel('Position (px)')
+    plt.savefig(r'C:\Users\GMU Observtory1\-omegalambda\test\guider_position_plot-4y.png')
 
 
 def read_file(path):
