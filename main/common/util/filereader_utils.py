@@ -8,6 +8,8 @@ from astropy.io import fits
 from astropy.stats import sigma_clipped_stats
 from scipy.optimize import curve_fit
 
+from ..IO import config_reader
+
 
 def mediancounts(image_path):
     """
@@ -58,36 +60,37 @@ def findstars(path, saturation, subframe=None, return_data=False):
     if not subframe:
         starfound = photutils.find_peaks(data, threshold=threshold, box_size=50, border_width=500,
                                          centroid_func=photutils.centroids.centroid_com)
+        n = 0
+        stars = []
+        peaks = []
+        for _ in starfound:
+            bad_pixel = False
+            x_cent = starfound['x_peak'][n]
+            y_cent = starfound['y_peak'][n]
+            peak = image[y_cent, x_cent]
+            if peak >= (saturation * 2) ** 2:
+                bad_pixel = True
+            pixels = [(y_cent, x_cent + 1), (y_cent, x_cent - 1), (y_cent + 1, x_cent), (y_cent - 1, x_cent)]
+            for value in pixels:
+                if image[value[0], value[1]] < 1.2 * median:
+                    bad_pixel = True
+            if bad_pixel:
+                n += 1
+                continue
+            star = (x_cent, y_cent)
+            stars.append(star)
+            peaks.append(peak)
+            n += 1
     else:
-        r = 250
+        config_dict = config_reader.get_config()
+        r = config_dict.guider_max_move / config_dict.plate_scale
         x_cent = subframe[0]
         y_cent = subframe[1]
         data_subframe = data[int(y_cent-r):int(y_cent+r), int(x_cent-r):int(x_cent+r)]
         image = image[int(y_cent-r):int(y_cent+r), int(x_cent-r):int(x_cent+r)]
-        threshold = threshold[int(y_cent-r):int(y_cent+r), int(x_cent-r):int(x_cent+r)]
-        starfound = photutils.find_peaks(data_subframe, threshold=threshold, box_size=50, border_width=10,
-                                         centroid_func=photutils.centroids.centroid_com)
-    n = 0
-    stars = []
-    peaks = []
-    for _ in starfound:
-        bad_pixel = False
-        x_cent = starfound['x_peak'][n]
-        y_cent = starfound['y_peak'][n]
-        peak = image[y_cent, x_cent]
-        if peak >= (saturation*2)**2:
-            bad_pixel = True
-        pixels = [(y_cent, x_cent + 1), (y_cent, x_cent - 1), (y_cent + 1, x_cent), (y_cent - 1, x_cent)]
-        for value in pixels:
-            if image[value[0], value[1]] < 1.2*median:
-                bad_pixel = True
-        if bad_pixel: 
-            n += 1
-            continue
-        star = (x_cent, y_cent)
-        stars.append(star)
-        peaks.append(peak)
-        n += 1
+        x_cent, y_cent = photutils.centroids.centroid_com(data_subframe)
+        stars = [(x_cent, y_cent)]
+        peaks = [10000]
 
     if not return_data:
         return stars, peaks
