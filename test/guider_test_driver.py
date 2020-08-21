@@ -184,6 +184,11 @@ def make_plot(x, y):
     plt.savefig(r'C:\Users\GMU Observtory1\-omegalambda\test\guider_position_plot-4y.png')
 
 
+def get_rms(data):
+    data = np.asarray(data)
+    return np.sqrt(np.mean(data**2))
+
+
 def read_file(path):
     with open(path, 'r') as file:
         x = []
@@ -206,7 +211,12 @@ if __name__ == '__main__':
     # guide_test_func(config)
     x, y = read_file(r'C:\Users\GMU Observtory1\-omegalambda\test\guider_data.txt')
     # print(x, y)
-    make_plot(x, y)
+    # make_plot(x, y)
+    rmsx_before = get_rms(x[0:80])
+    rmsy_before = get_rms(y[0:80])
+    rmsx_after = get_rms(x[120:240])
+    rmsy_after = get_rms(y[120:240])
+    print(f'{rmsx_before=}, {rmsy_before=}, {rmsx_after=}, {rmsy_after=}')
     # time.sleep(5)
     # tel.onThread(tel.park)
     # tel.onThread(tel.disconnect)
