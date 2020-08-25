@@ -51,8 +51,9 @@ def find_guide_star(path, iteration, subframe=None):
     else:
         minsep = 1000
         minstar = None
+        r = config.ticket.guider_max_move / config.ticket.plate_scale
         for star in stars:
-            distance = np.sqrt((star[0] - 250) ** 2 + (star[1] - 250) ** 2)
+            distance = np.sqrt((star[0] - r) ** 2 + (star[1] - r) ** 2)
             if distance < minsep:
                 minsep = distance
                 minstar = star
@@ -72,19 +73,19 @@ def find_guide_star(path, iteration, subframe=None):
 def guide_test_func(config):
 
     star = find_guide_star(
-        r'H:\Observatory Files\Observing Sessions\2020_Data\20200811\TOI_2038-01_40s_R-0001.fits', 1
+        r'H:\Observatory Files\Observing Sessions\2020_Data\20200819\TOI_1531-01_15.000s_R-0001.fits', 1
     )
     x_initial = star[0]
     y_initial = star[1]
     x_list = []
     y_list = []
     i = 0
-    while i < 263:
+    while i < 238:
         star = find_guide_star(
-            r'H:\Observatory Files\Observing Sessions\2020_Data\20200811\TOI_2038-01_40s_R-{0:04d}.fits'.format(i + 2),
+            r'H:\Observatory Files\Observing Sessions\2020_Data\20200819\TOI_1531-01_15.000s_R-{0:04d}.fits'.format(i + 2),
             iteration=i+2, subframe=(x_initial, y_initial))
-        x_0 = 250
-        y_0 = 250
+        x_0 = config.ticket.guider_max_move / config.ticket.plate_scale
+        y_0 = config.ticket.guider_max_move / config.ticket.plate_scale
         x = star[0]
         y = star[1]
         print('Image number: {0:04d}'.format(i + 2))
@@ -128,8 +129,8 @@ def guide_test_func(config):
                 print('Guide star has moved substantially between images...If the telescope did not move '
                       'suddenly, the guide star most likely has become saturated and the guider has '
                       'picked a new star.')
-                new_star = find_guide_star(r'H:\Observatory Files\Observing Sessions\2020_Data\20200811\TOI'
-                                           r'_2038-01_40s_R-{0:04d}.fits'.format(i + 2), 0)
+                new_star = find_guide_star(r'H:\Observatory Files\Observing Sessions\2020_Data\20200819\TOI_1531-01'
+                                           r'_15.000s_R-{0:04d}.fits'.format(i + 2), 0)
                 x_initial = new_star[0]
                 y_initial = new_star[1]
             elif jog_separation < 30:
@@ -161,16 +162,32 @@ def guide_test_func(config):
 def make_plot(x, y):
     t = np.linspace(0, len(x)-1, len(x))
     plt.figure()
-    plt.plot(t, x, 'b-', label='x position')
-    plt.plot(t, y, 'r-', label='y position')
-    plt.ylim(230, 260)
-    yt = np.linspace(230, 260, 7)
+    plt.plot(t, x, 'b.-', label='x position')
+    plt.ylim(20, 60)
+    yt = np.linspace(20, 60, 9)
     plt.yticks(yt)
     plt.legend()
     plt.grid()
-    plt.xlabel('Time')
+    plt.xlabel('Image #')
     plt.ylabel('Position (px)')
-    plt.savefig(r'C:\Users\GMU Observtory1\-omegalambda\test\guider_position_plot-3.png')
+    plt.savefig(r'C:\Users\GMU Observtory1\-omegalambda\test\guider_position_plot-4x.png')
+    plt.close()
+
+    plt.figure()
+    plt.plot(t, y, 'r.-', label='y position')
+    plt.ylim(20, 60)
+    yt = np.linspace(20, 60, 9)
+    plt.yticks(yt)
+    plt.legend()
+    plt.grid()
+    plt.xlabel('Image #')
+    plt.ylabel('Position (px)')
+    plt.savefig(r'C:\Users\GMU Observtory1\-omegalambda\test\guider_position_plot-4y.png')
+
+
+def get_rms(data):
+    data = np.asarray(data)
+    return np.sqrt(np.mean(data**2))
 
 
 def read_file(path):
@@ -181,8 +198,8 @@ def read_file(path):
             if 'coordinates' in line:
                 x_c = re.search('x=(.+?),', line).group(1)
                 y_c = re.search(', y=(.+?)\n', line).group(1)
-                x.append(int(x_c))
-                y.append(int(y_c))
+                x.append(float(x_c))
+                y.append(float(y_c))
         return x, y
 
 
@@ -195,7 +212,12 @@ if __name__ == '__main__':
     # guide_test_func(config)
     x, y = read_file(r'C:\Users\GMU Observtory1\-omegalambda\test\guider_data.txt')
     # print(x, y)
-    make_plot(x, y)
+    # make_plot(x, y)
+    rmsx_before = get_rms(x[0:80])
+    rmsy_before = get_rms(y[0:80])
+    rmsx_after = get_rms(x[120:240])
+    rmsy_after = get_rms(y[120:240])
+    print(f'{rmsx_before=}, {rmsy_before=}, {rmsx_after=}, {rmsy_after=}')
     # time.sleep(5)
     # tel.onThread(tel.park)
     # tel.onThread(tel.disconnect)
