@@ -4,6 +4,7 @@ import os
 import re
 import logging
 import subprocess
+# import threading
 
 from ..common.util import time_utils, conversion_utils
 from ..common.IO import config_reader
@@ -11,6 +12,7 @@ from ..common.datatype import filter_wheel
 from ..controller.camera import Camera
 from ..controller.telescope import Telescope
 from ..controller.dome import Dome
+from .guider import Guider
 from .condition_checker import Conditions
 
 
@@ -50,6 +52,9 @@ class ObservationRun:
         self.dome = Dome()
         self.conditions = Conditions()
 
+        # Initializes higher level structures - focuser, guider, and calibration
+        self.guider = Guider(self.camera, self.telescope)
+
         # Initializes config objects
         self.filterwheel_dict = filter_wheel.get_filter().filter_position_dict()
         self.config_dict = config_reader.get_config()
@@ -59,6 +64,7 @@ class ObservationRun:
         self.camera.start()
         self.telescope.start()
         self.dome.start()
+        self.guider.start()
 
     def everything_ok(self):
         """
@@ -75,7 +81,6 @@ class ObservationRun:
 
         """
         check = True
-
         connections = {
             'Camera': self.camera,
             'Telescope': self.telescope,
@@ -136,7 +141,6 @@ class ObservationRun:
 
     def _startup_procedure(self):
         """
-
         Returns
         -------
         Initial_shutter : INT
@@ -262,11 +266,14 @@ class ObservationRun:
         """
         ticket.exp_time = [ticket.exp_time] if type(ticket.exp_time) in (int, float) else ticket.exp_time
         ticket.filter = [ticket.filter] if type(ticket.filter) is str else ticket.filter
-
+        if ticket.self_guide:
+            self.guider.onThread(self.guider.guiding_procedure, self.image_directory)
         if ticket.cycle_filter:
             img_count = self.take_images(ticket.name, ticket.num, ticket.exp_time,
                                          ticket.filter, ticket.end_time, self.image_directory,
                                          True)
+            if ticket.self_guide:
+                self.guider.stop_guiding()
             return img_count, ticket.num
 
         else:
@@ -278,6 +285,8 @@ class ObservationRun:
                                                     [ticket.filter[i]], ticket.end_time, self.image_directory,
                                                     False)
                 img_count += img_count_filter
+            if ticket.self_guide:
+                self.guider.stop_guiding()
             return img_count, ticket.num * len(ticket.filter)
 
     def take_images(self, name, num, exp_time, _filter, end_time, path, cycle_filter):
@@ -346,7 +355,7 @@ class ObservationRun:
             
             if self.crash_check('MaxIm_DL.exe'):
                 continue
-
+            
             if cycle_filter:
                 if names_list:
                     image_num = int(image_base[_filter[(i + 1) % num_filters]] + ((i + 1) / num_filters))
@@ -398,10 +407,18 @@ class ObservationRun:
             prog_dict[program][0] = prog_dict[program][1]()
             prog_dict[program][0].start()
             time.sleep(5)
+            if program in ('MaxIm_DL.exe', 'TheSkyX.exe') and self.current_ticket.self_guide is True:
+                self.guider.stop_guiding()
+                self.guider.onThread(self.guider.stop)
+                time.sleep(5)
+                self.guider = Guider(self.camera, self.telescope)
+                self.guider.start()
+                time.sleep(5)
+                self.guider.onThread(self.guider.guiding_procedure, self.image_directory)
             return True
         else:
             return False
-
+    
     def shutdown(self):
         """
         Description
@@ -436,9 +453,11 @@ class ObservationRun:
         self.dome.onThread(self.dome.disconnect)
 
         self.conditions.stop.set()
+        self.guider.stop_guiding()                          # Should already be stopped, but just in case
         self.camera.onThread(self.camera.stop)
         self.telescope.onThread(self.telescope.stop)
         self.dome.onThread(self.dome.stop)
+        self.guider.stop()
         time.sleep(5)
     
     def _shutdown_procedure(self):
@@ -460,4 +479,5 @@ class ObservationRun:
         self.telescope.slew_done.wait()
         self.dome.move_done.wait()
         self.dome.shutter_done.wait()
+        
         self.camera.onThread(self.camera.cooler_set, False)
