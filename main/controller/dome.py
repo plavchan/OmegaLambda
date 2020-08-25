@@ -166,26 +166,37 @@ class Dome(Hardware):
                 self.Dome.OpenShutter()
                 print("Shutter is opening")
                 time.sleep(2)
+            t = 0
             while self.Dome.ShutterStatus in (1, 2, 4):
                 time.sleep(5)
+                t += 5
+                if t >= 5*60:
+                    logging.warning('Shutter is still opening...ASCOM may be incorrectly reporting status.')
+                    break
             time.sleep(2)
-            if self.Dome.ShutterStatus == 0:
+            if self.Dome.ShutterStatus in (0, 2):
                 self.shutter_done.set()
             else:
-                logging.error('Dome did not open correctly.')
+                logging.error('Dome did not open correctly.  Trying again...')
+                self.move_shutter('open')
         elif open_or_close == 'close':
             with self.dome_move_lock:
                 self.Dome.CloseShutter()
                 print("Shutter is closing")
                 time.sleep(2)
+            t = 0
             while self.Dome.ShutterStatus in (0, 3, 4):
                 time.sleep(5)
+                t += 5
+                if t >= 5*60:
+                    logging.warning('Shutter is still closing...ASCOM may be incorrectly reporting status.')
+                    break
             time.sleep(2)
-            if self.Dome.ShutterStatus == 1:
+            if self.Dome.ShutterStatus in (1, 3):
                 self.shutter_done.set()
             else:
-                logging.error('Dome did not close correctly.')
-            
+                logging.error('Dome did not close correctly.  Trying again...')
+                self.move_shutter('close')
         else:
             print("Invalid shutter move command")
         return

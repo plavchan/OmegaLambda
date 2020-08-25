@@ -3,13 +3,13 @@
 	"name": "test1234",
 	"ra": "10h 53m 43.7123s",
 	"dec": "-02d 07m 45.138s",
-	"start_time": "2020-08-14 10:00:00-04:00",
-	"end_time": "2020-08-14 18:00:00-04:00",
-	"filter": ["Ha", "uv", "b"],
-	"num": 6,
-	"exp_time": [9.921, 5, 0.012],
+	"start_time": "2020-08-21 10:00:00-04:00",
+	"end_time": "2020-08-21 23:00:00-04:00",
+	"filter": "r",
+	"num": 3,
+	"exp_time": 2.541,
 	"self_guide": true,
 	"guide": false,
-	"cycle_filter": true
+	"cycle_filter": false
 	}
 }
