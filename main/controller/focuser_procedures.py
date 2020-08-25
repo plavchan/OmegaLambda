@@ -230,7 +230,10 @@ class FocusProcedures(Hardware):
             if next_fwhm <= fwhm:
                 continue
             elif next_fwhm > fwhm:
-                move = 'out'
+                if move == 'in':
+                    move = 'out'
+                elif move == 'out':
+                    move = 'in'
                 self.focuser.onThread(self.focuser.focus_adjust, move)
                 self.focuser.adjusting.wait(timeout=10)
 
