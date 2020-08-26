@@ -2,7 +2,9 @@
 
 import urllib.request
 import urllib.error
+import urllib3.exceptions
 import requests
+import requests.exceptions
 import os
 import re
 import time
@@ -71,9 +73,14 @@ class Conditions(threading.Thread):
                                                                self.config_dict.site_latitude,
                                                                self.config_dict.site_longitude)
             cloud_cover = self.cloud_check()
-            if (humidity >= self.config_dict.humidity_limit) or (wind >= self.config_dict.wind_limit) or \
-                    (last_rain != rain and last_rain is not None) or (radar is True) or (sun_elevation >= 0) or \
-                    (cloud_cover is True):
+            if ((humidity, wind, rain) == (None, None, None)) or (radar is None) or (cloud_cover is None):
+                self.weather_alert.set()
+                logging.critical("A connection error was encountered and the weather can no longer be monitored"
+                                 "Shutting down for safety.")
+                continue
+            elif (humidity >= self.config_dict.humidity_limit) or (wind >= self.config_dict.wind_limit) or \
+                    (rain is not None and last_rain is not None and last_rain != rain) or (radar is True) or \
+                    (sun_elevation >= 0) or (cloud_cover is True):
                 self.weather_alert.set()
                 self.sun = True if sun_elevation >= 0 else False
                 message = ""
@@ -87,8 +94,8 @@ class Conditions(threading.Thread):
                                  "Reason(s) for weather alert: {}".format(message))
             else:
                 logging.debug("Condition checker is alive: Last check false")
-                last_rain = rain
                 self.weather_alert.clear()
+            last_rain = rain
             self.stop.wait(timeout=self.config_dict.weather_freq*60)
 
     @staticmethod
@@ -121,37 +128,54 @@ class Conditions(threading.Thread):
 
         """
         s = requests.Session()
-        header = requests.head(self.weather_url).headers
         backup = False
-        if 'Last-Modified' in header:
-            update_time = time_utils.convert_to_datetime_utc(header['Last-Modified'])
-            diff = datetime.datetime.now(datetime.timezone.utc) - update_time
-            if diff > datetime.timedelta(minutes=30):
-                # Checking when the web page was last modified (may be outdated)
-                logging.warning("GMU COS Weather Station Web site has not updated in the last 30 minutes! "
-                                "Using backup weather.com to find humidity/wind/rain instead.")
-                backup = True
-        else: 
-            logging.warning("GMU COS Weather Station Web site did not return a last modified timestamp, "
-                            "it may be outdated!")
+        try:
+            header = requests.head(self.weather_url).headers
+        except (urllib3.exceptions.MaxRetryError, urllib3.exceptions.HTTPError, urllib3.exceptions.TimeoutError,
+                urllib3.exceptions.InvalidHeader, requests.exceptions.ConnectionError, requests.exceptions.Timeout,
+                requests.exceptions.HTTPError):
+            logging.warning('Failed to read GMU website header')
             backup = True
+        else:
+            if 'Last-Modified' in header:
+                update_time = time_utils.convert_to_datetime_utc(header['Last-Modified'])
+                diff = datetime.datetime.now(datetime.timezone.utc) - update_time
+                if diff > datetime.timedelta(minutes=30):
+                    # Checking when the web page was last modified (may be outdated)
+                    logging.warning("GMU COS Weather Station Web site has not updated in the last 30 minutes! "
+                                    "Using backup weather.com to find humidity/wind/rain instead.")
+                    backup = True
+            else:
+                logging.warning("GMU COS Weather Station Web site did not return a last modified timestamp, "
+                                "it may be outdated!")
+                backup = True
 
         target_path = os.path.abspath(os.path.join(self.weather_directory, r'weather.txt'))
         if not backup:
-            self.weather = s.get(self.weather_url)
+            try:
+                self.weather = s.get(self.weather_url)
+            except (urllib3.exceptions.MaxRetryError, urllib3.exceptions.HTTPError, urllib3.exceptions.TimeoutError,
+                    urllib3.exceptions.InvalidHeader, requests.exceptions.ConnectionError, requests.exceptions.Timeout,
+                    requests.exceptions.HTTPError):
+                return None, None, None
             conditions = re.findall(r'<font color="#3366FF">(.+?)</font>', self.weather.text)
             humidity = float(conditions[1].replace('%', ''))
             if test_wind := re.search(r'[+-]?\d+\.\d+', conditions[3]):
                 wind = float(test_wind.group())
             else:
-                wind = None
+                wind = 0
             if test_rain := re.search(r'[+-]?\d+\.\d+', conditions[5]):
                 rain = float(test_rain.group())
             else:
-                rain = None
+                rain = 0
 
         else:
-            self.weather = s.get(self.backup_weather_url, headers={'User-Agent': self.config_dict.user_agent})
+            try:
+                self.weather = s.get(self.backup_weather_url, headers={'User-Agent': self.config_dict.user_agent})
+            except (urllib3.exceptions.MaxRetryError, urllib3.exceptions.HTTPError, urllib3.exceptions.TimeoutError,
+                    urllib3.exceptions.InvalidHeader, requests.exceptions.ConnectionError, requests.exceptions.Timeout,
+                    requests.exceptions.HTTPError):
+                return None, None, None
 
             humidity = re.search(r'<span data-testid="PercentageValue" class="_-_-components-src-molecule-' +
                                  r'DaypartDetails-DetailsTable-DetailsTable--value--2YD0-">(.+?)</span>',
@@ -164,7 +188,7 @@ class Conditions(threading.Thread):
                 wind = float(test_wind.group())
             else:
                 wind = int(re.search(r'[+-]?\d', wind).group())
-            rain = None
+            rain = 0
 
         with open(target_path, 'w') as file:
             # Writes the html code to a text file
@@ -182,7 +206,12 @@ class Conditions(threading.Thread):
 
         """
         s = requests.Session()
-        self.radar = s.get(self.rain_url, headers={'User-Agent': self.config_dict.user_agent})
+        try:
+            self.radar = s.get(self.rain_url, headers={'User-Agent': self.config_dict.user_agent})
+        except (urllib3.exceptions.MaxRetryError, urllib3.exceptions.HTTPError, urllib3.exceptions.TimeoutError,
+                urllib3.exceptions.InvalidHeader, requests.exceptions.ConnectionError, requests.exceptions.Timeout,
+                requests.exceptions.HTTPError):
+            return None
         api_key = re.search(r'"SUN_V3_API_KEY":"(.+?)",', self.radar.text).group(1)
         # API key needed to access radar images from the weather.com website
 
@@ -207,9 +236,13 @@ class Conditions(threading.Thread):
             # Constructs url of 4 nearest radar images
             path_to_images = os.path.abspath(os.path.join(
                 self.weather_directory, r'radar-img{0:04}.png'.format(key + 1)))
-            
-            with open(path_to_images, 'wb') as file:
+            try:
                 req = s.get(url, headers={'User-Agent': self.config_dict.user_agent})
+            except (urllib3.exceptions.MaxRetryError, urllib3.exceptions.HTTPError, urllib3.exceptions.TimeoutError,
+                    urllib3.exceptions.InvalidHeader, requests.exceptions.ConnectionError, requests.exceptions.Timeout,
+                    requests.exceptions.HTTPError):
+                return None
+            with open(path_to_images, 'wb') as file:
                 file.write(req.content)
                 # Writes 4 images to local png files
             
@@ -259,7 +292,12 @@ class Conditions(threading.Thread):
                 continue
             url = 'https://www.ssec.wisc.edu/data/geo/images/goes-16/animation_images/' + \
                 '{}_{}{}_{}_{}_conus.gif'.format(satellite, year, day, _time, conus_band)
-            req = s.get(url, headers={'User-Agent': self.config_dict.user_agent})
+            try:
+                req = s.get(url, headers={'User-Agent': self.config_dict.user_agent})
+            except (urllib3.exceptions.MaxRetryError, urllib3.exceptions.HTTPError, urllib3.exceptions.TimeoutError,
+                    urllib3.exceptions.InvalidHeader, requests.exceptions.ConnectionError, requests.exceptions.Timeout,
+                    requests.exceptions.HTTPError):
+                return None
         target_path = os.path.abspath(os.path.join(self.weather_directory, r'cloud-img.gif'))
         with open(target_path, 'wb') as file:
             file.write(req.content)
