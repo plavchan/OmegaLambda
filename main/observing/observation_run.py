@@ -95,6 +95,7 @@ class ObservationRun:
             logging.error('Hardware connection timeout: {}'.format(message))
 
         if self.conditions.weather_alert.isSet():
+            self.guider.stop_guiding()
             self._shutdown_procedure()
             if (self.current_ticket == self.observation_request_list[-1] or self.current_ticket is None) \
                     and (self.observation_request_list[-1].end_time < datetime.datetime.now(self.tz)
@@ -121,6 +122,8 @@ class ObservationRun:
                     elif self.current_ticket.end_time > datetime.datetime.now(self.tz):
                         self._startup_procedure()
                         self._ticket_slew(self.current_ticket)
+                        if self.current_ticket.self_guide:
+                            self.guider.onThread(self.guider.guiding_procedure)
                     elif self.current_ticket != self.observation_request_list[-1]:
                         self._startup_procedure()
                 else:
@@ -135,6 +138,8 @@ class ObservationRun:
                     if self.current_ticket.end_time > datetime.datetime.now(self.tz):
                         self._startup_procedure()
                         self._ticket_slew(self.current_ticket)
+                        if self.current_ticket.self_guide:
+                            self.guider.onThread(self.guider.guiding_procedure)
                     elif self.current_ticket != self.observation_request_list[-1]:
                         self._startup_procedure()
         return check
