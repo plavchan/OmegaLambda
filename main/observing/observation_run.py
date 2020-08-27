@@ -98,7 +98,7 @@ class ObservationRun:
             self._shutdown_procedure()
             if (self.current_ticket == self.observation_request_list[-1] or self.current_ticket is None) \
                     and (self.observation_request_list[-1].end_time < datetime.datetime.now(self.tz)
-                         + datetime.timedelta(hours=3)):
+                         + datetime.timedelta(minutes=30)):
                 logging.info('Close to end time of final ticket.  Stopping the code.')
                 self.stop_threads()
                 return False
