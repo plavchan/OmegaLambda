@@ -114,6 +114,7 @@ class ObservationRun:
             else:
                 calibration = False
             self.guider.stop_guiding()
+            time.sleep(10)
             self._shutdown_procedure(calibration=calibration)
             if (self.current_ticket == self.observation_request_list[-1] or self.current_ticket is None) \
                     and (self.observation_request_list[-1].end_time < datetime.datetime.now(self.tz)
