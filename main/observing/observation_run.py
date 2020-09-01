@@ -235,6 +235,10 @@ class ObservationRun:
                 print("the end time {} of {} observation has already passed. "
                       "Skipping to next target.".format(ticket.end_time.isoformat(), ticket.name))
                 continue
+            if not self.everything_ok():
+                if not self.conditions.weather_alert.isSet():
+                    self.shutdown()
+                return
 
             if not self._ticket_slew(ticket):
                 return
