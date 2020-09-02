@@ -95,10 +95,12 @@ class ObservationRun:
             logging.error('Hardware connection timeout: {}'.format(message))
 
         if self.conditions.weather_alert.isSet():
+            self.guider.stop_guiding()
+            time.sleep(10)
             self._shutdown_procedure()
             if (self.current_ticket == self.observation_request_list[-1] or self.current_ticket is None) \
                     and (self.observation_request_list[-1].end_time < datetime.datetime.now(self.tz)
-                         + datetime.timedelta(hours=3)):
+                         + datetime.timedelta(minutes=30)):
                 logging.info('Close to end time of final ticket.  Stopping the code.')
                 self.stop_threads()
                 return False
@@ -121,6 +123,8 @@ class ObservationRun:
                     elif self.current_ticket.end_time > datetime.datetime.now(self.tz):
                         self._startup_procedure()
                         self._ticket_slew(self.current_ticket)
+                        if self.current_ticket.self_guide:
+                            self.guider.onThread(self.guider.guiding_procedure)
                     elif self.current_ticket != self.observation_request_list[-1]:
                         self._startup_procedure()
                 else:
@@ -135,6 +139,8 @@ class ObservationRun:
                     if self.current_ticket.end_time > datetime.datetime.now(self.tz):
                         self._startup_procedure()
                         self._ticket_slew(self.current_ticket)
+                        if self.current_ticket.self_guide:
+                            self.guider.onThread(self.guider.guiding_procedure)
                     elif self.current_ticket != self.observation_request_list[-1]:
                         self._startup_procedure()
         return check
@@ -216,12 +222,6 @@ class ObservationRun:
                 return
             self.crash_check('TheSkyX.exe')
             self.crash_check('ASCOMDome.exe')
-            if not self._ticket_slew(ticket):
-                return
-            if initial_shutter in (1, 3, 4):
-                self.dome.move_done.wait()
-                self.dome.shutter_done.wait()
-            self.camera.cooler_settle.wait()
 
             self.tz = ticket.start_time.tzinfo
             current_time = datetime.datetime.now(self.tz)
@@ -235,6 +235,17 @@ class ObservationRun:
                 print("the end time {} of {} observation has already passed. "
                       "Skipping to next target.".format(ticket.end_time.isoformat(), ticket.name))
                 continue
+            if not self.everything_ok():
+                if not self.conditions.weather_alert.isSet():
+                    self.shutdown()
+                return
+
+            if not self._ticket_slew(ticket):
+                return
+            if initial_shutter in (1, 3, 4):
+                self.dome.move_done.wait()
+                self.dome.shutter_done.wait()
+            self.camera.cooler_settle.wait()
 
             if not self.everything_ok():
                 if not self.conditions.weather_alert.isSet():
