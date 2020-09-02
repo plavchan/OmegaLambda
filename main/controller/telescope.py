@@ -132,15 +132,23 @@ class Telescope(Hardware):
         with self.movement_lock:
             try:
                 self.Telescope.Park()
-            except (AttributeError, pywintypes.com_error):
-                logging.error("Could not park telescope.")
+            except (AttributeError, pywintypes.com_error) as exc:
+                logging.error("Could not park telescope.  Exception: {}".format(exc))
                 return False
-            try:
-                self.Telescope.Tracking = False
-            except (AttributeError, pywintypes.com_error):
-                logging.error("Could not disable tracking.")
-
-            logging.info('Telescope is parking, tracking off')
+            time.sleep(1)
+            t = 0
+            while self.Telescope.Tracking:
+                try:
+                    self.Telescope.Tracking = False
+                except (AttributeError, pywintypes.com_error) as exc:
+                    logging.error("Could not disable tracking.  Exception: {}".format(exc))
+                time.sleep(5)
+                t += 5
+                if t >= 25:
+                    logging.critical("Failed to disable telescope tracking. "
+                                     "Gave up after {} attempts.".format(t // 5))
+                    break
+            logging.info('Telescope is parked, tracking off')
             self._is_ready()
             self.slew_done.set()
             return True
