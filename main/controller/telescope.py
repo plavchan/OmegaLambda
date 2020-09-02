@@ -132,7 +132,7 @@ class Telescope(Hardware):
         with self.movement_lock:
             try:
                 self.Telescope.Park()
-            except Exception as exc:
+            except (AttributeError, pywintypes.com_error) as exc:
                 logging.error("Could not park telescope.  Exception: {}".format(exc))
                 return False
             time.sleep(1)
@@ -140,7 +140,7 @@ class Telescope(Hardware):
             while self.Telescope.Tracking:
                 try:
                     self.Telescope.Tracking = False
-                except Exception as exc:
+                except (AttributeError, pywintypes.com_error) as exc:
                     logging.error("Could not disable tracking.  Exception: {}".format(exc))
                 time.sleep(5)
                 t += 5
@@ -167,7 +167,7 @@ class Telescope(Hardware):
             with self.movement_lock:
                 self.Telescope.Unpark()
                 self.Telescope.Tracking = True
-        except: 
+        except (AttributeError, pywintypes.com_error):
             print("ERROR: Error unparking telescope tracking")
             return False
         else: 
@@ -206,7 +206,7 @@ class Telescope(Hardware):
                     logging.info('Slewing to RA/Dec')
                     self.Telescope.SlewToCoordinates(ra, dec)
                     self.Telescope.Tracking = tracking
-            except:
+            except (AttributeError, pywintypes.com_error):
                 logging.error("Error slewing to target")
             self._is_ready()
             if abs(self.Telescope.RightAscension - ra) <= 0.05 and abs(self.Telescope.Declination - dec) <= 0.05:
@@ -247,7 +247,7 @@ class Telescope(Hardware):
         try:
             with self.movement_lock:
                 self.Telescope.PulseGuide(direction_num, duration)
-        except:
+        except (AttributeError, pywintypes.com_error):
             logging.error("Could not pulse guide")
             return False
         else:
@@ -361,10 +361,11 @@ class Telescope(Hardware):
                 self.live_connection.clear()
                 subprocess.call("taskkill /f /im TheSkyX.exe")
                 # This is the only way it will actually disconnect from TheSkyX so far
-            except:
+            except (AttributeError, pywintypes.com_error):
                 logging.error("Could not disconnect from telescope")
             else:
-                logging.info('Telescope disconnected'); return True
+                logging.info('Telescope disconnected')
+                return True
         else: 
             logging.warning("Telescope is not parked.")
             return False

@@ -1,6 +1,7 @@
 import os
 import datetime
 import logging
+from json.decoder import JSONDecodeError
 
 from ...logger.logger import Logger
 from ..observing.observation_run import ObservationRun
@@ -60,8 +61,8 @@ def run(obs_tickets, data=None, config=None, _filter=None, logger=None, shutdown
         else:
             global_config = ObjectReader(Reader(
                 os.path.abspath(os.path.join(config_path, r'parameters_config.json'))))
-    except Exception:
-        logging.critical('Could not read or parse config file')
+    except (JSONDecodeError, FileNotFoundError):
+        logging.critical('Config file either could not be found or could not be parsed')
         return
 
     try: 
@@ -70,8 +71,8 @@ def run(obs_tickets, data=None, config=None, _filter=None, logger=None, shutdown
         else:
             global_filter = ObjectReader(Reader(
                 os.path.abspath(os.path.join(config_path, r'fw_config.json'))))
-    except Exception:
-        logging.critical('Error initializing global filter object')
+    except (JSONDecodeError, FileNotFoundError):
+        logging.critical('FilterWheel config file either could not be found or could not be parsed')
         return
     
     config_dict = config_reader.get_config()
