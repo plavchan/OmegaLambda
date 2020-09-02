@@ -123,16 +123,18 @@ class Camera(Hardware):
             if not self.Camera.CoolerOn:
                 self.cooler_set(True)
 
-            t_diff = abs(self.Camera.TemperatureSetpoint - self.Camera.Temperature)
+            t_diff = abs(self.Camera.Temperature - self.Camera.TemperatureSetpoint)
             power = self.Camera.CoolerPower
 
-            if t_diff >= 0.1 and power >= 99:
+            if t_diff >= 0.1 and power >= 90:
                 if t_diff >= 10:
                     self.Camera.TemperatureSetpoint += 5
                 elif t_diff >= 5:
                     self.Camera.TemperatureSetpoint += 3
-                else:
+                elif t_diff >= 1:
                     self.Camera.TemperatureSetpoint += 1
+                else:
+                    self.Camera.TemperatureSetpoint += 0.5
                 print("Cooler Setpoint adjusted to {0:.1f} C".format(self.Camera.TemperatureSetpoint))
             elif t_diff <= 0.1 and power <= 40:
                 self.Camera.TemperatureSetpoint -= 1
@@ -154,12 +156,28 @@ class Camera(Hardware):
         """
         self.cooler_settle.clear()
         t = 0
-        while not (self.Camera.TemperatureSetpoint - 0.1 <= self.Camera.Temperature <= self.Camera.TemperatureSetpoint
-                   + 0.1):
-            if t >= self.config_dict.cooler_settle_time:
+        last_temp = 0
+        while not (self.Camera.TemperatureSetpoint - 0.2 <= self.Camera.Temperature <= self.Camera.TemperatureSetpoint
+                   + 0.2) or not (self.Camera.CoolerPower <= 90):
+            temp = self.Camera.Temperature
+            temp_rate = abs(temp - last_temp)
+            if temp_rate <= 3:
                 self._cooler_adjust()
+            elif temp_rate <= 1.5:
+                self._cooler_adjust()
+                if self.Camera.Temperature < self.Camera.TemperatureSetpoint:
+                    break
+                if t >= self.config_dict.cooler_settle_time:
+                    self.Camera.TemperatureSetPoint = self.Camera.Temperature
+                    print("Cooler Setpoint adjusted to {0:.1f} C".format(self.Camera.TemperatureSetpoint))
+                    break
+            elif temp_rate <= 0.4:
+                self.Camera.TemperatureSetPoint = self.Camera.Temperature
+                print("Cooler Setpoint adjusted to {0:.1f} C".format(self.Camera.TemperatureSetpoint))
+                break
             print("Waiting for cooler to settle...")
             time.sleep(60)
+            last_temp = temp
             t += 1
         time.sleep(1)
         print("Cooler has settled")

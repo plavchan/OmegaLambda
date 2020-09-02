@@ -1,7 +1,7 @@
 {"type": "config",
 "details": {"cooler_setpoint": -30,
 	"cooler_idle_setpoint": 5,
-	"cooler_settle_time": 5,
+	"cooler_settle_time": 8,
 	"maximum_jog": 1800,
 	"site_latitude": 38.828,
 	"site_longitude": -77.305,
