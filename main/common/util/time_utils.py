@@ -1,11 +1,12 @@
 import datetime
 import logging
+from typing import Union, Optional
 
 import pytz
 import dateutil.parser
 
 
-def rounddown_300(x):
+def rounddown_300(x: Union[int, float]) -> int:
     """
 
     Parameters
@@ -24,7 +25,7 @@ def rounddown_300(x):
     return int(x/300)*300
 
 
-def convert_to_datetime_utc(date):
+def convert_to_datetime_utc(date: str) -> datetime.datetime:
     """
 
     Parameters
@@ -43,7 +44,7 @@ def convert_to_datetime_utc(date):
     return d.replace(tzinfo=pytz.UTC) - d.utcoffset()
 
 
-def convert_to_datetime(date):
+def convert_to_datetime(date: str) -> datetime.datetime:
     """
 
     Parameters
@@ -62,7 +63,7 @@ def convert_to_datetime(date):
     return d
 
 
-def datetime_to_epoch_milli_converter(date):
+def datetime_to_epoch_milli_converter(date: Union[str, datetime.datetime]) -> Union[int, float]:
     """
 
     Parameters
@@ -83,7 +84,7 @@ def datetime_to_epoch_milli_converter(date):
     return (date.replace(tzinfo=None) - epoch).total_seconds() * 1000
 
 
-def epoch_milli_to_datetime_converter(epochmilli):
+def epoch_milli_to_datetime_converter(epochmilli: Union[int, float]) -> datetime.datetime:
     """
 
     Parameters
@@ -101,7 +102,7 @@ def epoch_milli_to_datetime_converter(epochmilli):
     return datetime.datetime.utcfromtimestamp(epochmilli / 1000).replace(tzinfo=pytz.UTC)
 
 
-def days_since_j2000(date=None):
+def days_since_j2000(date: Optional[Union[datetime.datetime, str]] = None) -> float:
     """
 
     Parameters
@@ -126,7 +127,7 @@ def days_since_j2000(date=None):
     return days
 
 
-def days_of_year(date=None):
+def days_of_year(date: Optional[Union[str, datetime.datetime]] = None) -> float:
     """
 
     Parameters
@@ -151,7 +152,7 @@ def days_of_year(date=None):
     return days + 1
 
 
-def fractional_hours_of_day(time=None):
+def fractional_hours_of_day(time: Optional[Union[str, datetime.datetime]] = None) -> float:
     """
 
     Parameters
@@ -177,7 +178,7 @@ def fractional_hours_of_day(time=None):
     return hours
 
 
-def current_decimal_year():
+def current_decimal_year() -> float:
     """
 
     Returns
@@ -192,7 +193,7 @@ def current_decimal_year():
     return d.year + d.month/12
 
 
-def get_local_sidereal_time(longitude, date=None):
+def get_local_sidereal_time(longitude: float, date: Optional[Union[str, datetime.datetime]] = None) -> float:
     """
 
     Parameters
