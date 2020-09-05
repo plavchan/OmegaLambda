@@ -1,6 +1,7 @@
 import os
-import datetime
 import logging
+import string
+import re
 from json.decoder import JSONDecodeError
 
 from ...logger.logger import Logger
@@ -76,15 +77,6 @@ def run(obs_tickets, data=None, config=None, _filter=None, logger=None, shutdown
         return
     
     config_dict = config_reader.get_config()
-    if data:
-        folder = r'{}'.format(data)     # Reads as a raw string
-    else:
-        folder = os.path.join(config_dict.data_directory, datetime.datetime.now().strftime('%Y%m%d'))
-    if not os.path.exists(folder):
-        os.makedirs(folder)
-        print('New directory for tonight\'s observing has been made!')
-    else:
-        print('Directory for tonight\'s observing already exists!')
 
     if os.path.isfile(obs_tickets[0]):
         observation_request_list = [ticket_object for ticket in obs_tickets
@@ -92,8 +84,29 @@ def run(obs_tickets, data=None, config=None, _filter=None, logger=None, shutdown
     else:
         observation_request_list = [ticket_object for filename in os.listdir(obs_tickets[0])
                                     if (ticket_object := read_ticket(os.path.join(obs_tickets[0], filename)))]
+
+    if data:
+        folder = [r'{}'.format(data)]  # Reads as a raw string
+    else:
+        folder = [os.path.join(config_dict.data_directory, ticket.start_time.strftime('%Y%m%d'))
+                  for ticket in observation_request_list]
+    if len(folder) != len(observation_request_list):
+        raise ValueError('The length of tickets does not match with the length of folders...something has gone wrong.')
+
+    for i in range(len(folder)):
+        occurrences = folder.count(folder[i])
+        if occurrences < 2 and not os.path.exists(folder[i]):
+            os.makedirs(folder[i])
+        else:  # If occurrences >= 2 or os.path.exists(folder[i])
+            for letter in string.ascii_letters:
+                if not os.path.exists(folder[i] + letter):
+                    folder[i] += letter
+                    os.makedirs(folder[i])
+                    break
+    print('New directories for tonight\'s observing have been made!')
     
     observation_request_list.sort(key=start_time)
+    folder = alphanumeric_sort(folder)
         
     run_object = ObservationRun(observation_request_list, folder, shutdown, calibration)
     run_object.observe()
@@ -143,3 +156,18 @@ def start_time(ticket_object):
 
     """
     return ticket_object.start_time
+
+def alphanumeric_sort(_list):
+    """
+    Parameters
+    ----------
+    _list : LIST
+        Alphanumeric list to be sorted.
+    Returns
+    -------
+    LIST
+        Sorted list
+    """
+    conversion = lambda item: int(item) if item.isdigit() else item
+    alphanum_sorting = lambda key: [conversion(n) for n in re.split('([0-9]+)', key)]
+    return sorted(_list, key=alphanum_sorting)
