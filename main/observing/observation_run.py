@@ -25,8 +25,8 @@ class ObservationRun:
         ----------
         observation_request_list : LIST
             List of observation tickets.
-        image_directory : STR
-            Directory to which the images will be saved to.
+        image_directory : LIST
+            Directories to which the images will be saved to, matching each observation ticket.
         shutdown_toggle : BOOL
             Whether or not to shut down after finished with observations.
         calibration_toggle : BOOL
@@ -38,8 +38,8 @@ class ObservationRun:
         None.
         """
         # Basic parameters
-        self.image_directory = image_directory
         self.observation_request_list = observation_request_list
+        self.image_directories = {ticket: path for (ticket, path) in zip(observation_request_list, image_directory)}
         self.calibrated_tickets = [0] * len(observation_request_list)
         self.current_ticket = None
         self.shutdown_toggle = shutdown_toggle
@@ -267,10 +267,10 @@ class ObservationRun:
         ticket.exp_time = [ticket.exp_time] if type(ticket.exp_time) in (int, float) else ticket.exp_time
         ticket.filter = [ticket.filter] if type(ticket.filter) is str else ticket.filter
         if ticket.self_guide:
-            self.guider.onThread(self.guider.guiding_procedure, self.image_directory)
+            self.guider.onThread(self.guider.guiding_procedure, self.image_directories[ticket])
         if ticket.cycle_filter:
             img_count = self.take_images(ticket.name, ticket.num, ticket.exp_time,
-                                         ticket.filter, ticket.end_time, self.image_directory,
+                                         ticket.filter, ticket.end_time, self.image_directories[ticket],
                                          True)
             if ticket.self_guide:
                 self.guider.stop_guiding()
@@ -282,7 +282,7 @@ class ObservationRun:
                 ticket.exp_time *= len(ticket.filter)
             for i in range(len(ticket.filter)):
                 img_count_filter = self.take_images(ticket.name, ticket.num, [ticket.exp_time[i]],
-                                                    [ticket.filter[i]], ticket.end_time, self.image_directory,
+                                                    [ticket.filter[i]], ticket.end_time, self.image_directories[ticket],
                                                     False)
                 img_count += img_count_filter
             if ticket.self_guide:
@@ -414,7 +414,7 @@ class ObservationRun:
                 self.guider = Guider(self.camera, self.telescope)
                 self.guider.start()
                 time.sleep(5)
-                self.guider.onThread(self.guider.guiding_procedure, self.image_directory)
+                self.guider.onThread(self.guider.guiding_procedure, self.image_directories[self.current_ticket])
             return True
         else:
             return False
