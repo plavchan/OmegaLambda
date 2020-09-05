@@ -1,7 +1,5 @@
 import os
-import datetime
 import logging
-import itertools
 import string
 import re
 
@@ -94,15 +92,16 @@ def run(obs_tickets, data=None, config=None, _filter=None, logger=None, shutdown
     if len(folder) != len(observation_request_list):
         raise ValueError('The length of tickets does not match with the length of folders...something has gone wrong.')
 
-    letters = itertools.product(string.ascii_letters, repeat=1)
-    for directory in folder:
-        occurrences = folder.count(directory)
-        if occurrences < 2 and not os.path.exists(directory):
-            os.makedirs(directory)
-        elif occurrences >= 2:
-            directory += ''.join(next(letters))
-            if not os.path.exists(directory):
-                os.makedirs(directory)
+    for i in range(len(folder)):
+        occurrences = folder.count(folder[i])
+        if occurrences < 2 and not os.path.exists(folder[i]):
+            os.makedirs(folder[i])
+        else:       # If occurrences >= 2 or os.path.exists(folder[i])
+            for letter in string.ascii_letters:
+                if not os.path.exists(folder[i] + letter):
+                    folder[i] += letter
+                    os.makedirs(folder[i])
+                    break
     print('New directories for tonight\'s observing have been made!')
     
     observation_request_list.sort(key=start_time)
