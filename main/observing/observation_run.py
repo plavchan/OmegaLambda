@@ -26,8 +26,8 @@ class ObservationRun:
         ----------
         observation_request_list : LIST
             List of observation tickets.
-        image_directory : STR
-            Directory to which the images will be saved to.
+        image_directory : LIST
+            Directories to which the images will be saved to, matching each observation ticket.
         shutdown_toggle : BOOL
             Whether or not to shut down after finished with observations.
         calibration_toggle : BOOL
@@ -39,8 +39,8 @@ class ObservationRun:
         None.
         """
         # Basic parameters
-        self.image_directory = image_directory
         self.observation_request_list = observation_request_list
+        self.image_directories = {ticket: path for (ticket, path) in zip(observation_request_list, image_directory)}
         self.calibrated_tickets = [0] * len(observation_request_list)
         self.current_ticket = None
         self.shutdown_toggle = shutdown_toggle
@@ -55,7 +55,7 @@ class ObservationRun:
         self.flatlamp = FlatLamp()
 
         # Initializes higher level structures - focuser, guider, and calibration
-        self.calibration = Calibration(self.camera, self.flatlamp, self.image_directory)
+        self.calibration = Calibration(self.camera, self.flatlamp, self.image_directories)
 
         # Initializes config objects
         self.filterwheel_dict = filter_wheel.get_filter().filter_position_dict()
@@ -308,7 +308,7 @@ class ObservationRun:
         ticket.filter = [ticket.filter] if type(ticket.filter) is str else ticket.filter
         if ticket.cycle_filter:
             img_count = self.take_images(ticket.name, ticket.num, ticket.exp_time,
-                                         ticket.filter, ticket.end_time, self.image_directory,
+                                         ticket.filter, ticket.end_time, self.image_directories[ticket],
                                          True)
             return img_count, ticket.num
 
@@ -318,7 +318,7 @@ class ObservationRun:
                 ticket.exp_time *= len(ticket.filter)
             for i in range(len(ticket.filter)):
                 img_count_filter = self.take_images(ticket.name, ticket.num, [ticket.exp_time[i]],
-                                                    [ticket.filter[i]], ticket.end_time, self.image_directory,
+                                                    [ticket.filter[i]], ticket.end_time, self.image_directories[ticket],
                                                     False)
                 img_count += img_count_filter
             return img_count, ticket.num * len(ticket.filter)
