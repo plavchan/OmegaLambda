@@ -90,6 +90,13 @@ class Calibration(Hardware):
                 image_name = 'Flat_{0:.3f}s_{1:s}-{2:04d}.fits'.format(self.filter_exp_times[f], str(f).upper(), j + 1)
                 if scaled:
                     image_name = image_name.replace('.fits', '-final.fits')
+                match = False
+                for name in os.listdir(os.path.join(self.image_directories[ticket], 'Flats_{}'.format(ticket.name))):
+                    if name == image_name:
+                        match = True
+                if match:
+                    j += 1
+                    continue
                 self.camera.onThread(self.camera.expose, self.filter_exp_times[f], self.filterwheel_dict[f], 
                                      save_path=os.path.join(self.image_directories[ticket],
                                                             r'Flats_{}'.format(ticket.name),

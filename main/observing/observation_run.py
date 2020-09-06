@@ -250,6 +250,18 @@ class ObservationRun:
             calibration = True
         else:
             calibration = False
+
+        tz_0 = self.observation_request_list[0].start_time.tzinfo
+        current_time = datetime.datetime.now(tz_0)
+        if self.observation_request_list[0].start_time > current_time:
+            print("It is not the start time {} of {} observation, "
+                  "waiting till start time.".format(self.observation_request_list[0].start_time.isoformat(),
+                                                    self.observation_request_list[0].name))
+            current_epoch_milli = time_utils.datetime_to_epoch_milli_converter(current_time)
+            start_time_epoch_milli = time_utils.datetime_to_epoch_milli_converter(
+                self.observation_request_list[0].start_time)
+            time.sleep((start_time_epoch_milli - current_epoch_milli) / 1000)
+
         initial_shutter = self._startup_procedure(calibration)
         if initial_shutter == -1:
             return
