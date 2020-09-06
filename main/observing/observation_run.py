@@ -109,8 +109,6 @@ class ObservationRun:
             self.guider.stop_guiding()
             time.sleep(10)
             cooler = True if self.conditions.sun else False
-            self.guider.stop_guiding()
-            time.sleep(10)
             self._shutdown_procedure(calibration=calibration, cooler=cooler)
             if (self.current_ticket == self.observation_request_list[-1] or self.current_ticket is None) \
                     and (self.observation_request_list[-1].end_time < datetime.datetime.now(self.tz)
@@ -543,6 +541,8 @@ class ObservationRun:
         self.telescope.onThread(self.telescope.stop)
         self.dome.onThread(self.dome.stop)
         self.guider.stop()
+        self.flatlamp.onThread(self.flatlamp.stop)
+        self.calibration.onThread(self.calibration.stop)
         time.sleep(5)
 
     def _shutdown_procedure(self, calibration, cooler=True):
