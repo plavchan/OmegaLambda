@@ -14,6 +14,7 @@ from ..controller.telescope import Telescope
 from ..controller.dome import Dome
 from ..controller.flatfield_lamp import FlatLamp
 from .calibration import Calibration
+from .guider import Guider
 from .condition_checker import Conditions
 
 
@@ -56,6 +57,7 @@ class ObservationRun:
 
         # Initializes higher level structures - focuser, guider, and calibration
         self.calibration = Calibration(self.camera, self.flatlamp, self.image_directories)
+        self.guider = Guider(self.camera, self.telescope)
 
         # Initializes config objects
         self.filterwheel_dict = filter_wheel.get_filter().filter_position_dict()
@@ -68,6 +70,7 @@ class ObservationRun:
         self.dome.start()
         self.flatlamp.start()
         self.calibration.start()
+        self.guider.start()
 
     def everything_ok(self):
         """
@@ -103,10 +106,13 @@ class ObservationRun:
                 calibration = True
             else:
                 calibration = False
-            self._shutdown_procedure(calibration=calibration)
+            self.guider.stop_guiding()
+            time.sleep(10)
+            cooler = True if self.conditions.sun else False
+            self._shutdown_procedure(calibration=calibration, cooler=cooler)
             if (self.current_ticket == self.observation_request_list[-1] or self.current_ticket is None) \
                     and (self.observation_request_list[-1].end_time < datetime.datetime.now(self.tz)
-                         + datetime.timedelta(hours=3)):
+                         + datetime.timedelta(minutes=30)):
                 logging.info('Close to end time of final ticket.  Stopping the code.')
                 self.stop_threads()
                 return False
@@ -127,33 +133,41 @@ class ObservationRun:
                     if not self.current_ticket:
                         self.observe()
                     elif self.current_ticket.end_time > datetime.datetime.now(self.tz):
-                        self._startup_procedure()
+                        self._startup_procedure(cooler=cooler)
                         self._ticket_slew(self.current_ticket)
+                        if self.current_ticket.self_guide:
+                            self.guider.onThread(self.guider.guiding_procedure)
                     elif self.current_ticket != self.observation_request_list[-1]:
-                        self._startup_procedure()
+                        self._startup_procedure(cooler=cooler)
                 else:
                     print('Weather is still too poor to resume observing.')
                     self.everything_ok()
             else:
+                print("Waiting for {} minutes until possible reopen...".format(self.config_dict.min_reopen_time))
                 time.sleep(60*self.config_dict.min_reopen_time)
                 while self.conditions.weather_alert.isSet():
+                    print("Still waiting for good conditions to reopen.")
                     time.sleep(self.config_dict.weather_freq*60)
                 if not self.conditions.weather_alert.isSet():
                     check = True
                     if self.current_ticket.end_time > datetime.datetime.now(self.tz):
-                        self._startup_procedure()
+                        self._startup_procedure(cooler=cooler)
                         self._ticket_slew(self.current_ticket)
+                        if self.current_ticket.self_guide:
+                            self.guider.onThread(self.guider.guiding_procedure)
                     elif self.current_ticket != self.observation_request_list[-1]:
-                        self._startup_procedure()
+                        self._startup_procedure(cooler=cooler)
         return check
 
-    def _startup_procedure(self, calibration=False):
+    def _startup_procedure(self, calibration=False, cooler=True):
         """
         Parameters
         ----------
         calibration : BOOL, optional
             Whether or not to take calibration images at the beginning
             of the night. The default is False.
+        cooler : BOOL, optional
+            Whether or not to turn on the camera's cooler.  The default is True.
 
         Returns
         -------
@@ -164,8 +178,8 @@ class ObservationRun:
 
         """
         initial_check = self.everything_ok()
-
-        self.camera.onThread(self.camera.cooler_set, True)
+        if cooler:
+            self.camera.onThread(self.camera.cooler_set, True)
         self.dome.onThread(self.dome.shutter_position)
         time.sleep(2)
         initial_shutter = self.dome.shutter
@@ -251,12 +265,6 @@ class ObservationRun:
                 return
             self.crash_check('TheSkyX.exe')
             self.crash_check('ASCOMDome.exe')
-            if not self._ticket_slew(ticket):
-                return
-            if initial_shutter in (1, 3, 4):
-                self.dome.move_done.wait()
-                self.dome.shutter_done.wait()
-            self.camera.cooler_settle.wait()
 
             self.tz = ticket.start_time.tzinfo
             current_time = datetime.datetime.now(self.tz)
@@ -270,6 +278,17 @@ class ObservationRun:
                 print("the end time {} of {} observation has already passed. "
                       "Skipping to next target.".format(ticket.end_time.isoformat(), ticket.name))
                 continue
+            if not self.everything_ok():
+                if not self.conditions.weather_alert.isSet():
+                    self.shutdown()
+                return
+
+            if not self._ticket_slew(ticket):
+                return
+            if initial_shutter in (1, 3, 4):
+                self.dome.move_done.wait()
+                self.dome.shutter_done.wait()
+            self.camera.cooler_settle.wait()
 
             if not self.everything_ok():
                 if not self.conditions.weather_alert.isSet():
@@ -306,10 +325,14 @@ class ObservationRun:
         """
         ticket.exp_time = [ticket.exp_time] if type(ticket.exp_time) in (int, float) else ticket.exp_time
         ticket.filter = [ticket.filter] if type(ticket.filter) is str else ticket.filter
+        if ticket.self_guide:
+            self.guider.onThread(self.guider.guiding_procedure, self.image_directories[ticket])
         if ticket.cycle_filter:
             img_count = self.take_images(ticket.name, ticket.num, ticket.exp_time,
                                          ticket.filter, ticket.end_time, self.image_directories[ticket],
                                          True)
+            if ticket.self_guide:
+                self.guider.stop_guiding()
             return img_count, ticket.num
 
         else:
@@ -321,6 +344,8 @@ class ObservationRun:
                                                     [ticket.filter[i]], ticket.end_time, self.image_directories[ticket],
                                                     False)
                 img_count += img_count_filter
+            if ticket.self_guide:
+                self.guider.stop_guiding()
             return img_count, ticket.num * len(ticket.filter)
 
     def take_images(self, name, num, exp_time, _filter, end_time, path, cycle_filter):
@@ -441,6 +466,15 @@ class ObservationRun:
             prog_dict[program][0] = prog_dict[program][1]()
             prog_dict[program][0].start()
             time.sleep(5)
+            if program in ('MaxIm_DL.exe', 'TheSkyX.exe') and self.current_ticket.self_guide is True:
+                self.guider.stop_guiding()
+                self.guider.onThread(self.guider.stop)
+                time.sleep(5)
+                self.guider = Guider(self.camera, self.telescope)
+                self.guider.start()
+                time.sleep(5)
+                self.guider.onThread(self.guider.guiding_procedure,
+                                     self.image_directories[self.current_ticket])
             return True
         else:
             return False
@@ -513,14 +547,16 @@ class ObservationRun:
         self.flatlamp.onThread(self.flatlamp.disconnect)
 
         self.conditions.stop.set()
+        self.guider.stop_guiding()                          # Should already be stopped, but just in case
         self.camera.onThread(self.camera.stop)
         self.telescope.onThread(self.telescope.stop)
         self.dome.onThread(self.dome.stop)
+        self.guider.stop()
         self.flatlamp.onThread(self.flatlamp.stop)
         self.calibration.onThread(self.calibration.stop)
         time.sleep(5)
     
-    def _shutdown_procedure(self, calibration):
+    def _shutdown_procedure(self, calibration, cooler=True):
         """
         Description
         ----------
@@ -530,6 +566,8 @@ class ObservationRun:
         ----------
         calibration : BOOL
             Whether or not to take calibration images at the end
+        cooler : BOOL, optional
+            Whether or not to turn off the cooler at the end of shutdown.  The default is True.
 
         Returns
         -------
@@ -547,5 +585,5 @@ class ObservationRun:
         if calibration:
             print('Taking flats and darks...')
             self.take_calibration_images()
-        
-        self.camera.onThread(self.camera.cooler_set, False)
+        if cooler:
+            self.camera.onThread(self.camera.cooler_set, False)
