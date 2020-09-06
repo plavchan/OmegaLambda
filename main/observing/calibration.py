@@ -83,6 +83,12 @@ class Calibration(Hardware):
             return False
         if not os.path.exists(os.path.join(self.image_directories[ticket], 'Flats_{}'.format(ticket.name))):
             os.mkdir(os.path.join(self.image_directories[ticket], 'Flats_{}'.format(ticket.name)))
+        else:
+            print('Flat folder already exists!  Assuming they have been collected, & aborting flat collection.')
+            self.flatlamp.onThread(self.flatlamp.turn_off)
+            self.flatlamp.lamp_done.wait(timeout=60)
+            self.flats_done.set()
+            return True
         for f in filters:
             j = 0
             scaled = False
@@ -90,13 +96,6 @@ class Calibration(Hardware):
                 image_name = 'Flat_{0:.3f}s_{1:s}-{2:04d}.fits'.format(self.filter_exp_times[f], str(f).upper(), j + 1)
                 if scaled:
                     image_name = image_name.replace('.fits', '-final.fits')
-                match = False
-                for name in os.listdir(os.path.join(self.image_directories[ticket], 'Flats_{}'.format(ticket.name))):
-                    if name == image_name:
-                        match = True
-                if match:
-                    j += 1
-                    continue
                 self.camera.onThread(self.camera.expose, self.filter_exp_times[f], self.filterwheel_dict[f], 
                                      save_path=os.path.join(self.image_directories[ticket],
                                                             r'Flats_{}'.format(ticket.name),
@@ -160,6 +159,10 @@ class Calibration(Hardware):
             return False
         if not os.path.exists(os.path.join(self.image_directories[ticket], 'Darks_{}'.format(ticket.name))):
             os.mkdir(os.path.join(self.image_directories[ticket], 'Darks_{}'.format(ticket.name)))
+        else:
+            print('Dark folder already exists!  Assuming they have been collected, & aborting dark collection...')
+            self.darks_done.set()
+            return True
         for f in filters:
             for j in range(self.config_dict.calibration_num):
                 image_name = 'Dark_{0:.3f}s-{1:04d}.fits'.format(self.filter_exp_times[f], j + 1)
