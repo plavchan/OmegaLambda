@@ -159,13 +159,10 @@ class ObservationRun:
                         self._startup_procedure(cooler=cooler)
         return check
 
-    def _startup_procedure(self, calibration=False, cooler=True):
+    def _startup_procedure(self, cooler=True):
         """
         Parameters
         ----------
-        calibration : BOOL, optional
-            Whether or not to take calibration images at the beginning
-            of the night. The default is False.
         cooler : BOOL, optional
             Whether or not to turn on the camera's cooler.  The default is True.
 
@@ -184,11 +181,6 @@ class ObservationRun:
         time.sleep(2)
         initial_shutter = self.dome.shutter
         if initial_shutter in (1, 3, 4) and initial_check is True:
-            if calibration:
-                self.camera.onThread(self.camera.cooler_ready)
-                self.camera.cooler_settle.wait()
-                print('Taking darks and flats...')
-                self.take_calibration_images(beginning=True)
             self.dome.onThread(self.dome.move_shutter, 'open')
             self.dome.onThread(self.dome.home)
         elif not initial_check:
@@ -238,9 +230,14 @@ class ObservationRun:
         None.
         """
         if (self.config_dict.calibration_time == "start") and (self.calibration_toggle is True):
-            calibration = True
+            cooler = False
+            self.camera.onThread(self.camera.cooler_set, True)
+            self.camera.onThread(self.camera.cooler_ready)
+            self.camera.cooler_settle.wait()
+            print('Taking darks and flats...')
+            self.take_calibration_images(beginning=True)
         else:
-            calibration = False
+            cooler = True
 
         tz_0 = self.observation_request_list[0].start_time.tzinfo
         current_time = datetime.datetime.now(tz_0)
@@ -253,7 +250,7 @@ class ObservationRun:
                 self.observation_request_list[0].start_time)
             time.sleep((start_time_epoch_milli - current_epoch_milli) / 1000)
 
-        initial_shutter = self._startup_procedure(calibration)
+        initial_shutter = self._startup_procedure(cooler)
         if initial_shutter == -1:
             return
 
