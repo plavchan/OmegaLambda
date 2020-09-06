@@ -89,8 +89,9 @@ class Guider(Hardware):
         else:
             minsep = 1000
             minstar = None
+            r = self.config_dict.guider_max_move / self.config_dict.plate_scale
             for star in stars:
-                distance = np.sqrt((star[0]-250)**2 + (star[1]-250)**2)
+                distance = np.sqrt((star[0]-r)**2 + (star[1]-r)**2)
                 if distance < minsep:
                     minsep = distance
                     minstar = star
@@ -157,8 +158,8 @@ class Guider(Hardware):
             if not star:
                 logging.warning('Guider could not find a suitable guide star...waiting for next image to try again.')
                 continue
-            x_0 = 250
-            y_0 = 250
+            x_0 = self.config_dict.guider_max_move / self.config_dict.plate_scale
+            y_0 = self.config_dict.guider_max_move / self.config_dict.plate_scale
             x = star[0]
             y = star[1]
             logging.debug('Guide star relative coordinates: x={}, y={}'.format(x, y))
@@ -201,13 +202,13 @@ class Guider(Hardware):
                     y_initial = new_star[1]
                 elif jog_separation < self.config_dict.guider_max_move:
                     logging.debug('Guider is making an adjustment')
-                    # print('xdistance: {}\"; ydistance: {}\"'.format(xjog_distance, yjog_distance))
-                    # print('Delta Angle: {} rad'.format(deltangle))
-                    # print('Separation: {} px'.format(separation))
-                    # print('Move Direction: {} {}'.format(xdirection, ydirection))
-                    # print('Plate Scale: {}\"/px'.format(self.config_dict.plate_scale))
-                    # print('RA Dampening: {}x'.format(self.config_dict.guider_ra_dampening))
-                    # print('Dec Dampening: {}x'.format(self.config_dict.guider_dec_dampening))
+                    logging.debug('xdistance: {}\"; ydistance: {}\"'.format(xjog_distance, yjog_distance))
+                    logging.debug('Delta Angle: {} rad'.format(deltangle))
+                    logging.debug('Separation: {} px'.format(separation))
+                    logging.debug('Move Direction: {} {}'.format(xdirection, ydirection))
+                    logging.debug('Plate Scale: {}\"/px'.format(self.config_dict.plate_scale))
+                    logging.debug('RA Dampening: {}x'.format(self.config_dict.guider_ra_dampening))
+                    logging.debug('Dec Dampening: {}x\n'.format(self.config_dict.guider_dec_dampening))
                     self.telescope.onThread(self.telescope.jog, xdirection, xjog_distance)
                     self.telescope.slew_done.wait()
                     self.telescope.onThread(self.telescope.jog, ydirection, yjog_distance)
