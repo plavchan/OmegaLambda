@@ -109,6 +109,8 @@ class ObservationRun:
             self.guider.stop_guiding()
             time.sleep(10)
             cooler = True if self.conditions.sun else False
+            self.guider.stop_guiding()
+            time.sleep(10)
             self._shutdown_procedure(calibration=calibration, cooler=cooler)
             if (self.current_ticket == self.observation_request_list[-1] or self.current_ticket is None) \
                     and (self.observation_request_list[-1].end_time < datetime.datetime.now(self.tz)
@@ -475,23 +477,20 @@ class ObservationRun:
             return True
         else:
             return False
-        
+
     def take_calibration_images(self, beginning=False):
         """
         Description
         -----------
         Takes flats and darks for the current observation ticket and
         any previous ones.
-
         Parameters
         ----------
         beginning : BOOL, optional
             True if taking images before observations start, otherwise False. The default is False.
-
         Returns
         -------
         None.
-
         """
         for i in range(len(self.observation_request_list)):
             if self.calibrated_tickets[i]:
@@ -509,11 +508,6 @@ class ObservationRun:
         Description
         -----------
         Decides whether or not to shut down, and whether or not to take calibration images.
-
-        Parameters
-        ----------
-        calibration : BOOL, optional
-            Whether or not to take calibration images. The default is False.
 
         Returns
         -------
@@ -549,10 +543,8 @@ class ObservationRun:
         self.telescope.onThread(self.telescope.stop)
         self.dome.onThread(self.dome.stop)
         self.guider.stop()
-        self.flatlamp.onThread(self.flatlamp.stop)
-        self.calibration.onThread(self.calibration.stop)
         time.sleep(5)
-    
+
     def _shutdown_procedure(self, calibration, cooler=True):
         """
         Description
