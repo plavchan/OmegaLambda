@@ -110,23 +110,19 @@ class ObservationRun:
             time.sleep(10)
             cooler = True if self.conditions.sun else False
             self._shutdown_procedure(calibration=calibration, cooler=cooler)
-            if (self.current_ticket == self.observation_request_list[-1] or self.current_ticket is None) \
-                    and (self.observation_request_list[-1].end_time < datetime.datetime.now(self.tz)
-                         + datetime.timedelta(minutes=30)):
-                logging.info('Close to end time of final ticket.  Stopping the code.')
-                self.stop_threads()
-                return False
+            time.sleep(self.config_dict.min_reopen_time * 60)
             if self.conditions.sun:
                 sunset_time = conversion_utils.get_sunset(datetime.datetime.now(self.tz),
                                                           self.config_dict.site_latitude,
                                                           self.config_dict.site_longitude)
                 logging.info('The Sun has risen above the horizon...observing will stop until the Sun sets again '
                              'at {}.'.format(sunset_time.strftime('%Y-%m-%d %H:%M:%S%z')))
-                time.sleep(60*self.config_dict.min_reopen_time)
-                sunset_epoch_milli = time_utils.datetime_to_epoch_milli_converter(sunset_time)
-                current_epoch_milli = time_utils.datetime_to_epoch_milli_converter(datetime.datetime.now(self.tz))
-                if sunset_epoch_milli > current_epoch_milli:
-                    time.sleep((sunset_epoch_milli - current_epoch_milli)/1000)
+                current_time = datetime.datetime.now(self.tz)
+                while current_time < sunset_time:
+                    current_time = datetime.datetime.now(self.tz)
+                    if current_time > self.observation_request_list[-1].end_time:
+                        return False
+                    time.sleep(self.config_dict.weather_freq * 60)
                 logging.info('The Sun should now be setting again...observing will resume shortly.')
                 if not self.conditions.weather_alert.isSet():
                     check = True
@@ -143,11 +139,12 @@ class ObservationRun:
                     print('Weather is still too poor to resume observing.')
                     self.everything_ok()
             else:
-                print("Waiting for {} minutes until possible reopen...".format(self.config_dict.min_reopen_time))
-                time.sleep(60*self.config_dict.min_reopen_time)
                 while self.conditions.weather_alert.isSet():
                     print("Still waiting for good conditions to reopen.")
-                    time.sleep(self.config_dict.weather_freq*60)
+                    current_time = datetime.datetime.now(self.tz)
+                    if current_time > self.observation_request_list[-1].end_time:
+                        return False
+                    time.sleep(self.config_dict.weather_freq * 60)
                 if not self.conditions.weather_alert.isSet():
                     check = True
                     if self.current_ticket.end_time > datetime.datetime.now(self.tz):
