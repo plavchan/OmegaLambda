@@ -106,7 +106,7 @@ class ObservationRun:
                 while current_time < sunset_time:
                     current_time = datetime.datetime.now(self.tz)
                     if current_time > self.observation_request_list[-1].end_time:
-                        return True
+                        return False
                     time.sleep(self.config_dict.weather_freq*60)
                 logging.info('The Sun should now be setting again...observing will resume shortly.')
                 if not self.conditions.weather_alert.isSet():
@@ -126,7 +126,7 @@ class ObservationRun:
                 while self.conditions.weather_alert.isSet():
                     current_time = datetime.datetime.now(self.tz)
                     if current_time > self.observation_request_list[-1].end_time:
-                        return True
+                        return False
                     time.sleep(self.config_dict.weather_freq*60)
                 if not self.conditions.weather_alert.isSet():
                     check = True
