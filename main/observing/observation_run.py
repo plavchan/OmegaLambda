@@ -124,6 +124,7 @@ class ObservationRun:
                     self.everything_ok()
             else:
                 while self.conditions.weather_alert.isSet():
+                    print("Still waiting for good conditions to reopen.")
                     current_time = datetime.datetime.now(self.tz)
                     if current_time > self.observation_request_list[-1].end_time:
                         return False
