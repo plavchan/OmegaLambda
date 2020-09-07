@@ -96,6 +96,7 @@ class ObservationRun:
 
         if self.conditions.weather_alert.isSet():
             self._shutdown_procedure()
+            time.sleep(self.config_dict.min_reopen_time * 60)
             if self.conditions.sun:
                 sunset_time = conversion_utils.get_sunset(datetime.datetime.now(self.tz),
                                                           self.config_dict.site_latitude,
@@ -122,7 +123,6 @@ class ObservationRun:
                     print('Weather is still too poor to resume observing.')
                     self.everything_ok()
             else:
-                time.sleep(60*self.config_dict.min_reopen_time)
                 while self.conditions.weather_alert.isSet():
                     current_time = datetime.datetime.now(self.tz)
                     if current_time > self.observation_request_list[-1].end_time:
