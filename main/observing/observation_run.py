@@ -95,6 +95,8 @@ class ObservationRun:
             logging.error('Hardware connection timeout: {}'.format(message))
 
         if self.conditions.weather_alert.isSet():
+            self.guider.stop_guiding()
+            time.sleep(10)
             self._shutdown_procedure()
             time.sleep(self.config_dict.min_reopen_time * 60)
             if self.conditions.sun:
@@ -216,12 +218,6 @@ class ObservationRun:
                 return
             self.crash_check('TheSkyX.exe')
             self.crash_check('ASCOMDome.exe')
-            if not self._ticket_slew(ticket):
-                return
-            if initial_shutter in (1, 3, 4):
-                self.dome.move_done.wait()
-                self.dome.shutter_done.wait()
-            self.camera.cooler_settle.wait()
 
             self.tz = ticket.start_time.tzinfo
             current_time = datetime.datetime.now(self.tz)
@@ -235,6 +231,17 @@ class ObservationRun:
                 print("the end time {} of {} observation has already passed. "
                       "Skipping to next target.".format(ticket.end_time.isoformat(), ticket.name))
                 continue
+            if not self.everything_ok():
+                if not self.conditions.weather_alert.isSet():
+                    self.shutdown()
+                return
+
+            if not self._ticket_slew(ticket):
+                return
+            if initial_shutter in (1, 3, 4):
+                self.dome.move_done.wait()
+                self.dome.shutter_done.wait()
+            self.camera.cooler_settle.wait()
 
             if not self.everything_ok():
                 if not self.conditions.weather_alert.isSet():
