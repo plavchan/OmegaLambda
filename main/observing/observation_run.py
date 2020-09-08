@@ -122,16 +122,7 @@ class ObservationRun:
                         return False
                     time.sleep(self.config_dict.weather_freq * 60)
                 logging.info('The Sun should now be setting again...observing will resume shortly.')
-                if not self.conditions.weather_alert.isSet():
-                    check = True
-                    self._startup_procedure(cooler=cooler)
-                    if self.current_ticket.end_time > datetime.datetime.now(self.tz):
-                        self._ticket_slew(self.current_ticket)
-                        if self.current_ticket.self_guide:
-                            self.guider.onThread(self.guider.guiding_procedure)
-                else:
-                    print('Weather is still too poor to resume observing.')
-                    self.everything_ok()
+
             else:
                 while self.conditions.weather_alert.isSet():
                     print("Still waiting for good conditions to reopen.")
@@ -139,13 +130,17 @@ class ObservationRun:
                     if current_time > self.observation_request_list[-1].end_time:
                         return False
                     time.sleep(self.config_dict.weather_freq * 60)
-                if not self.conditions.weather_alert.isSet():
-                    check = True
-                    self._startup_procedure(cooler=cooler)
-                    if self.current_ticket.end_time > datetime.datetime.now(self.tz):
-                        self._ticket_slew(self.current_ticket)
-                        if self.current_ticket.self_guide:
-                            self.guider.onThread(self.guider.guiding_procedure)
+
+            if not self.conditions.weather_alert.isSet():
+                check = True
+                self._startup_procedure(cooler=cooler)
+                if self.current_ticket.end_time > datetime.datetime.now(self.tz):
+                    self._ticket_slew(self.current_ticket)
+                    if self.current_ticket.self_guide:
+                        self.guider.onThread(self.guider.guiding_procedure)
+            else:
+                print('Weather is still too poor to resume observing.')
+                self.everything_ok()
         return check
 
     def _startup_procedure(self, cooler=True):
