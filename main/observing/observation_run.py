@@ -110,18 +110,6 @@ class ObservationRun:
                         return False
                     time.sleep(self.config_dict.weather_freq*60)
                 logging.info('The Sun should now be setting again...observing will resume shortly.')
-                if not self.conditions.weather_alert.isSet():
-                    check = True
-                    if not self.current_ticket:
-                        self.observe()
-                    elif self.current_ticket.end_time > datetime.datetime.now(self.tz):
-                        self._startup_procedure()
-                        self._ticket_slew(self.current_ticket)
-                    elif self.current_ticket != self.observation_request_list[-1]:
-                        self._startup_procedure()
-                else:
-                    print('Weather is still too poor to resume observing.')
-                    self.everything_ok()
             else:
                 while self.conditions.weather_alert.isSet():
                     print("Still waiting for good conditions to reopen.")
@@ -129,13 +117,15 @@ class ObservationRun:
                     if current_time > self.observation_request_list[-1].end_time:
                         return False
                     time.sleep(self.config_dict.weather_freq*60)
-                if not self.conditions.weather_alert.isSet():
-                    check = True
-                    if self.current_ticket.end_time > datetime.datetime.now(self.tz):
-                        self._startup_procedure()
-                        self._ticket_slew(self.current_ticket)
-                    elif self.current_ticket != self.observation_request_list[-1]:
-                        self._startup_procedure()
+
+            if not self.conditions.weather_alert.isSet():
+                check = True
+                self._startup_procedure()
+                if self.current_ticket.end_time > datetime.datetime.now(self.tz):
+                    self._ticket_slew(self.current_ticket)
+            else:
+                print('Weather is still too poor to resume observing.')
+                self.everything_ok()
         return check
 
     def _startup_procedure(self):
