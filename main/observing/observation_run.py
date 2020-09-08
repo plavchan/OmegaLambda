@@ -114,7 +114,7 @@ class ObservationRun:
                 logging.info('The Sun should now be setting again...observing will resume shortly.')
             else:
                 while self.conditions.weather_alert.isSet():
-                    print("Still waiting for good conditions to reopen.")
+                    logging.info("Still waiting for good conditions to reopen.")
                     current_time = datetime.datetime.now(self.tz)
                     if current_time > self.observation_request_list[-1].end_time:
                         return False
@@ -126,7 +126,7 @@ class ObservationRun:
                 if self.current_ticket.end_time > datetime.datetime.now(self.tz):
                     self._ticket_slew(self.current_ticket)
             else:
-                print('Weather is still too poor to resume observing.')
+                logging.info('Weather is still too poor to resume observing.')
                 self.everything_ok()
         return check
 
@@ -198,9 +198,9 @@ class ObservationRun:
         tz_0 = self.observation_request_list[0].start_time.tzinfo
         current_time = datetime.datetime.now(tz_0)
         if self.observation_request_list[0].start_time > current_time:
-            print("It is not the start time {} of {} observation, "
-                  "waiting till start time.".format(self.observation_request_list[0].start_time.isoformat(),
-                                                    self.observation_request_list[0].name))
+            logging.info("It is not the start time {} of {} observation, "
+                         "waiting till start time.".format(self.observation_request_list[0].start_time.isoformat(),
+                                                           self.observation_request_list[0].name))
             current_epoch_milli = time_utils.datetime_to_epoch_milli_converter(current_time)
             start_time_epoch_milli = time_utils.datetime_to_epoch_milli_converter(
                 self.observation_request_list[0].start_time)
