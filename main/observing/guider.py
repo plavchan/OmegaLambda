@@ -158,8 +158,7 @@ class Guider(Hardware):
             if not star:
                 logging.warning('Guider could not find a suitable guide star...waiting for next image to try again.')
                 continue
-            x_0 = self.config_dict.guider_max_move / self.config_dict.plate_scale
-            y_0 = self.config_dict.guider_max_move / self.config_dict.plate_scale
+            x_0 = y_0 = self.config_dict.guider_max_move / self.config_dict.plate_scale
             x = star[0]
             y = star[1]
             logging.debug('Guide star relative coordinates: x={}, y={}'.format(x, y))

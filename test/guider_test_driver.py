@@ -84,8 +84,7 @@ def guide_test_func(config):
         star = find_guide_star(
             r'H:\Observatory Files\Observing Sessions\2020_Data\20200819\TOI_1531-01_15.000s_R-{0:04d}.fits'.format(i + 2),
             iteration=i+2, subframe=(x_initial, y_initial))
-        x_0 = config.ticket.guider_max_move / config.ticket.plate_scale
-        y_0 = config.ticket.guider_max_move / config.ticket.plate_scale
+        x_0 = y_0 = config.ticket.guider_max_move / config.ticket.plate_scale
         x = star[0]
         y = star[1]
         print('Image number: {0:04d}'.format(i + 2))
