@@ -2,7 +2,6 @@
 import logging
 import numpy as np
 # import matplotlib.pyplot as plt
-from typing import Union, Optional, Tuple
 
 import photutils
 from astropy.io import fits
@@ -12,7 +11,7 @@ from scipy.optimize import curve_fit
 from ..IO import config_reader
 
 
-def mediancounts(image_path: str) -> float:
+def mediancounts(image_path):
     """
     Parameters
     ----------
@@ -30,8 +29,7 @@ def mediancounts(image_path: str) -> float:
     return median
     
     
-def findstars(path: str, saturation: Union[int, float], subframe: Optional[Tuple[int]] = None,
-              return_data: bool = False):
+def findstars(path, saturation, subframe=None, return_data=False):
     """
     Description
     -----------
@@ -51,9 +49,8 @@ def findstars(path: str, saturation: Union[int, float], subframe: Optional[Tuple
 
     Returns
     -------
-    Tuple
-        Returns a tuple with the first element being a list of stars where each star is a tuple with
-        (x position, y position).  The second element is a list of peak count values.
+    LIST
+        List of stars, each star is a tuple with (x position, y position).
 
     """
     image = fits.getdata(path)
@@ -67,33 +64,30 @@ def findstars(path: str, saturation: Union[int, float], subframe: Optional[Tuple
         stars = []
         peaks = []
         for _ in starfound:
-            bad_pixel = False
             x_cent = starfound['x_peak'][n]
             y_cent = starfound['y_peak'][n]
             peak = image[y_cent, x_cent]
+            n += 1
             if peak >= (saturation * 2) ** 2:
-                bad_pixel = True
+                continue
             pixels = [(y_cent, x_cent + 1), (y_cent, x_cent - 1), (y_cent + 1, x_cent), (y_cent - 1, x_cent)]
             for value in pixels:
                 if image[value[0], value[1]] < 1.2 * median:
-                    bad_pixel = True
-            if bad_pixel:
-                n += 1
-                continue
+                    continue
             star = (x_cent, y_cent)
             stars.append(star)
             peaks.append(peak)
-            n += 1
     else:
         config_dict = config_reader.get_config()
         r = config_dict.guider_max_move / config_dict.plate_scale
         x_cent = subframe[0]
         y_cent = subframe[1]
-        data_subframe = data[int(y_cent - r):int(y_cent + r), int(x_cent - r):int(x_cent + r)]
-        image = image[int(y_cent - r):int(y_cent + r), int(x_cent - r):int(x_cent + r)]
+        data_subframe = data[int(y_cent-r):int(y_cent+r), int(x_cent-r):int(x_cent+r)]
+        image = image[int(y_cent-r):int(y_cent+r), int(x_cent-r):int(x_cent+r)]
         x_cent, y_cent = photutils.centroids.centroid_com(data_subframe)
         stars = [(x_cent, y_cent)]
         peaks = [10000]
+
     if not return_data:
         return stars, peaks
     else:
@@ -124,7 +118,7 @@ def gaussianfit(x, a, x0, sigma):
     return a*np.exp(-(x-x0)**2/(2*sigma**2))
 
 
-def radial_average(path: str, saturation: Union[int, float]) -> Optional[Union[int, float, np.ndarray]]:
+def radial_average(path, saturation):
     """
     Description
     -----------
@@ -139,7 +133,7 @@ def radial_average(path: str, saturation: Union[int, float]) -> Optional[Union[i
 
     Returns
     -------
-    median_fwhm : FLOAT
+    median_fwhm : INT
         The median fwhm measurement of the stars in the fits image.  If no fwhm was found, returns None.
 
     """
@@ -165,19 +159,19 @@ def radial_average(path: str, saturation: Union[int, float]) -> Optional[Union[i
                 continue
             else:
                 radialprofile = radialprofile / maximum
-            f = np.linspace(0, len(radialprofile)-1, len(radialprofile))
+            f = np.linspace(0, len(radialprofile), len(radialprofile)+1)
             mean = np.mean(radialprofile)
             sigma = np.std(radialprofile)
             try:
                 popt, pcov = curve_fit(gaussianfit, f, radialprofile, p0=[1 / (np.sqrt(2 * np.pi)), mean, sigma])
-                g = np.linspace(0, len(radialprofile)-1, 10*len(radialprofile))
+                g = np.linspace(0, len(radialprofile), 10*len(radialprofile)+1)
                 function = gaussianfit(g, *popt)
                 for x in range(len(function)):
                     if function[x] <= (1/2):
                         fwhm = 2*g[x]
                         fwhm_list.append(fwhm)
                         break
-            except RuntimeError:
+            except:
                 logging.debug("Could not find a Gaussian Fit...using whole pixel values to estimate fwhm")
                 for x in range(len(radialprofile)):
                     if radialprofile[x] <= (1/2):
