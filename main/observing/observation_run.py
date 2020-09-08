@@ -201,6 +201,26 @@ class ObservationRun:
                 return False
         return True
 
+    def check_start_time(self, ticket):
+        """
+        Checks the start time of the given ticket and waits if it has not been reached yet.
+
+        Parameters
+        ----------
+        ticket : ObservationTicket object
+
+        Returns
+        -------
+        None.
+        """
+        current_time = datetime.datetime.now(self.tz)
+        if ticket.start_time > current_time:
+            print("It is not the start time {} of {} observation, "
+                  "waiting till start time.".format(ticket.start_time.isoformat(), ticket.name))
+            current_epoch_milli = time_utils.datetime_to_epoch_milli_converter(current_time)
+            start_time_epoch_milli = time_utils.datetime_to_epoch_milli_converter(ticket.start_time)
+            time.sleep((start_time_epoch_milli - current_epoch_milli) / 1000)
+
     def observe(self):
         """
         Description
@@ -223,17 +243,7 @@ class ObservationRun:
         else:
             cooler = True
 
-        tz_0 = self.observation_request_list[0].start_time.tzinfo
-        current_time = datetime.datetime.now(tz_0)
-        if self.observation_request_list[0].start_time > current_time:
-            print("It is not the start time {} of {} observation, "
-                  "waiting till start time.".format(self.observation_request_list[0].start_time.isoformat(),
-                                                    self.observation_request_list[0].name))
-            current_epoch_milli = time_utils.datetime_to_epoch_milli_converter(current_time)
-            start_time_epoch_milli = time_utils.datetime_to_epoch_milli_converter(
-                self.observation_request_list[0].start_time)
-            time.sleep((start_time_epoch_milli - current_epoch_milli) / 1000)
-
+        self.check_start_time(self.observation_request_list[0])
         initial_shutter = self._startup_procedure(cooler)
         if initial_shutter == -1:
             return
@@ -248,14 +258,8 @@ class ObservationRun:
             self.crash_check('ASCOMDome.exe')
 
             self.tz = ticket.start_time.tzinfo
-            current_time = datetime.datetime.now(self.tz)
-            if ticket.start_time > current_time:
-                print("It is not the start time {} of {} observation, "
-                      "waiting till start time.".format(ticket.start_time.isoformat(), ticket.name))
-                current_epoch_milli = time_utils.datetime_to_epoch_milli_converter(current_time)
-                start_time_epoch_milli = time_utils.datetime_to_epoch_milli_converter(ticket.start_time)
-                time.sleep((start_time_epoch_milli - current_epoch_milli)/1000)
-            if ticket.end_time < current_time:
+            self.check_start_time(ticket)
+            if ticket.end_time < datetime.datetime.now(self.tz):
                 print("the end time {} of {} observation has already passed. "
                       "Skipping to next target.".format(ticket.end_time.isoformat(), ticket.name))
                 continue
@@ -282,10 +286,7 @@ class ObservationRun:
             print("{} out of {} exposures were taken for {}.  Moving on to next target.".format(taken, total,
                                                                                                 ticket.name))
 
-        if (self.config_dict.calibration_time == "end") and (self.calibration_toggle is True):
-            calibration = True
-        else:
-            calibration = False
+        calibration = (False, True)[(self.config_dict.calibration_time == "end") and (self.calibration_toggle is True)]
         self.shutdown(calibration)
 
     def run_ticket(self, ticket):
