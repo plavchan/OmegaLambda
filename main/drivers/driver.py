@@ -103,7 +103,7 @@ def run(obs_tickets, data=None, config=None, _filter=None, logger=None, shutdown
                     folder[i] += letter
                     os.makedirs(folder[i])
                     break
-    print('New directories for tonight\'s observing have been made!')
+    logging.info('New directories for tonight\'s observing have been made!')
     
     observation_request_list.sort(key=start_time)
     folder = alphanumeric_sort(folder)

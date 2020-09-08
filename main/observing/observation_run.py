@@ -132,7 +132,7 @@ class ObservationRun:
 
             else:
                 while self.conditions.weather_alert.isSet():
-                    print("Still waiting for good conditions to reopen.")
+                    logging.info("Still waiting for good conditions to reopen.")
                     current_time = datetime.datetime.now(self.tz)
                     if current_time > self.observation_request_list[-1].end_time:
                         return False
@@ -147,7 +147,7 @@ class ObservationRun:
                     if self.current_ticket.self_guide:
                         self.guider.onThread(self.guider.guiding_procedure)
             else:
-                print('Weather is still too poor to resume observing.')
+                logging.info('Weather is still too poor to resume observing.')
                 self.everything_ok()
         return check
 
@@ -221,8 +221,8 @@ class ObservationRun:
         """
         current_time = datetime.datetime.now(self.tz)
         if ticket.start_time > current_time:
-            print("It is not the start time {} of {} observation, "
-                  "waiting till start time.".format(ticket.start_time.isoformat(), ticket.name))
+            logging.info("It is not the start time {} of {} observation, "
+                         "waiting till start time.".format(ticket.start_time.isoformat(), ticket.name))
             current_epoch_milli = time_utils.datetime_to_epoch_milli_converter(current_time)
             start_time_epoch_milli = time_utils.datetime_to_epoch_milli_converter(ticket.start_time)
             time.sleep((start_time_epoch_milli - current_epoch_milli) / 1000)
