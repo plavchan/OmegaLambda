@@ -102,13 +102,11 @@ class ObservationRun:
             logging.error('Hardware connection timeout: {}'.format(message))
 
         if self.conditions.weather_alert.isSet():
-            if (self.config_dict.calibration_time == "end") and (self.calibration_toggle is True):
-                calibration = True
-            else:
-                calibration = False
+            calibration = (False, True)[(self.config_dict.calibration_time == "end")
+                                        and (self.calibration_toggle is True)]
             self.guider.stop_guiding()
             time.sleep(10)
-            cooler = True if self.conditions.sun else False
+            cooler = (False, True)[self.conditions.sun]
             self._shutdown_procedure(calibration=calibration, cooler=cooler)
             time.sleep(self.config_dict.min_reopen_time * 60)
             if self.conditions.sun:
@@ -126,15 +124,11 @@ class ObservationRun:
                 logging.info('The Sun should now be setting again...observing will resume shortly.')
                 if not self.conditions.weather_alert.isSet():
                     check = True
-                    if not self.current_ticket:
-                        self.observe()
-                    elif self.current_ticket.end_time > datetime.datetime.now(self.tz):
-                        self._startup_procedure(cooler=cooler)
+                    self._startup_procedure(cooler=cooler)
+                    if self.current_ticket.end_time > datetime.datetime.now(self.tz):
                         self._ticket_slew(self.current_ticket)
                         if self.current_ticket.self_guide:
                             self.guider.onThread(self.guider.guiding_procedure)
-                    elif self.current_ticket != self.observation_request_list[-1]:
-                        self._startup_procedure(cooler=cooler)
                 else:
                     print('Weather is still too poor to resume observing.')
                     self.everything_ok()
@@ -147,13 +141,11 @@ class ObservationRun:
                     time.sleep(self.config_dict.weather_freq * 60)
                 if not self.conditions.weather_alert.isSet():
                     check = True
+                    self._startup_procedure(cooler=cooler)
                     if self.current_ticket.end_time > datetime.datetime.now(self.tz):
-                        self._startup_procedure(cooler=cooler)
                         self._ticket_slew(self.current_ticket)
                         if self.current_ticket.self_guide:
                             self.guider.onThread(self.guider.guiding_procedure)
-                    elif self.current_ticket != self.observation_request_list[-1]:
-                        self._startup_procedure(cooler=cooler)
         return check
 
     def _startup_procedure(self, cooler=True):
