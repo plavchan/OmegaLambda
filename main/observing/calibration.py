@@ -84,7 +84,7 @@ class Calibration(Hardware):
         if not os.path.exists(os.path.join(self.image_directories[ticket], 'Flats_{}'.format(ticket.name))):
             os.mkdir(os.path.join(self.image_directories[ticket], 'Flats_{}'.format(ticket.name)))
         else:
-            print('Flat folder already exists!  Assuming they have been collected, & aborting flat collection.')
+            logging.info('Flat folder already exists!  Assuming they have been collected, & aborting flat collection.')
             self.flatlamp.onThread(self.flatlamp.turn_off)
             self.flatlamp.lamp_done.wait(timeout=60)
             self.flats_done.set()
@@ -123,7 +123,7 @@ class Calibration(Hardware):
             file = os.path.join(self.image_directories[ticket], 'Flats_{}'.format(ticket.name), file)
             if 'final' not in str(file):
                 os.remove(file)
-        print('Test flats removed!')
+        logging.info('Test flats removed!')
         self.flatlamp.onThread(self.flatlamp.turn_off)
         self.flatlamp.lamp_done.wait(timeout=60)
         self.flats_done.set()
@@ -160,7 +160,7 @@ class Calibration(Hardware):
         if not os.path.exists(os.path.join(self.image_directories[ticket], 'Darks_{}'.format(ticket.name))):
             os.mkdir(os.path.join(self.image_directories[ticket], 'Darks_{}'.format(ticket.name)))
         else:
-            print('Dark folder already exists!  Assuming they have been collected, & aborting dark collection...')
+            logging.info('Dark folder already exists!  Assuming they have been collected, & aborting dark collection...')
             self.darks_done.set()
             return True
         for f in filters:
