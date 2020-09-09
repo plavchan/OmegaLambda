@@ -193,7 +193,7 @@ class Conditions(threading.Thread):
                 if test_wind:
                     wind = float(test_wind.group())
                 else:
-                    wind = int(re.search(r'[+-]?\d', wind).group())
+                    wind = int(re.search(r'[+-]?\d+', wind).group())
             else:
                 logging.warning('Could not find wind from weather.com...their html may have changed.')
                 wind = 0
