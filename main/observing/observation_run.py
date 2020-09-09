@@ -25,8 +25,8 @@ class ObservationRun:
         ----------
         observation_request_list : LIST
             List of observation tickets.
-        image_directory : STR
-            Directory to which the images will be saved to.
+        image_directory : LIST
+            Directories to which the images will be saved to, matching each observation ticket.
         shutdown_toggle : BOOL
             Whether or not to shut down after finished with observations.
         calibration_toggle : BOOL
@@ -38,8 +38,8 @@ class ObservationRun:
         None.
         """
         # Basic parameters
-        self.image_directory = image_directory
         self.observation_request_list = observation_request_list
+        self.image_directories = {ticket: path for (ticket, path) in zip(observation_request_list, image_directory)}
         self.calibrated_tickets = [0] * len(observation_request_list)
         self.current_ticket = None
         self.shutdown_toggle = shutdown_toggle
@@ -98,51 +98,36 @@ class ObservationRun:
             self.guider.stop_guiding()
             time.sleep(10)
             self._shutdown_procedure()
-            if (self.current_ticket == self.observation_request_list[-1] or self.current_ticket is None) \
-                    and (self.observation_request_list[-1].end_time < datetime.datetime.now(self.tz)
-                         + datetime.timedelta(minutes=30)):
-                logging.info('Close to end time of final ticket.  Stopping the code.')
-                self.stop_threads()
-                return False
+            time.sleep(self.config_dict.min_reopen_time * 60)
             if self.conditions.sun:
                 sunset_time = conversion_utils.get_sunset(datetime.datetime.now(self.tz),
                                                           self.config_dict.site_latitude,
                                                           self.config_dict.site_longitude)
                 logging.info('The Sun has risen above the horizon...observing will stop until the Sun sets again '
                              'at {}.'.format(sunset_time.strftime('%Y-%m-%d %H:%M:%S%z')))
-                time.sleep(60*self.config_dict.min_reopen_time)
-                sunset_epoch_milli = time_utils.datetime_to_epoch_milli_converter(sunset_time)
-                current_epoch_milli = time_utils.datetime_to_epoch_milli_converter(datetime.datetime.now(self.tz))
-                if sunset_epoch_milli > current_epoch_milli:
-                    time.sleep((sunset_epoch_milli - current_epoch_milli)/1000)
-                logging.info('The Sun should now be setting again...observing will resume shortly.')
-                if not self.conditions.weather_alert.isSet():
-                    check = True
-                    if not self.current_ticket:
-                        self.observe()
-                    elif self.current_ticket.end_time > datetime.datetime.now(self.tz):
-                        self._startup_procedure()
-                        self._ticket_slew(self.current_ticket)
-                        if self.current_ticket.self_guide:
-                            self.guider.onThread(self.guider.guiding_procedure)
-                    elif self.current_ticket != self.observation_request_list[-1]:
-                        self._startup_procedure()
-                else:
-                    print('Weather is still too poor to resume observing.')
-                    self.everything_ok()
-            else:
-                time.sleep(60*self.config_dict.min_reopen_time)
-                while self.conditions.weather_alert.isSet():
+                current_time = datetime.datetime.now(self.tz)
+                while current_time < sunset_time:
+                    current_time = datetime.datetime.now(self.tz)
+                    if current_time > self.observation_request_list[-1].end_time:
+                        return False
                     time.sleep(self.config_dict.weather_freq*60)
-                if not self.conditions.weather_alert.isSet():
-                    check = True
-                    if self.current_ticket.end_time > datetime.datetime.now(self.tz):
-                        self._startup_procedure()
-                        self._ticket_slew(self.current_ticket)
-                        if self.current_ticket.self_guide:
-                            self.guider.onThread(self.guider.guiding_procedure)
-                    elif self.current_ticket != self.observation_request_list[-1]:
-                        self._startup_procedure()
+                logging.info('The Sun should now be setting again...observing will resume shortly.')
+            else:
+                while self.conditions.weather_alert.isSet():
+                    logging.info("Still waiting for good conditions to reopen.")
+                    current_time = datetime.datetime.now(self.tz)
+                    if current_time > self.observation_request_list[-1].end_time:
+                        return False
+                    time.sleep(self.config_dict.weather_freq*60)
+
+            if not self.conditions.weather_alert.isSet():
+                check = True
+                self._startup_procedure()
+                if self.current_ticket.end_time > datetime.datetime.now(self.tz):
+                    self._ticket_slew(self.current_ticket)
+            else:
+                logging.info('Weather is still too poor to resume observing.')
+                self.everything_ok()
         return check
 
     def _startup_procedure(self):
@@ -210,6 +195,17 @@ class ObservationRun:
         -------
         None.
         """
+        tz_0 = self.observation_request_list[0].start_time.tzinfo
+        current_time = datetime.datetime.now(tz_0)
+        if self.observation_request_list[0].start_time > current_time:
+            logging.info("It is not the start time {} of {} observation, "
+                         "waiting till start time.".format(self.observation_request_list[0].start_time.isoformat(),
+                                                           self.observation_request_list[0].name))
+            current_epoch_milli = time_utils.datetime_to_epoch_milli_converter(current_time)
+            start_time_epoch_milli = time_utils.datetime_to_epoch_milli_converter(
+                self.observation_request_list[0].start_time)
+            time.sleep((start_time_epoch_milli - current_epoch_milli) / 1000)
+
         initial_shutter = self._startup_procedure()
         if initial_shutter == -1:
             return
@@ -278,10 +274,10 @@ class ObservationRun:
         ticket.exp_time = [ticket.exp_time] if type(ticket.exp_time) in (int, float) else ticket.exp_time
         ticket.filter = [ticket.filter] if type(ticket.filter) is str else ticket.filter
         if ticket.self_guide:
-            self.guider.onThread(self.guider.guiding_procedure, self.image_directory)
+            self.guider.onThread(self.guider.guiding_procedure, self.image_directories[ticket])
         if ticket.cycle_filter:
             img_count = self.take_images(ticket.name, ticket.num, ticket.exp_time,
-                                         ticket.filter, ticket.end_time, self.image_directory,
+                                         ticket.filter, ticket.end_time, self.image_directories[ticket],
                                          True)
             if ticket.self_guide:
                 self.guider.stop_guiding()
@@ -293,7 +289,7 @@ class ObservationRun:
                 ticket.exp_time *= len(ticket.filter)
             for i in range(len(ticket.filter)):
                 img_count_filter = self.take_images(ticket.name, ticket.num, [ticket.exp_time[i]],
-                                                    [ticket.filter[i]], ticket.end_time, self.image_directory,
+                                                    [ticket.filter[i]], ticket.end_time, self.image_directories[ticket],
                                                     False)
                 img_count += img_count_filter
             if ticket.self_guide:
@@ -425,7 +421,7 @@ class ObservationRun:
                 self.guider = Guider(self.camera, self.telescope)
                 self.guider.start()
                 time.sleep(5)
-                self.guider.onThread(self.guider.guiding_procedure, self.image_directory)
+                self.guider.onThread(self.guider.guiding_procedure, self.image_directories[self.current_ticket])
             return True
         else:
             return False
