@@ -67,19 +67,16 @@ def findstars(path: str, saturation: Union[int, float], subframe: Optional[Tuple
         stars = []
         peaks = []
         for _ in starfound:
-            bad_pixel = False
             x_cent = starfound['x_peak'][n]
             y_cent = starfound['y_peak'][n]
             peak = image[y_cent, x_cent]
+            n += 1
             if peak >= (saturation * 2) ** 2:
-                bad_pixel = True
+                continue
             pixels = [(y_cent, x_cent + 1), (y_cent, x_cent - 1), (y_cent + 1, x_cent), (y_cent - 1, x_cent)]
             for value in pixels:
                 if image[value[0], value[1]] < 1.2 * median:
-                    bad_pixel = True
-            if bad_pixel:
-                n += 1
-                continue
+                    continue
             star = (x_cent, y_cent)
             stars.append(star)
             peaks.append(peak)

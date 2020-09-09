@@ -82,7 +82,7 @@ class Conditions(threading.Thread):
                     (rain is not None and last_rain is not None and last_rain != rain) or (radar is True) or \
                     (sun_elevation >= 0) or (cloud_cover is True):
                 self.weather_alert.set()
-                self.sun = True if sun_elevation >= 0 else False
+                self.sun = (sun_elevation >= 0)
                 message = ""
                 message += "| Humidity |" if humidity >= self.config_dict.humidity_limit else ""
                 message += "| Wind |" if wind >= self.config_dict.wind_limit else ""
@@ -177,17 +177,26 @@ class Conditions(threading.Thread):
                     requests.exceptions.HTTPError):
                 return None, None, None
 
-            humidity = re.search(r'<span data-testid="PercentageValue" class="_-_-components-src-molecule-' +
-                                 r'DaypartDetails-DetailsTable-DetailsTable--value--2YD0-">(.+?)</span>',
-                                 self.weather.text).group(1)
-            wind = re.search(r'<span data-testid="Wind" class="_-_-components-src-atom-WeatherData-Wind-Wind' +
-                             r'--windWrapper--3Ly7c undefined">(.+?)</span>', self.weather.text).group(1)
-
-            humidity = float(humidity.replace('%', ''))
-            if test_wind := re.search(r'[+-]?\d+\.\d+', wind):
-                wind = float(test_wind.group())
+            humidity = re.search(r'<span data-testid="PercentageValue" class="(.+?)' +
+                                 r'DaypartDetails-DetailsTable-DetailsTable--value(.+?)</span>',
+                                 self.weather.text)
+            if humidity:
+                humidity = float(humidity.group(2).split('>')[-1].replace('%', ''))
             else:
-                wind = int(re.search(r'[+-]?\d', wind).group())
+                logging.warning('Could not find humidity from weather.com...their html may have changed.')
+                humidity = 0
+            wind = re.search(r'<span data-testid="Wind" class="(.+?)' +
+                             r'--windWrapper--(.+?)</span>', self.weather.text)
+            if wind:
+                wind = wind.group(2).split('>')[-1]
+                test_wind = re.search(r'[+-]?\d+\.\d+', wind)
+                if test_wind:
+                    wind = float(test_wind.group())
+                else:
+                    wind = int(re.search(r'[+-]?\d+', wind).group())
+            else:
+                logging.warning('Could not find wind from weather.com...their html may have changed.')
+                wind = 0
             rain = 0
 
         with open(target_path, 'w') as file:

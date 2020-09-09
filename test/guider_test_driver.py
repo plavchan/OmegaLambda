@@ -84,8 +84,7 @@ def guide_test_func(config):
         star = find_guide_star(
             r'H:\Observatory Files\Observing Sessions\2020_Data\20200819\TOI_1531-01_15.000s_R-{0:04d}.fits'.format(i + 2),
             iteration=i+2, subframe=(x_initial, y_initial))
-        x_0 = config.ticket.guider_max_move / config.ticket.plate_scale
-        y_0 = config.ticket.guider_max_move / config.ticket.plate_scale
+        x_0 = y_0 = config.ticket.guider_max_move / config.ticket.plate_scale
         x = star[0]
         y = star[1]
         print('Image number: {0:04d}'.format(i + 2))
@@ -129,8 +128,8 @@ def guide_test_func(config):
                 print('Guide star has moved substantially between images...If the telescope did not move '
                       'suddenly, the guide star most likely has become saturated and the guider has '
                       'picked a new star.')
-                new_star = find_guide_star(r'H:\Observatory Files\Observing Sessions\2020_Data\20200819\TOI_1531-01'
-                                           r'_15.000s_R-{0:04d}.fits'.format(i + 2), 0)
+                new_star = find_guide_star(r'H:\Observatory Files\Observing Sessions\2020_Data\20200819\TOI_1531'
+                                           r'-01_15.000s_R-{0:04d}.fits'.format(i + 2), 0)
                 x_initial = new_star[0]
                 y_initial = new_star[1]
             elif jog_separation < 30:
@@ -170,7 +169,7 @@ def make_plot(x, y):
     plt.grid()
     plt.xlabel('Image #')
     plt.ylabel('Position (px)')
-    plt.savefig(r'C:\Users\GMU Observtory1\-omegalambda\test\guider_position_plot-4x.png')
+    plt.savefig(r'C:\Users\GMU Observtory1\-omegalambda\test\guider_position_plot-5x.png')
     plt.close()
 
     plt.figure()
@@ -182,12 +181,8 @@ def make_plot(x, y):
     plt.grid()
     plt.xlabel('Image #')
     plt.ylabel('Position (px)')
-    plt.savefig(r'C:\Users\GMU Observtory1\-omegalambda\test\guider_position_plot-4y.png')
-
-
-def get_rms(data):
-    data = np.asarray(data)
-    return np.sqrt(np.mean(data**2))
+    plt.savefig(r'C:\Users\GMU Observtory1\-omegalambda\test\guider_position_plot-5y.png')
+    plt.close()
 
 
 def read_file(path):
@@ -212,12 +207,7 @@ if __name__ == '__main__':
     # guide_test_func(config)
     x, y = read_file(r'C:\Users\GMU Observtory1\-omegalambda\test\guider_data.txt')
     # print(x, y)
-    # make_plot(x, y)
-    rmsx_before = get_rms(x[0:80])
-    rmsy_before = get_rms(y[0:80])
-    rmsx_after = get_rms(x[120:240])
-    rmsy_after = get_rms(y[120:240])
-    print(f'{rmsx_before=}, {rmsy_before=}, {rmsx_after=}, {rmsy_after=}')
+    make_plot(x, y)
     # time.sleep(5)
     # tel.onThread(tel.park)
     # tel.onThread(tel.disconnect)
