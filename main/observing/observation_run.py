@@ -109,11 +109,10 @@ class ObservationRun:
             logging.error('Hardware connection timeout: {}'.format(message))
 
         if self.conditions.weather_alert.isSet():
-            calibration = (False, True)[(self.config_dict.calibration_time == "end")
-                                        and (self.calibration_toggle is True)]
+            calibration = (self.config_dict.calibration_time == "end") and (self.calibration_toggle is True)
             self.guider.stop_guiding()
             time.sleep(10)
-            cooler = (False, True)[self.conditions.sun]
+            cooler = self.conditions.sun
             self._shutdown_procedure(calibration=calibration, cooler=cooler)
             time.sleep(self.config_dict.min_reopen_time * 60)
             if self.conditions.sun:
@@ -293,7 +292,7 @@ class ObservationRun:
             print("{} out of {} exposures were taken for {}.  Moving on to next target.".format(taken, total,
                                                                                                 ticket.name))
 
-        calibration = (False, True)[(self.config_dict.calibration_time == "end") and (self.calibration_toggle is True)]
+        calibration = (self.config_dict.calibration_time == "end") and (self.calibration_toggle is True)
         self.shutdown(calibration)
 
     def focus_target(self, ticket):
