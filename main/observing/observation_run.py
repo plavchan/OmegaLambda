@@ -121,7 +121,6 @@ class ObservationRun:
                         return False
                     time.sleep(self.config_dict.weather_freq * 60)
                 logging.info('The Sun should now be setting again...observing will resume shortly.')
-
             else:
                 while self.conditions.weather_alert.isSet():
                     logging.info("Still waiting for good conditions to reopen.")
