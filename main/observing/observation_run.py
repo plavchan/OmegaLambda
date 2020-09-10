@@ -330,7 +330,7 @@ class ObservationRun:
         while not self.focus_procedures.focused.isSet():
             if self.crash_check('RoboFocus.exe'):
                 self.focus_procedures.stop()
-                self.focus_procedures = FocusProcedures(self.focuser, self.camera)
+                self.focus_procedures = FocusProcedures(self.focuser, self.camera, self.conditions)
                 time.sleep(5)
                 break
             time.sleep(10)
@@ -502,7 +502,7 @@ class ObservationRun:
                 self.focus_procedures.stop_constant_focusing()
                 self.focus_procedures.onThread(self.focus_procedures.stop)
                 time.sleep(5)
-                self.focus_procedures = FocusProcedures(self.focuser, self.camera)
+                self.focus_procedures = FocusProcedures(self.focuser, self.camera, self.conditions)
                 self.focus_procedures.start()
                 time.sleep(5)
                 self.focus_procedures.onThread(self.focus_procedures.constant_focus_procedure,

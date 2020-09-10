@@ -88,7 +88,7 @@ class Conditions(threading.Thread):
                     continue
             if humidity is None or wind is None:
                 logging.warning('Could not retrieve humidity or wind values...it may be unsafe to continue observing.')
-            elif (humidity is None or humidity >= self.config_dict.humidity_limit) or \
+            if (humidity is None or humidity >= self.config_dict.humidity_limit) or \
                     (wind is None or wind >= self.config_dict.wind_limit) or \
                     (rain is not None and last_rain is not None and last_rain != rain) or \
                     (radar is True) or (sun_elevation >= 0) or (cloud_cover is True):
