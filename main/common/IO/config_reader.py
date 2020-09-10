@@ -67,7 +67,7 @@ class Config:
         focus_temperature_constant : FLOAT, optional
             Relationship between focuser steps and degrees Fahrenheit, in steps/degF.  Our default is 2 steps/degF.
         focus_adjust_frequency : FLOAT or INT, optional
-            How often the focus will adjust over the course of the night, in minutes.  Our default is 5 minutes.
+            How often the focus will adjust over the course of the night, in minutes.  Our default is 15 minutes.
         focus_max_distance : INT, optional
             Maximum distance away from the initial focus position that the focuser can move.  Our default is 100 steps.
         guiding_threshold : FLOAT, optional
