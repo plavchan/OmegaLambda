@@ -13,7 +13,7 @@ from ..common.util import filereader_utils
 
 class FocusProcedures(Hardware):
 
-    def __init__(self, focus_obj, camera_obj):
+    def __init__(self, focus_obj, camera_obj, conditions_obj):
         """
         Initializes focusprocedures as a subclass of hardware.
 
@@ -23,6 +23,8 @@ class FocusProcedures(Hardware):
             From custom focuser class.
         camera_obj : CLASS INSTANCE OBJECT of Camera
             From custom camera class.
+        conditions_obj : CLASS INSTANCE OBJECT of Conditions
+            From custom conditions class.
 
         Returns
         -------
@@ -31,8 +33,10 @@ class FocusProcedures(Hardware):
         """
         self.focuser = focus_obj
         self.camera = camera_obj
+        self.conditions = conditions_obj
         self.config_dict = config_reader.get_config()
-        self.FWHM = None
+        self.position_previous = None
+        self.temp_previous = None
        
         self.focused = threading.Event()
         self.continuous_focusing = threading.Event()
@@ -50,6 +54,15 @@ class FocusProcedures(Hardware):
         True : BOOL
         """
         return True
+
+    def get_temperature(self):
+        """
+        Returns
+        -------
+        FLOAT or INT : The temperature value as read by the conditions class.
+
+        """
+        return self.conditions.temperature
 
     def startup_focus_procedure(self, exp_time, _filter, image_path):
         """
@@ -81,7 +94,6 @@ class FocusProcedures(Hardware):
         self.focuser.onThread(self.focuser.current_position)
         time.sleep(2)
         initial_position = self.focuser.position
-        fwhm = None
         fwhm_values = []
         focus_positions = []
         i = 0
@@ -102,10 +114,13 @@ class FocusProcedures(Hardware):
             path = os.path.join(image_path, r'focuser_calibration_images', image_name)
             self.camera.onThread(self.camera.expose, exp_time, _filter, save_path=path, type="light")
             self.camera.image_done.wait()
+            time.sleep(2)
             self.focuser.onThread(self.focuser.current_position)
+            self.camera.onThread(self.camera.get_fwhm)
             time.sleep(2)
             current_position = self.focuser.position
-            fwhm = filereader_utils.radial_average(path, self.config_dict.saturation)
+            fwhm = self.camera.fwhm if self.camera.fwhm else \
+                filereader_utils.radial_average(path, self.config_dict.saturation)
             if abs(current_position - initial_position) >= self.config_dict.focus_max_distance:
                 logging.error('Focuser has stepped too far away from initial position and could not find a focus.')
                 break
@@ -117,6 +132,7 @@ class FocusProcedures(Hardware):
                 else:
                     logging.critical('Cannot focus on target')
                     break
+            errors = 0      # This way it must be 3 in a row
             self.focuser.onThread(self.focuser.set_focus_delta, self.config_dict.initial_focus_delta)
             time.sleep(2)
             if i < 5:
@@ -177,7 +193,10 @@ class FocusProcedures(Hardware):
             self.focuser.onThread(self.focuser.absolute_move, initial_position)
             self.focuser.adjusting.wait(timeout=30)
         self.focused.set()
-        self.FWHM = fwhm
+        self.focuser.onThread(self.focuser.current_position)
+        time.sleep(2)
+        self.temp_previous = self.get_temperature()
+        self.position_previous = self.focuser.position
         return
     
     def constant_focus_procedure(self, image_path):
@@ -197,45 +216,31 @@ class FocusProcedures(Hardware):
 
         """
         # Will be constantly running in the background
+        # Current focus position = initial focus position + 2 steps/degF * (Tcurrent - Tinitial)
+        # Will check & adjust once every 30 minutes (adjustable)
         self.continuous_focusing.set()
-        move = 'in'
-        focus_delta = self.config_dict.initial_focus_delta // 3
-        if focus_delta < 5:
-            focus_delta = 5
-        self.focuser.onThread(self.focuser.set_focus_delta, focus_delta)
         while self.continuous_focusing.isSet() and (self.camera.crashed.isSet() is False
                                                     and self.focuser.crashed.isSet() is False):
-            logging.debug('Continuous focusing procedure is active...')
-            for i in range(3):
-                self.camera.image_done.wait()
-            newest_image = self.get_newest_image(image_path)
-            fwhm = filereader_utils.radial_average(newest_image, self.config_dict.saturation)
-            if not self.FWHM:
-                self.FWHM = fwhm
-            if not fwhm:
-                logging.debug('Constant focusing could not find a fwhm for the recent image.  Skipping...')
+            logging.debug('Continuous focusing procedure is alive...')
+            time.sleep(self.config_dict.focus_adjust_frequency*60)
+            temp_current = self.get_temperature()
+            if temp_current is None:
                 continue
-            if abs(fwhm - self.FWHM) >= self.config_dict.quick_focus_tolerance:
-                self.focuser.onThread(self.focuser.focus_adjust, move)
-                self.focuser.adjusting.wait(timeout=10)
-            else:
+            if self.position_previous is None:
+                self.focuser.onThread(self.focuser.current_position)
+                time.sleep(2)
+                self.position_previous = self.focuser.position
                 continue
-            
-            self.camera.image_done.wait()
-            newest_image = self.get_newest_image(image_path)
-            next_fwhm = filereader_utils.radial_average(newest_image, self.config_dict.saturation)
-            if not next_fwhm or not fwhm:
-                logging.debug('Constant focusing could not find a fwhm for the recent image.  Skipping...')
+            if self.temp_previous is None:
+                self.temp_previous = temp_current
                 continue
-            if next_fwhm <= fwhm:
-                continue
-            elif next_fwhm > fwhm:
-                if move == 'in':
-                    move = 'out'
-                elif move == 'out':
-                    move = 'in'
-                self.focuser.onThread(self.focuser.focus_adjust, move)
-                self.focuser.adjusting.wait(timeout=10)
+            new_position = self.position_previous + \
+                self.config_dict.focus_temperature_constant * (temp_current - self.temp_previous)
+            if int(abs(new_position - self.position_previous)) > 0:
+                self.focuser.onThread(self.focuser.absolute_move, new_position)
+                self.focuser.adjusting.wait(timeout=30)
+                self.temp_previous = temp_current
+                self.position_previous = new_position
 
     @staticmethod
     def get_newest_image(image_path):

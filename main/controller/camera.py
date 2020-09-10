@@ -3,6 +3,7 @@ import threading
 import logging
 import pywintypes
 import win32com.client
+from typing import Optional, Union
 
 from .hardware import Hardware
 
@@ -21,6 +22,7 @@ class Camera(Hardware):
         self.cooler_settle = threading.Event()
         self.image_done = threading.Event()
         self.camera_lock = threading.Lock()
+        self.fwhm: Optional[Union[float, int]] = None
         super(Camera, self).__init__(name='Camera')
 
     def check_connection(self):
@@ -201,6 +203,19 @@ class Camera(Hardware):
         elif self.crashed.isSet():
             self.disconnect()
             return False
+
+    def get_fwhm(self):
+        """
+        Description
+        -----------
+        Sets the self.fwhm property to the FLOAT value that is the fwhm of the brightest star in
+        the newest CCD exposure.  [Cannot return due to multithreading].
+
+        Returns
+        -------
+        None.
+        """
+        self.fwhm = self.Camera.fwhm_initial
 
     def expose(self, exposure_time, filter, save_path=None, type="light"):
         """

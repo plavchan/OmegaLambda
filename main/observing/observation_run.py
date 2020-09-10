@@ -59,7 +59,7 @@ class ObservationRun:
         self.flatlamp = FlatLamp()
 
         # Initializes higher level structures - focuser, guider, and calibration
-        self.focus_procedures = FocusProcedures(self.focuser, self.camera)
+        self.focus_procedures = FocusProcedures(self.focuser, self.camera, self.conditions)
         self.calibration = Calibration(self.camera, self.flatlamp, self.image_directories)
         self.guider = Guider(self.camera, self.telescope)
 

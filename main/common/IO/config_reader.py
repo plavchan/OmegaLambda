@@ -17,7 +17,8 @@ class Config:
                  cloud_satellite: Optional[str] = None, min_reopen_time: Optional[Union[int, float]] = None,
                  plate_scale: Optional[float] = None, saturation: Optional[int] = None,
                  focus_exposure_multiplier: Optional[float] = None, initial_focus_delta: Optional[int] = None,
-                 quick_focus_tolerance: Optional[float] = None, focus_max_distance: Optional[int] = None,
+                 focus_temperature_constant: Optional[float] = None, focus_max_distance: Optional[int] = None,
+                 focus_adjust_frequency: Optional[Union[float, int]] = None,
                  guiding_threshold: Optional[float] = None, guider_ra_dampening: Optional[float] = None,
                  guider_dec_dampening: Optional[float] = None, guider_max_move: Optional[float] = None,
                  guider_angle: Optional[float] = None, data_directory: Optional[str] = None,
@@ -63,9 +64,10 @@ class Config:
             current ticket.  Our default is 0.33.
         initial_focus_delta : INT, optional
             Initial number of steps the focuser will move for each adjustment.  Our default is 15 steps.
-        quick_focus_tolerance : FLOAT, optional
-            Leniency for how far to let the focus drift before correcting over the course of the night, in
-            arcseconds. Our default is 1.25 arcseconds.
+        focus_temperature_constant : FLOAT, optional
+            Relationship between focuser steps and degrees Fahrenheit, in steps/degF.  Our default is 2 steps/degF.
+        focus_adjust_frequency : FLOAT or INT, optional
+            How often the focus will adjust over the course of the night, in minutes.  Our default is 5 minutes.
         focus_max_distance : INT, optional
             Maximum distance away from the initial focus position that the focuser can move.  Our default is 100 steps.
         guiding_threshold : FLOAT, optional
@@ -115,7 +117,8 @@ class Config:
         self.saturation = saturation
         self.focus_exposure_multiplier = focus_exposure_multiplier
         self.initial_focus_delta = initial_focus_delta
-        self.quick_focus_tolerance: float = quick_focus_tolerance/self.plate_scale
+        self.focus_temperature_constant = focus_temperature_constant
+        self.focus_adjust_frequency = focus_adjust_frequency
         # These two are converted back into pixels for use in the focuser module
         self.focus_max_distance = focus_max_distance
         self.guiding_threshold: float = guiding_threshold/self.plate_scale             # Input in arcsec, output in pixels
@@ -183,7 +186,9 @@ def _dict_to_config_object(dic: Dict) -> Config:
                      user_agent=dic['user_agent'], cloud_satellite=dic['cloud_satellite'],
                      min_reopen_time=dic['min_reopen_time'], plate_scale=dic['plate_scale'],
                      saturation=dic['saturation'], focus_exposure_multiplier=dic['focus_exposure_multiplier'],
-                     initial_focus_delta=dic['initial_focus_delta'], quick_focus_tolerance=dic['quick_focus_tolerance'],
+                     initial_focus_delta=dic['initial_focus_delta'],
+                     focus_temperature_constant=dic['focus_temperature_constant'],
+                     focus_adjust_frequency=dic['focus_adjust_frequency'],
                      focus_max_distance=dic['focus_max_distance'], guiding_threshold=dic['guiding_threshold'],
                      guider_ra_dampening=dic['guider_ra_dampening'], guider_dec_dampening=dic['guider_dec_dampening'],
                      guider_max_move=dic['guider_max_move'], guider_angle=dic['guider_angle'],
