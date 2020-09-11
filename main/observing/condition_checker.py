@@ -82,7 +82,7 @@ class Conditions(threading.Thread):
                     (rain is not None and last_rain is not None and last_rain != rain) or (radar is True) or \
                     (sun_elevation >= 0) or (cloud_cover is True):
                 self.weather_alert.set()
-                self.sun = True if sun_elevation >= 0 else False
+                self.sun = (sun_elevation >= 0)
                 message = ""
                 message += "| Humidity |" if humidity >= self.config_dict.humidity_limit else ""
                 message += "| Wind |" if wind >= self.config_dict.wind_limit else ""
@@ -193,7 +193,7 @@ class Conditions(threading.Thread):
                 if test_wind:
                     wind = float(test_wind.group())
                 else:
-                    wind = int(re.search(r'[+-]?\d', wind).group())
+                    wind = int(re.search(r'[+-]?\d+', wind).group())
             else:
                 logging.warning('Could not find wind from weather.com...their html may have changed.')
                 wind = 0
