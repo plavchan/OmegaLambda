@@ -2,6 +2,7 @@ import datetime
 import json
 import copy
 import re
+import logging
 from typing import Union, List, Any, Optional, Dict
 
 
@@ -133,29 +134,29 @@ class ObservationTicket:
         """
         check = True
         if self.ra < 0 or self.ra > 24:
-            print('Error reading ticket: ra not between 0 and 24 hrs')
+            logging.error('Error reading ticket: ra not between 0 and 24 hrs')
             check = False
         if abs(self.dec) > 90:
-            print('Error reading ticket: dec greater than +90 or less than -90...')
+            logging.error('Error reading ticket: dec greater than +90 or less than -90...')
             check = False
         if type(self.start_time) is not datetime.datetime:
-            print('Error reading ticket: start time formatting error...')
+            logging.error('Error reading ticket: start time formatting error...')
             check = False
         if type(self.end_time) is not datetime.datetime:
-            print('Error reading ticket: end time formatting error...')
+            logging.error('Error reading ticket: end time formatting error...')
             check = False
         if self.num <= 0:
-            print('Error reading ticket: num must be > 0.')
+            logging.error('Error reading ticket: num must be > 0.')
             check = False
         if self.exp_time:
             e_times = [self.exp_time] if type(self.exp_time) in (int, float) else self.exp_time
             filts = [self.filter] if type(self.filter) is str else self.filter
             for num in e_times:
                 if num < 0.001:
-                    print('Error reading ticket: exp_time must be >= 0.001')
+                    logging.error('Error reading ticket: exp_time must be >= 0.001')
                     check = False
             if len(e_times) > 1 and (len(e_times) != len(filts)):
-                print('Error: number of filters and number of exposure times must match!')
+                logging.error('Number of filters and number of exposure times must match!')
                 check = False
         return check
 

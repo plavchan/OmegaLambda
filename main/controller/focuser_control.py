@@ -44,7 +44,7 @@ class Focuser(Hardware):
         logging.info('Checking connection for the {}'.format(self.label))
         self.live_connection.clear()
         if self.ser.is_open:
-            print("Focuser has successfully connected")
+            logging.info("Focuser has successfully connected")
             self.live_connection.set()
             return True
         else:

@@ -189,7 +189,7 @@ def radial_average(path: str, saturation: Union[int, float]) -> Optional[Union[i
     if fwhm_list:
         fwhm_med = np.median(fwhm_list)
     else:
-        print('No fwhm calculations can be made from the image')
+        logging.warning('No fwhm calculations can be made from the image')
         return None
 
     return fwhm_med

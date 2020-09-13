@@ -140,7 +140,7 @@ def read_ticket(ticket):
         logging.critical('Error reading observation ticket')
         return
     else:
-        print('Observation ticket has been read')
+        logging.info('Observation ticket has been read')
         return object_reader.ticket
 
 
