@@ -68,11 +68,11 @@ class ObservationRun:
         self.config_dict = config_reader.get_config()
 
         # Starts the threads
+        self.focuser.start()        # Must be started first so that it may check all available COM ports for robofocus
         self.conditions.start()
         self.camera.start()
         self.telescope.start()
         self.dome.start()
-        self.focuser.start()
         self.focus_procedures.start()
         self.flatlamp.start()
         self.calibration.start()
@@ -319,21 +319,12 @@ class ObservationRun:
             logging.error('Filter argument is wrong type')
             return
         focus_exposure = self.config_dict.focus_exposure_multiplier*focus_exp
-        if focus_exposure <= 0.001:
+        if focus_exposure < 0.001:
             focus_exposure = 0.001
-        elif focus_exposure >= 30:
+        elif focus_exposure > 30:
             focus_exposure = 30
-        if self.crash_check('RoboFocus.exe'):
-            time.sleep(10)
         self.focus_procedures.onThread(self.focus_procedures.startup_focus_procedure, focus_exposure,
                                        self.filterwheel_dict[focus_filter], self.image_directories[ticket])
-        while not self.focus_procedures.focused.isSet():
-            if self.crash_check('RoboFocus.exe'):
-                self.focus_procedures.stop()
-                self.focus_procedures = FocusProcedures(self.focuser, self.camera, self.conditions)
-                time.sleep(5)
-                break
-            time.sleep(10)
 
     def run_ticket(self, ticket):
         """
@@ -445,7 +436,6 @@ class ObservationRun:
             
             if self.crash_check('MaxIm_DL.exe'):
                 continue
-            self.crash_check('RoboFocus.exe')
             
             if cycle_filter:
                 if names_list:
@@ -480,7 +470,7 @@ class ObservationRun:
 
         """
         prog_dict = {'MaxIm_DL.exe': [self.camera, Camera], 'TheSkyX.exe': [self.telescope, Telescope],
-                     'ASCOMDome.exe': [self.dome, Dome], 'RoboFocus.exe': [self.focuser, Focuser]}
+                     'ASCOMDome.exe': [self.dome, Dome]}
         if program not in prog_dict.keys():
             logging.error('Unrecognized program name to perform a crash check for.')
             return False
@@ -498,15 +488,6 @@ class ObservationRun:
             prog_dict[program][0] = prog_dict[program][1]()
             prog_dict[program][0].start()
             time.sleep(5)
-            if program in ('MaxIm_DL.exe', 'RoboFocus.exe'):
-                self.focus_procedures.stop_constant_focusing()
-                self.focus_procedures.onThread(self.focus_procedures.stop)
-                time.sleep(5)
-                self.focus_procedures = FocusProcedures(self.focuser, self.camera, self.conditions)
-                self.focus_procedures.start()
-                time.sleep(5)
-                self.focus_procedures.onThread(self.focus_procedures.constant_focus_procedure,
-                                               self.image_directories[self.current_ticket])
             if program in ('MaxIm_DL.exe', 'TheSkyX.exe') and self.current_ticket.self_guide is True:
                 self.guider.stop_guiding()
                 self.guider.onThread(self.guider.stop)

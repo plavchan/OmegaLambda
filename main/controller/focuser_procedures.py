@@ -59,10 +59,12 @@ class FocusProcedures(Hardware):
         """
         Returns
         -------
-        FLOAT or INT : The temperature value as read by the conditions class.
-
+        FLOAT or INT : The temperature value as read by the focuser class.
         """
-        return self.conditions.temperature
+        self.focuser.onThread(self.focuser.get_temperature)
+        self.focuser.adjusting.wait()
+        time.sleep(1)
+        return self.focuser.temperature
 
     def startup_focus_procedure(self, exp_time, _filter, image_path):
         """
@@ -87,11 +89,11 @@ class FocusProcedures(Hardware):
         """
         self.focused.clear()
         
-        if not os.path.exists(os.path.join(image_path, r'focuser_calibration_images')):
-            os.mkdir(os.path.join(image_path, r'focuser_calibration_images'))
+        if not os.path.exists(os.path.join(image_path, r'focuser_images')):
+            os.mkdir(os.path.join(image_path, r'focuser_images'))
         # Creates new sub-directory for focuser images
-        self.focuser.onThread(self.focuser.set_focus_delta, self.config_dict.initial_focus_delta)
         self.focuser.onThread(self.focuser.current_position)
+        self.focuser.adjusting.wait()
         time.sleep(2)
         initial_position = self.focuser.position
         fwhm_values = []
@@ -133,23 +135,22 @@ class FocusProcedures(Hardware):
                     logging.critical('Cannot focus on target')
                     break
             errors = 0      # This way it must be 3 in a row
-            self.focuser.onThread(self.focuser.set_focus_delta, self.config_dict.initial_focus_delta)
-            time.sleep(2)
             if i < 5:
                 if i == 0:
-                    self.focuser.onThread(self.focuser.set_focus_delta, self.config_dict.initial_focus_delta*2)
-                    time.sleep(5)
-                self.focuser.onThread(self.focuser.focus_adjust, "in")
-                self.focuser.adjusting.wait(timeout=10)
+                    self.focuser.onThread(self.focuser.move_in, self.config_dict.initial_focus_delta*2)
+                    self.focuser.adjusting.wait(timeout=10)
+                else:
+                    self.focuser.onThread(self.focuser.move_in, self.config_dict.initial_focus_delta)
+                    self.focuser.adjusting.wait(timeout=10)
             elif i == 5:
                 self.focuser.onThread(self.focuser.absolute_move,
                                       int(initial_position + self.config_dict.initial_focus_delta*2))
                 time.sleep(5)
                 self.focuser.adjusting.wait(timeout=30)
             elif i > 5:
-                self.focuser.onThread(self.focuser.focus_adjust, "out")
+                self.focuser.onThread(self.focuser.move_out, self.config_dict.initial_focus_delta)
                 self.focuser.adjusting.wait(timeout=10)
-            logging.debug('Found fwhm={} for the last image'.format(fwhm))
+            logging.debug('Found fwhm = {} for the last image'.format(fwhm))
             fwhm_values.append(fwhm)
             focus_positions.append(current_position)
             i += 1
@@ -199,16 +200,11 @@ class FocusProcedures(Hardware):
         self.position_previous = self.focuser.position
         return
     
-    def constant_focus_procedure(self, image_path):
+    def constant_focus_procedure(self):
         """
         Description
         -----------
         Automated focusing procedure to be used while taking science images.
-
-        Parameters
-        ----------
-        image_path : STR
-            File path to image folder.
 
         Returns
         -------
@@ -221,9 +217,10 @@ class FocusProcedures(Hardware):
         self.continuous_focusing.set()
         while self.continuous_focusing.isSet() and (self.camera.crashed.isSet() is False
                                                     and self.focuser.crashed.isSet() is False):
+            time.sleep(self.config_dict.focus_adjust_frequency * 60)
             logging.debug('Continuous focusing procedure is alive...')
-            time.sleep(self.config_dict.focus_adjust_frequency*60)
-            temp_current = self.get_temperature()
+            temp = self.get_temperature()
+            temp_current = temp if temp else self.conditions.temperature
             if temp_current is None:
                 continue
             if self.position_previous is None:
@@ -236,11 +233,16 @@ class FocusProcedures(Hardware):
                 continue
             new_position = self.position_previous + \
                 self.config_dict.focus_temperature_constant * (temp_current - self.temp_previous)
-            if int(abs(new_position - self.position_previous)) > 0:
-                self.focuser.onThread(self.focuser.absolute_move, new_position)
-                self.focuser.adjusting.wait(timeout=30)
+            pos_diff = int(new_position - self.position_previous)
+            func = self.focuser.move_in if pos_diff < 0 else self.focuser.move_out if pos_diff > 0 else None
+            if not func:
                 self.temp_previous = temp_current
                 self.position_previous = new_position
+                continue
+            self.focuser.onThread(func, abs(pos_diff))
+            self.focuser.adjusting.wait(timeout=15)
+            self.temp_previous = temp_current
+            self.position_previous = new_position
 
     @staticmethod
     def get_newest_image(image_path):
