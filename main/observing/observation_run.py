@@ -342,7 +342,7 @@ class ObservationRun:
             The total number of images that are specified on the
             observation ticket.
         """
-        self.focus_procedures.onThread(self.focus_procedures.constant_focus_procedure, self.image_directories[ticket])
+        self.focus_procedures.onThread(self.focus_procedures.constant_focus_procedure)
         ticket.exp_time = [ticket.exp_time] if type(ticket.exp_time) in (int, float) else ticket.exp_time
         ticket.filter = [ticket.filter] if type(ticket.filter) is str else ticket.filter
         if ticket.self_guide:
