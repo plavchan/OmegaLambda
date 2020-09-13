@@ -17,6 +17,7 @@
 	"focus_exposure_multiplier": 0.33,
 	"initial_focus_delta": 15,
 	"focus_temperature_constant": 2,
+	"focus_iterations": 11,
 	"focus_adjust_frequency": 15,
 	"focus_max_distance": 120,
 	"guiding_threshold": 0.1,

@@ -325,6 +325,7 @@ class ObservationRun:
             focus_exposure = 30
         self.focus_procedures.onThread(self.focus_procedures.startup_focus_procedure, focus_exposure,
                                        self.filterwheel_dict[focus_filter], self.image_directories[ticket])
+        self.focus_procedures.focused.wait()
 
     def run_ticket(self, ticket):
         """
@@ -604,7 +605,7 @@ class ObservationRun:
         self.telescope.onThread(self.telescope.park)
         self.dome.onThread(self.dome.park)
         self.dome.onThread(self.dome.move_shutter, 'close')
-        time.sleep(1)
+        time.sleep(2)
         self.telescope.slew_done.wait()
         self.dome.move_done.wait()
         self.dome.shutter_done.wait()

@@ -18,7 +18,7 @@ class Config:
                  plate_scale: Optional[float] = None, saturation: Optional[int] = None,
                  focus_exposure_multiplier: Optional[float] = None, initial_focus_delta: Optional[int] = None,
                  focus_temperature_constant: Optional[float] = None, focus_max_distance: Optional[int] = None,
-                 focus_adjust_frequency: Optional[Union[float, int]] = None,
+                 focus_iterations: Optional[int] = None, focus_adjust_frequency: Optional[Union[float, int]] = None,
                  guiding_threshold: Optional[float] = None, guider_ra_dampening: Optional[float] = None,
                  guider_dec_dampening: Optional[float] = None, guider_max_move: Optional[float] = None,
                  guider_angle: Optional[float] = None, data_directory: Optional[str] = None,
@@ -66,6 +66,8 @@ class Config:
             Initial number of steps the focuser will move for each adjustment.  Our default is 15 steps.
         focus_temperature_constant : FLOAT, optional
             Relationship between focuser steps and degrees Fahrenheit, in steps/degF.  Our default is 2 steps/degF.
+        focus_iterations : INT, optional
+            The total number of exposures to take at the beginning of the night while focusing.  Our default is 11.
         focus_adjust_frequency : FLOAT or INT, optional
             How often the focus will adjust over the course of the night, in minutes.  Our default is 15 minutes.
         focus_max_distance : INT, optional
@@ -118,6 +120,7 @@ class Config:
         self.focus_exposure_multiplier = focus_exposure_multiplier
         self.initial_focus_delta = initial_focus_delta
         self.focus_temperature_constant = focus_temperature_constant
+        self.focus_iterations = focus_iterations
         self.focus_adjust_frequency = focus_adjust_frequency
         # These two are converted back into pixels for use in the focuser module
         self.focus_max_distance = focus_max_distance
@@ -188,7 +191,7 @@ def _dict_to_config_object(dic: Dict) -> Config:
                      saturation=dic['saturation'], focus_exposure_multiplier=dic['focus_exposure_multiplier'],
                      initial_focus_delta=dic['initial_focus_delta'],
                      focus_temperature_constant=dic['focus_temperature_constant'],
-                     focus_adjust_frequency=dic['focus_adjust_frequency'],
+                     focus_iterations=dic['focus_iterations'], focus_adjust_frequency=dic['focus_adjust_frequency'],
                      focus_max_distance=dic['focus_max_distance'], guiding_threshold=dic['guiding_threshold'],
                      guider_ra_dampening=dic['guider_ra_dampening'], guider_dec_dampening=dic['guider_dec_dampening'],
                      guider_max_move=dic['guider_max_move'], guider_angle=dic['guider_angle'],

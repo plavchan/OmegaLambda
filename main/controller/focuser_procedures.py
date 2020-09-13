@@ -101,7 +101,7 @@ class FocusProcedures(Hardware):
         i = 0
         errors = 0
         crash_loops = 0
-        while i < 11:
+        while i < self.config_dict.focus_iterations:
             if self.camera.crashed.isSet() or self.focuser.crashed.isSet():
                 if crash_loops <= 4:
                     logging.warning('The camera or focuser has crashed...waiting for potential recovery.')
@@ -113,7 +113,7 @@ class FocusProcedures(Hardware):
                                   'cannot continue.')
                     break
             image_name = '{0:s}_{1:.3f}s-{2:04d}.fits'.format('FocuserImage', exp_time, i + 1)
-            path = os.path.join(image_path, r'focuser_calibration_images', image_name)
+            path = os.path.join(image_path, r'focuser_images', image_name)
             self.camera.onThread(self.camera.expose, exp_time, _filter, save_path=path, type="light")
             self.camera.image_done.wait()
             time.sleep(2)
@@ -135,19 +135,19 @@ class FocusProcedures(Hardware):
                     logging.critical('Cannot focus on target')
                     break
             errors = 0      # This way it must be 3 in a row
-            if i < 5:
+            if i < self.config_dict.focus_iterations // 2:
                 if i == 0:
                     self.focuser.onThread(self.focuser.move_in, self.config_dict.initial_focus_delta*2)
                     self.focuser.adjusting.wait(timeout=10)
                 else:
                     self.focuser.onThread(self.focuser.move_in, self.config_dict.initial_focus_delta)
                     self.focuser.adjusting.wait(timeout=10)
-            elif i == 5:
+            elif i == self.config_dict.focus_iterations // 2:
                 self.focuser.onThread(self.focuser.absolute_move,
                                       int(initial_position + self.config_dict.initial_focus_delta*2))
                 time.sleep(5)
                 self.focuser.adjusting.wait(timeout=30)
-            elif i > 5:
+            elif i > self.config_dict.focus_iterations // 2:
                 self.focuser.onThread(self.focuser.move_out, self.config_dict.initial_focus_delta)
                 self.focuser.adjusting.wait(timeout=10)
             logging.debug('Found fwhm = {} for the last image'.format(fwhm))
@@ -183,7 +183,7 @@ class FocusProcedures(Hardware):
                 logging.info('The theoretical minimum focus was calculated to be at position {}'.format(minfocus))
                 if abs(initial_position - minfocus) <= self.config_dict.focus_max_distance:
                     self.focuser.adjusting.wait(timeout=10)
-                    self.focuser.onThread(self.focuser.absolute_move, minfocus)
+                    self.focuser.onThread(self.focuser.absolute_move, int(minfocus[0]))
                     self.focuser.adjusting.wait(timeout=30)
                 else:
                     fit_status = False

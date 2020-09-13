@@ -21,6 +21,7 @@ class Focuser(Hardware):
         None.
 
         """
+        super(Focuser, self).__init__(name='Focuser')      # calls Hardware.__init__ with the name 'focuser'
         self.ser = serial.Serial(timeout=0.5)
         self.ser.baudrate = 9600
         self.adjusting = threading.Event()
@@ -28,7 +29,6 @@ class Focuser(Hardware):
         self.config_dict = config_reader.get_config()
         self.position = None
         self.temperature = None
-        super(Focuser, self).__init__(name='Focuser')      # calls Hardware.__init__ with the name 'focuser'
 
     def check_connection(self):
         """
@@ -43,7 +43,7 @@ class Focuser(Hardware):
         """
         logging.info('Checking connection for the {}'.format(self.label))
         self.live_connection.clear()
-        if self.ser.is_open():
+        if self.ser.is_open:
             print("Focuser has successfully connected")
             self.live_connection.set()
             return True
@@ -208,7 +208,7 @@ class Focuser(Hardware):
         """
         with self.adjustment_lock:
             self.adjusting.clear()
-            if abs(abs_position - self.position) >= self.config_dict.focus_max_distance:
+            if abs(abs_position - self.position) >= self.config_dict.focus_max_distance*2:
                 logging.error('Absolute move amount outside of safe movement range for focusing')
                 return False
             zeros = "0" * (6 - len(str(abs_position)))

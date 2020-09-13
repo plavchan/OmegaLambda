@@ -215,7 +215,7 @@ class Camera(Hardware):
         -------
         None.
         """
-        self.fwhm = self.Camera.fwhm_initial
+        self.fwhm = self.Camera.fwhm
 
     def expose(self, exposure_time, filter, save_path=None, type="light"):
         """
