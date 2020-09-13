@@ -102,7 +102,7 @@ class Focuser(Hardware):
             try:
                 self.ser.write("FT000000".encode())
                 response = self.ser.readline()
-                temp = self._convert_response_to_int(response)/2 - 273
+                temp = (self._convert_response_to_int(response)/2 - 273)*(9/5) + 32
             except SerialException:
                 logging.error('Could not read temperature')
             self.adjusting.set()

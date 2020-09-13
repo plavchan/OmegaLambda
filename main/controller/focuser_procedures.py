@@ -219,8 +219,7 @@ class FocusProcedures(Hardware):
                                                     and self.focuser.crashed.isSet() is False):
             time.sleep(self.config_dict.focus_adjust_frequency * 60)
             logging.debug('Continuous focusing procedure is alive...')
-            temp = self.get_temperature()
-            temp_current = temp if temp else self.conditions.temperature
+            temp_current = self.conditions.temperature
             if temp_current is None:
                 continue
             if self.position_previous is None:
