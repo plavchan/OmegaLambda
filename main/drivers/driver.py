@@ -2,6 +2,7 @@ import os
 import logging
 import string
 import re
+import itertools
 from json.decoder import JSONDecodeError
 
 from ...logger.logger import Logger
@@ -98,9 +99,11 @@ def run(obs_tickets, data=None, config=None, _filter=None, logger=None, shutdown
         if occurrences < 2 and not os.path.exists(folder[i]):
             os.makedirs(folder[i])
         else:  # If occurrences >= 2 or os.path.exists(folder[i])
-            for letter in string.ascii_letters:
-                if not os.path.exists(folder[i] + letter):
-                    folder[i] += letter
+            suffixes = infinite_alphabet()
+            while True:
+                suffix = next(suffixes)
+                if not os.path.exists(folder[i] + suffix):
+                    folder[i] += suffix
                     os.makedirs(folder[i])
                     break
     logging.info('New directories for tonight\'s observing have been made!')
@@ -156,6 +159,21 @@ def start_time(ticket_object):
 
     """
     return ticket_object.start_time
+
+
+def infinite_alphabet():
+    """
+    Yields
+    -------
+    Lowercase ascii letters of every permutation in every length.
+    """
+    length = 1
+    while True:
+        generator = itertools.product(string.ascii_lowercase, repeat=length)
+        for item in generator:
+            yield ''.join(item)
+        length += 1
+
 
 def alphanumeric_sort(_list):
     """
