@@ -80,7 +80,6 @@ def findstars(path: str, saturation: Union[int, float], subframe: Optional[Tuple
             star = (x_cent, y_cent)
             stars.append(star)
             peaks.append(peak)
-            n += 1
     else:
         config_dict = config_reader.get_config()
         r = config_dict.guider_max_move / config_dict.plate_scale
