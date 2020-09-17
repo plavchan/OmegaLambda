@@ -114,6 +114,8 @@ class ObservationRun:
             time.sleep(10)
             cooler = self.conditions.sun
             self._shutdown_procedure(calibration=calibration, cooler=cooler)
+            logging.info("Sleeping for {} minutes, then weather checks will resume to attempt "
+                         "a possible re-open.".format(self.config_dict.min_reopen_time))
             time.sleep(self.config_dict.min_reopen_time * 60)
             if self.conditions.sun:
                 sunset_time = conversion_utils.get_sunset(datetime.datetime.now(self.tz),
