@@ -4,11 +4,24 @@ import logging
 import time
 import threading
 import numpy as np
+from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
 
 from .hardware import Hardware
 from ..common.IO import config_reader
 from ..common.util import filereader_utils
+
+
+def standard_parabola(x, a, b, c):
+    """
+    A standard parabola function for scipy.optimize to fit.
+
+    Returns
+    -------
+    FLOAT:
+        a + bx + cx^2
+    """
+    return a + b*x + c*x**2
 
 
 class FocusProcedures(Hardware):
@@ -160,9 +173,9 @@ class FocusProcedures(Hardware):
         y = [_[1] for _ in data]
         if fit_status := (len(x) >= 3 and len(y) >= 3):
             med = np.median(x)
-            fit = np.polyfit(x, y, 2)
+            fit, _ = curve_fit(standard_parabola, x, y, bounds=([-np.inf, -np.inf, 1e-5], [np.inf, np.inf, np.inf]))
             xfit = np.linspace(med - 50, med + 50, 100)
-            yfit = fit[0]*(xfit**2) + fit[1]*xfit + fit[2]
+            yfit = fit[2]*(xfit**2) + fit[1]*xfit + fit[0]
             fig, ax = plt.subplots()
             ax.plot(x, y, 'bo', label='Raw data')
             ax.plot(xfit, yfit, 'r-', label='Parabolic fit')
@@ -175,8 +188,8 @@ class FocusProcedures(Hardware):
             target_path = os.path.abspath(os.path.join(current_path, r'../../test/FocusPlot.png'))
             plt.savefig(target_path)
 
-            minindex = np.where(yfit == min(yfit))
-            if (minindex == np.where(yfit == yfit[0])) or (minindex == np.where(yfit == yfit[-1])):
+            minindex = np.where(yfit == min(yfit))[0][0]
+            if np.any(np.isin(minindex, [np.where(yfit == yfit[0]), np.where(yfit == yfit[-1])])):
                 fit_status = False
             else:
                 minfocus = np.round(xfit[minindex])
