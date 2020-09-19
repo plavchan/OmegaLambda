@@ -113,6 +113,7 @@ class FocusProcedures(Hardware):
         initial_position = self.focuser.position
         fwhm_values = []
         focus_positions = []
+        peaks = []
         i = 0
         errors = 0
         crash_loops = 0
@@ -136,8 +137,9 @@ class FocusProcedures(Hardware):
             self.camera.onThread(self.camera.get_fwhm)
             time.sleep(2)
             current_position = self.focuser.position
-            fwhm = self.camera.fwhm if self.camera.fwhm else \
-                filereader_utils.radial_average(path, self.config_dict.saturation)
+            fwhm_test, peak = filereader_utils.radial_average(path, self.config_dict.saturation)
+            fwhm = self.camera.fwhm if self.camera.fwhm and (0 < peak < self.config_dict.saturation * 1.5) else \
+                fwhm_test
             if abs(current_position - initial_position) >= self.config_dict.focus_max_distance:
                 logging.error('Focuser has stepped too far away from initial position and could not find a focus.')
                 break
@@ -151,15 +153,11 @@ class FocusProcedures(Hardware):
                     break
             errors = 0      # This way it must be 3 in a row
             if i < self.config_dict.focus_iterations // 2:
-                if i == 0:
-                    self.focuser.onThread(self.focuser.move_in, self.config_dict.initial_focus_delta*2)
-                    self.focuser.adjusting.wait(timeout=10)
-                else:
-                    self.focuser.onThread(self.focuser.move_in, self.config_dict.initial_focus_delta)
-                    self.focuser.adjusting.wait(timeout=10)
+                self.focuser.onThread(self.focuser.move_in, self.config_dict.initial_focus_delta)
+                self.focuser.adjusting.wait(timeout=10)
             elif i == self.config_dict.focus_iterations // 2:
                 self.focuser.onThread(self.focuser.absolute_move,
-                                      int(initial_position + self.config_dict.initial_focus_delta*2))
+                                      int(initial_position + self.config_dict.initial_focus_delta))
                 time.sleep(5)
                 self.focuser.adjusting.wait(timeout=30)
             elif i > self.config_dict.focus_iterations // 2:
@@ -168,17 +166,57 @@ class FocusProcedures(Hardware):
             logging.debug('Found fwhm = {} for the last image'.format(fwhm))
             fwhm_values.append(fwhm)
             focus_positions.append(current_position)
+            peaks.append(peak)
             i += 1
         
-        data = sorted(zip(focus_positions, fwhm_values))
+        fit_status, minfocus = self.plot_focus_model(fwhm_values, focus_positions, peaks)
+        if minfocus:
+            if abs(initial_position - minfocus) <= self.config_dict.focus_max_distance:
+                logging.info('The focuser found a minimum focus at {}'.format(int(minfocus)))
+                self.focuser.adjusting.wait(timeout=10)
+                self.focuser.onThread(self.focuser.absolute_move, int(minfocus))
+                self.focuser.adjusting.wait(timeout=30)
+            else:
+                fit_status = False
+        if not fit_status:
+            logging.error('The focuser could not find a minimum focus.  Resetting to initial position.')
+            self.focuser.adjusting.wait(timeout=10)
+            self.focuser.onThread(self.focuser.absolute_move, initial_position)
+            self.focuser.adjusting.wait(timeout=30)
+
+        self.focused.set()
+        self.focuser.onThread(self.focuser.current_position)
+        time.sleep(2)
+        self.temp_previous = self.get_temperature()
+        self.position_previous = self.focuser.position
+        return
+
+    @staticmethod
+    def plot_focus_model(fwhm_values, position_values, peak_values):
+        data = sorted(zip(position_values, fwhm_values, peak_values))
+        # fwhm_deltas = np.diff(data[1], n=1)
+        # peak_deltas = np.diff(data[2], n=1)
+        # x = []
+        # y = []
+        # for i in range(len(fwhm_deltas)):
+        #     if abs(peak_deltas[i]) < 0.2*data[2][i] or abs(peak_deltas[i]) > data[2][i] \
+        #             or (peak_deltas[i] < 0 and fwhm_deltas[i] < 0) or (peak_deltas[i] > 0 and fwhm_deltas[i] > 0):
+        #         continue
+        #     else:
+        #         if i == 0:
+        #             x.append(data[0][i])
+        #             y.append(data[1][i])
+        #         x.append(data[0][i+1])
+        #         y.append(data[1][i+1])
         x = [_[0] for _ in data]
         y = [_[1] for _ in data]
+        minfocus = None
         if fit_status := (len(x) >= 3 and len(y) >= 3):
             med = np.median(x)
             fit, _ = curve_fit(standard_parabola, x, y, [5e-04, -7, 2e+04],
                                bounds=([-np.inf, -np.inf, 1e-5], [np.inf, np.inf, np.inf]))
             xfit = np.linspace(med - 75, med + 75, 126)
-            yfit = fit[2]*(xfit**2) + fit[1]*xfit + fit[0]
+            yfit = fit[2] * (xfit ** 2) + fit[1] * xfit + fit[0]
             fig, ax = plt.subplots()
             ax.plot(x, y, 'bo', label='Raw data')
             ax.plot(xfit, yfit, 'r-', label='Parabolic fit')
@@ -195,26 +233,10 @@ class FocusProcedures(Hardware):
             if np.any(np.isin(minindex, [np.where(yfit == yfit[0]), np.where(yfit == yfit[-1])])):
                 fit_status = False
             else:
-                minfocus = np.round(xfit[minindex])
+                minfocus = round(xfit[minindex])
                 logging.info('The theoretical minimum focus was calculated to be at position {}'.format(minfocus))
-                if abs(initial_position - minfocus) <= self.config_dict.focus_max_distance:
-                    self.focuser.adjusting.wait(timeout=10)
-                    self.focuser.onThread(self.focuser.absolute_move, int(minfocus[0]))
-                    self.focuser.adjusting.wait(timeout=30)
-                else:
-                    fit_status = False
-        if not fit_status:
-            logging.error('The focuser either couldn\'t fit a correct parabola to the data, or couldn\'t '
-                          'move to the calculated minimum focus position.  Resetting to initial position.')
-            self.focuser.adjusting.wait(timeout=10)
-            self.focuser.onThread(self.focuser.absolute_move, initial_position)
-            self.focuser.adjusting.wait(timeout=30)
-        self.focused.set()
-        self.focuser.onThread(self.focuser.current_position)
-        time.sleep(2)
-        self.temp_previous = self.get_temperature()
-        self.position_previous = self.focuser.position
-        return
+
+        return fit_status, minfocus
     
     def constant_focus_procedure(self):
         """

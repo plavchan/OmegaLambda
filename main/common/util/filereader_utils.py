@@ -11,6 +11,8 @@ from scipy.optimize import curve_fit
 
 from ..IO import config_reader
 
+np.warnings.filterwarnings('ignore')
+
 
 def mediancounts(image_path: str) -> float:
     """
@@ -140,8 +142,9 @@ def radial_average(path: str, saturation: Union[int, float]) -> Optional[Union[i
 
     Returns
     -------
-    median_fwhm : FLOAT
-        The median fwhm measurement of the stars in the fits image.  If no fwhm was found, returns None.
+    fwhm_final : LIST
+        The fwhm of the brightest unsaturated star in the image, or the median fwhm if all stars are saturated.
+        If no fwhm was found, returns None.
 
     """
     stars, peaks, data, stdev = findstars(path, saturation, return_data=True)
@@ -190,14 +193,18 @@ def radial_average(path: str, saturation: Union[int, float]) -> Optional[Union[i
             logging.error('Radial profile has length of 0...')
             continue
 
-    fwhm_list = [i for i in fwhm_list if i > 3]
-    if fwhm_list:
-        fwhm_med = np.median(fwhm_list)
+    fwhm_peaks = np.array((fwhm_list, peaks))
+    fwhm_peaks = np.delete(fwhm_peaks, np.where(fwhm_peaks[0, :] < 3), 1)
+    highest_peak = -1
+    for i in range(len(fwhm_peaks[0, :])):
+        if fwhm_peaks[1, highest_peak] < fwhm_peaks[1, i] <= saturation * 1.5:
+            highest_peak = i
+    if highest_peak != -1:
+        fwhm_final = fwhm_peaks[:, highest_peak]
     else:
-        logging.warning('No fwhm calculations can be made from the image')
-        return None
+        fwhm_final = [float(np.median(fwhm_peaks[0, :])), -1]
 
-    return fwhm_med
+    return fwhm_final
 
 
 """
