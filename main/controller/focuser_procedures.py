@@ -11,6 +11,8 @@ from .hardware import Hardware
 from ..common.IO import config_reader
 from ..common.util import filereader_utils
 
+np.warnings.filterwarnings('ignore')
+
 
 def standard_parabola(x, a, b, c):
     """
@@ -173,8 +175,9 @@ class FocusProcedures(Hardware):
         y = [_[1] for _ in data]
         if fit_status := (len(x) >= 3 and len(y) >= 3):
             med = np.median(x)
-            fit, _ = curve_fit(standard_parabola, x, y, bounds=([-np.inf, -np.inf, 1e-5], [np.inf, np.inf, np.inf]))
-            xfit = np.linspace(med - 50, med + 50, 100)
+            fit, _ = curve_fit(standard_parabola, x, y, [5e-04, -7, 2e+04],
+                               bounds=([-np.inf, -np.inf, 1e-5], [np.inf, np.inf, np.inf]))
+            xfit = np.linspace(med - 75, med + 75, 126)
             yfit = fit[2]*(xfit**2) + fit[1]*xfit + fit[0]
             fig, ax = plt.subplots()
             ax.plot(x, y, 'bo', label='Raw data')

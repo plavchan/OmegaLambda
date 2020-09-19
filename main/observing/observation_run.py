@@ -21,7 +21,7 @@ from .condition_checker import Conditions
 
 
 class ObservationRun:
-    def __init__(self, observation_request_list, image_directory, shutdown_toggle, calibration_toggle):
+    def __init__(self, observation_request_list, image_directory, shutdown_toggle, calibration_toggle, focus_toggle):
         """
         Initializes the observation run.
 
@@ -36,6 +36,8 @@ class ObservationRun:
         calibration_toggle : BOOL
             Whether or not to take calibration images at the specified calibration time in the configuration
             file.
+        focus_toggle : BOOL
+            Whether or not to focus on each target before beginning the observation.
 
         Returns
         -------
@@ -48,6 +50,7 @@ class ObservationRun:
         self.current_ticket = None
         self.shutdown_toggle = shutdown_toggle
         self.calibration_toggle = calibration_toggle
+        self.focus_toggle = focus_toggle
         self.tz = observation_request_list[0].start_time.tzinfo
 
         # Initializes all relevant hardware
@@ -281,7 +284,8 @@ class ObservationRun:
                 self.dome.move_done.wait()
                 self.dome.shutter_done.wait()
             self.camera.cooler_settle.wait()
-            self.focus_target(ticket)
+            if self.focus_toggle:
+                self.focus_target(ticket)
 
             if not self.everything_ok():
                 if not self.conditions.weather_alert.isSet():
