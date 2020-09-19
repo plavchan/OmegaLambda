@@ -54,7 +54,7 @@ def main():
                             'time is set to end.')
     run_driver.add_argument('--nocalibration', '-nc', action='store_false', dest='calibration',
                             help='Use this option if you do not want to take any darks and flats.')
-    run_driver.add_argument('--nofocus', '-nc', action='store_false', dest='focus',
+    run_driver.add_argument('--nofocus', '-nf', action='store_false', dest='focus',
                             help='Use this option if you do not want to perform the automatic focus procedure at the'
                                  'beginning of the night.  Continuous focusing will still be enabled.')
     run_driver.set_defaults(func=cli_run)
