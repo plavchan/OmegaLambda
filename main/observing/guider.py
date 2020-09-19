@@ -89,7 +89,7 @@ class Guider(Hardware):
         else:
             minsep = 1000
             minstar = None
-            r = self.config_dict.guider_max_move / self.config_dict.plate_scale
+            r = self.config_dict.guider_max_move / self.config_dict.plate_scale * 1.5
             for star in stars:
                 distance = np.sqrt((star[0]-r)**2 + (star[1]-r)**2)
                 if distance < minsep:
@@ -158,10 +158,11 @@ class Guider(Hardware):
             if not star:
                 logging.warning('Guider could not find a suitable guide star...waiting for next image to try again.')
                 continue
-            x_0 = y_0 = self.config_dict.guider_max_move / self.config_dict.plate_scale
+            x_0 = y_0 = self.config_dict.guider_max_move / self.config_dict.plate_scale * 1.5
             x = star[0]
             y = star[1]
             logging.debug('Guide star relative coordinates: x={}, y={}'.format(x, y))
+            logging.debug('Guide star absolute coordinates: x={}, y={}'.format(x_initial, y_initial))
             separation = np.sqrt((x - x_0)**2 + (y - y_0)**2)
             if separation >= self.config_dict.guiding_threshold:
                 xdistance = x - x_0
