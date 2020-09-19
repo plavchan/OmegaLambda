@@ -1,8 +1,6 @@
 import os
 import logging
-import string
 import re
-import itertools
 from json.decoder import JSONDecodeError
 
 from ...logger.logger import Logger
@@ -86,30 +84,21 @@ def run(obs_tickets, data=None, config=None, _filter=None, logger=None, shutdown
         observation_request_list = [ticket_object for filename in os.listdir(obs_tickets[0])
                                     if (ticket_object := read_ticket(os.path.join(obs_tickets[0], filename)))]
 
+    observation_request_list.sort(key=start_time)
     if data:
         folder = [r'{}'.format(data)]  # Reads as a raw string
     else:
-        folder = [os.path.join(config_dict.data_directory, ticket.start_time.strftime('%Y%m%d'))
+        folder = [os.path.join(config_dict.data_directory, ticket.start_time.strftime('%Y%m%d'), ticket.name)
                   for ticket in observation_request_list]
     if len(folder) != len(observation_request_list):
         raise ValueError('The length of tickets does not match with the length of folders...something has gone wrong.')
 
-    for i in range(len(folder)):
-        occurrences = folder.count(folder[i])
-        if occurrences < 2 and not os.path.exists(folder[i]):
-            os.makedirs(folder[i])
-        else:  # If occurrences >= 2 or os.path.exists(folder[i])
-            suffixes = infinite_alphabet()
-            while True:
-                suffix = next(suffixes)
-                if not os.path.exists(folder[i] + suffix):
-                    folder[i] += suffix
-                    os.makedirs(folder[i])
-                    break
+    for fol in folder:
+        if not os.path.exists(fol):
+            os.makedirs(fol)
+        else:
+            logging.debug('Folder already exists: {:s}'.format(fol))
     logging.info('New directories for tonight\'s observing have been made!')
-    
-    observation_request_list.sort(key=start_time)
-    folder = alphanumeric_sort(folder)
         
     run_object = ObservationRun(observation_request_list, folder, shutdown, calibration)
     run_object.observe()
@@ -159,20 +148,6 @@ def start_time(ticket_object):
 
     """
     return ticket_object.start_time
-
-
-def infinite_alphabet():
-    """
-    Yields
-    -------
-    Lowercase ascii letters of every permutation in every length.
-    """
-    length = 1
-    while True:
-        generator = itertools.product(string.ascii_lowercase, repeat=length)
-        for item in generator:
-            yield ''.join(item)
-        length += 1
 
 
 def alphanumeric_sort(_list):

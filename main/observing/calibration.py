@@ -107,12 +107,12 @@ class Calibration(Hardware):
                     # Calculate exposure time
                     desired = 15000
                     scale_factor = desired/median
-                    self.filter_exp_times[f] *= scale_factor
+                    self.filter_exp_times[f] = round(self.filter_exp_times[f] * scale_factor)
                     if self.filter_exp_times[f] <= 0.001:
                         self.filter_exp_times[f] = 0.001
                     scaled = True
                 elif j == 0 and median >= self.config_dict.saturation:
-                    self.filter_exp_times[f] = self.filter_exp_times[f]/2
+                    self.filter_exp_times[f] = self.filter_exp_times[f]//2
                     if self.filter_exp_times[f] <= 0.001:
                         self.filter_exp_times[f] = 0.001
                         scaled = True
