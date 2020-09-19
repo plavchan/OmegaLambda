@@ -200,7 +200,7 @@ def radial_average(path: str, saturation: Union[int, float]):
 
     highest_peak = -1
     for i in range(len(fwhm_peaks[0, :])):
-        if fwhm_peaks[1, highest_peak] < fwhm_peaks[1, i] <= saturation * 1.5:
+        if fwhm_peaks[1, highest_peak] < fwhm_peaks[1, i] <= saturation * 2:
             highest_peak = i
     if highest_peak != -1:
         fwhm_final = fwhm_peaks[:, highest_peak]

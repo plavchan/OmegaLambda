@@ -138,7 +138,7 @@ class FocusProcedures(Hardware):
             time.sleep(2)
             current_position = self.focuser.position
             fwhm_test, peak = filereader_utils.radial_average(path, self.config_dict.saturation)
-            fwhm = self.camera.fwhm if self.camera.fwhm and (peak < self.config_dict.saturation * 1.5) else \
+            fwhm = self.camera.fwhm if self.camera.fwhm and (peak < self.config_dict.saturation * 2) else \
                 fwhm_test
             if abs(current_position - initial_position) >= self.config_dict.focus_max_distance:
                 logging.error('Focuser has stepped too far away from initial position and could not find a focus.')
