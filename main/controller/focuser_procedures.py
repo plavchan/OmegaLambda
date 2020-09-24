@@ -198,7 +198,7 @@ class FocusProcedures(Hardware):
         x = [data[0][0]]
         y = [data[1][0]]
         for i in range(len(fwhm_deltas)):
-            if abs(peak_deltas[i]) > 0.2*data[2][i] and \
+            if 0.2*data[2][i] < abs(peak_deltas[i]) < 3*data[2][i] and \
                     (peak_deltas[i] < 0 and fwhm_deltas[i] < 0) or (peak_deltas[i] > 0 and fwhm_deltas[i] > 0):
                 continue
             else:
