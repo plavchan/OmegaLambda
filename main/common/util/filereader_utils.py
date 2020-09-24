@@ -127,7 +127,8 @@ def gaussianfit(x, a, x0, sigma):
     return a*np.exp(-(x-x0)**2/(2*sigma**2))
 
 
-def radial_average(path: str, saturation: Union[int, float]):
+def radial_average(path: str, saturation: Union[int, float]) -> Tuple[Optional[Union[float, int]],
+                                                                      Union[float, int], bool]:
     """
     Description
     -----------
@@ -196,19 +197,22 @@ def radial_average(path: str, saturation: Union[int, float]):
     fwhm_peaks = np.array((fwhm_list, peaks))
     fwhm_peaks = np.delete(fwhm_peaks, np.where(fwhm_peaks[0, :] < 3), 1)
     if not np.any(fwhm_peaks):
-        return None, -1
+        return None, -1, False
 
     saturated_peak = max(fwhm_peaks[1, :])
+    saturated = (saturated_peak >= saturation * 2)
     highest_peak = 0
     for i in range(len(fwhm_peaks[0, :])):
         if fwhm_peaks[1, highest_peak] < fwhm_peaks[1, i] <= saturation * 2:
             highest_peak = i
     if highest_peak != -1:
         fwhm_final = fwhm_peaks[0, highest_peak]
+        fwhm_peak = fwhm_peaks[1, highest_peak]
     else:
         fwhm_final = float(np.median(fwhm_peaks[0, :]))
+        fwhm_peak = -1
 
-    return fwhm_final, saturated_peak
+    return fwhm_final, fwhm_peak, saturated
 
 
 """

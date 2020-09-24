@@ -137,10 +137,8 @@ class FocusProcedures(Hardware):
             self.camera.onThread(self.camera.get_fwhm)
             time.sleep(2)
             current_position = self.focuser.position
-            fwhm_test, peak = filereader_utils.radial_average(path, self.config_dict.saturation)
-            # fwhm = self.camera.fwhm if self.camera.fwhm and (peak < self.config_dict.saturation * 2) else \
-            #     fwhm_test
-            fwhm = self.camera.fwhm if self.camera.fwhm else fwhm_test
+            fwhm_test, peak, saturated = filereader_utils.radial_average(path, self.config_dict.saturation)
+            fwhm = self.camera.fwhm if self.camera.fwhm and not saturated else fwhm_test
             if abs(current_position - initial_position) >= self.config_dict.focus_max_distance:
                 logging.error('Focuser has stepped too far away from initial position and could not find a focus.')
                 break
@@ -195,22 +193,19 @@ class FocusProcedures(Hardware):
     @staticmethod
     def plot_focus_model(fwhm_values, position_values, peak_values):
         data = sorted(zip(position_values, fwhm_values, peak_values))
-        # fwhm_deltas = np.diff(data[1], n=1)
-        # peak_deltas = np.diff(data[2], n=1)
-        # x = []
-        # y = []
-        # for i in range(len(fwhm_deltas)):
-        #     if abs(peak_deltas[i]) < 0.2*data[2][i] or abs(peak_deltas[i]) > data[2][i] \
-        #             or (peak_deltas[i] < 0 and fwhm_deltas[i] < 0) or (peak_deltas[i] > 0 and fwhm_deltas[i] > 0):
-        #         continue
-        #     else:
-        #         if i == 0:
-        #             x.append(data[0][i])
-        #             y.append(data[1][i])
-        #         x.append(data[0][i+1])
-        #         y.append(data[1][i+1])
-        x = [_[0] for _ in data]
-        y = [_[1] for _ in data]
+        fwhm_deltas = np.diff(data[1], n=1)
+        peak_deltas = np.diff(data[2], n=1)
+        x = [data[0][0]]
+        y = [data[1][0]]
+        for i in range(len(fwhm_deltas)):
+            if abs(peak_deltas[i]) > 0.2*data[2][i] and \
+                    (peak_deltas[i] < 0 and fwhm_deltas[i] < 0) or (peak_deltas[i] > 0 and fwhm_deltas[i] > 0):
+                continue
+            else:
+                x.append(data[0][i+1])
+                y.append(data[1][i+1])
+        # x = [_[0] for _ in data]
+        # y = [_[1] for _ in data]
         minfocus = None
         if fit_status := (len(x) >= 3 and len(y) >= 3):
             med = np.median(x)
