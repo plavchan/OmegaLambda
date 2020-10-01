@@ -150,7 +150,8 @@ class ObservationRun:
                 self._startup_procedure(cooler=cooler)
                 if self.current_ticket.end_time > datetime.datetime.now(self.tz):
                     self._ticket_slew(self.current_ticket)
-                    self.focus_target(self.current_ticket)
+                    if self.focus_toggle:
+                        self.focus_target(self.current_ticket)
                     if self.current_ticket.self_guide:
                         self.guider.onThread(self.guider.guiding_procedure)
             else:
@@ -264,8 +265,7 @@ class ObservationRun:
         for ticket in self.observation_request_list:
             self.current_ticket = ticket
             if not self.everything_ok():
-                if not self.conditions.weather_alert.isSet():
-                    self.shutdown()
+                self.shutdown()
                 return
             self.crash_check('TheSkyX.exe')
             self.crash_check('ASCOMDome.exe')
@@ -277,8 +277,7 @@ class ObservationRun:
                              "Skipping to next target.".format(ticket.end_time.isoformat(), ticket.name))
                 continue
             if not self.everything_ok():
-                if not self.conditions.weather_alert.isSet():
-                    self.shutdown()
+                self.shutdown()
                 return
 
             if not self._ticket_slew(ticket):
@@ -291,8 +290,7 @@ class ObservationRun:
                 self.focus_target(ticket)
 
             if not self.everything_ok():
-                if not self.conditions.weather_alert.isSet():
-                    self.shutdown()
+                self.shutdown()
                 return
 
             input("The program is ready to start taking images of {}.  Please take this time to "
