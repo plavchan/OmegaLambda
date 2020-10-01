@@ -15,6 +15,7 @@ from ..controller.dome import Dome
 from ..controller.focuser_control import Focuser
 from ..controller.focuser_procedures import FocusProcedures
 from ..controller.flatfield_lamp import FlatLamp
+from ..controller.focuser_gui import Gui
 from .calibration import Calibration
 from .guider import Guider
 from .condition_checker import Conditions
@@ -65,6 +66,7 @@ class ObservationRun:
         self.focus_procedures = FocusProcedures(self.focuser, self.camera, self.conditions)
         self.calibration = Calibration(self.camera, self.flatlamp, self.image_directories)
         self.guider = Guider(self.camera, self.telescope)
+        self.gui = Gui(self.focuser)
 
         # Initializes config objects
         self.filterwheel_dict = filter_wheel.get_filter().filter_position_dict()
@@ -80,6 +82,7 @@ class ObservationRun:
         self.flatlamp.start()
         self.calibration.start()
         self.guider.start()
+        self.gui.start()
 
     def everything_ok(self):
         """

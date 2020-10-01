@@ -29,6 +29,7 @@ class Focuser(Hardware):
         self.config_dict = config_reader.get_config()
         self.position = None
         self.temperature = None
+        self.comport = ''
 
     def check_connection(self):
         """
@@ -74,6 +75,7 @@ class Focuser(Hardware):
                     self.ser.write("FV000000".encode())
                     if self.ser.readline() == b'FV003.20\xbf':
                         logging.info('The focuser connected to {}'.format(comport.description))
+                        self.comport = comport.description
                         break
                     else:
                         self.ser.close()
@@ -227,6 +229,25 @@ class Focuser(Hardware):
             time.sleep(2)
             self.adjusting.set()
         return True
+
+    def abort(self):
+        """
+        Description
+        -----------
+        Aborts the focuser command by sending an arbitrary command without waiting.  The command is just to respond
+        with the firmware version number, but any commands sent during the processing of a previous command are
+        interpreted as a stop command.
+
+        Returns
+        -------
+        None
+        """
+        command = "FV000000"
+        try:
+            self.ser.write(command.encode())
+            logging.info('Aborting focuser movement')
+        except SerialException:
+            logging.error('Unable to abort focuser move!')
 
     @staticmethod
     def _convert_response_to_int(response):
