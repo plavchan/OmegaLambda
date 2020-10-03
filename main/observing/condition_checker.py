@@ -79,7 +79,7 @@ class Conditions(threading.Thread):
                                  "Shutting down for safety.")
                 continue
             elif (humidity >= self.config_dict.humidity_limit) or (wind >= self.config_dict.wind_limit) or \
-                    (rain is not None and last_rain is not None and last_rain != rain) or (radar is True) or \
+                    (rain not in (None, 0) and last_rain is not None and last_rain != rain) or (radar is True) or \
                     (sun_elevation >= 0) or (cloud_cover is True):
                 self.weather_alert.set()
                 self.sun = (sun_elevation >= 0)
