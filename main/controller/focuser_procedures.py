@@ -193,22 +193,22 @@ class FocusProcedures(Hardware):
     @staticmethod
     def plot_focus_model(fwhm_values, position_values, peak_values):
         data = sorted(zip(position_values, fwhm_values, peak_values))
-        fwhm_deltas = np.diff(data[1], n=1)
-        peak_deltas = np.diff(data[2], n=1)
-        x = []
-        y = []
-        for i in range(len(fwhm_deltas)):
-            if 0.2*data[2][i] < abs(peak_deltas[i]) < 3*data[2][i] and \
-                    (peak_deltas[i] < 0 and fwhm_deltas[i] < 0) or (peak_deltas[i] > 0 and fwhm_deltas[i] > 0):
-                continue
-            else:
-                if i == 0:
-                    x.append(data[0][i])
-                    y.append(data[1][i])
-                x.append(data[0][i+1])
-                y.append(data[1][i+1])
-        # x = [_[0] for _ in data]
-        # y = [_[1] for _ in data]
+        # fwhm_deltas = np.diff(data[1], n=1)
+        # peak_deltas = np.diff(data[2], n=1)
+        # x = []
+        # y = []
+        # for i in range(len(fwhm_deltas)):
+        #     if 0.2*data[2][i] < abs(peak_deltas[i]) < 3*data[2][i] and \
+        #             (peak_deltas[i] < 0 and fwhm_deltas[i] < 0) or (peak_deltas[i] > 0 and fwhm_deltas[i] > 0):
+        #         continue
+        #     else:
+        #         if i == 0:
+        #             x.append(data[0][i])
+        #             y.append(data[1][i])
+        #         x.append(data[0][i+1])
+        #         y.append(data[1][i+1])
+        x = [_[0] for _ in data]
+        y = [_[1] for _ in data]
         logging.debug('Position Data: {}'.format(x))
         logging.debug('FWHM Data: {}'.format(y))
         logging.debug('Peak Data: {}'.format(peak_values))
