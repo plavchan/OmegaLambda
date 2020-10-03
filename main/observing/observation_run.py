@@ -376,10 +376,10 @@ class ObservationRun:
             
             if i == 0 and os.path.exists(os.path.join(path, image_name)):
                 # Checks if images already exist (in the event of a crash)
-                for f in _filter:
+                for f, exp in zip(_filter, exp_time):
                     names_list = [0]
                     for fname in os.listdir(path):
-                        if n := re.search('{0:s}_{1:.3f}s_{2:s}-(.+?).fits'.format(name, current_exp, str(f).upper()),
+                        if n := re.search('{0:s}_{1:.3f}s_{2:s}-(.+?).fits'.format(name, exp, str(f).upper()),
                                           fname):
                             names_list.append(int(n.group(1)))
                     image_base[f] = max(names_list) + 1
