@@ -90,7 +90,7 @@ class Conditions(threading.Thread):
                 logging.warning('Could not retrieve humidity or wind values...it may be unsafe to continue observing.')
             if (humidity is None or humidity >= self.config_dict.humidity_limit) or \
                     (wind is None or wind >= self.config_dict.wind_limit) or \
-                    (rain is not None and last_rain is not None and last_rain != rain) or \
+                    (rain not in (None, 0) and last_rain is not None and last_rain != rain) or \
                     (radar is True) or (sun_elevation >= 0) or (cloud_cover is True):
                 self.weather_alert.set()
                 self.sun = (sun_elevation >= 0)
