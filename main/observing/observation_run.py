@@ -66,7 +66,7 @@ class ObservationRun:
         self.focus_procedures = FocusProcedures(self.focuser, self.camera, self.conditions)
         self.calibration = Calibration(self.camera, self.flatlamp, self.image_directories)
         self.guider = Guider(self.camera, self.telescope)
-        self.gui = Gui(self.focuser)
+        self.gui = Gui(self.focuser, self.focus_procedures, focus_toggle)
 
         # Initializes config objects
         self.filterwheel_dict = filter_wheel.get_filter().filter_position_dict()

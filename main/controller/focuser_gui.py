@@ -6,7 +6,7 @@ from ..common.IO import config_reader
 
 class Gui(threading.Thread):
 
-    def __init__(self, focus_obj):
+    def __init__(self, focus_obj, focusprocedures_obj, focus_toggle):
         """
         Description
         -----------
@@ -19,11 +19,12 @@ class Gui(threading.Thread):
             from focuser_control
 
         """
-        self.root = None
-        self.delta = None
-        self.position = None
-        self.position_text = None
+        self.root = self.delta = self.position = self.position_text = None
         self.focuser = focus_obj
+        self.focus_procedures = focusprocedures_obj
+        self.focus_toggle = focus_toggle
+
+        self.comport_var = self.comport = self.move_in = self.move_out = None
         super(Gui, self).__init__(name='Gui-Th', daemon=True)
 
     def move_in_cmd(self, amount):
@@ -79,6 +80,10 @@ class Gui(threading.Thread):
         None
         """
         self.position.set(self.focuser.position)
+        self.comport_var.set(self.focuser.comport)
+        if self.focus_procedures.focused.isSet() or not self.focus_toggle:
+            self.move_in['state'] = tk.NORMAL
+            self.move_out['state'] = tk.NORMAL
         self.position_text.after(1000, self.update_labels)
 
     def create_root(self):
@@ -93,12 +98,14 @@ class Gui(threading.Thread):
         """
         self.root = tk.Tk()
         self.root.title('Ultra Deluxe Focus Control Hub EXTREME')
-        self.root.geometry('225x130')
+        self.root.geometry('430x140')
 
         connection_text = tk.Label(self.root, text='The focuser is connected to: ')
         connection_text.grid(row=1, column=1)
-        comport = tk.Label(self.root, text=self.focuser.comport)
-        comport.grid(row=1, column=2)
+        self.comport_var = tk.StringVar()
+        self.comport_var.set(self.focuser.comport)
+        self.comport = tk.Label(self.root, textvariable=self.comport_var)
+        self.comport.grid(row=1, column=2)
 
         self.position = tk.IntVar()
         self.position.set(self.focuser.position)
@@ -112,11 +119,13 @@ class Gui(threading.Thread):
         delta_entry = tk.Entry(self.root, textvariable=self.delta, width=5)
         delta_entry.grid(row=3, column=2)
         button_frame = tk.Frame(self.root)
-        move_in = tk.Button(button_frame, text='MOVE IN', command=lambda: self.move_in_cmd(self.delta.get()))
-        move_out = tk.Button(button_frame, text='MOVE OUT', command=lambda: self.move_out_cmd(self.delta.get()))
+        self.move_in = tk.Button(button_frame, text='MOVE IN', state=tk.DISABLED,
+                            command=lambda: self.move_in_cmd(self.delta.get()))
+        self.move_out = tk.Button(button_frame, text='MOVE OUT', state=tk.DISABLED,
+                             command=lambda: self.move_out_cmd(self.delta.get()))
         button_frame.grid(row=3, column=1, sticky="nsew", pady=10, padx=20)
-        move_in.pack(side="left")
-        move_out.pack(side="right")
+        self.move_in.pack(side="left")
+        self.move_out.pack(side="right")
         abort = tk.Button(self.root, text='ABORT', command=self.abort_cmd, width=15)
         abort.grid(row=4, column=1, columnspan=2)
 
@@ -132,4 +141,5 @@ class Gui(threading.Thread):
         """
 
         self.create_root()
+        self.update_labels()
         self.root.mainloop()
