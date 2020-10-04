@@ -183,11 +183,11 @@ class Conditions(threading.Thread):
             if test_wind := re.search(r'[+-]?\d+\.\d+', conditions[3]):
                 wind = float(test_wind.group())
             else:
-                wind = 0
+                wind = None
             if test_rain := re.search(r'[+-]?\d+\.\d+', conditions[5]):
                 rain = float(test_rain.group())
             else:
-                rain = 0
+                rain = None
 
         else:
             try:

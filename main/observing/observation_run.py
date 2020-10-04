@@ -103,6 +103,7 @@ class ObservationRun:
             'Camera': self.camera,
             'Telescope': self.telescope,
             'Dome': self.dome,
+            'Focuser': self.focuser,
             'FlatLamp': self.flatlamp
         }
         message = ''
@@ -360,6 +361,7 @@ class ObservationRun:
             img_count = self.take_images(ticket.name, ticket.num, ticket.exp_time,
                                          ticket.filter, ticket.end_time, self.image_directories[ticket],
                                          True)
+            self.focus_procedures.stop_constant_focusing()
             if ticket.self_guide:
                 self.guider.stop_guiding()
             return img_count, ticket.num
@@ -373,6 +375,7 @@ class ObservationRun:
                                                     [ticket.filter[i]], ticket.end_time, self.image_directories[ticket],
                                                     False)
                 img_count += img_count_filter
+            self.focus_procedures.stop_constant_focusing()
             if ticket.self_guide:
                 self.guider.stop_guiding()
             return img_count, ticket.num * len(ticket.filter)
@@ -514,6 +517,7 @@ class ObservationRun:
         -----------
         Takes flats and darks for the current observation ticket and
         any previous ones.
+
         Parameters
         ----------
         beginning : BOOL, optional
@@ -538,6 +542,11 @@ class ObservationRun:
         Description
         -----------
         Decides whether or not to shut down, and whether or not to take calibration images.
+
+        Parameters
+        ----------
+        calibration : BOOL, optional
+            Whether or not to take calibration images. The default is False.
 
         Returns
         -------
@@ -565,9 +574,11 @@ class ObservationRun:
         self.camera.onThread(self.camera.disconnect)
         self.telescope.onThread(self.telescope.disconnect)
         self.dome.onThread(self.dome.disconnect)
+        self.focuser.onThread(self.focuser.disconnect)
         self.flatlamp.onThread(self.flatlamp.disconnect)
 
         self.conditions.stop.set()
+        self.focus_procedures.stop_constant_focusing()      # Should already be stopped, but just in case
         self.guider.stop_guiding()                          # Should already be stopped, but just in case
         self.camera.onThread(self.camera.stop)
         self.telescope.onThread(self.telescope.stop)
