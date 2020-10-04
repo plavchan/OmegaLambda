@@ -3,7 +3,7 @@ import json
 
 class Reader:
     
-    def __init__(self, path):
+    def __init__(self, path: str):
         """
         Parameters
         ----------
@@ -15,10 +15,10 @@ class Reader:
         -------
         None.
         """
-        self.path = path
+        self.path: str = path
         
         with open(self.path, 'r') as file:
             self.__dict__ = json.load(file)
         
-        self.str = json.dumps(self.__dict__['details'])
-        self.type = self.__dict__['type']
+        self.str: str = json.dumps(self.__dict__['details'])
+        self.type: str = self.__dict__['type']

@@ -41,7 +41,7 @@ class Telescope(Hardware):
             self.Telescope.Connected = True
             self.live_connection.set()
         else:
-            print("Already connected")
+            logging.info("Already connected")
 
     def _class_connect(self):
         """
@@ -64,7 +64,7 @@ class Telescope(Hardware):
             logging.error('Could not connect to the telescope')
             return False
         else:
-            print('Telescope has successfully connected')
+            logging.info('Telescope has successfully connected')
         return True
 
     def __check_coordinate_limit(self, ra, dec, time=None):
@@ -126,13 +126,13 @@ class Telescope(Hardware):
         self.slew_done.clear()
         if self.Telescope.AtPark:
             self.slew_done.set()
-            print("Telescope is at park")
+            logging.info("Telescope is at park")
             return True
         self._is_ready()
         with self.movement_lock:
             try:
                 self.Telescope.Park()
-            except Exception as exc:
+            except (AttributeError, pywintypes.com_error) as exc:
                 logging.error("Could not park telescope.  Exception: {}".format(exc))
                 return False
             time.sleep(1)
@@ -140,13 +140,13 @@ class Telescope(Hardware):
             while self.Telescope.Tracking:
                 try:
                     self.Telescope.Tracking = False
-                except Exception as exc:
+                except (AttributeError, pywintypes.com_error) as exc:
                     logging.error("Could not disable tracking.  Exception: {}".format(exc))
                 time.sleep(5)
                 t += 5
                 if t >= 25:
                     logging.critical("Failed to disable telescope tracking. "
-                                     "Gave up after {} attempts.".format(t//5))
+                                     "Gave up after {} attempts.".format(t // 5))
                     break
             logging.info('Telescope is parked, tracking off')
             self._is_ready()
@@ -167,11 +167,11 @@ class Telescope(Hardware):
             with self.movement_lock:
                 self.Telescope.Unpark()
                 self.Telescope.Tracking = True
-        except: 
-            print("ERROR: Error unparking telescope tracking")
+        except (AttributeError, pywintypes.com_error):
+            logging.error("Error unparking telescope or tracking")
             return False
         else: 
-            print("Telescope is unparked; tracking at sidereal rate")
+            logging.info("Telescope is unparked; tracking at sidereal rate")
             logging.info("Telescope is unparked, tracking on")
             return True
     
@@ -206,7 +206,7 @@ class Telescope(Hardware):
                     logging.info('Slewing to RA/Dec')
                     self.Telescope.SlewToCoordinates(ra, dec)
                     self.Telescope.Tracking = tracking
-            except:
+            except (AttributeError, pywintypes.com_error):
                 logging.error("Error slewing to target")
             self._is_ready()
             if abs(self.Telescope.RightAscension - ra) <= 0.05 and abs(self.Telescope.Declination - dec) <= 0.05:
@@ -247,7 +247,7 @@ class Telescope(Hardware):
         try:
             with self.movement_lock:
                 self.Telescope.PulseGuide(direction_num, duration)
-        except:
+        except (AttributeError, pywintypes.com_error):
             logging.error("Could not pulse guide")
             return False
         else:
@@ -361,10 +361,11 @@ class Telescope(Hardware):
                 self.live_connection.clear()
                 subprocess.call("taskkill /f /im TheSkyX.exe")
                 # This is the only way it will actually disconnect from TheSkyX so far
-            except:
+            except (AttributeError, pywintypes.com_error):
                 logging.error("Could not disconnect from telescope")
             else:
-                logging.info('Telescope disconnected'); return True
+                logging.info('Telescope disconnected')
+                return True
         else: 
             logging.warning("Telescope is not parked.")
             return False

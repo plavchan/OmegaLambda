@@ -1,51 +1,35 @@
 import json
 import logging
 from numpy import pi
+from typing import Dict, Optional, Union, Any, List
 
 _config = None
 
 
-def get_config():
-    """
-
-    Raises
-    ------
-    NameError
-        Meant only as a way to retrieve an already initialized global config object, so if that object has not
-        been created yet, we raise a name error.
-
-    Returns
-    -------
-    _config : CLASS INSTANCE OBJECT of Config
-        Based off of a dictionary generated from a .json config file.  Global object to be passed anywhere
-        it is needed.
-
-    """
-    global _config
-    if _config is None:
-        logging.error('Global config object was called before being initialized')
-        raise NameError('Global config object has not been initialized')
-    else:
-        logging.debug('Global config object was called')
-        return _config
-
-
 class Config:
     
-    def __init__(self, cooler_setpoint=None, cooler_idle_setpoint=None, cooler_settle_time=None, maximum_jog=None,
-                 site_latitude=None, site_longitude=None, humidity_limit=None, wind_limit=None, weather_freq=None,
-                 cloud_cover_limit=None, user_agent=None, cloud_satellite=None,
-                 min_reopen_time=None, plate_scale=None, saturation=None, focus_exposure_multiplier=None,
-                 initial_focus_delta=None, quick_focus_tolerance=None, focus_max_distance=None, guiding_threshold=None,
-                 guider_ra_dampening=None, guider_dec_dampening=None, guider_max_move=None, guider_angle=None,
-                 data_directory=None, calibration_time=None, calibration_num=None):
+    def __init__(self, cooler_setpoint: Optional[Union[int, float]] = None,
+                 cooler_idle_setpoint: Optional[Union[int, float]] = None, cooler_settle_time: Optional[int] = None,
+                 maximum_jog: Optional[Union[int, float]] = None, site_latitude: Optional[float] = None,
+                 site_longitude: Optional[float] = None, humidity_limit: Optional[int] = None,
+                 wind_limit: Optional[int] = None, weather_freq: Optional[int] = None,
+                 cloud_cover_limit: Optional[float] = None, user_agent: Optional[str] = None,
+                 cloud_satellite: Optional[str] = None, min_reopen_time: Optional[Union[int, float]] = None,
+                 plate_scale: Optional[float] = None, saturation: Optional[int] = None,
+                 focus_exposure_multiplier: Optional[float] = None, initial_focus_delta: Optional[int] = None,
+                 focus_temperature_constant: Optional[float] = None, focus_max_distance: Optional[int] = None,
+                 focus_iterations: Optional[int] = None, focus_adjust_frequency: Optional[Union[float, int]] = None,
+                 guiding_threshold: Optional[float] = None, guider_ra_dampening: Optional[float] = None,
+                 guider_dec_dampening: Optional[float] = None, guider_max_move: Optional[float] = None,
+                 guider_angle: Optional[float] = None, data_directory: Optional[str] = None,
+                 calibration_time: Optional[str] = None, calibration_num: Optional[int] = None):
         """
 
         Parameters
         ----------
-        cooler_setpoint : INT, optional
+        cooler_setpoint : INT, FLOAT, optional
             Setpoint in C when running camera cooler.  Our default is -30 C.
-        cooler_idle_setpoint : INT, optional
+        cooler_idle_setpoint : INT, FLOAT, optional
             Setpoint in C when not running camera cooler.  Our default is +5 C.
         cooler_settle_time : INT, optional
             Time in minutes given for the cooler to settle to its setpoint. Our default is 5-10 minutes.
@@ -80,9 +64,12 @@ class Config:
             current ticket.  Our default is 0.33.
         initial_focus_delta : INT, optional
             Initial number of steps the focuser will move for each adjustment.  Our default is 15 steps.
-        quick_focus_tolerance : FLOAT, optional
-            Leniency for how far to let the focus drift before correcting over the course of the night, in
-            arcseconds. Our default is 1.25 arcseconds.
+        focus_temperature_constant : FLOAT, optional
+            Relationship between focuser steps and degrees Fahrenheit, in steps/degF.  Our default is 2 steps/degF.
+        focus_iterations : INT, optional
+            The total number of exposures to take at the beginning of the night while focusing.  Our default is 11.
+        focus_adjust_frequency : FLOAT or INT, optional
+            How often the focus will adjust over the course of the night, in minutes.  Our default is 15 minutes.
         focus_max_distance : INT, optional
             Maximum distance away from the initial focus position that the focuser can move.  Our default is 100 steps.
         guiding_threshold : FLOAT, optional
@@ -132,20 +119,22 @@ class Config:
         self.saturation = saturation
         self.focus_exposure_multiplier = focus_exposure_multiplier
         self.initial_focus_delta = initial_focus_delta
-        self.quick_focus_tolerance = quick_focus_tolerance/self.plate_scale
+        self.focus_temperature_constant = focus_temperature_constant
+        self.focus_iterations = focus_iterations
+        self.focus_adjust_frequency = focus_adjust_frequency
         # These two are converted back into pixels for use in the focuser module
         self.focus_max_distance = focus_max_distance
-        self.guiding_threshold = int(guiding_threshold/self.plate_scale)        # Input in arcsec, output in pixels
+        self.guiding_threshold: float = guiding_threshold/self.plate_scale             # Input in arcsec, output in pixels
         self.guider_ra_dampening = guider_ra_dampening
         self.guider_dec_dampening = guider_dec_dampening
         self.guider_max_move = guider_max_move                                  # Input in arcsec, output in arcsec
         self.guider_angle = guider_angle*pi/180
         self.data_directory = data_directory                     
         self.calibration_time = calibration_time
-        self.calibration_num = int(calibration_num)
+        self.calibration_num: int = calibration_num
         
     @staticmethod
-    def deserialized(text):
+    def deserialized(text: str):
         """
 
         Parameters
@@ -157,14 +146,14 @@ class Config:
 
         Returns
         -------
-        CLASS INSTANCE OBJECT of Config
+        Config
             Global config class object to be used by any other process that needs it.  Once it has been created,
             it can be called repeatedly thereafter using get_config.
 
         """
         return json.loads(text, object_hook=_dict_to_config_object)
     
-    def serialized(self):
+    def serialized(self) -> Dict:
         """
 
         Returns
@@ -177,7 +166,7 @@ class Config:
         return self.__dict__
 
 
-def _dict_to_config_object(dic):
+def _dict_to_config_object(dic: Dict) -> Config:
     """
 
     Parameters
@@ -200,7 +189,9 @@ def _dict_to_config_object(dic):
                      user_agent=dic['user_agent'], cloud_satellite=dic['cloud_satellite'],
                      min_reopen_time=dic['min_reopen_time'], plate_scale=dic['plate_scale'],
                      saturation=dic['saturation'], focus_exposure_multiplier=dic['focus_exposure_multiplier'],
-                     initial_focus_delta=dic['initial_focus_delta'], quick_focus_tolerance=dic['quick_focus_tolerance'],
+                     initial_focus_delta=dic['initial_focus_delta'],
+                     focus_temperature_constant=dic['focus_temperature_constant'],
+                     focus_iterations=dic['focus_iterations'], focus_adjust_frequency=dic['focus_adjust_frequency'],
                      focus_max_distance=dic['focus_max_distance'], guiding_threshold=dic['guiding_threshold'],
                      guider_ra_dampening=dic['guider_ra_dampening'], guider_dec_dampening=dic['guider_dec_dampening'],
                      guider_max_move=dic['guider_max_move'], guider_angle=dic['guider_angle'],
@@ -208,3 +199,28 @@ def _dict_to_config_object(dic):
                      calibration_num=dic['calibration_num'])
     logging.info('Global config object has been created')
     return _config
+
+
+def get_config() -> Optional[Config]:
+    """
+
+    Raises
+    ------
+    NameError
+        Meant only as a way to retrieve an already initialized global config object, so if that object has not
+        been created yet, we raise a name error.
+
+    Returns
+    -------
+    _config : CLASS INSTANCE OBJECT of Config
+        Based off of a dictionary generated from a .json config file.  Global object to be passed anywhere
+        it is needed.
+
+    """
+    global _config
+    if _config is None:
+        logging.error('Global config object was called before being initialized')
+        raise NameError('Global config object has not been initialized')
+    else:
+        logging.debug('Global config object was called')
+        return _config

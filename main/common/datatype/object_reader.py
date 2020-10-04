@@ -1,14 +1,16 @@
 import json
 import logging
+from typing import Dict
 
 from .observation_ticket import ObservationTicket
 from .filter_wheel import FilterWheel
 from ...common.IO.config_reader import Config
+from ...common.IO.json_reader import Reader
 
 
 class ObjectReader:
     
-    def __init__(self, reader_obj):
+    def __init__(self, reader_obj: Reader):
         """
 
         Parameters
@@ -22,8 +24,8 @@ class ObjectReader:
         None.
 
         """
-        self.str = reader_obj.str
-        self.type = reader_obj.type
+        self.str: str = reader_obj.str
+        self.type: str = reader_obj.type
         
         objects = {"observation_ticket": ObservationTicket, "filter_wheel": FilterWheel, "config": Config,
                    "logging_config": self}
@@ -32,10 +34,10 @@ class ObjectReader:
         
         logging.debug('Object reader is reading a json file')
         if self.type in objects:
-            self.ticket = objects[self.type].deserialized(self.str)
+            self.ticket: Dict = objects[self.type].deserialized(self.str)
             
     @staticmethod
-    def deserialized(text):
+    def deserialized(text: str) -> Dict:
         """
         Description
         -----------
