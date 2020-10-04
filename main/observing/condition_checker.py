@@ -339,7 +339,7 @@ class Conditions(threading.Thread):
         img_array = np.array(img)
         img_array = img_array.astype('float64')
         # fairfax coordinates ~300, 1350
-        img_internal = img_array[270:370, 1310:1410]
+        img_internal = img_array[295:335, 1340:1380]
         img_small = Image.fromarray(img_internal)
         px = img_small.size[0]*img_small.size[1]
         colors = img_small.getcolors()
