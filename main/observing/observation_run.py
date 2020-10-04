@@ -583,6 +583,8 @@ class ObservationRun:
         self.camera.onThread(self.camera.stop)
         self.telescope.onThread(self.telescope.stop)
         self.dome.onThread(self.dome.stop)
+        self.focuser.onThread(self.focuser.stop)
+        self.focus_procedures.stop()
         self.guider.stop()
         self.flatlamp.onThread(self.flatlamp.stop)
         self.calibration.onThread(self.calibration.stop)
