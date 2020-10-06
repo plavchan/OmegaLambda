@@ -292,9 +292,10 @@ class ObservationRun:
             if not self.everything_ok():
                 self.shutdown()
                 return
-
-            input("The program is ready to start taking images of {}.  Please take this time to "
-                  "check the focus and pointing of the target.  When you are ready, press Enter: ".format(ticket.name))
+            if ticket == self.observation_request_list[0]:
+                input("The program is ready to start taking images of {}.  Please take this time to "
+                      "check the focus and pointing of the target.  When you are ready, press Enter: ".format(
+                    ticket.name))
             (taken, total) = self.run_ticket(ticket)
             logging.info("{} out of {} exposures were taken for {}.  Moving on to next target.".format(taken, total,
                                                                                                        ticket.name))
