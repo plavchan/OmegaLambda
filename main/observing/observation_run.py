@@ -622,7 +622,7 @@ class ObservationRun:
         self.telescope.slew_done.wait()
         self.dome.move_done.wait()
         self.dome.shutter_done.wait()
-        self.dome.onThread(self.dome.park)      # Backup in case a pulse guide interrupted the last park
+        self.telescope.onThread(self.telescope.park)      # Backup in case a pulse guide interrupted the last park
         self.telescope.slew_done.wait()
         time.sleep(2)
         if calibration:
