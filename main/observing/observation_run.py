@@ -117,7 +117,8 @@ class ObservationRun:
         if self.conditions.weather_alert.isSet():
             calibration = (self.config_dict.calibration_time == "end") and (self.calibration_toggle is True)
             self.guider.stop_guiding()
-            time.sleep(10)
+            self.guider.loop_done.wait()
+            time.sleep(5)
             cooler = self.conditions.sun
             self._shutdown_procedure(calibration=calibration, cooler=cooler)
             logging.info("Sleeping for {} minutes, then weather checks will resume to attempt "
@@ -366,6 +367,7 @@ class ObservationRun:
             self.focus_procedures.stop_constant_focusing()
             if ticket.self_guide:
                 self.guider.stop_guiding()
+                self.guider.loop_done.wait()
             return img_count, ticket.num
 
         else:
@@ -380,6 +382,7 @@ class ObservationRun:
             self.focus_procedures.stop_constant_focusing()
             if ticket.self_guide:
                 self.guider.stop_guiding()
+                self.guider.loop_done.wait()
             return img_count, ticket.num * len(ticket.filter)
 
     def take_images(self, name, num, exp_time, _filter, end_time, path, cycle_filter):
@@ -610,6 +613,7 @@ class ObservationRun:
         None.
         """
         logging.info("Shutting down observatory.")
+        time.sleep(5)
         self.dome.onThread(self.dome.slave_dome_to_scope, False)
         self.telescope.onThread(self.telescope.park)
         self.dome.onThread(self.dome.park)
@@ -618,6 +622,9 @@ class ObservationRun:
         self.telescope.slew_done.wait()
         self.dome.move_done.wait()
         self.dome.shutter_done.wait()
+        time.sleep(2)
+        self.telescope.onThread(self.telescope.park)        # Backup in case a pulse guide interrupted the last park
+        self.telescope.slew_done.wait()
         if calibration:
             logging.info('Taking flats and darks...')
             self.take_calibration_images()
