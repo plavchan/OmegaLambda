@@ -32,6 +32,7 @@ class Guider(Hardware):
         self.telescope = telescope_obj
         self.config_dict = config_reader.get_config()
         self.guiding = threading.Event()
+        self.loop_done = threading.Event()
 
         super(Guider, self).__init__(name='Guider')
 
@@ -152,6 +153,7 @@ class Guider(Hardware):
                 y_initial = star[1]
                 break
         while self.guiding.isSet():
+            self.loop_done.clear()
             self.camera.image_done.wait()
             newest_image = self.find_newest_image(image_path)
             star = self.find_guide_star(newest_image, subframe=(x_initial, y_initial))
@@ -213,6 +215,7 @@ class Guider(Hardware):
                     self.telescope.slew_done.wait()
                     self.telescope.onThread(self.telescope.jog, ydirection, yjog_distance)
                     self.telescope.slew_done.wait()
+            self.loop_done.set()
 
     def stop_guiding(self):
         """
