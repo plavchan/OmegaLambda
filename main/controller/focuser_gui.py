@@ -19,12 +19,18 @@ class Gui(threading.Thread):
             from focuser_control
 
         """
-        self.root = self.delta = self.position = self.position_text = None
+        self.root = None
+        self.delta = None
+        self.position = None
+        self.position_text = None
         self.focuser = focus_obj
         self.focus_procedures = focusprocedures_obj
         self.focus_toggle = focus_toggle
 
-        self.comport_var = self.comport = self.move_in = self.move_out = None
+        self.comport_var = None
+        self.comport = None
+        self.move_in = None
+        self.move_out = None
         super(Gui, self).__init__(name='Gui-Th', daemon=True)
 
     def move_in_cmd(self, amount):
