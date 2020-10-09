@@ -186,7 +186,7 @@ class FocusProcedures(Hardware):
         self.focused.set()
         self.focuser.onThread(self.focuser.current_position)
         time.sleep(2)
-        self.temp_previous = self.get_temperature()
+        self.temp_previous = self.conditions.temperature
         self.position_previous = self.focuser.position
         return
 
@@ -267,7 +267,7 @@ class FocusProcedures(Hardware):
                 time.sleep(2)
                 self.position_previous = self.focuser.position
                 continue
-            if self.temp_previous is None:
+            if self.temp_previous is None or (temp_current - self.temp_previous > 10):
                 self.temp_previous = temp_current
                 continue
             new_position = self.position_previous + \
@@ -276,7 +276,6 @@ class FocusProcedures(Hardware):
             func = self.focuser.move_in if pos_diff < 0 else self.focuser.move_out if pos_diff > 0 else None
             if not func:
                 self.temp_previous = temp_current
-                self.position_previous = new_position
                 continue
             self.focuser.onThread(func, abs(pos_diff))
             self.focuser.adjusting.wait(timeout=15)
