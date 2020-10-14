@@ -153,8 +153,8 @@ class Guider(Hardware):
                 y_initial = star[1]
                 break
         while self.guiding.isSet():
+            self.camera.image_done.wait(timeout=30*60)
             self.loop_done.clear()
-            self.camera.image_done.wait()
             newest_image = self.find_newest_image(image_path)
             star = self.find_guide_star(newest_image, subframe=(x_initial, y_initial))
             if not star:
