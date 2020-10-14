@@ -117,7 +117,7 @@ class ObservationRun:
         if self.conditions.weather_alert.isSet():
             calibration = (self.config_dict.calibration_time == "end") and (self.calibration_toggle is True)
             self.guider.stop_guiding()
-            self.guider.loop_done.wait()
+            self.guider.loop_done.wait(timeout=10)
             time.sleep(5)
             cooler = self.conditions.sun
             self._shutdown_procedure(calibration=calibration, cooler=cooler)
@@ -367,7 +367,7 @@ class ObservationRun:
             self.focus_procedures.stop_constant_focusing()
             if ticket.self_guide:
                 self.guider.stop_guiding()
-                self.guider.loop_done.wait()
+                self.guider.loop_done.wait(timeout=10)
             return img_count, ticket.num
 
         else:
@@ -382,7 +382,7 @@ class ObservationRun:
             self.focus_procedures.stop_constant_focusing()
             if ticket.self_guide:
                 self.guider.stop_guiding()
-                self.guider.loop_done.wait()
+                self.guider.loop_done.wait(timeout=10)
             return img_count, ticket.num * len(ticket.filter)
 
     def take_images(self, name, num, exp_time, _filter, end_time, path, cycle_filter):
