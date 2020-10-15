@@ -164,6 +164,7 @@ class Guider(Hardware):
                 failures += 1
                 continue
             elif failures >= 3:
+                failures = 0
                 x_initial = star[0]
                 y_initial = star[1]
                 logging.info('Guider has selected a new guide star.  Continuing to guide.')
