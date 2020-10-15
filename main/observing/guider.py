@@ -167,6 +167,7 @@ class Guider(Hardware):
                 x_initial = star[0]
                 y_initial = star[1]
                 logging.info('Guider has selected a new guide star.  Continuing to guide.')
+                continue
             failures = 0
             x_0 = y_0 = self.config_dict.guider_max_move / self.config_dict.plate_scale * 1.5
             x = star[0]
