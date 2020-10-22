@@ -1,0 +1,2350 @@
+Image number: 2
+Pixel coordinates: x=42.63470205261357, y=42.47955618232684
+xdistance: 0.07785428158525216; ydistance: 0.13215533618560785
+Delta Angle: 4.180013903097964
+Separation: 0.4382369319423677
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 3
+Pixel coordinates: x=39.86149139427175, y=45.2957315198723
+xdistance: 1.0484780120048878; ydistance: 0.8535060319553033
+Delta Angle: 2.458347458287922
+Separation: 3.862724731713918
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 4
+Pixel coordinates: x=39.34952285901642, y=46.126445764644615
+xdistance: 1.2276669993442548; ydistance: 1.1442560176256136
+Delta Angle: 2.3913459783876587
+Separation: 4.7949702347622525
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 5
+Pixel coordinates: x=40.131824860839416, y=45.668360016437774
+xdistance: 0.9538612987062055; ydistance: 0.9839260057532194
+Delta Angle: 2.3406807674055106
+Separation: 3.9153927130863364
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 6
+Pixel coordinates: x=36.8464069645096, y=45.822714865683736
+xdistance: 2.103757562421642; ydistance: 1.037950202989306
+Delta Angle: 2.683255706811529
+Separation: 6.7025042565321025
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 7
+Pixel coordinates: x=39.66269996120954, y=45.499443911730154
+xdistance: 1.118055013576662; ydistance: 0.9248053691055527
+Delta Angle: 2.4505113985024067
+Separation: 4.1456266448453825
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 8
+Pixel coordinates: x=40.12038279362051, y=42.74337165652467
+xdistance: 0.9578660222328238; ydistance: 0.039819920216365705
+Delta Angle: 3.1831402231519657
+Separation: 2.7391238620005818
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 9
+Pixel coordinates: x=40.605960492123735, y=41.824028083394246
+xdistance: 0.787913827756694; ydistance: 0.361590170812015
+Delta Angle: 3.5718404391993768
+Separation: 2.47692312684725
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 10
+Pixel coordinates: x=40.703336818512156, y=42.30286668643335
+xdistance: 0.7538321135207467; ydistance: 0.19399665974832972
+Delta Angle: 3.3934743797536275
+Separation: 2.223983481381661
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 11
+Pixel coordinates: x=41.88334601325889, y=47.427824415837385
+xdistance: 0.34082889535939087; ydistance: 1.5997385455430833
+Delta Angle: 1.7807106475247727
+Separation: 4.673265475462377
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 12
+Pixel coordinates: x=36.205991805999794, y=47.25197860035955
+xdistance: 2.327902867900073; ydistance: 1.5381925101258416
+Delta Angle: 2.55768822011442
+Separation: 7.971975383490375
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 13
+Pixel coordinates: x=41.85361129281853, y=38.629639836671636
+xdistance: 0.3512360475135169; ydistance: 1.4796260571649287
+Delta Angle: 4.479321230961718
+Separation: 4.344980712119281
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 14
+Pixel coordinates: x=42.02287204753017, y=40.216127988861444
+xdistance: 0.29199478336444123; ydistance: 0.9243552038984958
+Delta Angle: 4.406418486592834
+Separation: 2.7696511185084884
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 15
+Pixel coordinates: x=39.36237732617861, y=50.06972903151556
+xdistance: 1.223167935837487; ydistance: 2.524405161030444
+Delta Angle: 2.0219972635314107
+Separation: 8.0146606565199
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 16
+Pixel coordinates: x=42.40523083821397, y=46.426891996427784
+xdistance: 0.15816920662511272; ydistance: 1.2494121987497229
+Delta Angle: 1.6967213704166824
+Separation: 3.598240318583215
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 17
+Pixel coordinates: x=40.17166145855966, y=41.06311839228991
+xdistance: 0.9399184895041199; ydistance: 0.627908562698533
+Delta Angle: 3.730549407215088
+Separation: 3.2296027809356525
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 18
+Pixel coordinates: x=42.80765020410759, y=45.1865691236609
+xdistance: 0.017322428562345477; ydistance: 0.8152991932813145
+Delta Angle: 1.5920398443046133
+Separation: 2.3299519853097084
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 19
+Pixel coordinates: x=43.90039449270712, y=44.49729853586415
+xdistance: 0.3651380724474911; ydistance: 0.5740544875524498
+Delta Angle: 1.0042770863962576
+Separation: 1.9438324581993132
+Direction: right down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 20
+Pixel coordinates: x=40.796326513611646, y=44.32904956272853
+xdistance: 0.7212857202359252; ydistance: 0.5151673469549835
+Delta Angle: 2.5213768958692526
+Separation: 2.532483633059337
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 21
+Pixel coordinates: x=44.478038339173914, y=43.01018213478898
+xdistance: 0.5673134187108683; ydistance: 0.05356374717614045
+Delta Angle: 0.09413743288138669
+Separation: 1.6281041687100744
+Direction: right down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 22
+Pixel coordinates: x=38.81070855762974, y=44.22942947790599
+xdistance: 1.416252004829593; ydistance: 0.4803003172670948
+Delta Angle: 2.8146299126530927
+Separation: 4.272797808205034
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 23
+Pixel coordinates: x=41.498612536214736, y=49.46397616563698
+xdistance: 0.4754856123248433; ydistance: 2.3123916579729413
+Delta Angle: 1.773594675756109
+Separation: 6.745061230197129
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 24
+Pixel coordinates: x=42.53105620138332, y=43.572270673990985
+xdistance: 0.1141303295158387; ydistance: 0.2502947358968434
+Delta Angle: 1.9986151766928846
+Separation: 0.785964567582028
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 25
+Pixel coordinates: x=41.45751507317828, y=44.846804884103925
+xdistance: 0.48986972438760384; ydistance: 0.6963817094363723
+Delta Angle: 2.183833986965341
+Separation: 2.432634973681094
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 26
+Pixel coordinates: x=43.03530273536396, y=41.377298931606276
+xdistance: 0.06235595737738575; ydistance: 0.5179453739378048
+Delta Angle: -1.450981976968564
+Separation: 1.4905297669470703
+Direction: right up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 27
+Pixel coordinates: x=39.051635689963135, y=44.133403351948616
+xdistance: 1.331927508512904; ydistance: 0.4466911731820143
+Delta Angle: 2.8180084356858925
+Separation: 4.0138168431130605
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 28
+Pixel coordinates: x=42.622389159292034, y=46.303762096701035
+xdistance: 0.08216379424778934; ydistance: 1.2063167338453609
+Delta Angle: 1.6388025873069356
+Separation: 3.4546046779837494
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 29
+Pixel coordinates: x=42.73250435930007, y=41.40717673284969
+xdistance: 0.043623474244976236; ydistance: 0.5074881435026093
+Delta Angle: 4.626640173666198
+Separation: 1.4553132022840518
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 30
+Pixel coordinates: x=42.674571395402275, y=43.67905927427823
+xdistance: 0.06390001160920518; ydistance: 0.28767074599737935
+Delta Angle: 1.7893764239323753
+Separation: 0.8419494850635264
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 31
+Pixel coordinates: x=41.117934873306446, y=43.434770244118155
+xdistance: 0.6087227943427452; ydistance: 0.20216958544135297
+Delta Angle: 2.8209336515743475
+Separation: 1.8326204760463185
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 32
+Pixel coordinates: x=41.16478505026382, y=38.52384516883067
+xdistance: 0.5923252324076637; ydistance: 1.5166541909092675
+Delta Angle: 4.340057930052889
+Separation: 4.6520472699700965
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 33
+Pixel coordinates: x=43.13303487477014, y=41.360124783815245
+xdistance: 0.09656220616954735; ydistance: 0.5239563256646657
+Delta Angle: -1.3885469159423849
+Separation: 1.5222284707822211
+Direction: right up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 34
+Pixel coordinates: x=42.088955479930824, y=46.19096009569341
+xdistance: 0.2688655820242128; ydistance: 1.166836033492693
+Delta Angle: 1.7972661995160446
+Separation: 3.4211765851187415
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 35
+Pixel coordinates: x=42.29981460523764, y=46.65837986058509
+xdistance: 0.19506488816682638; ydistance: 1.330432951204781
+Delta Angle: 1.7163766750110614
+Separation: 3.841876824770701
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 36
+Pixel coordinates: x=41.4947985409295, y=43.02991168190659
+xdistance: 0.4768205106746758; ydistance: 0.06046908866730508
+Delta Angle: 3.015448721772732
+Separation: 1.3732556581820758
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 37
+Pixel coordinates: x=40.63731848639771, y=44.21973392847554
+xdistance: 0.7769385297608027; ydistance: 0.4769068749664383
+Delta Angle: 2.5910672680334974
+Separation: 2.604664021448764
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 38
+Pixel coordinates: x=43.49423190414314, y=42.590198734633134
+xdistance: 0.2229811664500982; ydistance: 0.09343044287840456
+Delta Angle: -0.39678272675397686
+Separation: 0.6907543835186383
+Direction: right up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 39
+Pixel coordinates: x=44.87999249076447, y=44.40357224400978
+xdistance: 0.7079973717675638; ydistance: 0.5412502854034216
+Delta Angle: 0.6527044880958608
+Separation: 2.5462451745283055
+Direction: right down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 40
+Pixel coordinates: x=42.5635620922372, y=42.90281386896904
+xdistance: 0.10275326771698196; ydistance: 0.01598485413916288
+Delta Angle: 2.9872642568330248
+Separation: 0.2971119432870733
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 41
+Pixel coordinates: x=41.46199120625367, y=41.20267155824837
+xdistance: 0.4883030778112165; ydistance: 0.5790649546130721
+Delta Angle: 4.01182009970085
+Separation: 2.1641911671209777
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 42
+Pixel coordinates: x=38.409255100665405, y=44.07949009944921
+xdistance: 1.5567607147671096; ydistance: 0.4278215348072224
+Delta Angle: 2.8733982413889203
+Separation: 4.612790725254723
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 43
+Pixel coordinates: x=42.87129185659229, y=43.358970031448365
+xdistance: 0.004952149807301256; ydistance: 0.17563951100692637
+Delta Angle: 1.5426088298168577
+Separation: 0.5020265999495113
+Direction: right down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 44
+Pixel coordinates: x=44.302222251231726, y=41.03200373641401
+xdistance: 0.5057777879311025; ydistance: 0.6387986922550971
+Delta Angle: -0.9010975695352158
+Separation: 2.3279577455862714
+Direction: right up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 45
+Pixel coordinates: x=42.43684004760448, y=44.654704137985455
+xdistance: 0.14710598333843442; ydistance: 0.6291464482949078
+Delta Angle: 1.8004881826603598
+Separation: 1.8460446934162578
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 46
+Pixel coordinates: x=42.28166958359087, y=43.09388691954779
+xdistance: 0.20141564574319729; ydistance: 0.08286042184172578
+Delta Angle: 2.7513058697243555
+Separation: 0.6222678198787367
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 47
+Pixel coordinates: x=40.263258888839104, y=44.66230136514085
+xdistance: 0.9078593889063148; ydistance: 0.6318054777992959
+Delta Angle: 2.53360428021288
+Separation: 3.160194816782783
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 48
+Pixel coordinates: x=42.613780092866136, y=40.362215790535906
+xdistance: 0.08517696749685429; ydistance: 0.8732244733124341
+Delta Angle: 4.615153551201967
+Separation: 2.506768139003764
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 49
+Pixel coordinates: x=44.450294731795964, y=44.136989989323524
+xdistance: 0.5576031561285858; ydistance: 0.44794649626323213
+Delta Angle: 0.6767759307260156
+Separation: 2.043561004095978
+Direction: right down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 50
+Pixel coordinates: x=43.265062444881465, y=42.99055366928698
+xdistance: 0.14277185570851142; ydistance: 0.04669378425044215
+Delta Angle: 0.3160865097254636
+Separation: 0.4291815872772113
+Direction: right down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 51
+Pixel coordinates: x=40.15013227515021, y=44.367684710729975
+xdistance: 0.9474537036974268; ydistance: 0.5286896487554897
+Delta Angle: 2.632619726691611
+Separation: 3.0999424159907503
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 52
+Pixel coordinates: x=40.77521557854216, y=43.5764943158939
+xdistance: 0.7286745475102456; ydistance: 0.25177301056286494
+Delta Angle: 2.8089127941405208
+Separation: 2.202700096379209
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 53
+Pixel coordinates: x=41.22167083443526, y=43.502824256065885
+xdistance: 0.572415207947661; ydistance: 0.2259884896230586
+Delta Angle: 2.7655786209095976
+Separation: 1.7583154455257715
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 54
+Pixel coordinates: x=44.52486284259313, y=42.42789051117524
+xdistance: 0.5837019949075941; ydistance: 0.15023832108866664
+Delta Angle: -0.25192059106031467
+Separation: 1.7220765158345752
+Direction: right up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 55
+Pixel coordinates: x=43.38109962971832, y=39.31482368837411
+xdistance: 0.18338487040141088; ydistance: 1.239811709069062
+Delta Angle: -1.4239476027989737
+Separation: 3.580859644408618
+Direction: right up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 56
+Pixel coordinates: x=40.467733620110536, y=45.54378332032179
+xdistance: 0.8362932329613135; ydistance: 0.9403241621126264
+Delta Angle: 2.2977056594484844
+Separation: 3.5954573395335543
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 57
+Pixel coordinates: x=38.99562517347646, y=43.950233269132085
+xdistance: 1.3515311892832398; ydistance: 0.3825816441962282
+Delta Angle: 2.865736873790866
+Separation: 4.013248742608797
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 58
+Pixel coordinates: x=39.37860089595728, y=44.58140480299872
+xdistance: 1.2174896864149545; ydistance: 0.6034916810495506
+Delta Angle: 2.6814027976029595
+Separation: 3.882439108814906
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 59
+Pixel coordinates: x=44.471904859806706, y=42.781101498850475
+xdistance: 0.5651667009323457; ydistance: 0.026614475402335098
+Delta Angle: -0.04705660842577907
+Separation: 1.6165514570894124
+Direction: right up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 60
+Pixel coordinates: x=41.7527759639242, y=37.52624220900144
+xdistance: 0.38652841262653076; ydistance: 1.8658152268494979
+Delta Angle: 4.508115229670912
+Separation: 5.444091104600664
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 61
+Pixel coordinates: x=40.8153689730784, y=47.425293019718694
+xdistance: 0.7146208594225614; ydistance: 1.5988525569015417
+Delta Angle: 1.9911181242542084
+Separation: 5.003682294219857
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 62
+Pixel coordinates: x=40.6855215342207, y=41.97426496083514
+xdistance: 0.7600674630227574; ydistance: 0.3090072637077012
+Delta Angle: 3.527734871788319
+Separation: 2.3442296282486814
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 63
+Pixel coordinates: x=42.592249643906484, y=43.787451325200564
+xdistance: 0.09271262463273185; ydistance: 0.325607963820196
+Delta Angle: 1.848192195569807
+Separation: 0.9672860281005627
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 64
+Pixel coordinates: x=47.750598376700346, y=47.22367335158319
+xdistance: 1.7127094318451193; ydistance: 1.5282856730541141
+Delta Angle: 0.7285560257565126
+Separation: 6.558391226571108
+Direction: right down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 65
+Pixel coordinates: x=37.760742579227994, y=47.294319512783794
+xdistance: 1.7837400972702033; ydistance: 1.5530118294743267
+Delta Angle: 2.4252321623423327
+Separation: 6.757353954477713
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 66
+Pixel coordinates: x=39.437773257914515, y=38.343730237977915
+xdistance: 1.1967793597299214; ydistance: 1.5796944167077307
+Delta Angle: 4.064040434766873
+Separation: 5.662418381483692
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 67
+Pixel coordinates: x=45.25010852995947, y=43.6570321423492
+xdistance: 0.8375379854858127; ydistance: 0.27996124982221926
+Delta Angle: 0.32259055448825874
+Separation: 2.5231146584859263
+Direction: right down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 68
+Pixel coordinates: x=43.0458565999117, y=45.08624482077328
+xdistance: 0.06604980996909406; ydistance: 0.780185687270647
+Delta Angle: 1.4863386270304788
+Separation: 2.237075868398481
+Direction: right down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 69
+Pixel coordinates: x=41.71917133501474, y=43.5662486595312
+xdistance: 0.39829003274484154; ydistance: 0.24818703083591778
+Delta Angle: 2.5843381699507217
+Separation: 1.3408244568754681
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 70
+Pixel coordinates: x=43.47572560187351, y=41.05477800238069
+xdistance: 0.2165039606557283; ydistance: 0.6308276991667612
+Delta Angle: -1.2401866881632995
+Separation: 1.9055612511174713
+Direction: right up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 71
+Pixel coordinates: x=39.85279410088088, y=43.5342860708917
+xdistance: 1.051522064691694; ydistance: 0.23700012481209462
+Delta Angle: 2.9199092368919497
+Separation: 3.07971336022998
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 72
+Pixel coordinates: x=42.800045961551994, y=45.21602784327439
+xdistance: 0.019983913456803264; ydistance: 0.8256097451460348
+Delta Angle: 1.5949966371661326
+Separation: 2.3595759011489448
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 73
+Pixel coordinates: x=38.75005941813771, y=43.51002738108608
+xdistance: 1.437479203651803; ydistance: 0.22850958338012778
+Delta Angle: 2.98394624323654
+Separation: 4.1586527357492775
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 74
+Pixel coordinates: x=44.585943770109125, y=43.312650445153814
+xdistance: 0.6050803195381924; ydistance: 0.15942765580383345
+Delta Angle: 0.2576266240437531
+Separation: 1.7878030538648668
+Direction: right down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 75
+Pixel coordinates: x=44.59421532863592, y=44.05789365969705
+xdistance: 0.60797536502257; ydistance: 0.4202627808939663
+Delta Angle: 0.6048290979609454
+Separation: 2.1116873019113243
+Direction: right down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 76
+Pixel coordinates: x=42.25129000426225, y=41.28384301633272
+xdistance: 0.2120484985082134; ydistance: 0.5506549442835502
+Delta Angle: 4.344806841624838
+Separation: 1.6859211335162736
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 77
+Pixel coordinates: x=41.866479350848145, y=44.0184938067719
+xdistance: 0.34673222720315044; ydistance: 0.40647283237016374
+Delta Angle: 2.2770449928672694
+Separation: 1.526482954673393
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 78
+Pixel coordinates: x=39.17810618815555, y=42.959721028509044
+xdistance: 1.2876628341455578; ydistance: 0.03590235997816417
+Delta Angle: 3.113718073438405
+Separation: 3.680466423293936
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 80
+Pixel coordinates: x=43.25854566006728, y=46.264140673458066
+xdistance: 0.1404909810235455; ydistance: 1.1924492357103214
+Delta Angle: 1.4535198077000047
+Separation: 3.43056239275314
+Direction: right down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 81
+Pixel coordinates: x=44.77598207371357, y=42.97586180547206
+xdistance: 0.6715937257997484; ydistance: 0.04155163191521857
+Delta Angle: 0.06179142683861521
+Separation: 1.922508290682276
+Direction: right down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 82
+Pixel coordinates: x=43.56007437759698, y=43.068010604579555
+xdistance: 0.24602603215894267; ydistance: 0.07380371160284298
+Delta Angle: 0.2914415127966241
+Separation: 0.733878688447191
+Direction: right down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 83
+Pixel coordinates: x=38.71977916183708, y=45.631179439227914
+xdistance: 1.4480772933570225; ydistance: 0.9709128037297687
+Delta Angle: 2.5509518644969074
+Separation: 4.981270651749453
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 84
+Pixel coordinates: x=40.96910506533179, y=41.18129734804157
+xdistance: 0.6608132271338754; ydistance: 0.5865459281854526
+Delta Angle: 3.867521395977546
+Separation: 2.524508838107287
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 85
+Pixel coordinates: x=43.87986008545214, y=41.86316757742487
+xdistance: 0.35795102990824645; ydistance: 0.34789134790129767
+Delta Angle: -0.7711471049485891
+Separation: 1.4261617670415478
+Direction: right up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 86
+Pixel coordinates: x=43.818172163065725, y=42.7719975243146
+xdistance: 0.3363602570730023; ydistance: 0.029800866489891574
+Delta Angle: -0.08836732622245308
+Separation: 0.9647937886123733
+Direction: right up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 87
+Pixel coordinates: x=43.46766546226579, y=46.80990764233471
+xdistance: 0.21368291179302573; ydistance: 1.383467674817146
+Delta Angle: 1.4175526991616731
+Separation: 3.9996358957308638
+Direction: right down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 88
+Pixel coordinates: x=58.91103632813087, y=42.22546500433175
+xdistance: 5.618862714845802; ydistance: 0.22108724848388803
+Delta Angle: -0.039327043370505306
+Separation: 16.06631608327072
+Direction: right up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 89
+Pixel coordinates: x=61.15041813038006, y=37.85659781983864
+xdistance: 6.402646345633018; ydistance: 1.7501907630564773
+Delta Angle: -0.26683555254959557
+Separation: 18.96442382179167
+Direction: right up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 90
+Pixel coordinates: x=50.86053504213005, y=41.421923464505
+xdistance: 2.8011872647455163; ydistance: 0.5023267874232514
+Delta Angle: -0.17744038739727458
+Separation: 8.131060273526314
+Direction: right up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 91
+Pixel coordinates: x=42.5959078194958, y=45.58003834361962
+xdistance: 0.0914322631764714; ydistance: 0.9530134202668655
+Delta Angle: 1.6664437442728566
+Separation: 2.735398248001553
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 92
+Pixel coordinates: x=42.44813719843854, y=44.37343364408151
+xdistance: 0.14315198054651312; ydistance: 0.5307017754285265
+Delta Angle: 1.8342666610589404
+Separation: 1.570485077741008
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 93
+Pixel coordinates: x=39.79108870846176, y=45.56955697036769
+xdistance: 1.0731189520383861; ydistance: 0.9493449396286908
+Delta Angle: 2.4173178713391232
+Separation: 4.0936387681701785
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 94
+Pixel coordinates: x=41.9650626347044, y=41.30559276886265
+xdistance: 0.3122280778534604; ydistance: 0.543042530898073
+Delta Angle: 4.190584285668167
+Separation: 1.7897247832301404
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 95
+Pixel coordinates: x=44.171380696839506, y=41.97689442640007
+xdistance: 0.4599832438938257; ydistance: 0.30808695075997616
+Delta Angle: -0.5901539521893266
+Separation: 1.5817896191073095
+Direction: right up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 96
+Pixel coordinates: x=45.56100401664762, y=47.66201495706051
+xdistance: 0.9463514058266663; ydistance: 1.6817052349711759
+Delta Angle: 1.058229718241743
+Separation: 5.513407391663112
+Direction: right down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 97
+Pixel coordinates: x=42.80817138154885, y=17.70040108149723
+xdistance: 0.017140016457902828; ydistance: 8.80485962147597
+Delta Angle: 4.710442328700924
+Separation: 25.156789440863395
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 98
+Pixel coordinates: x=40.01851484133824, y=29.900598084309824
+xdistance: 0.9935198055316173; ydistance: 4.534790670491563
+Delta Angle: 4.496708404728784
+Separation: 13.263855452414203
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 99
+Pixel coordinates: x=41.96031099545292, y=39.27633262673437
+xdistance: 0.3138911515914788; ydistance: 1.2532835806429707
+Delta Angle: 4.466982118520163
+Separation: 3.691410204019642
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 100
+Pixel coordinates: x=45.139887002790985, y=42.73000078828578
+xdistance: 0.7989604509768433; ydistance: 0.044499724099978974
+Delta Angle: -0.05563954314476377
+Separation: 2.28628212173477
+Direction: right up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 101
+Pixel coordinates: x=41.3310177625197, y=47.264116460412524
+xdistance: 0.5341437831181062; ydistance: 1.5424407611443816
+Delta Angle: 1.9041691385693027
+Separation: 4.66374035987791
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 102
+Pixel coordinates: x=40.45899801840973, y=44.34404358937494
+xdistance: 0.8393506935565958; ydistance: 0.5204152562812281
+Delta Angle: 2.5865815853294585
+Separation: 2.8216967333600276
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 103
+Pixel coordinates: x=42.6449793837508, y=43.472500134627
+xdistance: 0.07425721568722099; ydistance: 0.21537504711944777
+Delta Angle: 1.9028141232481364
+Separation: 0.6509054604122414
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 104
+Pixel coordinates: x=43.13001641523694, y=45.39019257884308
+xdistance: 0.09550574533292673; ydistance: 0.8865674025950756
+Delta Angle: 1.463484850600509
+Separation: 2.5477050204669425
+Direction: right down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 105
+Pixel coordinates: x=44.59142229968928, y=43.951821359732364
+xdistance: 0.6069978048912457; ydistance: 0.38313747590632585
+Delta Angle: 0.56304586769358
+Separation: 2.0508647466058565
+Direction: right down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 106
+Pixel coordinates: x=41.30899043446687, y=42.20718153388741
+xdistance: 0.5418533479365966; ydistance: 0.22748646313940865
+Delta Angle: 3.539076397652699
+Separation: 1.6790549858672046
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 107
+Pixel coordinates: x=12.954948802903973, y=45.061624078060696
+xdistance: 10.46576791898361; ydistance: 0.7715684273212419
+Delta Angle: 3.068002724373792
+Separation: 29.983344488411213
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 108
+Pixel coordinates: x=31.333086319934164, y=42.12945208279092
+xdistance: 4.033419788023044; ydistance: 0.2546917710231797
+Delta Angle: 3.2046542930798423
+Separation: 11.547008830682492
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 109
+Pixel coordinates: x=39.13008848635036, y=46.42471015518955
+xdistance: 1.3044690297773753; ydistance: 1.2486485543163415
+Delta Angle: 2.378054659867809
+Separation: 5.159309130972445
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 110
+Pixel coordinates: x=43.45583277110001, y=41.16627653311762
+xdistance: 0.2095414698850031; ydistance: 0.5918032134088352
+Delta Angle: -1.2304977218052149
+Separation: 1.793727554227972
+Direction: right up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 111
+Pixel coordinates: x=43.45858116630109, y=43.99828139763807
+xdistance: 0.2105034082053791; ydistance: 0.399398489173322
+Delta Angle: 1.0857427746191064
+Separation: 1.2899322495102734
+Direction: right down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 112
+Pixel coordinates: x=45.29944842864606, y=68.74139497872324
+xdistance: 0.8548069500261198; ydistance: 9.05948824255313
+Delta Angle: 1.4767199667920754
+Separation: 25.999218534373945
+Direction: right down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 113
+Pixel coordinates: x=38.06526160386203, y=53.110673630427385
+xdistance: 1.677158438648292; ydistance: 3.5887357706495826
+Delta Angle: 2.007975957991138
+Separation: 11.31799537304363
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 114
+Pixel coordinates: x=41.23652636769059, y=47.0655622242112
+xdistance: 0.5672157713082959; ydistance: 1.472946778473918
+Delta Angle: 1.9383827777187497
+Separation: 4.509677524502221
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 115
+Pixel coordinates: x=45.34214946526617, y=40.791227637911504
+xdistance: 0.8697523128431572; ydistance: 0.7230703267309747
+Delta Angle: -0.6935678260584478
+Separation: 3.2316038642550615
+Direction: right up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 116
+Pixel coordinates: x=42.15058782872459, y=43.65826088598124
+xdistance: 0.24729425994639517; ydistance: 0.2803913100934335
+Delta Angle: 2.293555385516644
+Separation: 1.0681807451517926
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 117
+Pixel coordinates: x=58.16917384685125, y=35.49469635269331
+xdistance: 5.3592108463979375; ydistance: 2.576856276557343
+Delta Angle: -0.44819235252681766
+Separation: 16.990112170338122
+Direction: right up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 118
+Pixel coordinates: x=58.757377544874615, y=34.6487734664891
+xdistance: 5.565082140706114; ydistance: 2.8729292867288176
+Delta Angle: -0.47655664156878524
+Separation: 17.893987570644217
+Direction: right up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 119
+Pixel coordinates: x=46.38691832782188, y=39.18840877556787
+xdistance: 1.2354214147376568; ydistance: 1.2840569285512462
+Delta Angle: -0.8046995692483147
+Separation: 5.091063212602764
+Direction: right up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 120
+Pixel coordinates: x=44.9265174102724, y=41.66992064944521
+xdistance: 0.7242810935953397; ydistance: 0.415527772694178
+Delta Angle: -0.5208647547323147
+Separation: 2.385750953387754
+Direction: right up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 121
+Pixel coordinates: x=42.54505101939033, y=43.06803141443375
+xdistance: 0.10923214321338644; ydistance: 0.07381099505181017
+Delta Angle: 2.5473444260469753
+Separation: 0.37666337595787647
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 123
+Pixel coordinates: x=42.374322011241425, y=42.66144717545893
+xdistance: 0.1689872960655027; ydistance: 0.06849348858937526
+Delta Angle: 3.5266745599128835
+Separation: 0.520972906269334
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 124
+Pixel coordinates: x=40.23487475383588, y=39.99645599042629
+xdistance: 0.9177938361574429; ydistance: 1.0012404033507991
+Delta Angle: 3.9704470674065977
+Separation: 3.8806983076536428
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 125
+Pixel coordinates: x=42.452486465512166, y=40.52672309640014
+xdistance: 0.14162973707074378; ydistance: 0.8156469162599522
+Delta Angle: 4.540462245711922
+Separation: 2.365291325935927
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 126
+Pixel coordinates: x=39.64155299126783, y=36.12897372856815
+xdistance: 1.1254564530562619; ydistance: 2.3548591950011493
+Delta Angle: 4.266553227704882
+Separation: 7.457095815947655
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 127
+Pixel coordinates: x=39.345939206416624, y=42.063540259879765
+xdistance: 1.228921277754183; ydistance: 0.2777609090420831
+Delta Angle: 3.363877828617615
+Separation: 3.599771681545371
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 128
+Pixel coordinates: x=37.1522772741298, y=41.83559365187249
+xdistance: 1.9967029540545709; ydistance: 0.35754222184462875
+Delta Angle: 3.318781052954758
+Separation: 5.795606447908231
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 129
+Pixel coordinates: x=36.66784129660038, y=39.5637061833688
+xdistance: 2.1662555461898685; ydistance: 1.152702835820921
+Delta Angle: 3.6306030449589453
+Separation: 7.011004131470295
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 130
+Pixel coordinates: x=41.41143716491462, y=43.37500175387711
+xdistance: 0.5059969922798856; ydistance: 0.1812506138569862
+Delta Angle: 2.7976271071950585
+Separation: 1.5356571184570984
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 131
+Pixel coordinates: x=42.63134029228938, y=43.93596962895267
+xdistance: 0.0790308976987184; ydistance: 0.3775893701334329
+Delta Angle: 1.7771216528748117
+Separation: 1.1022041561652645
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 132
+Pixel coordinates: x=39.99790059203327, y=38.10677006069158
+xdistance: 1.0007347927883576; ydistance: 1.6626304787579478
+Delta Angle: 4.170574692680432
+Separation: 5.5444844698
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 133
+Pixel coordinates: x=36.66495128339648, y=38.396280990178084
+xdistance: 2.167267050811232; ydistance: 1.5613016534376718
+Delta Angle: 3.7658798421055586
+Separation: 7.631679047373265
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 134
+Pixel coordinates: x=36.35054514942865, y=39.433493808108196
+xdistance: 2.277309197699975; ydistance: 1.198277167162132
+Delta Angle: 3.625965141408784
+Separation: 7.352359249995054
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 135
+Pixel coordinates: x=40.99596674594455, y=40.33869117392892
+xdistance: 0.6514116389194087; ydistance: 0.8814580891248789
+Delta Angle: 4.0759547678653485
+Separation: 3.131545209250282
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 136
+Pixel coordinates: x=42.25176801755975, y=40.6639643222983
+xdistance: 0.21188119385408968; ydistance: 0.7676124871955972
+Delta Angle: 4.443068926532624
+Separation: 2.275194669056524
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 137
+Pixel coordinates: x=40.80503561237671, y=37.28548174809152
+xdistance: 0.7182375356681518; ydistance: 1.9500813881679695
+Delta Angle: 4.359494995022386
+Separation: 5.937554349910149
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 138
+Pixel coordinates: x=37.98923000029218, y=38.51904122282398
+xdistance: 1.7037694998977382; ydistance: 1.5183355720116083
+Delta Angle: 3.869503675356909
+Separation: 6.520406534225631
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 139
+Pixel coordinates: x=39.41109892506624, y=44.36457082772453
+xdistance: 1.2061153762268169; ydistance: 0.5275997897035832
+Delta Angle: 2.729234884602681
+Separation: 3.7613239515221304
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 140
+Pixel coordinates: x=42.73842373281544, y=39.57266570646852
+xdistance: 0.04155169351459727; ydistance: 1.1495670027360192
+Delta Angle: 4.676259192518902
+Separation: 3.286622032388712
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 141
+Pixel coordinates: x=40.28418835765798, y=39.80484975932496
+xdistance: 0.9005340748197079; ydistance: 1.0683025842362655
+Delta Angle: 4.011997467041571
+Separation: 3.9920656321516423
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 142
+Pixel coordinates: x=39.61056932069823, y=41.384586318444846
+xdistance: 1.1363007377556202; ydistance: 0.515394788544305
+Delta Angle: 3.5674135146765953
+Separation: 3.5649211053268575
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 143
+Pixel coordinates: x=39.94997496445353, y=39.75855015813477
+xdistance: 1.0175087624412653; ydistance: 1.0845074446528324
+Delta Angle: 3.958853562538422
+Separation: 4.248870658260849
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 144
+Pixel coordinates: x=35.18081742998504, y=33.16482936562351
+xdistance: 2.686713899505236; ydistance: 3.392309722031773
+Delta Angle: 4.042544325418149
+Separation: 12.36393597854331
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 145
+Pixel coordinates: x=38.317150237409486, y=41.36147704156358
+xdistance: 1.5889974169066814; ydistance: 0.5234830354527473
+Delta Angle: 3.4598372404603364
+Separation: 4.780015608669698
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 146
+Pixel coordinates: x=39.60641806103016, y=42.48536771880088
+xdistance: 1.1377536786394447; ydistance: 0.13012129841969328
+Delta Angle: 3.2554647445424423
+Separation: 3.2719151048814132
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 147
+Pixel coordinates: x=41.04287935904096, y=41.734332596318815
+xdistance: 0.6349922243356656; ydistance: 0.3929835912884161
+Delta Angle: 3.6957785088725585
+Separation: 2.13360139725224
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 148
+Pixel coordinates: x=38.65782563876886, y=36.871591548019246
+xdistance: 1.4697610264309; ydistance: 2.0949429581932644
+Delta Angle: 4.100606296560867
+Separation: 7.31170907344403
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 149
+Pixel coordinates: x=37.915826214271924, y=42.229272427081796
+xdistance: 1.729460825004828; ydistance: 0.21975465052137275
+Delta Angle: 3.2679807639443523
+Separation: 4.981047223431874
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 150
+Pixel coordinates: x=39.51217757308707, y=37.74247399653443
+xdistance: 1.1707378494195262; ydistance: 1.790134101212951
+Delta Angle: 4.133210801659918
+Separation: 6.111352575757349
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 151
+Pixel coordinates: x=40.99592127372155, y=42.07799131765394
+xdistance: 0.6514275541974591; ydistance: 0.2727030388211225
+Delta Angle: 3.5380501790048298
+Separation: 2.017727162943814
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 152
+Pixel coordinates: x=39.21150794220636, y=42.41102678675386
+xdistance: 1.2759722202277752; ydistance: 0.15614062463615075
+Delta Angle: 3.26335720289321
+Separation: 3.672829084134381
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 153
+Pixel coordinates: x=37.66567865059069, y=38.294917331850506
+xdistance: 1.817012472293259; ydistance: 1.5967789338523242
+Delta Angle: 3.8625672063852288
+Separation: 6.91123739655508
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 154
+Pixel coordinates: x=38.00647644978612, y=38.161831715977144
+xdistance: 1.6977332425748595; ydistance: 1.643358899408001
+Delta Angle: 3.9107178316436997
+Separation: 6.750919293534331
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 155
+Pixel coordinates: x=40.35826321672379, y=40.33574904145797
+xdistance: 0.8746078741466745; ydistance: 0.8824878354897107
+Delta Angle: 3.931475438099765
+Separation: 3.5499051016998946
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 156
+Pixel coordinates: x=39.94731587001281, y=37.893204168135576
+xdistance: 1.0184394454955183; ydistance: 1.73737854115255
+Delta Angle: 4.182183418926817
+Separation: 5.753936079176908
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 157
+Pixel coordinates: x=40.0206786835836, y=38.149303388926114
+xdistance: 0.9927624607457423; ydistance: 1.6477438138758613
+Delta Angle: 4.170134691207183
+Separation: 5.496297068607608
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 158
+Pixel coordinates: x=37.518405681417754, y=39.23545079370322
+xdistance: 1.868558011503788; ydistance: 1.2675922222038731
+Delta Angle: 3.7376606497509357
+Separation: 6.451260964637144
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 159
+Pixel coordinates: x=38.238570577487465, y=39.56128662435462
+xdistance: 1.6165002978793888; ydistance: 1.1535496814758837
+Delta Angle: 3.761394114850563
+Separation: 5.673964946103415
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 160
+Pixel coordinates: x=40.186026013819806, y=38.273451854016876
+xdistance: 0.9348908951630704; ydistance: 1.604291851094094
+Delta Angle: 4.1847546129809405
+Separation: 5.305194473610013
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 161
+Pixel coordinates: x=41.660286630147176, y=40.01023854701123
+xdistance: 0.41889967944849005; ydistance: 0.9964165085460719
+Delta Angle: 4.314415746969781
+Separation: 3.088256624560923
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 162
+Pixel coordinates: x=40.2321816482543, y=43.81864289627353
+xdistance: 0.9187364231109973; ydistance: 0.33652501369573434
+Delta Angle: 2.790478920446096
+Separation: 2.7955149209793158
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 163
+Pixel coordinates: x=36.340347838105124, y=42.35844289103771
+xdistance: 2.2808782566632075; ydistance: 0.17454498813680255
+Delta Angle: 3.217969137323622
+Separation: 6.535848757150698
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 164
+Pixel coordinates: x=38.645627647262145, y=39.26412983055754
+xdistance: 1.4740303234582504; ydistance: 1.257554559304861
+Delta Angle: 3.8479069565944193
+Separation: 5.535937406823563
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 165
+Pixel coordinates: x=40.00345433612679, y=37.189966880415234
+xdistance: 0.9987909823556262; ydistance: 1.9835115918546693
+Delta Angle: 4.245907931643305
+Separation: 6.345110064150003
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 166
+Pixel coordinates: x=41.40309757136663, y=40.01127055495922
+xdistance: 0.5089158500216808; ydistance: 0.9960553057642753
+Delta Angle: 4.240034608645399
+Separation: 3.1958155224330635
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 167
+Pixel coordinates: x=40.33127443321399, y=43.59685408086228
+xdistance: 0.8840539483751043; ydistance: 0.25889892830179645
+Delta Angle: 2.8567044461555615
+Separation: 2.631954404904726
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 168
+Pixel coordinates: x=39.30238217845463, y=37.70381775641974
+xdistance: 1.2441662375408806; ydistance: 1.8036637852530932
+Delta Angle: 4.108541898247916
+Separation: 6.260437930088518
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 169
+Pixel coordinates: x=40.30301400281459, y=40.57987134886488
+xdistance: 0.893945099014894; ydistance: 0.7970450278972945
+Delta Angle: 3.869749669423671
+Separation: 3.421920473495391
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 170
+Pixel coordinates: x=38.903261778185694, y=43.12510075990504
+xdistance: 1.3838583776350084; ydistance: 0.09378526596676189
+Delta Angle: 3.073925267900125
+Separation: 3.9629505452614717
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 171
+Pixel coordinates: x=41.685097372076974, y=39.16426596978266
+xdistance: 0.4102159197730605; ydistance: 1.2925069105760698
+Delta Angle: 4.405064419249827
+Separation: 3.8744070932547197
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 172
+Pixel coordinates: x=40.163114652132734, y=38.26804746613483
+xdistance: 0.942909871753545; ydistance: 1.6061833868528101
+Delta Angle: 4.18154600012345
+Separation: 5.321426921151998
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 173
+Pixel coordinates: x=39.26265593854929, y=41.10668976689244
+xdistance: 1.258070421507751; ydistance: 0.6126585815876484
+Delta Angle: 3.594772329835036
+Separation: 3.9980523044487035
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 174
+Pixel coordinates: x=41.49601439907968, y=38.04819144851721
+xdistance: 0.4763949603221142; ydistance: 1.6831329930189785
+Delta Angle: 4.436562968022406
+Separation: 4.997867978435616
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 175
+Pixel coordinates: x=36.189036495364824, y=40.56134651021075
+xdistance: 2.333837226622313; ydistance: 0.8035287214262392
+Delta Angle: 3.4731761441613207
+Separation: 7.052256611792538
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 176
+Pixel coordinates: x=40.050693751929465, y=39.25353127900444
+xdistance: 0.9822571868246889; ydistance: 1.2612640523484466
+Delta Angle: 4.050716733668045
+Separation: 4.567512778991028
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 177
+Pixel coordinates: x=39.145377311285145, y=39.43063100816892
+xdistance: 1.2991179410502007; ydistance: 1.1992791471408784
+Delta Angle: 3.8870509286097277
+Separation: 5.051552921486147
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 178
+Pixel coordinates: x=39.18781397540973, y=41.44511079672662
+xdistance: 1.2842651086065953; ydistance: 0.4942112211456853
+Delta Angle: 3.5089449410315403
+Separation: 3.9316420210853686
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 179
+Pixel coordinates: x=38.86916827327432, y=38.12208122541695
+xdistance: 1.3957911043539901; ydistance: 1.6572715711040689
+Delta Angle: 4.012427627033559
+Separation: 6.190698663141692
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 180
+Pixel coordinates: x=38.52266767685522, y=41.07255820615304
+xdistance: 1.5170663131006736; ydistance: 0.6246046278464372
+Delta Angle: 3.5321603927262397
+Separation: 4.687474529539124
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 181
+Pixel coordinates: x=43.20260517494585, y=40.25211357308556
+xdistance: 0.12091181123104668; ydistance: 0.9117602494200555
+Delta Angle: -1.438952020244436
+Separation: 2.62783595070505
+Direction: right up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 182
+Pixel coordinates: x=41.18267846351969, y=41.70965305036444
+xdistance: 0.5860625377681089; ydistance: 0.40162143237244824
+Delta Angle: 3.7423761774749007
+Separation: 2.0299172057431774
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 183
+Pixel coordinates: x=40.38387474510663, y=38.82956632463358
+xdistance: 0.8656438392126806; ydistance: 1.4096517863782474
+Delta Angle: 4.1616783061723845
+Separation: 4.726354607859499
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 184
+Pixel coordinates: x=39.38819579749166, y=38.74846558029656
+xdistance: 1.2141314708779198; ydistance: 1.4380370468962052
+Delta Angle: 4.011214684103966
+Separation: 5.37725047472552
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 185
+Pixel coordinates: x=39.27839810015358, y=40.2629850783293
+xdistance: 1.2525606649462484; ydistance: 0.9079552225847459
+Delta Angle: 3.7688216867340003
+Separation: 4.420075634766579
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 186
+Pixel coordinates: x=41.709167485228775, y=39.349627282206406
+xdistance: 0.40179138016993005; ydistance: 1.2276304512277594
+Delta Angle: 4.396087096526043
+Separation: 3.690597914016521
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 187
+Pixel coordinates: x=40.91803955672535, y=38.87170802856231
+xdistance: 0.6786861551461297; ydistance: 1.3949021900031928
+Delta Angle: 4.259561183287376
+Separation: 4.4321340664010815
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 188
+Pixel coordinates: x=39.795290587617124, y=37.54753208941253
+xdistance: 1.0716482943340087; ydistance: 1.858363768705616
+Delta Angle: 4.189306347811124
+Separation: 6.129184760243225
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 189
+Pixel coordinates: x=39.04031612632984, y=38.791885487283174
+xdistance: 1.3358893557845568; ydistance: 1.42284007945089
+Delta Angle: 3.9584987811810457
+Separation: 5.576242801048687
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 190
+Pixel coordinates: x=37.5464638969326, y=37.938679022913206
+xdistance: 1.8587376360735912; ydistance: 1.721462341980379
+Delta Angle: 3.8886666783546437
+Separation: 7.238411255727669
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 191
+Pixel coordinates: x=42.25196849809885, y=40.15396187239692
+xdistance: 0.21181102566540502; ydistance: 0.9461133446610794
+Delta Angle: 4.492145686886291
+Separation: 2.770094482348277
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 193
+Pixel coordinates: x=40.8835520284786, y=37.53134947605876
+xdistance: 0.6907567900324935; ydistance: 1.8640276833794356
+Delta Angle: 4.357505879896957
+Separation: 5.679712659720291
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 194
+Pixel coordinates: x=39.02323878100211, y=39.94618726677668
+xdistance: 1.341866426649264; ydistance: 1.0188344566281624
+Delta Angle: 3.7909981013152168
+Separation: 4.813780522015186
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 195
+Pixel coordinates: x=38.693357602670865, y=40.30986941410453
+xdistance: 1.457324839065199; ydistance: 0.8915457050634144
+Delta Angle: 3.690620691184744
+Separation: 4.881158636939263
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 196
+Pixel coordinates: x=40.21011631436723, y=39.76155724653405
+xdistance: 0.9264592899714722; ydistance: 1.0834549637130821
+Delta Angle: 4.004943170520268
+Separation: 4.073008690239567
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 197
+Pixel coordinates: x=40.67914540885126, y=40.82170028193505
+xdistance: 0.7622991069020597; ydistance: 0.7124049013227335
+Delta Angle: 3.8931703483019495
+Separation: 2.981056752518026
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 198
+Pixel coordinates: x=38.90284564287641, y=40.0054278673513
+xdistance: 1.384004024993259; ydistance: 0.998100246427046
+Delta Angle: 3.7663849067311146
+Separation: 4.875319973269172
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 199
+Pixel coordinates: x=38.39466245027355, y=36.74057361412531
+xdistance: 1.561868142404259; ydistance: 2.1407992350561424
+Delta Angle: 4.08209019588869
+Separation: 7.571403481939183
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 200
+Pixel coordinates: x=37.68268062427153, y=38.657142712962425
+xdistance: 1.8110617815049646; ydistance: 1.4700000504631525
+Delta Angle: 3.8234142232174735
+Separation: 6.664462514751464
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 201
+Pixel coordinates: x=39.671974762504746, y=37.702776990833705
+xdistance: 1.114808833123341; ydistance: 1.8040280532082043
+Delta Angle: 4.1588715085332595
+Separation: 6.0591074652025725
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 202
+Pixel coordinates: x=41.15810670582528, y=38.27794687535029
+xdistance: 0.5946626529611527; ydistance: 1.6027185936274004
+Delta Angle: 4.357100116797817
+Separation: 4.884235834104379
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 203
+Pixel coordinates: x=39.67928677037424, y=38.91102613229109
+xdistance: 1.1122496303690177; ydistance: 1.381140853698119
+Delta Angle: 4.034417252636146
+Separation: 5.066616870690662
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 204
+Pixel coordinates: x=39.916315933065874, y=39.84552800492972
+xdistance: 1.0292894234269452; ydistance: 1.0540651982745999
+Delta Angle: 3.938882506818751
+Separation: 4.209309565171811
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 205
+Pixel coordinates: x=38.165050256035826, y=39.466870224373814
+xdistance: 1.6422324103874621; ydistance: 1.1865954214691656
+Delta Angle: 3.767293233500647
+Separation: 5.788754745354664
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 206
+Pixel coordinates: x=39.043237685021566, y=36.92000381346006
+xdistance: 1.3348668102424535; ydistance: 2.077998665288979
+Delta Angle: 4.141388500428057
+Separation: 7.056592143942872
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 207
+Pixel coordinates: x=42.967874291857505, y=39.671359058007916
+xdistance: 0.03875600215012545; ydistance: 1.1150243296972309
+Delta Angle: -1.5360523260132006
+Separation: 3.187707619193556
+Direction: right up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 208
+Pixel coordinates: x=39.96023322722773, y=40.43429641188347
+xdistance: 1.0139183704702954; ydistance: 0.8479962558407854
+Delta Angle: 3.8381118837642347
+Separation: 3.776542109019978
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 209
+Pixel coordinates: x=38.23920859299378, y=39.30586346779555
+xdistance: 1.6162769924521772; ydistance: 1.2429477862715599
+Delta Angle: 3.797155248747118
+Separation: 5.825538787889505
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 210
+Pixel coordinates: x=39.54349862615239, y=41.60770115285774
+xdistance: 1.1597754808466645; ydistance: 0.437304596499791
+Delta Angle: 3.502167865544533
+Separation: 3.5413758148470094
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 211
+Pixel coordinates: x=38.72504221353945, y=37.737599296556795
+xdistance: 1.4462352252611927; ydistance: 1.7918402462051235
+Delta Angle: 4.033319896012595
+Separation: 6.579056315126507
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 212
+Pixel coordinates: x=40.766007018677826, y=41.83524853812314
+xdistance: 0.7318975434627624; ydistance: 0.35766301165690284
+Delta Angle: 3.5961425715911526
+Separation: 2.3274701059643386
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 213
+Pixel coordinates: x=39.94466422411014, y=35.42513057751781
+xdistance: 1.0193675215614517; ydistance: 2.601204297868767
+Delta Angle: 4.338899616474143
+Separation: 7.982314095071031
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 214
+Pixel coordinates: x=38.848816718259215, y=39.50371559454779
+xdistance: 1.4029141486092767; ydistance: 1.1736995419082739
+Delta Angle: 3.8382647466429676
+Separation: 5.226103026268593
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 215
+Pixel coordinates: x=38.19056096417615, y=40.00649128547704
+xdistance: 1.6333036625383488; ydistance: 0.9977280500830378
+Delta Angle: 3.6899628490922805
+Separation: 5.468381931321695
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 216
+Pixel coordinates: x=38.28382955916112, y=38.41224075037627
+xdistance: 1.6006596542936096; ydistance: 1.5557157373683064
+Delta Angle: 3.912752688047306
+Separation: 6.3774876918920596
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 217
+Pixel coordinates: x=41.56747226520275, y=42.930051282256336
+xdistance: 0.45138470717903795; ydistance: 0.025517948789716405
+Delta Angle: 3.0851201682991567
+Separation: 1.2917297992102208
+Direction: left down
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 218
+Pixel coordinates: x=41.298132157736234, y=39.066454861511474
+xdistance: 0.5456537447923192; ydistance: 1.3267407984709858
+Delta Angle: 4.322201738609348
+Separation: 4.09875954906948
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 219
+Pixel coordinates: x=39.96800263643278, y=38.69863881650472
+xdistance: 1.0111990772485295; ydistance: 1.4554764142233494
+Delta Angle: 4.105192034332402
+Separation: 5.063623906939423
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 220
+Pixel coordinates: x=38.789478082613705, y=39.249047428572474
+xdistance: 1.4236826710852049; ydistance: 1.262833399999635
+Delta Angle: 3.867189394807363
+Separation: 5.437301659795588
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 221
+Pixel coordinates: x=38.92326723224747, y=38.608854852417046
+xdistance: 1.376856468713387; ydistance: 1.486900801654035
+Delta Angle: 3.9653984775048485
+Separation: 5.789933367772323
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 222
+Pixel coordinates: x=42.61251915485744, y=40.049095154293695
+xdistance: 0.08561829579989844; ydistance: 0.9828166959972079
+Delta Angle: 4.625493133448739
+Separation: 2.818682787614865
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 223
+Pixel coordinates: x=40.65115845724324, y=42.75179908814343
+xdistance: 0.7720945399648671; ydistance: 0.03687031914980123
+Delta Angle: 3.1893100366987874
+Separation: 2.208498241400136
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 224
+Pixel coordinates: x=40.64919113094237, y=37.383222016257385
+xdistance: 0.7727831041701715; ydistance: 1.9158722943099167
+Delta Angle: 4.328990823345178
+Separation: 5.902445272724863
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 225
+Pixel coordinates: x=37.94221055689456, y=38.97285983356685
+xdistance: 1.720226305086906; ydistance: 1.359499058251603
+Delta Angle: 3.810392418474364
+Separation: 6.264520262818603
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 226
+Pixel coordinates: x=39.07998786328967, y=38.1123182439741
+xdistance: 1.3220042478486178; ydistance: 1.660688614609066
+Delta Angle: 4.040056400158411
+Separation: 6.064673153379513
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 227
+Pixel coordinates: x=40.65871696387539, y=40.993585428041904
+xdistance: 0.769449062643614; ydistance: 0.6522451001853351
+Delta Angle: 3.8447371752150508
+Separation: 2.881999774418145
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 228
+Pixel coordinates: x=41.03770886379914, y=39.68314596448993
+xdistance: 0.6368018976703032; ydistance: 1.1108989124285251
+Delta Angle: 4.191885029610491
+Separation: 3.6584964576592305
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 229
+Pixel coordinates: x=39.20884516522242, y=36.83322094939595
+xdistance: 1.276904192172154; ydistance: 2.1083726677114183
+Delta Angle: 4.167836427011157
+Separation: 7.0425642488730755
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 230
+Pixel coordinates: x=38.029108222197344, y=40.7554569856436
+xdistance: 1.689812122230931; ydistance: 0.735590055024742
+Delta Angle: 3.552162429076344
+Separation: 5.265643544591023
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 231
+Pixel coordinates: x=37.600626184457916, y=36.753659950874855
+xdistance: 1.8397808354397314; ydistance: 2.1362190171938016
+Delta Angle: 4.001410018241326
+Separation: 8.055027691902776
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 232
+Pixel coordinates: x=40.052048840828505, y=37.17760997120164
+xdistance: 0.9817829057100251; ydistance: 1.987836510079427
+Delta Angle: 4.253637129432302
+Separation: 6.334480739796311
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 233
+Pixel coordinates: x=41.28801220292835, y=42.16831032075744
+xdistance: 0.5491957289750791; ydistance: 0.24109138773489663
+Delta Angle: 3.555252964386544
+Separation: 1.7136689508708591
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 234
+Pixel coordinates: x=37.707121129773896, y=37.187151672173314
+xdistance: 1.8025076045791382; ydistance: 1.9844969147393405
+Delta Angle: 3.975010143966734
+Separation: 7.659733926841374
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 235
+Pixel coordinates: x=38.459481930127, y=39.50058687381441
+xdistance: 1.5391813244555523; ydistance: 1.1747945941649562
+Delta Angle: 3.79352590252782
+Separation: 5.53225900498341
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 236
+Pixel coordinates: x=38.90284614724889, y=42.52040044688958
+xdistance: 1.384003848462891; ydistance: 0.11785984358864757
+Delta Angle: 3.2265462979934547
+Separation: 3.9686090662524944
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 237
+Pixel coordinates: x=39.53158826919763, y=40.927092910120635
+xdistance: 1.163944105780832; ydistance: 0.6755174814577791
+Delta Angle: 3.6674527779684842
+Separation: 3.8450495595510983
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 238
+Pixel coordinates: x=40.79490721511865, y=39.01227614919727
+xdistance: 0.721782474708475; ydistance: 1.3457033477809566
+Delta Angle: 4.220077622053482
+Separation: 4.363005368447693
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+
+Image number: 239
+Pixel coordinates: x=38.05226939050717, y=38.45227423511012
+xdistance: 1.681705713322492; ydistance: 1.5417040177114596
+Delta Angle: 3.8835853012864456
+Separation: 6.518410589073714
+Direction: left up
+Plate Scale: 0.35
+RA Dampening: 1.25
+Dec Dampening: 0.75
+

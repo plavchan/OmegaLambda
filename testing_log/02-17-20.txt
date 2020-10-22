@@ -1,0 +1,236 @@
+First test run of test_driver.py:
+
+$ python -m main.drivers.test_driver.py
+Traceback (most recent call last):
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.7_3.7.177
+6.0_x64__qbz5n2kfra8p0\lib\runpy.py", line 183, in _run_module_as_main
+    mod_name, mod_spec, code = _get_module_details(mod_name, _Error)
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.7_3.7.177
+6.0_x64__qbz5n2kfra8p0\lib\runpy.py", line 109, in _get_module_details
+    __import__(pkg_name)
+  File "C:\Users\GMUObservatory\-omegalambda\main\drivers\test_driver.py", line
+1, in <module>
+    from main.controller.camera import Camera
+  File "C:\Users\GMUObservatory\-omegalambda\main\controller\camera.py", line 3,
+ in <module>
+    import win32com.client
+  File "C:\Users\GMUObservatory\AppData\Local\Packages\PythonSoftwareFoundation.
+Python.3.7_qbz5n2kfra8p0\LocalCache\local-packages\Python37\site-packages\win32c
+om\__init__.py", line 5, in <module>
+    import win32api, sys, os
+ImportError: DLL load failed: The specified module could not be found.
+
+
+
+Attempted running pywin32_postinstall script to fix the problem, met with:
+
+C:\Users\GMUObservatory>python C:\Users\GMUObservatory\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.7_qbz5n2kfra8p0\LocalCache\local-packages\Python37\Scripts\pywin32_postinstall.py -install
+Parsed arguments are: Namespace(destination='C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.7_3.7.1776.0_x64__qbz5n2kfra8p0\\Lib\\site-packages', install=True, quiet=False, remove=False, silent=False, wait=None)
+C:\Users\GMUObservatory\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.7_qbz5n2kfra8p0\LocalCache\local-packages\Python37\Scripts\pywin32_postinstall.py:164: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Traceback (most recent call last):
+  File "C:\Users\GMUObservatory\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.7_qbz5n2kfra8p0\LocalCache\local-packages\Python37\Scripts\pywin32_postinstall.py", line 633, in <module>
+    install(args.destination)
+  File "C:\Users\GMUObservatory\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.7_qbz5n2kfra8p0\LocalCache\local-packages\Python37\Scripts\pywin32_postinstall.py", line 334, in install
+    LoadSystemModule(lib_dir, "pywintypes")
+  File "C:\Users\GMUObservatory\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.7_qbz5n2kfra8p0\LocalCache\local-packages\Python37\Scripts\pywin32_postinstall.py", line 174, in LoadSystemModule
+    mod = imp.load_dynamic(modname, filename)
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.7_3.7.1776.0_x64__qbz5n2kfra8p0\lib\imp.py", line 342, in load_dynamic
+    return _load(spec)
+  File "<frozen importlib._bootstrap>", line 696, in _load
+  File "<frozen importlib._bootstrap>", line 670, in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 583, in module_from_spec
+  File "<frozen importlib._bootstrap_external>", line 1043, in create_module
+  File "<frozen importlib._bootstrap>", line 219, in _call_with_frames_removed
+ImportError: DLL load failed: The specified module could not be found.
+
+
+
+Solved by installing Anaconda3 and running python through that.
+Next re-tried using anaconda3 and got a new error:
+
+$ python -m main.drivers.test_driver.py
+Traceback (most recent call last):
+  File "C:\Users\GMUObservatory\Anaconda3\lib\runpy.py", line 183, in _run_modul
+e_as_main
+    mod_name, mod_spec, code = _get_module_details(mod_name, _Error)
+  File "C:\Users\GMUObservatory\Anaconda3\lib\runpy.py", line 109, in _get_modul
+e_details
+    __import__(pkg_name)
+  File "C:\Users\GMUObservatory\-omegalambda\main\drivers\test_driver.py", line
+3, in <module>
+    camera_object = Camera()
+  File "C:\Users\GMUObservatory\-omegalambda\main\controller\camera.py", line 12
+, in __init__
+    self.Camera.LockApp = True
+  File "C:\Users\GMUObservatory\Anaconda3\lib\site-packages\win32com\client\dyna
+mic.py", line 581, in __setattr__
+    raise AttributeError("Property '%s.%s' can not be set." % (self._username_,
+attr))
+AttributeError: Property 'MaxIm.CCDCamera.LockApp' can not be set.
+
+
+
+
+Commented out the lockapp property and found the other properties couldn't be set either:
+
+$ python -m main.drivers.test_driver.py
+Traceback (most recent call last):
+  File "C:\Users\GMUObservatory\Anaconda3\lib\runpy.py", line 183, in _run_modul
+e_as_main
+    mod_name, mod_spec, code = _get_module_details(mod_name, _Error)
+  File "C:\Users\GMUObservatory\Anaconda3\lib\runpy.py", line 109, in _get_modul
+e_details
+    __import__(pkg_name)
+  File "C:\Users\GMUObservatory\-omegalambda\main\drivers\test_driver.py", line
+3, in <module>
+    camera_object = Camera()
+  File "C:\Users\GMUObservatory\-omegalambda\main\controller\camera.py", line 13
+, in __init__
+    self.Camera.CoolerOn = True
+  File "C:\Users\GMUObservatory\Anaconda3\lib\site-packages\win32com\client\dyna
+mic.py", line 581, in __setattr__
+    raise AttributeError("Property '%s.%s' can not be set." % (self._username_,
+attr))
+AttributeError: Property 'MaxIm.CCDCamera.CoolerOn' can not be set.
+
+
+
+
+Commented out all problems to see how far it could get, and it managed to run the check_connection method and not connect:
+
+$ python -m main.drivers.test_driver.py
+Camera is not connected
+C:\Users\GMUObservatory\Anaconda3\python.exe: Error while finding module specifi
+cation for 'main.drivers.test_driver.py' (ModuleNotFoundError: __path__ attribut
+e not found on 'main.drivers.test_driver' while trying to find 'main.drivers.tes
+t_driver.py')
+
+
+
+Made some edits to the code--originally we never had it actually try to connect to the camera.
+Now it SUCCESSFULLY CONNECTS TO THE CCD CAMERA!! WOO!!
+
+$ python -m main.drivers.test_driver.py
+Camera has successfully connected
+C:\Users\GMUObservatory\Anaconda3\python.exe: Error while finding module specifi
+cation for 'main.drivers.test_driver.py' (ModuleNotFoundError: __path__ attribut
+e not found on 'main.drivers.test_driver' while trying to find 'main.drivers.tes
+t_driver.py')
+
+
+
+Tried testing the cooler--could get it to turn on but had trouble getting it to change the setpoint:
+
+$ python -m main.drivers.test_driver.py
+Camera has successfully connected
+Camera is already connected
+Traceback (most recent call last):
+  File "C:\Users\GMUObservatory\Anaconda3\lib\runpy.py", line 183, in _run_modul
+e_as_main
+    mod_name, mod_spec, code = _get_module_details(mod_name, _Error)
+  File "C:\Users\GMUObservatory\Anaconda3\lib\runpy.py", line 109, in _get_modul
+e_details
+    __import__(pkg_name)
+  File "C:\Users\GMUObservatory\-omegalambda\main\drivers\test_driver.py", line
+5, in <module>
+    camera_object.coolerSet()
+  File "C:\Users\GMUObservatory\-omegalambda\main\controller\camera.py", line 32
+, in coolerSet
+    if self.Camera.CoolerOn == True and self.Camera.SetCCDTemperature == T_0:
+  File "C:\Users\GMUObservatory\Anaconda3\lib\site-packages\win32com\client\dyna
+mic.py", line 527, in __getattr__
+    raise AttributeError("%s.%s" % (self._username_, attr))
+AttributeError: MaxIm.CCDCamera.SetCCDTemperature
+
+
+
+Tried testing the exposure method, seemed to be missing a save path argument:
+
+$ python -m main.drivers.test_driver.py
+Camera has successfully connected
+Camera is already connected
+Traceback (most recent call last):
+  File "C:\Users\GMUObservatory\Anaconda3\lib\runpy.py", line 183, in _run_modul
+e_as_main
+    mod_name, mod_spec, code = _get_module_details(mod_name, _Error)
+  File "C:\Users\GMUObservatory\Anaconda3\lib\runpy.py", line 109, in _get_modul
+e_details
+    __import__(pkg_name)
+  File "C:\Users\GMUObservatory\-omegalambda\main\drivers\test_driver.py", line
+7, in <module>
+    camera_object.expose(10, 1, type="dark")
+TypeError: expose() missing 1 required positional argument: 'save_path'
+
+
+
+
+Made new directory C:\Users\GMUObservatory\Documents\Observing Sessions\2020_Data to mirror the one on ops.  Added the argument.
+There seemed to be a small syntax error where 'Camera.ImageReady' should have been 'self.Camera.ImageReady'
+
+$ python -m main.drivers.test_driver.py
+Camera has successfully connected
+Traceback (most recent call last):
+  File "C:\Users\GMUObservatory\Anaconda3\lib\runpy.py", line 183, in _run_modul
+e_as_main
+    mod_name, mod_spec, code = _get_module_details(mod_name, _Error)
+  File "C:\Users\GMUObservatory\Anaconda3\lib\runpy.py", line 109, in _get_modul
+e_details
+    __import__(pkg_name)
+  File "C:\Users\GMUObservatory\-omegalambda\main\drivers\test_driver.py", line
+7, in <module>
+    camera_object.expose(10, 1, r'c\users\gmuobservatory\documents\observing ses
+sions\2020_data', type="dark")
+  File "C:\Users\GMUObservatory\-omegalambda\main\controller\camera.py", line 59
+, in expose
+    while Camera.ImageReady==False:
+AttributeError: type object 'Camera' has no attribute 'ImageReady'
+
+
+
+With this fix, it SUCCESSFULLY EXPOSED AN IMAGE!!
+Some notes:  The filter wheel automatically changed to the UV filter, (the test driver selected filter #1), so we know at least currently
+filter 1 translates to UV in Dev's MaxIM DL.  I think this also translates to the actual UV filter but I'm not 100% sure.
+It couldn't actually save the image for some reason:
+
+$ python -m main.drivers.test_driver.py
+Camera has successfully connected
+Traceback (most recent call last):
+  File "C:\Users\GMUObservatory\Anaconda3\lib\runpy.py", line 183, in _run_modul
+e_as_main
+    mod_name, mod_spec, code = _get_module_details(mod_name, _Error)
+  File "C:\Users\GMUObservatory\Anaconda3\lib\runpy.py", line 109, in _get_modul
+e_details
+    __import__(pkg_name)
+  File "C:\Users\GMUObservatory\-omegalambda\main\drivers\test_driver.py", line
+7, in <module>
+    camera_object.expose(10, 1, r'c\users\gmuobservatory\documents\observing ses
+sions\2020_data', type="dark")
+  File "C:\Users\GMUObservatory\-omegalambda\main\controller\camera.py", line 64
+, in expose
+    self.Camera.SaveImage(save_path)
+  File "<COMObject MaxIm.CCDCamera>", line 2, in SaveImage
+pywintypes.com_error: (-2147352567, 'Exception occurred.', (65535, 'MaxIm DL 6',
+ "Could Not Save File 'c\\users\\gmuobservatory\\documents\\observing sessions\\
+2020_data'", None, 0, 0), None)
+
+
+
+Some more testing revealed each filter:
+0 - Clear
+1 - UV
+2 - Blue
+3 - Visible
+4 - Red
+5 - IR
+6 - H-alpha
+
+For the frame types:
+0 - Dark
+1 - Light
+
+
+
+Plans for next time:
+-Look into cooler set issue
+-Make a test JSON string as an observation_ticket and try running observation_run using said ticket.

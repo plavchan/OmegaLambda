@@ -1,0 +1,15 @@
+{"type": "observation_ticket",
+"details":{
+	"name": "HIP-xxxxGuidertest",
+	"ra": "22:41:29.686",
+	"dec": "+53:24:35.17",
+	"start_time": "2020-07-25 21:00:00-04:00",
+	"end_time": "2020-07-26 04:00:00-04:00",
+	"filter": "r",
+	"num": 9999,
+	"exp_time": 15,
+	"self_guide": true,
+	"guide":false,
+	"cycle_filter": false
+	}
+}

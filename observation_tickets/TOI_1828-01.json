@@ -1,0 +1,15 @@
+{"type": "observation_ticket",
+"details": {
+	"name": "TOI_1828-01",
+	"ra": "16:06:14.98",
+	"dec": "+69:37:18.1",
+	"start_time": "2020-08-10 20:00:00-04:00",
+	"end_time": "2020-08-11 04:00:00-04:00",
+	"filter": "r",
+	"num": 9999,
+	"exp_time": 60,
+	"self_guide": true,
+	"guide": false,
+	"cycle_filter": false
+	}
+}

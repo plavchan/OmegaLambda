@@ -1,0 +1,15 @@
+{"type": "observation_ticket",
+"details": {
+	"name": "TIC_369031347-11",
+	"ra": "01:11:21.41",
+	"dec": "+68:05:07.1",
+	"start_time": "2020-09-06 20:00:00-04:00",
+	"end_time": "2020-09-07 06:00:00-04:00",
+	"filter": "r",
+	"num": 99999,
+	"exp_time": 60.0,
+	"self_guide": true,
+	"guide": false,
+	"cycle_filter": false
+	}
+}

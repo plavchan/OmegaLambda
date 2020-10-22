@@ -1,0 +1,15 @@
+{"type": "observation_ticket",
+"details": {
+	"name": "test0",
+	"ra": "12:47:19.2",
+	"dec": "-08:34:50",
+	"start_time": "2020-09-04 13:00:00-04:00",
+	"end_time": "2020-09-05 23:00:00-04:00",
+	"filter": "r",
+	"num": 2,
+	"exp_time": 3.0,
+	"self_guide": true,
+	"guide": false,
+	"cycle_filter": false
+	}
+}

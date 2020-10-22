@@ -1,0 +1,35 @@
+Bottom-Right: xyz=(292,392,10)
+Top-Right: xyz=(292,391,10)
+Bottom-Left: xyz=(291,392,10)
+Top-Left: xyz=(291,391,10)
+
+format:
+tile?product=twcRadarMosaic&ts=1591893300&xyz=292:392:10&apiKey=...
+
+apiKey:
+window.env = {..."SUN_V3_API_KEY": "...", "SUN_V3_HOST_NAME": "api.weather.com", "SUN_V3_PROTOCOL": "https", ...}
+
+ts:
+seems to be a timescale of some sort
+seems like last 2 digits must always be 00
+Date: 6-11-2020
+GMT: 17:07:50
+ts=1591895100
+
+GMT: 17:12:50
+ts=1591895400
+
+About 5 minutes = 300 ts
+5 minutes = 300 seconds, so 1 tick of ts is 1 second.  It seems to regularly update every 5 minutes.
+
+The # is seconds since Jan. 1, 1970 (UTC)
+
+5100
+5400
+5700
+6000
+6300
+6600
+6900
+7200
+...

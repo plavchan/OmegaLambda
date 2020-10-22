@@ -1,0 +1,15 @@
+{"type": "observation_ticket",
+"details": {
+	"name": "HIP80021",
+	"ra": "16:20:04.2758",
+	"dec": "+21:07:57.398",
+	"start_time": "2020-08-11 20:00:00-04:00",
+	"end_time": "2020-08-12 04:00:00-04:00",
+	"filter": "r",
+	"num": 9999,
+	"exp_time": 1,
+	"self_guide": true,
+	"guide": false,
+	"cycle_filter": false
+	}
+}

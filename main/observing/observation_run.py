@@ -15,9 +15,10 @@ from ..controller.dome import Dome
 from ..controller.focuser_control import Focuser
 from ..controller.focuser_procedures import FocusProcedures
 from ..controller.flatfield_lamp import FlatLamp
-from .calibration import Calibration
+from ..controller.thread_monitor import Monitor
+from ..observing.condition_checker import Conditions
+from ..observing.calibration import Calibration
 from .guider import Guider
-from .condition_checker import Conditions
 
 
 class ObservationRun:
@@ -57,6 +58,7 @@ class ObservationRun:
         self.conditions = Conditions()
         self.focuser = Focuser()
         self.flatlamp = FlatLamp()
+        self.monitor = Monitor()
 
         # Initializes higher level structures - focuser, guider, and calibration
         self.focus_procedures = FocusProcedures(self.focuser, self.camera)
@@ -77,6 +79,8 @@ class ObservationRun:
         self.flatlamp.start()
         self.calibration.start()
         self.guider.start()
+
+        self.monitor.monitor_run()
 
     def everything_ok(self):
         """
