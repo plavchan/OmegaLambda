@@ -6719,3 +6719,1059 @@
 2020-10-22 16:36:06-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
 2020-10-22 16:36:06-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
 2020-10-22 16:36:06-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 13:57:22-0400 -- INFO: (MainThread) Module: logger | Function: __init__ | Message: Initialized logging module
+2020-10-23 13:57:22-0400 -- DEBUG: (MainThread) Module: object_reader | Function: __init__ | Message: Object reader is reading a json file
+2020-10-23 13:57:22-0400 -- INFO: (MainThread) Module: config_reader | Function: _dict_to_config_object | Message: Global config object has been created
+2020-10-23 13:57:22-0400 -- DEBUG: (MainThread) Module: object_reader | Function: __init__ | Message: Object reader is reading a json file
+2020-10-23 13:57:22-0400 -- INFO: (MainThread) Module: filter_wheel | Function: _dict_to_filter_object | Message: Global filter object has been created
+2020-10-23 13:57:22-0400 -- DEBUG: (MainThread) Module: config_reader | Function: get_config | Message: Global config object was called
+2020-10-23 13:57:22-0400 -- DEBUG: (MainThread) Module: object_reader | Function: __init__ | Message: Object reader is reading a json file
+2020-10-23 13:57:42-0400 -- INFO: (MainThread) Module: driver | Function: run | Message: New directories for tonight's observing have been made!
+2020-10-23 13:57:42-0400 -- DEBUG: (MainThread) Module: config_reader | Function: get_config | Message: Global config object was called
+2020-10-23 13:57:42-0400 -- DEBUG: (MainThread) Module: config_reader | Function: get_config | Message: Global config object was called
+2020-10-23 13:57:42-0400 -- DEBUG: (MainThread) Module: config_reader | Function: get_config | Message: Global config object was called
+2020-10-23 13:57:42-0400 -- DEBUG: (MainThread) Module: config_reader | Function: get_config | Message: Global config object was called
+2020-10-23 13:57:42-0400 -- DEBUG: (MainThread) Module: config_reader | Function: get_config | Message: Global config object was called
+2020-10-23 13:57:42-0400 -- DEBUG: (MainThread) Module: config_reader | Function: get_config | Message: Global config object was called
+2020-10-23 13:57:42-0400 -- DEBUG: (MainThread) Module: config_reader | Function: get_config | Message: Global config object was called
+2020-10-23 13:57:42-0400 -- DEBUG: (MainThread) Module: config_reader | Function: get_config | Message: Global config object was called
+2020-10-23 13:57:42-0400 -- DEBUG: (MainThread) Module: config_reader | Function: get_config | Message: Global config object was called
+2020-10-23 13:57:42-0400 -- DEBUG: (MainThread) Module: config_reader | Function: get_config | Message: Global config object was called
+2020-10-23 13:57:42-0400 -- DEBUG: (MainThread) Module: config_reader | Function: get_config | Message: Global config object was called
+2020-10-23 13:57:42-0400 -- DEBUG: (MainThread) Module: config_reader | Function: get_config | Message: Global config object was called
+2020-10-23 13:57:42-0400 -- DEBUG: (MainThread) Module: config_reader | Function: get_config | Message: Global config object was called
+2020-10-23 13:57:42-0400 -- DEBUG: (MainThread) Module: config_reader | Function: get_config | Message: Global config object was called
+2020-10-23 13:57:42-0400 -- DEBUG: (MainThread) Module: filter_wheel | Function: get_filter | Message: Global filter object was called
+2020-10-23 13:57:42-0400 -- DEBUG: (MainThread) Module: config_reader | Function: get_config | Message: Global config object was called
+2020-10-23 13:57:42-0400 -- DEBUG: (MainThread) Module: config_reader | Function: get_config | Message: Global config object was called
+2020-10-23 13:57:42-0400 -- DEBUG: (MainThread) Module: config_reader | Function: get_config | Message: Global config object was called
+2020-10-23 13:57:42-0400 -- DEBUG: (MainThread) Module: config_reader | Function: get_config | Message: Global config object was called
+2020-10-23 13:57:42-0400 -- DEBUG: (MainThread) Module: filter_wheel | Function: get_filter | Message: Global filter object was called
+2020-10-23 13:57:42-0400 -- DEBUG: (MainThread) Module: config_reader | Function: get_config | Message: Global config object was called
+2020-10-23 13:57:42-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:57:42-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:57:42-0400 -- INFO: (FlatLamp-Th) Module: flatfield_lamp | Function: check_connection | Message: Checking connection for the FlatLamp
+2020-10-23 13:57:42-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:57:42-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:57:42-0400 -- DEBUG: (Conditions-Th) Module: time_utils | Function: convert_to_datetime_utc | Message: Called time_utils function
+2020-10-23 13:57:42-0400 -- INFO: (Telescope-Th) Module: telescope | Function: check_connection | Message: Checking connection for the Telescope
+2020-10-23 13:57:43-0400 -- INFO: (Focuser-Th) Module: focuser_control | Function: check_connection | Message: Checking connection for the Focuser
+2020-10-23 13:57:43-0400 -- INFO: (Dome-Th   ) Module: dome | Function: check_connection | Message: Checking connection for the Dome
+2020-10-23 13:57:43-0400 -- DEBUG: (Conditions-Th) Module: time_utils | Function: datetime_to_epoch_milli_converter | Message: Called time_utils function
+2020-10-23 13:57:43-0400 -- DEBUG: (Conditions-Th) Module: time_utils | Function: rounddown_300 | Message: Called time_utils function
+2020-10-23 13:57:43-0400 -- DEBUG: (Conditions-Th) Module: PngImagePlugin | Function: call | Message: STREAM b'IHDR' 16 13
+2020-10-23 13:57:43-0400 -- DEBUG: (Conditions-Th) Module: PngImagePlugin | Function: call | Message: STREAM b'tEXt' 41 26
+2020-10-23 13:57:43-0400 -- DEBUG: (Conditions-Th) Module: PngImagePlugin | Function: call | Message: STREAM b'tEXt' 79 13
+2020-10-23 13:57:43-0400 -- DEBUG: (Conditions-Th) Module: PngImagePlugin | Function: call | Message: STREAM b'IDAT' 104 11
+2020-10-23 13:57:43-0400 -- DEBUG: (Conditions-Th) Module: PngImagePlugin | Function: call | Message: STREAM b'IHDR' 16 13
+2020-10-23 13:57:43-0400 -- DEBUG: (Conditions-Th) Module: PngImagePlugin | Function: call | Message: STREAM b'tEXt' 41 26
+2020-10-23 13:57:43-0400 -- DEBUG: (Conditions-Th) Module: PngImagePlugin | Function: call | Message: STREAM b'tEXt' 79 13
+2020-10-23 13:57:43-0400 -- DEBUG: (Conditions-Th) Module: PngImagePlugin | Function: call | Message: STREAM b'IDAT' 104 11
+2020-10-23 13:57:43-0400 -- DEBUG: (Conditions-Th) Module: PngImagePlugin | Function: call | Message: STREAM b'IHDR' 16 13
+2020-10-23 13:57:43-0400 -- DEBUG: (Conditions-Th) Module: PngImagePlugin | Function: call | Message: STREAM b'tEXt' 41 26
+2020-10-23 13:57:43-0400 -- DEBUG: (Conditions-Th) Module: PngImagePlugin | Function: call | Message: STREAM b'tEXt' 79 13
+2020-10-23 13:57:43-0400 -- DEBUG: (Conditions-Th) Module: PngImagePlugin | Function: call | Message: STREAM b'IDAT' 104 11
+2020-10-23 13:57:43-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:57:43-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:57:43-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:57:43-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:57:43-0400 -- DEBUG: (Conditions-Th) Module: PngImagePlugin | Function: call | Message: STREAM b'IHDR' 16 13
+2020-10-23 13:57:43-0400 -- DEBUG: (Conditions-Th) Module: PngImagePlugin | Function: call | Message: STREAM b'tEXt' 41 26
+2020-10-23 13:57:43-0400 -- DEBUG: (Conditions-Th) Module: PngImagePlugin | Function: call | Message: STREAM b'tEXt' 79 13
+2020-10-23 13:57:43-0400 -- DEBUG: (Conditions-Th) Module: PngImagePlugin | Function: call | Message: STREAM b'IDAT' 104 11
+2020-10-23 13:57:43-0400 -- DEBUG: (Conditions-Th) Module: time_utils | Function: get_local_sidereal_time | Message: Called time_utils function
+2020-10-23 13:57:43-0400 -- DEBUG: (Conditions-Th) Module: time_utils | Function: days_since_j2000 | Message: Called time_utils function
+2020-10-23 13:57:43-0400 -- DEBUG: (Conditions-Th) Module: time_utils | Function: fractional_hours_of_day | Message: Called time_utils function
+2020-10-23 13:57:43-0400 -- DEBUG: (Conditions-Th) Module: time_utils | Function: days_of_year | Message: Called time_utils function
+2020-10-23 13:57:43-0400 -- DEBUG: (Conditions-Th) Module: time_utils | Function: rounddown_300 | Message: Called time_utils function
+2020-10-23 13:57:44-0400 -- INFO: (Camera-Th ) Module: camera | Function: check_connection | Message: Checking connection for the Camera
+2020-10-23 13:57:44-0400 -- CRITICAL: (Conditions-Th) Module: condition_checker | Function: run | Message: Weather conditions have become too poor for continued observing. Reason(s) for weather alert: | Sun Elevation |
+2020-10-23 13:57:44-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:57:44-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:57:44-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:57:44-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:57:45-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:57:45-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:57:45-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:57:45-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:57:47-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:57:47-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:57:47-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:57:47-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:57:48-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:57:48-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:57:48-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:57:48-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:57:49-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:57:49-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:57:49-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:57:49-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:57:49-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 13:57:49-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 13:57:50-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:57:50-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:57:50-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:57:50-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:57:50-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 13:57:50-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 13:57:51-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:57:51-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:57:51-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:57:51-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:57:51-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 13:57:51-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 13:57:52-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 13:57:52-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:57:52-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:57:52-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:57:52-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:57:52-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 13:57:52-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 13:57:53-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 13:57:53-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:57:53-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:57:53-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:57:53-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:57:53-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 13:57:53-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 13:57:53-0400 -- INFO: (MainThread) Module: thread_monitor | Function: monitor_run | Message: Beginning thread monitoring
+2020-10-23 13:57:53-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 13:57:54-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 13:57:54-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:57:54-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:57:54-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:57:54-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:57:54-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 13:57:54-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 13:57:54-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 13:57:55-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 13:57:55-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:57:55-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:57:55-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:57:55-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:57:55-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 13:57:55-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 13:57:55-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 13:57:56-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 13:57:56-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:57:56-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:57:56-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:57:56-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:57:56-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 13:57:56-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 13:57:57-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 13:57:57-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 13:57:57-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:57:57-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:57:57-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:57:57-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:57:57-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 13:57:57-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 13:57:58-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 13:57:58-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 13:57:58-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:57:58-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:57:58-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:57:58-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:57:58-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 13:57:58-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 13:57:59-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 13:57:59-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 13:57:59-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:57:59-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:57:59-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:57:59-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:57:59-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 13:57:59-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 13:58:00-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 13:58:00-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 13:58:00-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:58:00-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:58:00-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:58:00-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:58:00-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 13:58:01-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 13:58:01-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 13:58:01-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 13:58:01-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:58:01-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:58:01-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:58:01-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:58:01-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 13:58:02-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 13:58:02-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 13:58:02-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 13:58:02-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:58:02-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:58:02-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:58:02-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:58:02-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 13:58:03-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 13:58:03-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 13:58:03-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 13:58:03-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:58:03-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:58:03-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:58:03-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:58:03-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 13:58:04-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 13:58:04-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 13:58:04-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 13:58:04-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:58:04-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:58:04-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:58:04-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:58:04-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 13:58:05-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 13:58:05-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 13:58:05-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 13:58:05-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:58:05-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:58:05-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:58:05-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:58:05-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 13:58:06-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 13:58:06-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 13:58:06-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 13:58:06-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:58:06-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:58:06-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:58:06-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:58:06-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 13:58:07-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 13:58:07-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 13:58:07-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 13:58:07-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:58:07-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:58:07-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:58:07-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:58:07-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 13:58:08-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 13:58:08-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 13:58:08-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 13:58:08-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:58:08-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:58:08-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:58:08-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:58:08-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 13:58:09-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 13:58:09-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 13:58:09-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 13:58:09-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:58:09-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:58:09-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:58:09-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:58:09-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 13:58:10-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 13:58:10-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 13:58:10-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 13:58:10-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:58:10-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:58:10-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:58:10-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:58:10-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 13:58:11-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 13:58:11-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 13:58:11-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 13:58:11-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:58:11-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:58:11-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:58:11-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:58:11-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 13:58:12-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 13:58:12-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 13:58:12-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 13:58:12-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:58:12-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:58:12-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:58:12-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:58:12-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 13:58:13-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 13:58:13-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 13:58:13-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 13:58:13-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:58:13-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:58:13-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:58:13-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:58:14-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 13:58:14-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 13:58:14-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 13:58:14-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 13:58:14-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:58:14-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:58:14-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:58:14-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:58:15-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 13:58:15-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 13:58:15-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 13:58:15-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 13:58:15-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:58:15-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:58:15-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:58:15-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:58:16-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 13:58:16-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 13:58:16-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 13:58:16-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 13:58:16-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:58:16-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:58:16-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:58:16-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:58:17-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 13:58:17-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 13:58:17-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 13:58:17-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 13:58:17-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:58:17-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:58:17-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:58:17-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:58:18-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 13:58:18-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 13:58:18-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 13:58:18-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 13:58:18-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:58:18-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:58:18-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:58:18-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:58:19-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 13:58:19-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 13:58:19-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 13:58:19-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 13:58:20-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:58:20-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:58:20-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:58:20-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:58:20-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 13:58:20-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 13:58:20-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 13:58:20-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 13:58:21-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:58:21-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:58:21-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:58:21-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:58:21-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 13:58:21-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 13:58:21-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 13:58:21-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 13:58:22-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:58:22-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:58:22-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:58:22-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:58:22-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 13:58:22-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 13:58:22-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 13:58:22-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 13:58:23-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:58:23-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:58:23-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:58:23-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:58:23-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 13:58:23-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 13:58:23-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 13:58:23-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 13:58:24-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:58:24-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:58:24-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:58:24-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:58:24-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 13:58:24-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 13:58:24-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 13:58:25-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 13:58:25-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:58:25-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:58:25-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:58:25-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:58:25-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 13:58:25-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 13:58:25-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 13:58:26-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 13:58:26-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:58:26-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:58:26-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:58:26-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:58:26-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 13:58:26-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 13:58:26-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 13:58:27-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 13:58:27-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:58:27-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:58:27-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:58:27-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:58:27-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 13:58:27-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 13:58:27-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 13:58:28-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 13:58:28-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:58:28-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:58:28-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:58:28-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:58:28-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 13:58:28-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 13:58:28-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 13:58:29-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 13:58:29-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:58:29-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:58:29-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:58:29-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:58:29-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 13:58:29-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 13:58:30-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 13:58:30-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 13:58:30-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:58:30-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:58:30-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:58:30-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:58:30-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 13:58:30-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 13:58:31-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 13:58:31-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 13:58:31-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:58:31-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:58:31-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:58:31-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:58:31-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 13:58:31-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 13:58:32-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 13:58:32-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 13:58:32-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:58:32-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:58:32-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:58:32-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:58:32-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 13:58:32-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 13:58:33-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 13:58:33-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 13:58:33-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:58:33-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:58:33-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:58:33-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:58:33-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 13:58:34-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 13:58:34-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 13:58:34-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 13:58:34-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:58:34-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:58:34-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:58:34-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:58:34-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 13:58:35-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 13:58:35-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 13:58:35-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 13:58:35-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:58:35-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:58:35-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:58:35-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:58:35-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 13:58:36-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 13:58:36-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 13:58:36-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 13:58:36-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:58:36-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:58:36-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:58:36-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:58:36-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 13:58:37-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 13:58:37-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 13:58:37-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 13:58:37-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:58:37-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:58:37-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:58:37-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:58:37-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 13:58:38-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 13:58:38-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 13:58:38-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 13:58:38-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:58:38-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:58:38-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:58:38-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:58:38-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 13:58:39-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 13:58:39-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 13:58:39-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 13:58:39-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 13:58:39-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 13:58:39-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 13:58:39-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 13:58:39-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:02:03-0400 -- INFO: (MainThread) Module: logger | Function: __init__ | Message: Initialized logging module
+2020-10-23 14:02:03-0400 -- DEBUG: (MainThread) Module: object_reader | Function: __init__ | Message: Object reader is reading a json file
+2020-10-23 14:02:03-0400 -- INFO: (MainThread) Module: config_reader | Function: _dict_to_config_object | Message: Global config object has been created
+2020-10-23 14:02:03-0400 -- DEBUG: (MainThread) Module: object_reader | Function: __init__ | Message: Object reader is reading a json file
+2020-10-23 14:02:03-0400 -- INFO: (MainThread) Module: filter_wheel | Function: _dict_to_filter_object | Message: Global filter object has been created
+2020-10-23 14:02:03-0400 -- DEBUG: (MainThread) Module: config_reader | Function: get_config | Message: Global config object was called
+2020-10-23 14:02:03-0400 -- DEBUG: (MainThread) Module: object_reader | Function: __init__ | Message: Object reader is reading a json file
+2020-10-23 14:02:03-0400 -- INFO: (MainThread) Module: driver | Function: run | Message: New directories for tonight's observing have been made!
+2020-10-23 14:02:03-0400 -- DEBUG: (MainThread) Module: config_reader | Function: get_config | Message: Global config object was called
+2020-10-23 14:02:03-0400 -- DEBUG: (MainThread) Module: config_reader | Function: get_config | Message: Global config object was called
+2020-10-23 14:02:03-0400 -- DEBUG: (MainThread) Module: config_reader | Function: get_config | Message: Global config object was called
+2020-10-23 14:02:03-0400 -- DEBUG: (MainThread) Module: config_reader | Function: get_config | Message: Global config object was called
+2020-10-23 14:02:03-0400 -- DEBUG: (MainThread) Module: config_reader | Function: get_config | Message: Global config object was called
+2020-10-23 14:02:03-0400 -- DEBUG: (MainThread) Module: config_reader | Function: get_config | Message: Global config object was called
+2020-10-23 14:02:03-0400 -- DEBUG: (MainThread) Module: config_reader | Function: get_config | Message: Global config object was called
+2020-10-23 14:02:03-0400 -- DEBUG: (MainThread) Module: config_reader | Function: get_config | Message: Global config object was called
+2020-10-23 14:02:03-0400 -- DEBUG: (MainThread) Module: config_reader | Function: get_config | Message: Global config object was called
+2020-10-23 14:02:03-0400 -- DEBUG: (MainThread) Module: config_reader | Function: get_config | Message: Global config object was called
+2020-10-23 14:02:03-0400 -- DEBUG: (MainThread) Module: config_reader | Function: get_config | Message: Global config object was called
+2020-10-23 14:02:03-0400 -- DEBUG: (MainThread) Module: config_reader | Function: get_config | Message: Global config object was called
+2020-10-23 14:02:03-0400 -- DEBUG: (MainThread) Module: config_reader | Function: get_config | Message: Global config object was called
+2020-10-23 14:02:03-0400 -- DEBUG: (MainThread) Module: config_reader | Function: get_config | Message: Global config object was called
+2020-10-23 14:02:03-0400 -- DEBUG: (MainThread) Module: filter_wheel | Function: get_filter | Message: Global filter object was called
+2020-10-23 14:02:03-0400 -- DEBUG: (MainThread) Module: config_reader | Function: get_config | Message: Global config object was called
+2020-10-23 14:02:03-0400 -- DEBUG: (MainThread) Module: config_reader | Function: get_config | Message: Global config object was called
+2020-10-23 14:02:03-0400 -- DEBUG: (MainThread) Module: config_reader | Function: get_config | Message: Global config object was called
+2020-10-23 14:02:03-0400 -- DEBUG: (MainThread) Module: config_reader | Function: get_config | Message: Global config object was called
+2020-10-23 14:02:03-0400 -- DEBUG: (MainThread) Module: filter_wheel | Function: get_filter | Message: Global filter object was called
+2020-10-23 14:02:03-0400 -- DEBUG: (MainThread) Module: config_reader | Function: get_config | Message: Global config object was called
+2020-10-23 14:02:03-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:02:03-0400 -- INFO: (FlatLamp-Th) Module: flatfield_lamp | Function: check_connection | Message: Checking connection for the FlatLamp
+2020-10-23 14:02:03-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:02:03-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:02:03-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:02:03-0400 -- INFO: (Focuser-Th) Module: focuser_control | Function: check_connection | Message: Checking connection for the Focuser
+2020-10-23 14:02:03-0400 -- DEBUG: (Conditions-Th) Module: time_utils | Function: convert_to_datetime_utc | Message: Called time_utils function
+2020-10-23 14:02:03-0400 -- INFO: (Telescope-Th) Module: telescope | Function: check_connection | Message: Checking connection for the Telescope
+2020-10-23 14:02:04-0400 -- INFO: (Dome-Th   ) Module: dome | Function: check_connection | Message: Checking connection for the Dome
+2020-10-23 14:02:04-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:02:04-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:02:04-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:02:04-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:02:05-0400 -- INFO: (Camera-Th ) Module: camera | Function: check_connection | Message: Checking connection for the Camera
+2020-10-23 14:02:05-0400 -- DEBUG: (Conditions-Th) Module: time_utils | Function: datetime_to_epoch_milli_converter | Message: Called time_utils function
+2020-10-23 14:02:05-0400 -- DEBUG: (Conditions-Th) Module: time_utils | Function: rounddown_300 | Message: Called time_utils function
+2020-10-23 14:02:05-0400 -- DEBUG: (Conditions-Th) Module: PngImagePlugin | Function: call | Message: STREAM b'IHDR' 16 13
+2020-10-23 14:02:05-0400 -- DEBUG: (Conditions-Th) Module: PngImagePlugin | Function: call | Message: STREAM b'tEXt' 41 26
+2020-10-23 14:02:05-0400 -- DEBUG: (Conditions-Th) Module: PngImagePlugin | Function: call | Message: STREAM b'tEXt' 79 20
+2020-10-23 14:02:05-0400 -- DEBUG: (Conditions-Th) Module: PngImagePlugin | Function: call | Message: STREAM b'IDAT' 111 11
+2020-10-23 14:02:05-0400 -- DEBUG: (Conditions-Th) Module: PngImagePlugin | Function: call | Message: STREAM b'IHDR' 16 13
+2020-10-23 14:02:05-0400 -- DEBUG: (Conditions-Th) Module: PngImagePlugin | Function: call | Message: STREAM b'tEXt' 41 26
+2020-10-23 14:02:05-0400 -- DEBUG: (Conditions-Th) Module: PngImagePlugin | Function: call | Message: STREAM b'tEXt' 79 20
+2020-10-23 14:02:05-0400 -- DEBUG: (Conditions-Th) Module: PngImagePlugin | Function: call | Message: STREAM b'IDAT' 111 11
+2020-10-23 14:02:05-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:02:05-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:02:05-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:02:05-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:02:05-0400 -- DEBUG: (Conditions-Th) Module: PngImagePlugin | Function: call | Message: STREAM b'IHDR' 16 13
+2020-10-23 14:02:05-0400 -- DEBUG: (Conditions-Th) Module: PngImagePlugin | Function: call | Message: STREAM b'tEXt' 41 26
+2020-10-23 14:02:05-0400 -- DEBUG: (Conditions-Th) Module: PngImagePlugin | Function: call | Message: STREAM b'tEXt' 79 20
+2020-10-23 14:02:05-0400 -- DEBUG: (Conditions-Th) Module: PngImagePlugin | Function: call | Message: STREAM b'IDAT' 111 11
+2020-10-23 14:02:06-0400 -- DEBUG: (Conditions-Th) Module: PngImagePlugin | Function: call | Message: STREAM b'IHDR' 16 13
+2020-10-23 14:02:06-0400 -- DEBUG: (Conditions-Th) Module: PngImagePlugin | Function: call | Message: STREAM b'tEXt' 41 26
+2020-10-23 14:02:06-0400 -- DEBUG: (Conditions-Th) Module: PngImagePlugin | Function: call | Message: STREAM b'tEXt' 79 20
+2020-10-23 14:02:06-0400 -- DEBUG: (Conditions-Th) Module: PngImagePlugin | Function: call | Message: STREAM b'IDAT' 111 11
+2020-10-23 14:02:06-0400 -- DEBUG: (Conditions-Th) Module: time_utils | Function: get_local_sidereal_time | Message: Called time_utils function
+2020-10-23 14:02:06-0400 -- DEBUG: (Conditions-Th) Module: time_utils | Function: days_since_j2000 | Message: Called time_utils function
+2020-10-23 14:02:06-0400 -- DEBUG: (Conditions-Th) Module: time_utils | Function: fractional_hours_of_day | Message: Called time_utils function
+2020-10-23 14:02:06-0400 -- DEBUG: (Conditions-Th) Module: time_utils | Function: days_of_year | Message: Called time_utils function
+2020-10-23 14:02:06-0400 -- DEBUG: (Conditions-Th) Module: time_utils | Function: rounddown_300 | Message: Called time_utils function
+2020-10-23 14:02:06-0400 -- ERROR: (Conditions-Th) Module: condition_checker | Function: cloud_check | Message: Cloud coverage image cannot be retrieved
+2020-10-23 14:02:06-0400 -- CRITICAL: (Conditions-Th) Module: condition_checker | Function: run | Message: Weather conditions have become too poor for continued observing. Reason(s) for weather alert: | Sun Elevation |
+2020-10-23 14:02:06-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:02:06-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:02:06-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:02:06-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:02:07-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:02:07-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:02:07-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:02:07-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:02:08-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:02:08-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:02:08-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:02:08-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:02:09-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:02:09-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:02:10-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:02:10-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:02:10-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:02:10-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:02:10-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:02:11-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:02:11-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:02:11-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:02:11-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:02:11-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:02:11-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:02:11-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:02:12-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:02:12-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:02:12-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:02:12-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:02:12-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:02:12-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:02:12-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:02:13-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:02:13-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:02:13-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:02:13-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:02:13-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:02:13-0400 -- INFO: (MainThread) Module: thread_monitor | Function: monitor_run | Message: Beginning thread monitoring
+2020-10-23 14:02:13-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 14:02:13-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:02:14-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:02:14-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:02:14-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:02:14-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:02:14-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:02:14-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:02:14-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 14:02:14-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:02:15-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:02:15-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:02:15-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:02:15-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:02:15-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:02:15-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:02:15-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 14:02:15-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:02:16-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:02:16-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:02:16-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:02:16-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:02:16-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:02:16-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:02:16-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 14:02:17-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:02:17-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:02:17-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:02:17-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:02:17-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:02:17-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:02:17-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:02:17-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 14:02:18-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:02:18-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:02:18-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:02:18-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:02:18-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:02:18-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:02:18-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:02:18-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 14:02:19-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:02:19-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:02:19-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:02:19-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:02:19-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:02:19-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:02:19-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:02:19-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 14:02:20-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:02:20-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:02:20-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:02:20-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:02:20-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:02:20-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:02:20-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:02:20-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 14:02:21-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:02:21-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:02:21-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:02:21-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:02:21-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:02:21-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:02:21-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:02:21-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 14:02:22-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:02:22-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:02:22-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:02:22-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:02:22-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:02:22-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:02:22-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:02:23-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 14:02:23-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:02:23-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:02:23-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:02:23-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:02:23-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:02:23-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:02:23-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:02:24-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 14:02:24-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:02:24-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:02:24-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:02:24-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:02:24-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:02:24-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:02:24-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:02:25-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 14:02:25-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:02:25-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:02:25-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:02:25-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:02:25-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:02:25-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:02:25-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:02:26-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 14:02:26-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:02:26-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:02:26-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:02:26-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:02:26-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:02:26-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:02:26-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:02:27-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 14:02:27-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:02:27-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:02:27-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:02:27-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:02:27-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:02:27-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:02:27-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:02:28-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 14:02:28-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:02:28-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:02:28-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:02:28-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:02:28-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:02:28-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:02:28-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:02:29-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 14:02:29-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:02:29-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:02:29-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:02:29-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:02:29-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:02:29-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:02:29-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:02:30-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 14:02:30-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:02:30-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:02:30-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:02:30-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:02:30-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:02:30-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:02:30-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:02:31-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 14:02:31-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:02:31-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:02:31-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:02:31-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:02:31-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:02:31-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:02:32-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:02:32-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 14:02:32-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:02:32-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:02:32-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:02:32-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:02:32-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:02:32-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:02:33-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:02:33-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 14:02:33-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:02:33-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:02:33-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:02:33-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:02:33-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:02:33-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:02:34-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:02:34-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 14:02:34-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:02:34-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:02:34-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:02:34-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:02:34-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:02:34-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:02:35-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:02:35-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 14:02:35-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:02:35-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:02:35-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:02:35-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:02:35-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:02:35-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:02:36-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:02:36-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 14:02:36-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:02:36-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:02:36-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:02:36-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:02:36-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:02:36-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:02:37-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:02:37-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 14:02:37-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:02:37-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:02:37-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:02:37-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:02:37-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:02:37-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:02:38-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:02:38-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 14:02:38-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:02:38-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:02:38-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:02:38-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:02:38-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:02:38-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:02:39-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:02:39-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 14:02:39-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:02:39-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:02:39-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:02:39-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:02:39-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:02:39-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:02:40-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:02:40-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 14:02:40-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:02:40-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:02:40-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:02:40-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:02:40-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:02:40-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:02:41-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:02:41-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 14:02:41-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:02:41-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:02:41-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:02:41-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:02:41-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:02:41-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:02:42-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:02:42-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 14:02:42-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:02:42-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:02:42-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:02:43-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:02:43-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:02:43-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:02:43-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:02:43-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 14:02:43-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:02:43-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:02:44-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:02:44-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:02:44-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:02:44-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:02:44-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:02:44-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 14:02:44-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:02:44-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:02:45-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:02:45-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:02:45-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:02:45-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:02:45-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:02:45-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 14:02:45-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:02:45-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:02:46-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:02:46-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:02:46-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:02:46-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:02:46-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:02:46-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 14:02:46-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:02:47-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:02:47-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:02:47-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:02:47-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:02:47-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:02:47-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:02:47-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 14:02:47-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:02:48-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:02:48-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:02:48-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:02:48-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:02:48-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:02:48-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:02:48-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 14:02:48-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:02:49-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:02:49-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:02:49-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:02:49-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:02:49-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:02:49-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:02:49-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 14:02:50-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:02:50-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:02:50-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:02:50-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:02:50-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:02:50-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:02:50-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:02:50-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 14:02:51-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:02:51-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:02:51-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:02:51-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:02:51-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:02:51-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:02:51-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:02:51-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 14:02:52-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:02:52-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:02:52-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:02:52-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:02:52-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:02:52-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:02:52-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:02:52-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 14:02:53-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:02:53-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:02:53-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:02:53-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:02:53-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:02:53-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:02:53-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:02:53-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 14:02:54-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:02:54-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:02:54-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:02:54-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:02:54-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:02:54-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:02:54-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:02:54-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 14:02:55-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:02:55-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:02:55-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:02:55-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:02:55-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:02:55-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:02:55-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:02:56-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 14:02:56-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:02:56-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:02:56-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:02:56-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:02:56-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:02:56-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:02:56-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:02:57-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 14:02:57-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:02:57-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:02:57-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:02:57-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:02:57-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:02:57-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:02:57-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:02:58-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 14:02:58-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:02:58-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:02:58-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:02:58-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:02:58-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:02:58-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:02:58-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:02:59-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 14:02:59-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:02:59-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:02:59-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:02:59-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:02:59-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:02:59-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:02:59-0400 -- ERROR: (MainThread) Module: thread_monitor | Function: monitor_run | Message: Camera-Th thread is alive
+2020-10-23 14:02:59-0400 -- ERROR: (MainThread) Module: thread_monitor | Function: monitor_run | Message: Telescope-Th thread is alive
+2020-10-23 14:02:59-0400 -- ERROR: (MainThread) Module: thread_monitor | Function: monitor_run | Message: Dome-Th thread is alive
+2020-10-23 14:02:59-0400 -- ERROR: (MainThread) Module: thread_monitor | Function: monitor_run | Message: Focuser-Th thread is alive
+2020-10-23 14:02:59-0400 -- ERROR: (MainThread) Module: thread_monitor | Function: monitor_run | Message: FlatLamp-Th thread is alive
+2020-10-23 14:02:59-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:03:00-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 14:03:00-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:03:00-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:03:00-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:03:00-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:03:00-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:03:00-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:03:00-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:03:01-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 14:03:01-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:03:01-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:03:01-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:03:01-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:03:01-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:03:01-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:03:01-0400 -- ERROR: (MainThread) Module: thread_monitor | Function: monitor_run | Message: Camera-Th thread is alive
+2020-10-23 14:03:01-0400 -- ERROR: (MainThread) Module: thread_monitor | Function: monitor_run | Message: Telescope-Th thread is alive
+2020-10-23 14:03:01-0400 -- ERROR: (MainThread) Module: thread_monitor | Function: monitor_run | Message: Dome-Th thread is alive
+2020-10-23 14:03:01-0400 -- ERROR: (MainThread) Module: thread_monitor | Function: monitor_run | Message: Focuser-Th thread is alive
+2020-10-23 14:03:01-0400 -- ERROR: (MainThread) Module: thread_monitor | Function: monitor_run | Message: FlatLamp-Th thread is alive
+2020-10-23 14:03:01-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:03:02-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 14:03:02-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:03:02-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:03:02-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:03:02-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:03:02-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:03:02-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:03:02-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:03:03-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 14:03:03-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:03:03-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:03:03-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:03:03-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:03:03-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:03:03-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:03:03-0400 -- ERROR: (MainThread) Module: thread_monitor | Function: monitor_run | Message: Camera-Th thread is alive
+2020-10-23 14:03:03-0400 -- ERROR: (MainThread) Module: thread_monitor | Function: monitor_run | Message: Telescope-Th thread is alive
+2020-10-23 14:03:03-0400 -- ERROR: (MainThread) Module: thread_monitor | Function: monitor_run | Message: Dome-Th thread is alive
+2020-10-23 14:03:03-0400 -- ERROR: (MainThread) Module: thread_monitor | Function: monitor_run | Message: Focuser-Th thread is alive
+2020-10-23 14:03:03-0400 -- ERROR: (MainThread) Module: thread_monitor | Function: monitor_run | Message: FlatLamp-Th thread is alive
+2020-10-23 14:03:03-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:03:04-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 14:03:04-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:03:04-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:03:04-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:03:04-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:03:04-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:03:04-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:03:05-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:03:05-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 14:03:05-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:03:05-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:03:05-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:03:05-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:03:05-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:03:05-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:03:05-0400 -- ERROR: (MainThread) Module: thread_monitor | Function: monitor_run | Message: Camera-Th thread is alive
+2020-10-23 14:03:05-0400 -- ERROR: (MainThread) Module: thread_monitor | Function: monitor_run | Message: Telescope-Th thread is alive
+2020-10-23 14:03:05-0400 -- ERROR: (MainThread) Module: thread_monitor | Function: monitor_run | Message: Dome-Th thread is alive
+2020-10-23 14:03:05-0400 -- ERROR: (MainThread) Module: thread_monitor | Function: monitor_run | Message: Focuser-Th thread is alive
+2020-10-23 14:03:05-0400 -- ERROR: (MainThread) Module: thread_monitor | Function: monitor_run | Message: FlatLamp-Th thread is alive
+2020-10-23 14:03:06-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:03:06-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 14:03:06-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:03:06-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:03:06-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:03:06-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:03:06-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:03:06-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:03:07-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:03:07-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 14:03:07-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:03:07-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:03:07-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:03:07-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:03:07-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:03:07-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:03:07-0400 -- ERROR: (MainThread) Module: thread_monitor | Function: monitor_run | Message: Camera-Th thread is alive
+2020-10-23 14:03:07-0400 -- ERROR: (MainThread) Module: thread_monitor | Function: monitor_run | Message: Telescope-Th thread is alive
+2020-10-23 14:03:07-0400 -- ERROR: (MainThread) Module: thread_monitor | Function: monitor_run | Message: Dome-Th thread is alive
+2020-10-23 14:03:07-0400 -- ERROR: (MainThread) Module: thread_monitor | Function: monitor_run | Message: Focuser-Th thread is alive
+2020-10-23 14:03:07-0400 -- ERROR: (MainThread) Module: thread_monitor | Function: monitor_run | Message: FlatLamp-Th thread is alive
+2020-10-23 14:03:08-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:03:08-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 14:03:08-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:03:08-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:03:08-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:03:08-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:03:08-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:03:08-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:03:09-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-10-23 14:03:09-0400 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-10-23 14:03:09-0400 -- DEBUG: (Focuser-Th) Module: hardware | Function: run | Message: Focuser thread is alive
+2020-10-23 14:03:09-0400 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-10-23 14:03:09-0400 -- ERROR: (MainThread) Module: thread_monitor | Function: monitor_run | Message: Camera-Th thread is alive
+2020-10-23 14:03:09-0400 -- ERROR: (MainThread) Module: thread_monitor | Function: monitor_run | Message: Telescope-Th thread is alive
+2020-10-23 14:03:09-0400 -- ERROR: (MainThread) Module: thread_monitor | Function: monitor_run | Message: Dome-Th thread is alive
+2020-10-23 14:03:09-0400 -- ERROR: (MainThread) Module: thread_monitor | Function: monitor_run | Message: Focuser-Th thread is alive
+2020-10-23 14:03:09-0400 -- ERROR: (MainThread) Module: thread_monitor | Function: monitor_run | Message: FlatLamp-Th thread is alive
+2020-10-23 14:03:09-0400 -- DEBUG: (FocusProcedures-Th) Module: hardware | Function: run | Message: FocusProcedures thread is alive
+2020-10-23 14:03:09-0400 -- DEBUG: (Calibration-Th) Module: hardware | Function: run | Message: Calibration thread is alive
+2020-10-23 14:03:09-0400 -- DEBUG: (FlatLamp-Th) Module: hardware | Function: run | Message: FlatLamp thread is alive
+2020-10-23 14:03:09-0400 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-10-23 14:03:10-0400 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive

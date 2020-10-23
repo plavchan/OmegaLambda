@@ -80,7 +80,6 @@ class ObservationRun:
         self.calibration.start()
         self.guider.start()
 
-        self.monitor.monitor_run()
 
     def everything_ok(self):
         """
@@ -111,6 +110,8 @@ class ObservationRun:
                 check = False
         if message:
             logging.error('Hardware connection timeout: {}'.format(message))
+
+        self.monitor.monitor_run([self.camera, self.telescope, self.dome, self.focuser, self.flatlamp, self.conditions, self.guider])
 
         if self.conditions.weather_alert.isSet():
             calibration = (self.config_dict.calibration_time == "end") and (self.calibration_toggle is True)
@@ -636,3 +637,14 @@ class ObservationRun:
             self.take_calibration_images()
         if cooler:
             self.camera.onThread(self.camera.cooler_set, False)
+
+    def threadrestart(self, thname):
+        th_dict = {'camera':self.camera, 'telescope':self.telescope,
+                   'dome':self.dome, 'focuser':self.focuser, 'flatlamp':self.flatlamp,
+                   'conditions':self.conditions, 'guider':self.guider}
+        th_bases = {'camera': Camera(), 'telescope': Telescope(),'flatlamp':FlatLamp(),
+                    'focuser':Focuser(), 'conditions':Conditions(), 'guider':Guider()}
+        for x in th_dict:
+            if th_dict[x] == thname:
+                self.thname = th_bases[x]
+                self.thname.start()

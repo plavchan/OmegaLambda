@@ -1,4 +1,0 @@
-r'C:\Users\GMU Observtory1\-omegalambda\config\parameters_config.json'
-r'H:\Observatory Files\Observing Sessions\2020_Data\20200622'
-r'C:\Users\GMU Observtory1\-omegalambda\test\test.json'
-r'C:\Users\GMU Observtory1\-omegalambda\config\fw_config.json'
