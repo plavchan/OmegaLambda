@@ -1,7 +1,7 @@
 .idea
 .idea/
 test/
-logger/omegalambda_log*
+logger/omegalambda_log.log*
 deprecated/
 observation_tickets/*.json
 main/common/**/__pycache__/
