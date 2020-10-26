@@ -6,3 +6,4 @@ deprecated/
 observation_tickets/*.json
 main/common/**/__pycache__/
 main/**/__pycache__/
+.git/MERGE_HEAD
