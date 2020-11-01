@@ -80,6 +80,11 @@ class ObservationRun:
         self.calibration.start()
         self.guider.start()
 
+        self.th_dict = {'camera': self.camera, 'telescope': self.telescope,
+                        'dome': self.dome, 'focuser': self.focuser, 'flatlamp': self.flatlamp,
+                        'conditions': self.conditions, 'guider': self.guider
+                        }
+
 
     def everything_ok(self):
         """
@@ -111,7 +116,7 @@ class ObservationRun:
         if message:
             logging.error('Hardware connection timeout: {}'.format(message))
 
-        self.monitor.monitor_run([self.camera, self.telescope, self.dome, self.focuser, self.flatlamp, self.conditions, self.guider])
+        self.monitor.monitor_run([self.th_dict])
 
         if self.conditions.weather_alert.isSet():
             calibration = (self.config_dict.calibration_time == "end") and (self.calibration_toggle is True)
@@ -171,6 +176,7 @@ class ObservationRun:
 
         """
         initial_check = self.everything_ok()
+        self.threadcheck()
         if cooler:
             self.camera.onThread(self.camera.cooler_set, True)
         self.dome.onThread(self.dome.shutter_position)
@@ -252,7 +258,8 @@ class ObservationRun:
             self.take_calibration_images(beginning=True)
         else:
             cooler = True
-
+        
+        self.threadcheck()
         self.check_start_time(self.observation_request_list[0])
         initial_shutter = self._startup_procedure(cooler=cooler)
         if initial_shutter == -1:
@@ -316,6 +323,7 @@ class ObservationRun:
         None.
 
         """
+        self.threadcheck()
         focus_filter = str(ticket.filter[0]) if type(ticket.filter) is list \
             else ticket.filter if type(ticket.filter) is str else None
         focus_exp = float(ticket.exp_time[0]) if type(ticket.exp_time) is list \
@@ -356,6 +364,7 @@ class ObservationRun:
             The total number of images that are specified on the
             observation ticket.
         """
+        self.threadcheck()
         self.focus_procedures.onThread(self.focus_procedures.constant_focus_procedure, self.image_directories[ticket])
         ticket.exp_time = [ticket.exp_time] if type(ticket.exp_time) in (int, float) else ticket.exp_time
         ticket.filter = [ticket.filter] if type(ticket.filter) is str else ticket.filter
@@ -419,6 +428,7 @@ class ObservationRun:
         i = 0
         while i < num:
             logging.debug('In take_images loop')
+            self.threadcheck()
             if end_time <= datetime.datetime.now(self.tz):
                 print("The observations end time of {} has passed.  "
                       "Stopping observation of {}.".format(end_time, name))
@@ -451,6 +461,7 @@ class ObservationRun:
             if self.crash_check('MaxIm_DL.exe'):
                 continue
             self.crash_check('RoboFocus.exe')
+            self.threadcheck()
             
             if cycle_filter:
                 if names_list:
@@ -638,13 +649,51 @@ class ObservationRun:
         if cooler:
             self.camera.onThread(self.camera.cooler_set, False)
 
-    def threadrestart(self, thname):
-        th_dict = {'camera':self.camera, 'telescope':self.telescope,
-                   'dome':self.dome, 'focuser':self.focuser, 'flatlamp':self.flatlamp,
-                   'conditions':self.conditions, 'guider':self.guider}
-        th_bases = {'camera': Camera(), 'telescope': Telescope(),'flatlamp':FlatLamp(),
-                    'focuser':Focuser(), 'conditions':Conditions(), 'guider':Guider()}
-        for x in th_dict:
-            if th_dict[x] == thname:
-                self.thname = th_bases[x]
-                self.thname.start()
+    def threadcheck(self):
+        '''
+        Description
+        ----------
+        Checks to see if self.monotor has raised a crashed thread,
+        Restarts the crashed threads if there are any
+        
+        Returns
+        -------
+        None
+        '''
+        if self.monitor.threadcrash:
+            threadlist = self.monitor.crash_return()
+            for thname in threadlist:
+                self.threadrestart(thname)
+
+    def restart(self, thname):
+        '''
+        Description
+        -----------
+        Redefines and then restarts the inputted thread
+        
+        Parmeters
+        --------
+        thname : Handle
+            Handle of the original thread to restart
+        '''
+
+        for x in self.th_dict:
+            if self.th_dict[x] == thname:
+                if x == 'camera':
+                    self.camera = Camera()
+                    self.camera.start()
+                elif x == 'telescope':
+                    self.telescope = Telescope()
+                    self.telescope.start()
+                elif x == 'dome':
+                    self.dome = Dome()
+                    self.dome.start()
+                elif x == 'flatlamp':
+                    self.flatlamp = FlatLamp()
+                    self.flatlamp.start()
+                elif x == 'conditions':
+                    self.conditions = Conditions()
+                    self.conditions.start()
+                elif x == 'guider':
+                    self.guider = Guider()
+                    self.guider.start()
