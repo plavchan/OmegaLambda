@@ -32,6 +32,7 @@ class Guider(Hardware):
         self.telescope = telescope_obj
         self.config_dict = config_reader.get_config()
         self.guiding = threading.Event()
+        self.loop_done = threading.Event()
 
         super(Guider, self).__init__(name='Guider')
 
@@ -151,13 +152,24 @@ class Guider(Hardware):
                 x_initial = star[0]
                 y_initial = star[1]
                 break
+        failures = 0
         while self.guiding.isSet():
-            self.camera.image_done.wait()
+            self.camera.image_done.wait(timeout=30*60)
+            self.loop_done.clear()
             newest_image = self.find_newest_image(image_path)
-            star = self.find_guide_star(newest_image, subframe=(x_initial, y_initial))
+            subframe = None if failures >= 3 else (x_initial, y_initial)
+            star = self.find_guide_star(newest_image, subframe=subframe)
             if not star:
                 logging.warning('Guider could not find a suitable guide star...waiting for next image to try again.')
+                failures += 1
                 continue
+            elif failures >= 3:
+                failures = 0
+                x_initial = star[0]
+                y_initial = star[1]
+                logging.info('Guider has selected a new guide star.  Continuing to guide.')
+                continue
+            failures = 0
             x_0 = y_0 = self.config_dict.guider_max_move / self.config_dict.plate_scale * 1.5
             x = star[0]
             y = star[1]
@@ -213,6 +225,7 @@ class Guider(Hardware):
                     self.telescope.slew_done.wait()
                     self.telescope.onThread(self.telescope.jog, ydirection, yjog_distance)
                     self.telescope.slew_done.wait()
+            self.loop_done.set()
 
     def stop_guiding(self):
         """

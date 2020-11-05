@@ -35,7 +35,8 @@ class Conditions(threading.Thread):
         # Calls threading.Thread.__init__ with the name 'Conditions-Th'
         self.weather = None
         self.radar = None
-        self.weather_alert = threading.Event() 
+        self.weather_alert = threading.Event()
+        self.connection_alert = threading.Event()
         self.stop = threading.Event()
         # Threading events to set flags and interact between threads
         self.config_dict = config_reader.get_config()                       # Global config dictionary
@@ -47,6 +48,7 @@ class Conditions(threading.Thread):
                         'l/b63f24c17cc4e2d086c987ce32b2927ba388be79872113643d2ef82b2b13e813'
         # Weather.com radar for rain
         self.sun = False
+        self.temperature = None
         current_directory = os.path.abspath(os.path.dirname(__file__))
         self.weather_directory = os.path.join(current_directory, r'..', r'..', r'resources', r'weather_status')
         
@@ -63,29 +65,38 @@ class Conditions(threading.Thread):
 
         """
         last_rain = None
+        connection_failures = 0
         if not self.check_internet():
             logging.error("Your internet connection requires attention.")
             return
         while not self.stop.isSet():
-            (humidity, wind, rain) = self.weather_check()
+            (humidity, wind, rain, temperature) = self.weather_check()
+            self.temperature = temperature
             radar = self.rain_check()
             sun_elevation = conversion_utils.get_sun_elevation(datetime.datetime.now(datetime.timezone.utc),
                                                                self.config_dict.site_latitude,
                                                                self.config_dict.site_longitude)
             cloud_cover = self.cloud_check()
-            if ((humidity, wind, rain) == (None, None, None)) or (radar is None) or (cloud_cover is None):
-                self.weather_alert.set()
-                logging.critical("A connection error was encountered and the weather can no longer be monitored"
-                                 "Shutting down for safety.")
-                continue
-            elif (humidity >= self.config_dict.humidity_limit) or (wind >= self.config_dict.wind_limit) or \
-                    (rain not in (None, 0) and last_rain is not None and last_rain != rain) or (radar is True) or \
-                    (sun_elevation >= 0) or (cloud_cover is True):
+            if self.connection_alert.isSet():
+                connection_failures += 1
+                if connection_failures >= 2:
+                    self.weather_alert.set()
+                    logging.critical("A connection error was encountered and the weather can no longer be monitored"
+                                     "Shutting down for safety.")
+                    connection_failures = 0
+                    self.connection_alert.clear()
+                    continue
+            if humidity is None or wind is None:
+                logging.warning('Could not retrieve humidity or wind values...it may be unsafe to continue observing.')
+            if (humidity is None or humidity >= self.config_dict.humidity_limit) or \
+                    (wind is None or wind >= self.config_dict.wind_limit) or \
+                    (rain not in (None, 0) and last_rain is not None and last_rain != rain) or \
+                    (radar is True) or (sun_elevation >= 0) or (cloud_cover is True):
                 self.weather_alert.set()
                 self.sun = (sun_elevation >= 0)
                 message = ""
-                message += "| Humidity |" if humidity >= self.config_dict.humidity_limit else ""
-                message += "| Wind |" if wind >= self.config_dict.wind_limit else ""
+                message += "| Humidity |" if (humidity is None or humidity >= self.config_dict.humidity_limit) else ""
+                message += "| Wind |" if (wind is None or wind >= self.config_dict.wind_limit) else ""
                 message += "| Rain |" if (last_rain != rain and last_rain is not None) else ""
                 message += "| Nearby Rain |" if radar else ""
                 message += "| Sun Elevation |" if self.sun else ""
@@ -125,6 +136,10 @@ class Conditions(threading.Thread):
             Current wind speeds in mph at Research Hall, from GMU COS weather station.
         Rain : FLOAT
             Current total rain in in. at Research Hall, from GMU COS weather station.
+        Temperature : FLOAT
+            Current temperature in degrees F at Research Hall, from GMU COS weather station.
+
+        For all values, uses weather.com as a backup if the weather station is down.
 
         """
         s = requests.Session()
@@ -157,17 +172,22 @@ class Conditions(threading.Thread):
             except (urllib3.exceptions.MaxRetryError, urllib3.exceptions.HTTPError, urllib3.exceptions.TimeoutError,
                     urllib3.exceptions.InvalidHeader, requests.exceptions.ConnectionError, requests.exceptions.Timeout,
                     requests.exceptions.HTTPError):
-                return None, None, None
+                self.connection_alert.set()
+                return None, None, None, None
             conditions = re.findall(r'<font color="#3366FF">(.+?)</font>', self.weather.text)
             humidity = float(conditions[1].replace('%', ''))
+            if temperature_0 := re.search(r'[+-]?\d+\.\d+', conditions[0]):
+                temperature = float(temperature_0.group())
+            else:
+                temperature = None
             if test_wind := re.search(r'[+-]?\d+\.\d+', conditions[3]):
                 wind = float(test_wind.group())
             else:
-                wind = 0
+                wind = None
             if test_rain := re.search(r'[+-]?\d+\.\d+', conditions[5]):
                 rain = float(test_rain.group())
             else:
-                rain = 0
+                rain = None
 
         else:
             try:
@@ -175,35 +195,32 @@ class Conditions(threading.Thread):
             except (urllib3.exceptions.MaxRetryError, urllib3.exceptions.HTTPError, urllib3.exceptions.TimeoutError,
                     urllib3.exceptions.InvalidHeader, requests.exceptions.ConnectionError, requests.exceptions.Timeout,
                     requests.exceptions.HTTPError):
-                return None, None, None
+                self.connection_alert.set()
+                return None, None, None, None
 
-            humidity = re.search(r'<span data-testid="PercentageValue" class="(.+?)' +
-                                 r'DaypartDetails-DetailsTable-DetailsTable--value(.+?)</span>',
-                                 self.weather.text)
-            if humidity:
-                humidity = float(humidity.group(2).split('>')[-1].replace('%', ''))
-            else:
-                logging.warning('Could not find humidity from weather.com...their html may have changed.')
-                humidity = 0
-            wind = re.search(r'<span data-testid="Wind" class="(.+?)' +
-                             r'--windWrapper--(.+?)</span>', self.weather.text)
-            if wind:
-                wind = wind.group(2).split('>')[-1]
-                test_wind = re.search(r'[+-]?\d+\.\d+', wind)
-                if test_wind:
-                    wind = float(test_wind.group())
+            weather_ids = {'PercentageValue': None, 'Wind': None, 'TemperatureValue': None}
+            for key, value in weather_ids.items():
+                condition_data = re.search(r'<span data-testid="' + key + '" class="(.+?)' +
+                                           r'>(.+?)</span>', self.weather.text)
+                if condition_data:
+                    if test_condition := re.search(r'[+-]?\d+\.\d+', condition_data.group(2)):
+                        condition = float(test_condition.group())
+                    else:
+                        condition = int(re.search(r'[+-]?\d+', condition_data.group(2)).group())
                 else:
-                    wind = int(re.search(r'[+-]?\d+', wind).group())
-            else:
-                logging.warning('Could not find wind from weather.com...their html may have changed.')
-                wind = 0
-            rain = 0
+                    logging.warning('Could not find wind from weather.com...their html may have changed.')
+                    continue
+                weather_ids[key] = condition
+            humidity = weather_ids['PercentageValue']
+            wind = weather_ids['Wind']
+            temperature = weather_ids['TemperatureValue']
+            rain = None
 
         with open(target_path, 'w') as file:
             # Writes the html code to a text file
             file.write(str(self.weather.content))
 
-        return humidity, wind, rain
+        return humidity, wind, rain, temperature
 
     def rain_check(self):
         """
@@ -220,6 +237,7 @@ class Conditions(threading.Thread):
         except (urllib3.exceptions.MaxRetryError, urllib3.exceptions.HTTPError, urllib3.exceptions.TimeoutError,
                 urllib3.exceptions.InvalidHeader, requests.exceptions.ConnectionError, requests.exceptions.Timeout,
                 requests.exceptions.HTTPError):
+            self.connection_alert.set()
             return None
         api_key = re.search(r'"SUN_V3_API_KEY":"(.+?)",', self.radar.text).group(1)
         # API key needed to access radar images from the weather.com website
@@ -250,6 +268,7 @@ class Conditions(threading.Thread):
             except (urllib3.exceptions.MaxRetryError, urllib3.exceptions.HTTPError, urllib3.exceptions.TimeoutError,
                     urllib3.exceptions.InvalidHeader, requests.exceptions.ConnectionError, requests.exceptions.Timeout,
                     requests.exceptions.HTTPError):
+                self.connection_alert.set()
                 return None
             with open(path_to_images, 'wb') as file:
                 file.write(req.content)
@@ -306,6 +325,7 @@ class Conditions(threading.Thread):
             except (urllib3.exceptions.MaxRetryError, urllib3.exceptions.HTTPError, urllib3.exceptions.TimeoutError,
                     urllib3.exceptions.InvalidHeader, requests.exceptions.ConnectionError, requests.exceptions.Timeout,
                     requests.exceptions.HTTPError):
+                self.connection_alert.set()
                 return None
         target_path = os.path.abspath(os.path.join(self.weather_directory, r'cloud-img.gif'))
         with open(target_path, 'wb') as file:

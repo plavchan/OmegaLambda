@@ -3,6 +3,7 @@ import threading
 import logging
 import pywintypes
 import win32com.client
+from typing import Optional, Union
 
 from .hardware import Hardware
 
@@ -21,6 +22,7 @@ class Camera(Hardware):
         self.cooler_settle = threading.Event()
         self.image_done = threading.Event()
         self.camera_lock = threading.Lock()
+        self.fwhm: Optional[Union[float, int]] = None
         super(Camera, self).__init__(name='Camera')
 
     def check_connection(self):
@@ -36,7 +38,7 @@ class Camera(Hardware):
         logging.info('Checking connection for the {}'.format(self.label))
         self.live_connection.clear()
         if self.Camera.LinkEnabled:
-            print("Camera is already connected")
+            logging.info("Camera is already connected")
         else:
             self.Camera.LinkEnabled = True
             self.live_connection.set()
@@ -62,7 +64,7 @@ class Camera(Hardware):
             logging.error('Cannot connect to camera')
             return False
         else:
-            print('Camera has successfully connected')
+            logging.info('Camera has successfully connected')
         # Setting basic configurations for the camera
         self.Camera.DisableAutoShutdown = True
         self.Camera.AutoDownload = True
@@ -97,14 +99,14 @@ class Camera(Hardware):
                 except (AttributeError, pywintypes.com_error):
                     logging.warning('Could not change camera cooler setpoint')
                 else:
-                    print("Cooler Setpoint set to {0:.1f} C".format(self.Camera.TemperatureSetpoint))
+                    logging.info("Cooler Setpoint set to {0:.1f} C".format(self.Camera.TemperatureSetpoint))
             elif toggle is False:
                 try:
                     self.Camera.TemperatureSetpoint = self.config_dict.cooler_idle_setpoint
                 except (AttributeError, pywintypes.com_error):
                     logging.warning('Could not change camera cooler setpoint')
                 else:
-                    print("Cooler Setpoint set to {0:.1f} C".format(self.Camera.TemperatureSetpoint))
+                    logging.info("Cooler Setpoint set to {0:.1f} C".format(self.Camera.TemperatureSetpoint))
 
     def _cooler_adjust(self):
         """
@@ -170,13 +172,13 @@ class Camera(Hardware):
                 self._cooler_adjust()
             elif temp_rate <= 0.5:
                 self.Camera.TemperatureSetPoint = self.Camera.Temperature
-                print("Cooler Setpoint adjusted to {0:.1f} C".format(self.Camera.TemperatureSetpoint))
+                logging.info("Cooler Setpoint adjusted to {0:.1f} C".format(self.Camera.TemperatureSetpoint))
                 break
             if self.Camera.Temperature < self.Camera.TemperatureSetpoint:
                 break
             last_temp = temp
         time.sleep(1)
-        print("Cooler has settled")
+        logging.info("Cooler has settled")
         self.cooler_settle.set()
         return
     
@@ -197,6 +199,19 @@ class Camera(Hardware):
         elif self.crashed.isSet():
             self.disconnect()
             return False
+
+    def get_fwhm(self):
+        """
+        Description
+        -----------
+        Sets the self.fwhm property to the FLOAT value that is the fwhm of the brightest star in
+        the newest CCD exposure.  [Cannot return due to multithreading].
+
+        Returns
+        -------
+        None.
+        """
+        self.fwhm = self.Camera.fwhm
 
     def expose(self, exposure_time, filter, save_path=None, type="light"):
         """
@@ -222,7 +237,7 @@ class Camera(Hardware):
         with self.camera_lock:
             type = 1 if type == "light" else 0 if type == "dark" else None
             if type is None:
-                print("ERROR: Invalid exposure type.")
+                logging.error("Invalid exposure type.")
                 return
             logging.debug('Exposing image')
             self.Camera.SetFullFrame()
@@ -253,9 +268,9 @@ class Camera(Hardware):
             except (AttributeError, pywintypes.com_error):
                 logging.error("Could not disconnect from camera")
             else:
-                print("Camera has successfully disconnected")
+                logging.info("Camera has successfully disconnected")
         else:
-            print("Camera is already disconnected")
+            logging.info("Camera is already disconnected")
 
     def set_gain(self):
         pass

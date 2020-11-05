@@ -10,7 +10,7 @@ from ..common.IO import config_reader
 from ..common.datatype.object_reader import ObjectReader
 
 
-def run(obs_tickets, data=None, config=None, _filter=None, logger=None, shutdown=None, calibration=None):
+def run(obs_tickets, data=None, config=None, _filter=None, logger=None, shutdown=None, calibration=None, focus=None):
     """
 
     Parameters
@@ -37,6 +37,9 @@ def run(obs_tickets, data=None, config=None, _filter=None, logger=None, shutdown
     calibration : BOOL, optional
         Toggle to take calibration images or not.  The default is None, in which case True will be passed in via
         argparse, so the observatory will take darks and flats at the specified time in the config file.
+    focus : BOOL, optional
+        Toggle to focus on target or not.  The default is None, in which case True will be passed in via argparse,
+        so focusing will be enabled.
 
     Returns
     -------
@@ -100,7 +103,7 @@ def run(obs_tickets, data=None, config=None, _filter=None, logger=None, shutdown
             logging.debug('Folder already exists: {:s}'.format(fol))
     logging.info('New directories for tonight\'s observing have been made!')
         
-    run_object = ObservationRun(observation_request_list, folder, shutdown, calibration)
+    run_object = ObservationRun(observation_request_list, folder, shutdown, calibration, focus)
     run_object.observe()
 
     log_object.stop()
@@ -129,7 +132,7 @@ def read_ticket(ticket):
         logging.critical('Error reading observation ticket')
         return
     else:
-        print('Observation ticket has been read')
+        logging.info('Observation ticket has been read')
         return object_reader.ticket
 
 
