@@ -286,8 +286,10 @@ class ObservationRun:
                     self.shutdown()
                 return
 
-            input("The program is ready to start taking images of {}.  Please take this time to "
-                  "check the focus and pointing of the target.  When you are ready, press Enter: ".format(ticket.name))
+            # if ticket == self.observation_request_list[0]:
+            #     input("The program is ready to start taking images of {}.  Please take this time to "
+            #           "check the focus and pointing of the target.  When you are ready, press Enter: ".format(
+            #         ticket.name))
             (taken, total) = self.run_ticket(ticket)
             print("{} out of {} exposures were taken for {}.  Moving on to next target.".format(taken, total,
                                                                                                 ticket.name))
@@ -427,10 +429,10 @@ class ObservationRun:
             
             if i == 0 and os.path.exists(os.path.join(path, image_name)):
                 # Checks if images already exist (in the event of a crash)
-                for f in _filter:
+                for f, exp in zip(_filter, exp_time):
                     names_list = [0]
                     for fname in os.listdir(path):
-                        if n := re.search('{0:s}_{1:.3f}s_{2:s}-(.+?).fits'.format(name, current_exp, str(f).upper()),
+                        if n := re.search('{0:s}_{1:.3f}s_{2:s}-(.+?).fits'.format(name, exp, str(f).upper()),
                                           fname):
                             names_list.append(int(n.group(1)))
                     image_base[f] = max(names_list) + 1

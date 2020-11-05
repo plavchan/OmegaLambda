@@ -79,7 +79,7 @@ class Conditions(threading.Thread):
                                  "Shutting down for safety.")
                 continue
             elif (humidity >= self.config_dict.humidity_limit) or (wind >= self.config_dict.wind_limit) or \
-                    (rain is not None and last_rain is not None and last_rain != rain) or (radar is True) or \
+                    (rain not in (None, 0) and last_rain is not None and last_rain != rain) or (radar is True) or \
                     (sun_elevation >= 0) or (cloud_cover is True):
                 self.weather_alert.set()
                 self.sun = (sun_elevation >= 0)
@@ -319,11 +319,11 @@ class Conditions(threading.Thread):
         img_array = np.array(img)
         img_array = img_array.astype('float64')
         # fairfax coordinates ~300, 1350
-        img_internal = img_array[270:370, 1310:1410]
+        img_internal = img_array[295:335, 1340:1380]
         img_small = Image.fromarray(img_internal)
         px = img_small.size[0]*img_small.size[1]
         colors = img_small.getcolors()
-        clouds = [color for color in colors if color[1] > 30]
+        clouds = [color for color in colors if color[1] > 50]
         percent_cover = sum([cloud[0] for cloud in clouds]) / px * 100
         img.close()
         img_small.close()
