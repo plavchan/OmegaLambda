@@ -11,6 +11,8 @@ from scipy.optimize import curve_fit
 
 from ..IO import config_reader
 
+np.warnings.filterwarnings('ignore')
+
 
 def mediancounts(image_path: str) -> float:
     """
@@ -63,33 +65,38 @@ def findstars(path: str, saturation: Union[int, float], subframe: Optional[Tuple
     if not subframe:
         starfound = photutils.find_peaks(data, threshold=threshold, box_size=50, border_width=500,
                                          centroid_func=photutils.centroids.centroid_com)
-        n = 0
-        stars = []
-        peaks = []
-        for _ in starfound:
-            x_cent = starfound['x_peak'][n]
-            y_cent = starfound['y_peak'][n]
-            peak = image[y_cent, x_cent]
-            n += 1
-            if peak >= (saturation * 2) ** 2:
-                continue
-            pixels = [(y_cent, x_cent + 1), (y_cent, x_cent - 1), (y_cent + 1, x_cent), (y_cent - 1, x_cent)]
-            for value in pixels:
-                if image[value[0], value[1]] < 1.2 * median:
-                    continue
-            star = (x_cent, y_cent)
-            stars.append(star)
-            peaks.append(peak)
     else:
         config_dict = config_reader.get_config()
-        r = config_dict.guider_max_move / config_dict.plate_scale
+        r = config_dict.guider_max_move / config_dict.plate_scale * 1.5
         x_cent = subframe[0]
         y_cent = subframe[1]
         data_subframe = data[int(y_cent - r):int(y_cent + r), int(x_cent - r):int(x_cent + r)]
         image = image[int(y_cent - r):int(y_cent + r), int(x_cent - r):int(x_cent + r)]
-        x_cent, y_cent = photutils.centroids.centroid_com(data_subframe)
-        stars = [(x_cent, y_cent)]
-        peaks = [10000]
+        threshold = threshold[int(y_cent - r):int(y_cent + r), int(x_cent - r):int(x_cent + r)]
+        starfound = photutils.find_peaks(data_subframe, threshold=threshold, box_size=50, border_width=10,
+                                         centroid_func=photutils.centroids.centroid_com)
+
+    n = 0
+    stars = []
+    peaks = []
+    for _ in starfound:
+        bad_pixel = False
+        x_cent = starfound['x_peak'][n]
+        y_cent = starfound['y_peak'][n]
+        peak = image[y_cent, x_cent]
+        n += 1
+        if peak >= (saturation * 2) ** 2:
+            bad_pixel = True
+        pixels = [(y_cent, x_cent + 1), (y_cent, x_cent - 1), (y_cent + 1, x_cent), (y_cent - 1, x_cent)]
+        for value in pixels:
+            if image[value[0], value[1]] < 1.2 * median:
+                bad_pixel = True
+        if bad_pixel:
+            continue
+        star = (x_cent, y_cent)
+        stars.append(star)
+        peaks.append(peak)
+
     if not return_data:
         return stars, peaks
     else:
@@ -120,7 +127,8 @@ def gaussianfit(x, a, x0, sigma):
     return a*np.exp(-(x-x0)**2/(2*sigma**2))
 
 
-def radial_average(path: str, saturation: Union[int, float]) -> Optional[Union[int, float, np.ndarray]]:
+def radial_average(path: str, saturation: Union[int, float]) -> Tuple[Optional[Union[float, int]],
+                                                                      Union[float, int], bool]:
     """
     Description
     -----------
@@ -135,8 +143,9 @@ def radial_average(path: str, saturation: Union[int, float]) -> Optional[Union[i
 
     Returns
     -------
-    median_fwhm : FLOAT
-        The median fwhm measurement of the stars in the fits image.  If no fwhm was found, returns None.
+    fwhm_final : LIST
+        The fwhm of the brightest unsaturated star in the image, or the median fwhm if all stars are saturated.
+        If no fwhm was found, returns None.
 
     """
     stars, peaks, data, stdev = findstars(path, saturation, return_data=True)
@@ -185,14 +194,25 @@ def radial_average(path: str, saturation: Union[int, float]) -> Optional[Union[i
             logging.error('Radial profile has length of 0...')
             continue
 
-    fwhm_list = [i for i in fwhm_list if i > 3]
-    if fwhm_list:
-        fwhm_med = np.median(fwhm_list)
-    else:
-        print('No fwhm calculations can be made from the image')
-        return None
+    fwhm_peaks = np.array((fwhm_list, peaks))
+    fwhm_peaks = np.delete(fwhm_peaks, np.where(fwhm_peaks[0, :] < 3), 1)
+    if not np.any(fwhm_peaks):
+        return None, -1, False
 
-    return fwhm_med
+    saturated_peak = max(fwhm_peaks[1, :])
+    saturated = (saturated_peak >= saturation * 2)
+    highest_peak = 0
+    for i in range(len(fwhm_peaks[0, :])):
+        if fwhm_peaks[1, highest_peak] < fwhm_peaks[1, i] <= saturation * 2:
+            highest_peak = i
+    if highest_peak != -1:
+        fwhm_final = fwhm_peaks[0, highest_peak]
+        fwhm_peak = fwhm_peaks[1, highest_peak]
+    else:
+        fwhm_final = float(np.median(fwhm_peaks[0, :]))
+        fwhm_peak = -1
+
+    return fwhm_final, fwhm_peak, saturated
 
 
 """

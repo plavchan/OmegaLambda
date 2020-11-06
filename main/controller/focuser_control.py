@@ -1,9 +1,13 @@
 import logging
 import threading
 import time
-import win32com.client
+import re
+import serial
+import serial.tools.list_ports
+from serial.serialutil import SerialException
 
 from .hardware import Hardware
+from ..common.IO import config_reader
 
 
 class Focuser(Hardware):
@@ -17,10 +21,15 @@ class Focuser(Hardware):
         None.
 
         """
+        super(Focuser, self).__init__(name='Focuser')      # calls Hardware.__init__ with the name 'focuser'
+        self.ser = serial.Serial(timeout=0.5)
+        self.ser.baudrate = 9600
         self.adjusting = threading.Event()
         self.adjustment_lock = threading.Lock()
+        self.config_dict = config_reader.get_config()
         self.position = None
-        super(Focuser, self).__init__(name='Focuser')      # calls Hardware.__init__ with the name 'focuser'
+        self.temperature = None
+        self.comport = ''
 
     def check_connection(self):
         """
@@ -35,10 +44,8 @@ class Focuser(Hardware):
         """
         logging.info('Checking connection for the {}'.format(self.label))
         self.live_connection.clear()
-        self.Focuser.actOpenComm()
-        time.sleep(2)
-        if self.Focuser.getCommStatus():
-            print("Focuser has successfully connected")
+        if self.ser.is_open:
+            logging.info("Focuser has successfully connected")
             self.live_connection.set()
             return True
         else:
@@ -50,7 +57,7 @@ class Focuser(Hardware):
         Description
         -----------
         Overrides base hardware class (not implemented).
-        Dispatches COM connection to focuser object and sets necessary parameters.
+        Dispatches pyserial connection to focuser object and sets necessary parameters.
         Should only ever be called from within the run method.
 
         Returns
@@ -58,132 +65,213 @@ class Focuser(Hardware):
         BOOL
             True if successful, otherwise False.
         """
-        self.Focuser = win32com.client.Dispatch("RoboFocus.FocusControl")
+        ports = list(serial.tools.list_ports.comports())
+        com = [port for port in ports if "COM" in port.description]
+        if len(com) >= 1:
+            for comport in com:
+                try:
+                    self.ser.port = comport.device
+                    self.ser.open()
+                    self.ser.write("FV000000".encode())
+                    if self.ser.readline() == b'FV003.20\xbf':
+                        logging.info('The focuser connected to {}'.format(comport.description))
+                        self.comport = comport.description
+                        break
+                    else:
+                        self.ser.close()
+                except SerialException:
+                    logging.warning('Cannot connect to {}.  The port may already be in use. '
+                                    'If the focuser connects, you may safely ignore this message.'.format(
+                        comport.description))
+        else:
+            logging.error('No com ports found!')
         check = self.check_connection()
         return check
 
-    def _is_ready(self):
-        while self.Focuser.getCmdActive():
-            time.sleep(1)
-        if not self.Focuser.getCmdActive():
-            return
-
-    def set_focus_delta(self, amount):
+    def get_temperature(self):
         """
-
-        Parameters
-        ----------
-        amount : INT
-            Value to set default focuser move length.
+        Description
+        -----------
+        Provides the temperature detected by the RoboFocus sensors.
 
         Returns
         -------
-        bool
-            True if successful, otherwise False.
-
+        temp : FLOAT
+            Temperature detected in degrees Celsius.
         """
-        if not self.crashed.isSet():
-            with self.adjustment_lock:
-                self._is_ready()
-                self.Focuser.setDelta(int(amount))
-                logging.debug('Focuser delta changed')
-                return True
-        else:
-            logging.warning('Focuser has crashed...cannot set focus delta at this time')
-            return False
-        
+        with self.adjustment_lock:
+            self.adjusting.clear()
+            try:
+                self.ser.write("FT000000".encode())
+                response = self.ser.readline()
+                temp = (self._convert_response_to_int(response)/2 - 273)*(9/5) + 32
+            except SerialException:
+                logging.error('Could not read temperature')
+            self.adjusting.set()
+        self.temperature = temp
+        return temp
+
     def current_position(self):
         """
         Description
         -----------
-        Sets a property equal to the current position of the focuser.
-        Cannot be directly called due to threading.
+        Provides the current position of the RoboFocus mirror.
+
+        Returns
+        -------
+        position : INT
+            Current position in steps.
+        """
+        with self.adjustment_lock:
+            self.adjusting.clear()
+            try:
+                self.ser.write("FI000000".encode())
+                response = self.ser.readline()
+                position = self._convert_response_to_int(response)
+            except SerialException:
+                logging.error('Could not read position')
+            self.adjusting.set()
+        self.position = position
+        return position
+
+    def move_in(self, amount: int):
+        """
+        Parameters
+        ----------
+        amount : INT
+            The amount of steps to move the focuser in by.
+
+        Returns
+        -------
+        BOOL
+            True if successful, otherwise False.
+        """
+        with self.adjustment_lock:
+            self.adjusting.clear()
+            if amount < 0 or amount > self.config_dict.focus_max_distance:
+                logging.error('Amount outside of safe movement range for focusing')
+                return False
+            zeros = "0" * (6 - len(str(amount)))
+            command = "FI" + zeros + str(amount)
+            try:
+                self.ser.write(command.encode())
+                logging.info('Moving in focuser by {} steps'.format(amount))
+                position = self.ser.readline()
+                self.position = self._convert_response_to_int(position)
+                logging.info('The new focus position is {}'.format(self.position))
+            except SerialException:
+                logging.error('Could not move focuser in.')
+            time.sleep(2)
+            self.adjusting.set()
+        return True
+
+    def move_out(self, amount: int):
+        """
+         Parameters
+         ----------
+         amount : INT
+             The amount of steps to move the focuser out by.
+
+         Returns
+         -------
+         BOOL
+             True if successful, otherwise False.
+         """
+        with self.adjustment_lock:
+            self.adjusting.clear()
+            if amount < 0 or amount > self.config_dict.focus_max_distance:
+                logging.error('Amount outside of safe movement range for focusing')
+                return False
+            zeros = "0" * (6 - len(str(amount)))
+            command = "FO" + zeros + str(amount)
+            try:
+                self.ser.write(command.encode())
+                logging.info('Moving out focuser by {} steps'.format(amount))
+                position = self.ser.readline()
+                self.position = self._convert_response_to_int(position)
+                logging.info('The new focus position is {}'.format(self.position))
+            except SerialException:
+                logging.error('Could not move focuser out.')
+            time.sleep(2)
+            self.adjusting.set()
+        return True
+
+    def absolute_move(self, abs_position: int):
+        """
+        Parameters
+        ----------
+        abs_position : INT
+            Absolute position in steps to move the focuser to.
+
+        Returns
+        -------
+        BOOL
+            True if successful, otherwise False.
+        """
+        with self.adjustment_lock:
+            self.adjusting.clear()
+            if abs(abs_position - self.position) >= self.config_dict.focus_max_distance*2:
+                logging.error('Absolute move amount outside of safe movement range for focusing')
+                return False
+            zeros = "0" * (6 - len(str(abs_position)))
+            command = "FG" + zeros + str(abs_position)
+            try:
+                self.ser.write(command.encode())
+                logging.info('Moving focuser to absolute position {}'.format(abs_position))
+                while True:
+                    response = self.ser.readline()
+                    if b'FD' in response:
+                        self.position = self._convert_response_to_int(response)
+                        break
+                logging.info('The new focus position is {}'.format(self.position))
+            except SerialException:
+                logging.error('Could not move to absolute position.')
+            time.sleep(2)
+            self.adjusting.set()
+        return True
+
+    def abort(self):
+        """
+        Description
+        -----------
+        Aborts the focuser command by sending an arbitrary command without waiting.  The command is just to respond
+        with the firmware version number, but any commands sent during the processing of a previous command are
+        interpreted as a stop command.
 
         Returns
         -------
         None
-
         """
-        self.position = self.Focuser.getPosition()
+        command = "FV000000"
+        try:
+            self.ser.write(command.encode())
+            logging.info('Aborting focuser movement')
+        except SerialException:
+            logging.error('Unable to abort focuser move!')
 
-    def focus_adjust(self, direction, amount=None):
-        """
-
-        Parameters
-        ----------
-        direction : STR
-            "in" or "out" to specify direction of focuser move.
-        amount : INT, optional
-            Value to change default focuser move length. The default is None, which
-            keeps it as it was before.
-
-        Returns
-        -------
-        bool
-            True if successful, otherwise False.
-
-        """
-        if not self.crashed.isSet():
-            self.adjusting.clear()
-            with self.adjustment_lock:
-                self._is_ready()
-                if amount is not None:
-                    self.set_focus_delta(amount)
-                if direction == "in":
-                    self.Focuser.actIn()
-                    logging.info('Focuser moved in')
-                elif direction == "out":
-                    self.Focuser.actOut()
-                    logging.info('Focuser moved out')
-                else:
-                    logging.error('Invalid focus move direction')
-                self.adjusting.set()
-        else:
-            logging.warning('Focuser has crashed...cannot adjust focus position at this time')
-            return False
-        return True
-
-    def absolute_move(self, position):
-        """
-
-        Parameters
-        ----------
-        position : INT
-            Absolute position to move the focuser to.
-
-        Returns
-        -------
-        bool
-            True if successful, otherwise False.
-
-        """
-        if not self.crashed.isSet():
-            with self.adjustment_lock:
-                self.adjusting.clear()
-                self._is_ready()
-                self.Focuser.actGoToPosition(int(position))
-                self.adjusting.set()
-        else:
-            logging.warning('Focuser has crashed...cannot move to absolute position at this time.')
-            return False
-        return True
-        
-    def abort_focus_move(self):
+    @staticmethod
+    def _convert_response_to_int(response):
         """
         Description
         -----------
-        Stops any focuser movements that may be in progress.
+        Converts the read response from the focuser into an integer, if applicable.
+
+        Parameters
+        ----------
+        response : BYTES
+            The direct serial response from the focuser.
 
         Returns
         -------
-        None.
-
+        INT
+            The value of the response as an integer.
         """
-        if not self.crashed.isSet():
-            self.Focuser.actStop()
+        temp_value = re.search('([0-9]+)', str(response))
+        if temp_value:
+            return int(temp_value.group())
         else:
-            pass
-        
+            logging.error('Could not get integer from serial response')
+
     def disconnect(self):
         """
         Description
@@ -195,10 +283,11 @@ class Focuser(Hardware):
         None.
 
         """
-        if not self.crashed.isSet():
-            self.Focuser.actCloseComm()
-            self.live_connection.clear()
-        else:
-            pass
+        with self.adjustment_lock:
+            try:
+                self.ser.close()
+                self.live_connection.clear()
+            except SerialException:
+                logging.error('Could not disconnect from the focuser!')
         
 # Robofocus documentation: http://www.robofocus.com/documents/robofocusins31.pdf

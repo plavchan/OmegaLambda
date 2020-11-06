@@ -41,7 +41,7 @@ class Telescope(Hardware):
             self.Telescope.Connected = True
             self.live_connection.set()
         else:
-            print("Already connected")
+            logging.info("Already connected")
 
     def _class_connect(self):
         """
@@ -64,7 +64,7 @@ class Telescope(Hardware):
             logging.error('Could not connect to the telescope')
             return False
         else:
-            print('Telescope has successfully connected')
+            logging.info('Telescope has successfully connected')
         return True
 
     def __check_coordinate_limit(self, ra, dec, time=None):
@@ -126,7 +126,7 @@ class Telescope(Hardware):
         self.slew_done.clear()
         if self.Telescope.AtPark:
             self.slew_done.set()
-            print("Telescope is at park")
+            logging.info("Telescope is at park")
             return True
         self._is_ready()
         with self.movement_lock:
@@ -168,10 +168,10 @@ class Telescope(Hardware):
                 self.Telescope.Unpark()
                 self.Telescope.Tracking = True
         except (AttributeError, pywintypes.com_error):
-            print("ERROR: Error unparking telescope tracking")
+            logging.error("Error unparking telescope or tracking")
             return False
         else: 
-            print("Telescope is unparked; tracking at sidereal rate")
+            logging.info("Telescope is unparked; tracking at sidereal rate")
             logging.info("Telescope is unparked, tracking on")
             return True
     

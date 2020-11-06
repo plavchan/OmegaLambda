@@ -60,7 +60,7 @@ class Dome(Hardware):
             logging.error('Could not connect to dome')
             return False
         else:
-            print('Dome has successfully connected')
+            logging.info('Dome has successfully connected')
         return True
 
     def _is_ready(self):
@@ -112,7 +112,7 @@ class Dome(Hardware):
         except pywintypes.com_error:
             logging.error('Dome cannot find home')
         else: 
-            print("Dome is homing")
+            logging.info("Dome is homing")
             while not self.Dome.AtHome:
                 time.sleep(2)
             return
@@ -131,7 +131,7 @@ class Dome(Hardware):
         """
         self.move_done.clear()
         if self.Dome.AtPark:
-            print("Dome is at park")
+            logging.info("Dome is at park")
             self.move_done.set()
             return True
         try:
@@ -142,7 +142,7 @@ class Dome(Hardware):
             logging.error("Error parking dome")
             return False
         else: 
-            print("Dome is parking")
+            logging.info("Dome is parking")
             self._is_ready()
             self.move_done.set()
             return True
@@ -164,7 +164,7 @@ class Dome(Hardware):
         if open_or_close == 'open':
             with self.dome_move_lock:
                 self.Dome.OpenShutter()
-                print("Shutter is opening")
+                logging.info("Shutter is opening")
                 time.sleep(2)
             t = 0
             while self.Dome.ShutterStatus in (1, 2, 4):
@@ -182,7 +182,7 @@ class Dome(Hardware):
         elif open_or_close == 'close':
             with self.dome_move_lock:
                 self.Dome.CloseShutter()
-                print("Shutter is closing")
+                logging.info("Shutter is closing")
                 time.sleep(2)
             t = 0
             while self.Dome.ShutterStatus in (0, 3, 4):
@@ -198,7 +198,7 @@ class Dome(Hardware):
                 logging.error('Dome did not close correctly.  Trying again...')
                 self.move_shutter('close')
         else:
-            print("Invalid shutter move command")
+            logging.critical("Invalid shutter move command")
         return
     
     def slave_dome_to_scope(self, toggle):
@@ -222,7 +222,7 @@ class Dome(Hardware):
             except pywintypes.com_error:
                 logging.error("Cannot sync dome to scope")
             else: 
-                print("Dome is syncing to scope")
+                logging.info("Dome is syncing to scope")
                 self._is_ready()
                 self.move_done.set()
         elif toggle is False:
@@ -231,7 +231,7 @@ class Dome(Hardware):
             except pywintypes.com_error:
                 logging.error("Cannot stop syncing dome to scope")
             else: 
-                print("Dome is no longer syncing to scope")
+                logging.info("Dome is no longer syncing to scope")
                 self.move_done.set()
         logging.debug('Dome syncing toggled')
         
@@ -254,7 +254,7 @@ class Dome(Hardware):
         except pywintypes.com_error:
             logging.error("Error slewing dome")
         else: 
-            print("Dome is slewing to {} degrees".format(azimuth))
+            logging.info("Dome is slewing to {} degrees".format(azimuth))
             self._is_ready()
             self.move_done.set()
     
@@ -290,7 +290,7 @@ class Dome(Hardware):
         if self.Dome.AtPark and self.Dome.ShutterStatus == 1:
             try: 
                 self.Dome.Connected = False
-                self.live_conection.clear()
+                self.live_connection.clear()
                 return True
             except (AttributeError, pywintypes.com_error):
                 logging.error("Could not disconnect from dome")
@@ -298,5 +298,5 @@ class Dome(Hardware):
                 subprocess.Popen(r'"C:\Program Files (x86)\Common Files\ASCOM\Dome\ASCOMDome.exe"')
                 return False
         else: 
-            print("Dome is not parked, or shutter not closed")
+            logging.critical("Dome is not parked, or shutter not closed")
             return False

@@ -1,6 +1,5 @@
 import os
 import logging
-import string
 import re
 from json.decoder import JSONDecodeError
 
@@ -11,7 +10,7 @@ from ..common.IO import config_reader
 from ..common.datatype.object_reader import ObjectReader
 
 
-def run(obs_tickets, data=None, config=None, _filter=None, logger=None, shutdown=None, calibration=None):
+def run(obs_tickets, data=None, config=None, _filter=None, logger=None, shutdown=None, calibration=None, focus=None):
     """
 
     Parameters
@@ -38,6 +37,9 @@ def run(obs_tickets, data=None, config=None, _filter=None, logger=None, shutdown
     calibration : BOOL, optional
         Toggle to take calibration images or not.  The default is None, in which case True will be passed in via
         argparse, so the observatory will take darks and flats at the specified time in the config file.
+    focus : BOOL, optional
+        Toggle to focus on target or not.  The default is None, in which case True will be passed in via argparse,
+        so focusing will be enabled.
 
     Returns
     -------
@@ -85,30 +87,23 @@ def run(obs_tickets, data=None, config=None, _filter=None, logger=None, shutdown
         observation_request_list = [ticket_object for filename in os.listdir(obs_tickets[0])
                                     if (ticket_object := read_ticket(os.path.join(obs_tickets[0], filename)))]
 
+    observation_request_list.sort(key=start_time)
     if data:
         folder = [r'{}'.format(data)]  # Reads as a raw string
     else:
-        folder = [os.path.join(config_dict.data_directory, ticket.start_time.strftime('%Y%m%d'))
+        folder = [os.path.join(config_dict.data_directory, ticket.start_time.strftime('%Y%m%d'), ticket.name)
                   for ticket in observation_request_list]
     if len(folder) != len(observation_request_list):
         raise ValueError('The length of tickets does not match with the length of folders...something has gone wrong.')
 
-    for i in range(len(folder)):
-        occurrences = folder.count(folder[i])
-        if occurrences < 2 and not os.path.exists(folder[i]):
-            os.makedirs(folder[i])
-        else:  # If occurrences >= 2 or os.path.exists(folder[i])
-            for letter in string.ascii_letters:
-                if not os.path.exists(folder[i] + letter):
-                    folder[i] += letter
-                    os.makedirs(folder[i])
-                    break
+    for fol in folder:
+        if not os.path.exists(fol):
+            os.makedirs(fol)
+        else:
+            logging.debug('Folder already exists: {:s}'.format(fol))
     logging.info('New directories for tonight\'s observing have been made!')
-    
-    observation_request_list.sort(key=start_time)
-    folder = alphanumeric_sort(folder)
         
-    run_object = ObservationRun(observation_request_list, folder, shutdown, calibration)
+    run_object = ObservationRun(observation_request_list, folder, shutdown, calibration, focus)
     run_object.observe()
 
     log_object.stop()
@@ -137,7 +132,7 @@ def read_ticket(ticket):
         logging.critical('Error reading observation ticket')
         return
     else:
-        print('Observation ticket has been read')
+        logging.info('Observation ticket has been read')
         return object_reader.ticket
 
 
@@ -156,6 +151,7 @@ def start_time(ticket_object):
 
     """
     return ticket_object.start_time
+
 
 def alphanumeric_sort(_list):
     """

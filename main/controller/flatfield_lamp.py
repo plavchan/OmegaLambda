@@ -65,7 +65,7 @@ class FlatLamp(Hardware):
             logging.error('Could not connect to flatlamp')
             return False
         else:
-            print('Flatlamp has successfully connected')
+            logging.info('Flatlamp has successfully connected')
         return True
 
     def turn_on(self):
@@ -85,7 +85,7 @@ class FlatLamp(Hardware):
         except SerialException:
             logging.error('Could not turn on the flatfield lamp')
         else:
-            print('The flat lamp is now on')
+            logging.info('The flat lamp is now on')
             self.status = 'on'
             self.lamp_done.set()
        
@@ -106,7 +106,7 @@ class FlatLamp(Hardware):
         except SerialException:
             logging.error('Could not turn off the flatfield lamp')
         else: 
-            print('The flat lamp is now off')
+            logging.info('The flat lamp is now off')
             self.status = 'off'
             self.lamp_done.set()
        
@@ -128,4 +128,4 @@ class FlatLamp(Hardware):
         except SerialException:
             logging.error('Could not disconnect from the flatfield lamp')
         else:
-            print('The flat lamp has disconnected')
+            logging.info('The flat lamp has disconnected')
