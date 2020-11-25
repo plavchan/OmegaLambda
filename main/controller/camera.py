@@ -157,6 +157,8 @@ class Camera(Hardware):
 
         """
         self.cooler_settle.clear()
+        self.timeout = threading.Thread(target=self.set_cooler_timeout(600))
+        self.timeout.start()
         t = 0
         last_temp = 0
         while not (self.Camera.TemperatureSetpoint - 0.2 <= self.Camera.Temperature <= self.Camera.TemperatureSetpoint
@@ -271,6 +273,22 @@ class Camera(Hardware):
                 logging.info("Camera has successfully disconnected")
         else:
             logging.info("Camera is already disconnected")
+
+    def set_cooler_timeout(self, time):
+        '''
+        Description
+        ----------
+        Starts a timer for the cooler timeout. Once the timeout
+        has been reached, the observation will begin.
+
+        Returns
+        -------
+        None.s
+        '''
+        time.sleep(time)
+        self.cooler_settle.set()
+        logging.info('Cooler has exceeded time of {}s to settle, beginning observation.'
+                     'Cooler will continue to cool during observation.'.format(time))
 
     def set_gain(self):
         pass

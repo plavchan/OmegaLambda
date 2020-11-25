@@ -1,0 +1,15 @@
+{"type": "observation_ticket",
+"details": {
+	"name": "TOI894-01",
+	"ra": "06:27:10.55",
+	"dec": "-04:46:48.2",
+	"start_time": "2020-11-19 22:00:00-05:00",
+	"end_time": "2020-11-20 05:56:00-05:00",
+	"filter": "r",
+	"num": 9999,
+	"exp_time": 15.0,
+	"self_guide": true,
+	"guide": false,
+	"cycle_filter": false
+	}
+}
