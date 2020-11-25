@@ -138,8 +138,10 @@ dmypy.json
 cython_debug/
 
 #Project Specific
-/observation_tickets/*.json
-/resources/
-/.idea/
-/logger/omegalambda_log.log.*
-/test
+observation_tickets/*.json
+resources/
+.idea/
+logger/omegalambda_log.log.*
+test
+main/common/util/__pycache__/
+main/**/__pycache__/

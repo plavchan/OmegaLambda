@@ -31,30 +31,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="1ed66576-9ba0-4fb1-a844-5c626260fa38" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/aws.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/logger/omegalambda_log.log" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/logger/omegalambda_log.log.1" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/logger/omegalambda_log.log.2" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/logger/omegalambda_log.log.3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/logger/omegalambda_log.log.4" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/logger/omegalambda_log.log.5" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/logger/omegalambda_log.log.6" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/observation_tickets/TOI1596.01.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/observation_tickets/TOI1596.01_TEST.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/observation_tickets/TOI894-01.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/observation_tickets/V1298 Tau c.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/resources/weather_status/cloud-img.gif" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/resources/weather_status/radar-img0001.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/resources/weather_status/radar-img0002.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/resources/weather_status/radar-img0003.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/resources/weather_status/radar-img0004.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/resources/weather_status/radar.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/resources/weather_status/weather.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main/controller/camera.py" beforeDir="false" afterPath="$PROJECT_DIR$/main/controller/camera.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
