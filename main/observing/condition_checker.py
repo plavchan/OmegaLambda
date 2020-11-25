@@ -7,7 +7,6 @@ import requests
 import requests.exceptions
 import os
 import re
-import time
 import threading
 import logging
 import datetime

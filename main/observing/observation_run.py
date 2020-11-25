@@ -20,6 +20,7 @@ from ..controller.thread_monitor import Monitor
 from ..controller.focuser_gui import Gui
 from .calibration import Calibration
 from .guider import Guider
+from .condition_checker import Conditions
 
 
 class ObservationRun:
@@ -122,7 +123,12 @@ class ObservationRun:
         if message:
             logging.error('Hardware connection timeout: {}'.format(message))
 
-        self.monitor.monitor_run([self.th_dict])
+        self.monitor.monitor_run(self.th_dict)
+
+        print('---Checking Threads--- LINE 128')
+        self.threadcheck()
+
+        self.threadcheck()
 
         if self.conditions.weather_alert.isSet():
             calibration = (self.config_dict.calibration_time == "end") and (self.calibration_toggle is True)
@@ -135,6 +141,8 @@ class ObservationRun:
                          "a possible re-open.".format(self.config_dict.min_reopen_time))
             time.sleep(self.config_dict.min_reopen_time * 60)
             if self.conditions.sun:
+                print('---Checking Threads--- LINE 142')
+                self.threadcheck()
                 sunset_time = conversion_utils.get_sunset(datetime.datetime.now(self.tz),
                                                           self.config_dict.site_latitude,
                                                           self.config_dict.site_longitude)
@@ -159,6 +167,9 @@ class ObservationRun:
             if not self.conditions.weather_alert.isSet():
                 check = True
                 self._startup_procedure(cooler=cooler)
+
+                self.threadcheck()
+
                 if self.current_ticket.end_time > datetime.datetime.now(self.tz):
                     self._ticket_slew(self.current_ticket)
                     if self.focus_toggle:
@@ -186,6 +197,7 @@ class ObservationRun:
 
         """
         initial_check = self.everything_ok()
+        print('---Checking Threads--- LINE 198')
         self.threadcheck()
         if cooler:
             self.camera.onThread(self.camera.cooler_set, True)
@@ -240,12 +252,19 @@ class ObservationRun:
         None.
         """
         current_time = datetime.datetime.now(self.tz)
+        time.sleep(10)
         if ticket.start_time > current_time:
+
+            print('---Checking Threads--- LINE 256')
+            self.threadcheck()
+
             logging.info("It is not the start time {} of {} observation, "
                          "waiting till start time.".format(ticket.start_time.isoformat(), ticket.name))
             current_epoch_milli = time_utils.datetime_to_epoch_milli_converter(current_time)
             start_time_epoch_milli = time_utils.datetime_to_epoch_milli_converter(ticket.start_time)
-            time.sleep((start_time_epoch_milli - current_epoch_milli) / 1000)
+            #time.sleep((start_time_epoch_milli - current_epoch_milli) / 1000)
+        time.sleep(5)
+        self.threadcheck()
 
     def observe(self):
         """
@@ -272,6 +291,10 @@ class ObservationRun:
         self.threadcheck()
         self.check_start_time(self.observation_request_list[0])
         initial_shutter = self._startup_procedure(cooler=cooler)
+
+        print('---Threadcheck at 295')
+        self.threadcheck()
+
         if initial_shutter == -1:
             return
 
@@ -501,6 +524,7 @@ class ObservationRun:
             False.
 
         """
+        self.threadcheck()
         prog_dict = {'MaxIm_DL.exe': [self.camera, Camera], 'TheSkyX.exe': [self.telescope, Telescope],
                      'ASCOMDome.exe': [self.dome, Dome]}
         if program not in prog_dict.keys():
@@ -654,17 +678,22 @@ class ObservationRun:
         '''
         Description
         ----------
-        Checks to see if self.monotor has raised a crashed thread,
+        Checks to see if self.monitor has raised a crashed thread,
         Restarts the crashed threads if there are any
         
         Returns
         -------
         None
         '''
-        if self.monitor.threadcrash:
+        #print('---In thread Check')
+        threadlist = self.monitor.crash_return()
+        if self.monitor.threadcrash == True:
+            #print('Threads have crashed')
             threadlist = self.monitor.crash_return()
             for thname in threadlist:
                 self.threadrestart(thname)
+        else:
+            logging.info('All threads OK')
 
     def restart(self, thname):
         '''
@@ -679,6 +708,7 @@ class ObservationRun:
         '''
 
         for x in self.th_dict:
+            print('In thread restart')
             if self.th_dict[x] == thname:
                 if x == 'camera':
                     self.camera = Camera()

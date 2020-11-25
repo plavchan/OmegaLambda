@@ -27,12 +27,12 @@ class Monitor(threading.Thread):
         '''
         logging.info('Beginning thread monitoring')
         while self.runthemonitor:
-            for threadname in threadlist:
-                if not threadname.is_alive():
-                    logging.error('{} thread has raised an exception'.format(threadname.name))
-                    if not threadname.name in self.crashed:
-                        self.crashed.append(threadname.name)
-                    self.threadcrash
+            for th_name in threadlist:
+                if not threadlist[th_name].is_alive():
+                    if not threadlist[th_name].name in self.crashed:
+                        self.crashed.append(threadlist[th_name].name)
+                        logging.error('{} thread has raised an exception'.format(threadlist[th_name].name))
+                    self.threadcrash.set()
 
     def crash_return(self):
         '''
