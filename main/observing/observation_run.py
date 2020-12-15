@@ -52,6 +52,7 @@ class ObservationRun:
         self.shutdown_toggle = shutdown_toggle
         self.calibration_toggle = calibration_toggle
         self.focus_toggle = focus_toggle
+        self.continuous_focus_toggle = True
         self.tz = observation_request_list[0].start_time.tzinfo
 
         # Initializes all relevant hardware
@@ -103,7 +104,6 @@ class ObservationRun:
             'Camera': self.camera,
             'Telescope': self.telescope,
             'Dome': self.dome,
-            'Focuser': self.focuser,
             'FlatLamp': self.flatlamp
         }
         message = ''
@@ -113,6 +113,10 @@ class ObservationRun:
                 check = False
         if message:
             logging.error('Hardware connection timeout: {}'.format(message))
+        if not self.focuser.live_connection.wait(timeout=10):
+            self.continuous_focus_toggle = False
+            self.focus_toggle = False
+            logging.warning('Hardware connection timeout: Focuser.  Will continue observing without focusing.')
 
         if self.conditions.weather_alert.isSet():
             calibration = (self.config_dict.calibration_time == "end") and (self.calibration_toggle is True)
@@ -355,7 +359,8 @@ class ObservationRun:
             The total number of images that are specified on the
             observation ticket.
         """
-        self.focus_procedures.onThread(self.focus_procedures.constant_focus_procedure)
+        if self.continuous_focus_toggle:
+            self.focus_procedures.onThread(self.focus_procedures.constant_focus_procedure)
         ticket.exp_time = [ticket.exp_time] if type(ticket.exp_time) in (int, float) else ticket.exp_time
         ticket.filter = [ticket.filter] if type(ticket.filter) is str else ticket.filter
         if ticket.self_guide:
@@ -364,7 +369,8 @@ class ObservationRun:
             img_count = self.take_images(ticket.name, ticket.num, ticket.exp_time,
                                          ticket.filter, ticket.end_time, self.image_directories[ticket],
                                          True)
-            self.focus_procedures.stop_constant_focusing()
+            if self.continuous_focus_toggle:
+                self.focus_procedures.stop_constant_focusing()
             if ticket.self_guide:
                 self.guider.stop_guiding()
                 self.guider.loop_done.wait(timeout=10)
@@ -379,7 +385,8 @@ class ObservationRun:
                                                     [ticket.filter[i]], ticket.end_time, self.image_directories[ticket],
                                                     False)
                 img_count += img_count_filter
-            self.focus_procedures.stop_constant_focusing()
+            if self.continuous_focus_toggle:
+                self.focus_procedures.stop_constant_focusing()
             if ticket.self_guide:
                 self.guider.stop_guiding()
                 self.guider.loop_done.wait(timeout=10)
@@ -430,7 +437,7 @@ class ObservationRun:
             current_exp = exp_time[i % num_exptimes]
             image_name = "{0:s}_{1:.3f}s_{2:s}-{3:04d}.fits".format(name, current_exp, str(current_filter).upper(),
                                                                     image_num)
-            
+
             if i == 0 and os.path.exists(os.path.join(path, image_name)):
                 # Checks if images already exist (in the event of a crash)
                 for f, exp in zip(_filter, exp_time):
@@ -440,18 +447,18 @@ class ObservationRun:
                                           fname):
                             names_list.append(int(n.group(1)))
                     image_base[f] = max(names_list) + 1
-                
+
                 image_name = "{0:s}_{1:.3f}s_{2:s}-{3:04d}.fits".format(name, current_exp, str(current_filter).upper(),
                                                                         image_base[current_filter])
-                
-            self.camera.onThread(self.camera.expose, 
+
+            self.camera.onThread(self.camera.expose,
                                  current_exp, self.filterwheel_dict[current_filter],
                                  os.path.join(path, image_name), "light")
             self.camera.image_done.wait(timeout=int(current_exp)*2 + 60)
-            
+
             if self.crash_check('MaxIm_DL.exe'):
                 continue
-            
+
             if cycle_filter:
                 if names_list:
                     image_num = int(image_base[_filter[(i + 1) % num_filters]] + ((i + 1) / num_filters))
@@ -464,7 +471,7 @@ class ObservationRun:
                     image_num += 1
             i += 1
         return i
-    
+
     def crash_check(self, program):
         """
         Description
@@ -492,7 +499,7 @@ class ObservationRun:
         cmd = 'tasklist /FI "IMAGENAME eq %s" /FI "STATUS eq running"' % program
         status = subprocess.Popen(cmd, stdout=subprocess.PIPE).stdout.read()
         responding = program in str(status)
-            
+
         if not responding:
             prog_dict[program][0].crashed.set()
             logging.error('{} is not responding.  Restarting...'.format(program))
@@ -541,7 +548,7 @@ class ObservationRun:
             self.calibrated_tickets[i] = 1
             if self.current_ticket == self.observation_request_list[i] and beginning is False:
                 break
-    
+
     def shutdown(self, calibration=False):
         """
         Description
@@ -564,7 +571,7 @@ class ObservationRun:
             self.stop_threads()
         else:
             return
-        
+
     def stop_threads(self):
         """
         Description
