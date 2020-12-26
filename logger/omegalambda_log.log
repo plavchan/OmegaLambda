@@ -1,0 +1,77 @@
+2020-12-26 14:55:34-0500 -- INFO: (MainThread) Module: logger | Function: __init__ | Message: Initialized logging module
+2020-12-26 14:55:34-0500 -- DEBUG: (MainThread) Module: object_reader | Function: __init__ | Message: Object reader is reading a json file
+2020-12-26 14:55:34-0500 -- INFO: (MainThread) Module: config_reader | Function: _dict_to_config_object | Message: Global config object has been created
+2020-12-26 14:55:34-0500 -- DEBUG: (MainThread) Module: object_reader | Function: __init__ | Message: Object reader is reading a json file
+2020-12-26 14:55:34-0500 -- INFO: (MainThread) Module: filter_wheel | Function: _dict_to_filter_object | Message: Global filter object has been created
+2020-12-26 14:55:34-0500 -- DEBUG: (MainThread) Module: config_reader | Function: get_config | Message: Global config object was called
+2020-12-26 14:55:34-0500 -- DEBUG: (MainThread) Module: object_reader | Function: __init__ | Message: Object reader is reading a json file
+2020-12-26 14:56:16-0500 -- INFO: (MainThread) Module: logger | Function: __init__ | Message: Initialized logging module
+2020-12-26 14:56:16-0500 -- DEBUG: (MainThread) Module: object_reader | Function: __init__ | Message: Object reader is reading a json file
+2020-12-26 14:56:16-0500 -- INFO: (MainThread) Module: config_reader | Function: _dict_to_config_object | Message: Global config object has been created
+2020-12-26 14:56:16-0500 -- DEBUG: (MainThread) Module: object_reader | Function: __init__ | Message: Object reader is reading a json file
+2020-12-26 14:56:16-0500 -- INFO: (MainThread) Module: filter_wheel | Function: _dict_to_filter_object | Message: Global filter object has been created
+2020-12-26 14:56:16-0500 -- DEBUG: (MainThread) Module: config_reader | Function: get_config | Message: Global config object was called
+2020-12-26 14:56:16-0500 -- DEBUG: (MainThread) Module: object_reader | Function: __init__ | Message: Object reader is reading a json file
+2020-12-26 14:56:16-0500 -- DEBUG: (MainThread) Module: config_reader | Function: get_config | Message: Global config object was called
+2020-12-26 14:56:16-0500 -- DEBUG: (MainThread) Module: config_reader | Function: get_config | Message: Global config object was called
+2020-12-26 14:56:16-0500 -- DEBUG: (MainThread) Module: config_reader | Function: get_config | Message: Global config object was called
+2020-12-26 14:56:16-0500 -- DEBUG: (MainThread) Module: config_reader | Function: get_config | Message: Global config object was called
+2020-12-26 14:56:16-0500 -- DEBUG: (MainThread) Module: config_reader | Function: get_config | Message: Global config object was called
+2020-12-26 14:56:16-0500 -- DEBUG: (MainThread) Module: config_reader | Function: get_config | Message: Global config object was called
+2020-12-26 14:56:16-0500 -- DEBUG: (MainThread) Module: filter_wheel | Function: get_filter | Message: Global filter object was called
+2020-12-26 14:56:16-0500 -- DEBUG: (MainThread) Module: config_reader | Function: get_config | Message: Global config object was called
+2020-12-26 14:56:16-0500 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-12-26 14:56:16-0500 -- INFO: (Camera-Th ) Module: camera | Function: check_connection | Message: Checking connection for the Camera
+2020-12-26 14:56:17-0500 -- INFO: (Telescope-Th) Module: telescope | Function: check_connection | Message: Checking connection for the Telescope
+2020-12-26 14:56:17-0500 -- INFO: (Dome-Th   ) Module: dome | Function: check_connection | Message: Checking connection for the Dome
+2020-12-26 14:56:17-0500 -- DEBUG: (Conditions-Th) Module: time_utils | Function: convert_to_datetime_utc | Message: Called time_utils function
+2020-12-26 14:56:17-0500 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-12-26 14:56:17-0500 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-12-26 14:56:18-0500 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-12-26 14:56:19-0500 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-12-26 14:56:19-0500 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-12-26 14:56:19-0500 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-12-26 14:56:20-0500 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-12-26 14:56:20-0500 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-12-26 14:56:20-0500 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-12-26 14:56:21-0500 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-12-26 14:56:21-0500 -- DEBUG: (MainThread) Module: hardware | Function: onThread | Message: A class method has been put on the Camera queue
+2020-12-26 14:56:21-0500 -- DEBUG: (MainThread) Module: hardware | Function: onThread | Message: A class method has been put on the Dome queue
+2020-12-26 14:56:21-0500 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-12-26 14:56:21-0500 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: <bound method Dome.shutter_position of <Dome(Dome-Th, started daemon 13408)>> has been run on the Dome thread
+2020-12-26 14:56:21-0500 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-12-26 14:56:21-0500 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-12-26 14:56:21-0500 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: <bound method Camera.cooler_set of <Camera(Camera-Th, started daemon 9584)>> has been run on the Camera thread
+2020-12-26 14:56:21-0500 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-12-26 14:56:21-0500 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-12-26 14:56:22-0500 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-12-26 14:56:22-0500 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-12-26 14:56:22-0500 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-12-26 14:56:22-0500 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-12-26 14:56:23-0500 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-12-26 14:56:23-0500 -- DEBUG: (MainThread) Module: hardware | Function: onThread | Message: A class method has been put on the Dome queue
+2020-12-26 14:56:23-0500 -- DEBUG: (MainThread) Module: hardware | Function: onThread | Message: A class method has been put on the Dome queue
+2020-12-26 14:56:23-0500 -- DEBUG: (MainThread) Module: hardware | Function: onThread | Message: A class method has been put on the Telescope queue
+2020-12-26 14:56:23-0500 -- DEBUG: (MainThread) Module: hardware | Function: onThread | Message: A class method has been put on the Camera queue
+2020-12-26 14:56:23-0500 -- DEBUG: (MainThread) Module: hardware | Function: onThread | Message: A class method has been put on the Dome queue
+2020-12-26 14:56:23-0500 -- DEBUG: (Dome-Th   ) Module: hardware | Function: run | Message: Dome thread is alive
+2020-12-26 14:56:23-0500 -- DEBUG: (MainThread) Module: time_utils | Function: datetime_to_epoch_milli_converter | Message: Called time_utils function
+2020-12-26 14:56:23-0500 -- DEBUG: (MainThread) Module: time_utils | Function: datetime_to_epoch_milli_converter | Message: Called time_utils function
+2020-12-26 14:56:23-0500 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-12-26 14:56:23-0500 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-12-26 14:56:24-0500 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: <bound method Telescope.unpark of <Telescope(Telescope-Th, started daemon 13156)>> has been run on the Telescope thread
+2020-12-26 14:56:24-0500 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-12-26 14:56:24-0500 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-12-26 14:56:24-0500 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: <bound method Camera.cooler_ready of <Camera(Camera-Th, started daemon 9584)>> has been run on the Camera thread
+2020-12-26 14:56:24-0500 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-12-26 14:56:25-0500 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-12-26 14:56:25-0500 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-12-26 14:56:25-0500 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-12-26 14:56:26-0500 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-12-26 14:56:26-0500 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-12-26 14:56:26-0500 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-12-26 14:56:27-0500 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-12-26 14:56:27-0500 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive
+2020-12-26 14:56:27-0500 -- DEBUG: (Camera-Th ) Module: hardware | Function: run | Message: Camera thread is alive
+2020-12-26 14:56:28-0500 -- DEBUG: (Telescope-Th) Module: hardware | Function: run | Message: Telescope thread is alive
+2020-12-26 14:56:28-0500 -- DEBUG: (Guider-Th ) Module: hardware | Function: run | Message: Guider thread is alive

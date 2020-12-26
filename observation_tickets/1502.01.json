@@ -1,0 +1,15 @@
+{"type": "observation_ticket",
+"details": {
+	"name": "1502.01",
+	"ra": "21:52:51.78",
+	"dec": "+60:34:08.8",
+	"start_time": "2020-12-29 17:50:00-05:00",
+	"end_time": "2020-12-30 02:10:00-05:00",
+	"filter": "r",
+	"num": 750,
+	"exp_time": 40.0,
+	"self_guide": true,
+	"guide": false,
+	"cycle_filter": false
+	}
+}

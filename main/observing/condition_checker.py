@@ -212,7 +212,9 @@ class Conditions(threading.Thread):
                 urllib3.exceptions.InvalidHeader, requests.exceptions.ConnectionError, requests.exceptions.Timeout,
                 requests.exceptions.HTTPError):
             return None
-        api_key = re.search(r'"SUN_V3_API_KEY":"(.+?)",', self.radar.text).group(1)
+
+        #api_key = re.search(r'"SUN_V3_API_KEY":"(.+?)",', self.radar.text).group(1)
+        api_key = self.radar.text.split(r'"SUN_V3_API_KEY_CLIENT\":\"')[1].split(r'\",\"WX_API_PROTOCOL_CLIENT\"')[0]
         # API key needed to access radar images from the weather.com website
 
         target_path = os.path.abspath(os.path.join(self.weather_directory, r'radar.txt'))
