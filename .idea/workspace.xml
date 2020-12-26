@@ -31,7 +31,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="1ed66576-9ba0-4fb1-a844-5c626260fa38" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/main/observing/condition_checker.py" beforeDir="false" afterPath="$PROJECT_DIR$/main/observing/condition_checker.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
