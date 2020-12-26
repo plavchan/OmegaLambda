@@ -136,3 +136,8 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+
+__pycache__/
+*/__pycache__/
+*/*/__pycache__/
+/observation_tickets/**.json
