@@ -112,7 +112,8 @@ def list_split(entry):
     if entry == exposure_time:
         i = [float(t) for t in i] if len(i) > 1 else float(i[0])
     elif entry == filter_:
-        i = json.dumps(i) if len(i) > 1 else '\"{}\"'.format(i[0])
+        i = json.dumps([ii if ii == 'Ha' else ii.lower() for ii in i]) if len(i) > 1 else '\"{}\"'.format(
+            i[0] if i[0] == 'Ha' else i[0].lower())
     return i
 
 

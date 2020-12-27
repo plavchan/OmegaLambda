@@ -239,8 +239,14 @@ class Conditions(threading.Thread):
                 requests.exceptions.HTTPError):
             self.connection_alert.set()
             return None
-        api_key = re.search(r'"SUN_V3_API_KEY":"(.+?)",', self.radar.text).group(1)
+        # api_key = re.search(r'"SUN_V3_API_KEY":"(.+?)",', self.radar.text).group(1)
         # API key needed to access radar images from the weather.com website
+        api_key = re.search(r'\\"SUN_V3_API_KEY(.+?)\\":\\"(.+?)\\",', self.radar.text)
+        if api_key:
+            api_key = api_key.group(2)
+        else:
+            logging.warning('Could not retrieve weather.com API key.  Continuing without radar checks.')
+            return None
 
         target_path = os.path.abspath(os.path.join(self.weather_directory, r'radar.txt'))
         with open(target_path, 'w') as file:
