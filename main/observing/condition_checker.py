@@ -216,9 +216,10 @@ class Conditions(threading.Thread):
         #api_key = re.search(r'"SUN_V3_API_KEY":"(.+?)",', self.radar.text).group(1)
         api_key = re.search(r'\\"SUN_V3_API_KEY(.+?)\\":\\"(.+?)\\",', self.radar.text)
         if api_key:
-            return None
+            api_key = api_key.group(2)
         else:
-            return logging.warning('No API key could be retrieved, continuing without radar checks')
+            logging.warning('No API key could be retrieved, continuing without radar checks')
+            return None
         # API key needed to access radar images from the weather.com website
 
         target_path = os.path.abspath(os.path.join(self.weather_directory, r'radar.txt'))
