@@ -72,7 +72,7 @@ class ObservationTicket:
             self.end_time = datetime.datetime.strptime(end_time, "%Y-%m-%d %H:%M:%S%z")
         else:
             self.end_time = end_time
-        self.filter = _filter
+        self.filter = [x.lower for x in _filter]
         self.num = num
         self.exp_time = exp_time
         self.self_guide = self_guide

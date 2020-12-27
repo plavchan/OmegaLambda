@@ -143,3 +143,5 @@ __pycache__/
 /observation_tickets/**.json
 .idea/
 .gitignore
+/test/
+logger/**.log
