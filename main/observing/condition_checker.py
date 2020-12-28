@@ -249,9 +249,12 @@ class Conditions(threading.Thread):
             return None
 
         target_path = os.path.abspath(os.path.join(self.weather_directory, r'radar.txt'))
-        with open(target_path, 'w') as file:
-            # Writes weather.com html to a text file
-            file.write(str(self.radar.text))
+        try:
+            with open(target_path, 'w') as file:
+                # Writes weather.com html to a text file
+                file.write(str(self.radar.content))
+        except (UnicodeError, UnicodeEncodeError, UnicodeDecodeError):
+            logging.warning('Could not save weather.com html due to a unicode error.')
 
         epoch_sec = time_utils.datetime_to_epoch_milli_converter(datetime.datetime.utcnow()) / 1000
         esec_round = time_utils.rounddown_300(epoch_sec)
