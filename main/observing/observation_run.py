@@ -48,7 +48,7 @@ class ObservationRun:
         self.observation_request_list = observation_request_list
         self.image_directories = {ticket: path for (ticket, path) in zip(observation_request_list, image_directory)}
         self.calibrated_tickets = [0] * len(observation_request_list)
-        self.current_ticket = None
+        self.current_ticket = self.observation_request_list[0]
         self.shutdown_toggle = shutdown_toggle
         self.calibration_toggle = calibration_toggle
         self.focus_toggle = focus_toggle
