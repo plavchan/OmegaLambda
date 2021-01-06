@@ -92,7 +92,7 @@ def run(obs_tickets, data=None, config=None, _filter=None, logger=None, shutdown
     if data:
         folder = [r'{}'.format(data)]  # Reads as a raw string
     else:
-        folder = [os.path.join(config_dict.data_directory, datetime.datetime.now().strftime('%Y') + '_Data',
+        folder = [os.path.join(config_dict.data_directory, ticket.start_time.strftime('%Y') + '_Data',
                                ticket.start_time.strftime('%Y%m%d'), ticket.name)
                   for ticket in observation_request_list]
     if len(folder) != len(observation_request_list):
