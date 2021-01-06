@@ -314,7 +314,7 @@ class Conditions(threading.Thread):
 
         """
         satellite = self.config_dict.cloud_satellite
-        day = int(time_utils.days_of_year())
+        day = str(int(time_utils.days_of_year())).zfill(3)
         conus_band = 13
         _time = datetime.datetime.now(datetime.timezone.utc)
         year = _time.year
