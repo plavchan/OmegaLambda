@@ -170,3 +170,4 @@ def alphanumeric_sort(_list):
     conversion = lambda item: int(item) if item.isdigit() else item
     alphanum_sorting = lambda key: [conversion(n) for n in re.split('([0-9]+)', key)]
     return sorted(_list, key=alphanum_sorting)
+
