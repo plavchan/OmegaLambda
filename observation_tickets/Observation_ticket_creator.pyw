@@ -2,10 +2,13 @@ import tkinter as tk
 import time
 import json
 import os
+import requests
+import datetime
+import csv
 
 
 def box_labels():
-    """
+    """ss
     Description
     -----------
     Labels for each input box
@@ -52,6 +55,100 @@ def quit_func():
     savetxt()
     master.quit()
 
+def check_toi():
+    '''
+    Description
+    -----------
+    Checks to see if a target has been selected, and if so,
+    displays it on the widget
+
+    '''
+    global info_directory
+    link = 'https://docs.google.com/spreadsheets/d/17tqqRnaXuI9q_w1uz35wttQQFGpOIP3hhVXZ5-bYnQA/export?format=csv&id=17tqqRnaXuI9q_w1uz35wttQQFGpOIP3hhVXZ5-bYnQA'
+    savefile = requests.get(url=link)
+    current_directory = os.path.abspath(os.path.dirname(__file__))
+    info_directory = os.path.join(current_directory, r'toi_info')
+    try:
+        os.mkdir(info_directory)
+    except:
+        pass
+
+    open(os.path.abspath(os.path.join(info_directory, 'google.csv')), 'wb').write(savefile.content)
+    start_date = datetime.date.today()
+    with open(os.path.abspath(os.path.join(info_directory, 'google.csv')), 'r') as f:
+        reader = csv.reader(f)
+        for row in reader:
+            if row[0] == str(start_date):
+                toi_tonight = row[2]
+    tk.Label(master, text='Tonights TOI is {}'.format(toi_tonight), font=('Courier', 11)).grid(row=0, column=4)
+
+def target_grab():
+    '''
+    Description
+    -----------
+    Collects and fills in the target info based on the nights target
+    in the google doc file
+    Returns
+    -------
+
+    '''
+    username = 'tess_nda_observer'
+    password = 'F1nd_TE$S_PlaNets!'
+    start_date = datetime.date.today()
+    with open(os.path.abspath(os.path.join(info_directory, 'google.csv')), 'r') as f:
+        reader = csv.reader(f)
+        for row in reader:
+            if row[0] == str(start_date):
+                toi_input = row[2]
+                obs_start = row[6]
+                obs_end = row[7]
+                filter_input = row[8]
+                exposure = row[9]
+    toi = toi_input.split(' ')[1]
+    day = 'today'
+    homeurl_csv = "https://{}:{}@astro.swarthmore.edu/telescope/tess-secure/print_eclipses.cgi?observatory_string=38.828095%3B-77.3056879%3BAmerica%2FNew_York%3BGeorge+Mason+Observatory+%280.8m%29%3BGeorge+Mason&use_utc=0&observatory_latitude=38.828095&observatory_longitude=-77.3056879&timezone=UTC&start_date={}&days_to_print=3&days_in_past=0&minimum_start_elevation=0&and_vs_or=or&minimum_end_elevation=0&minimum_ha=-12&maximum_ha=12&baseline_hrs=0&show_unc=1&maximum_priority=5&minimum_depth=0&maximum_V_mag=&target_string={}&lco_only=0&single_object=0&ra=&dec=&epoch=&period=&duration=&target=&show_ephemeris=0&print_html=2&twilight=-12&max_airmass=2.4".format(
+        username, password, day, toi
+    )
+    tbl_page = requests.get(homeurl_csv)
+    with open(os.path.abspath(os.path.join(info_directory, 'info_chart.csv')), 'wb+') as f:
+        f.write(tbl_page.content)
+    with open(os.path.abspath(os.path.join(info_directory, 'info_chart.csv')), 'r') as f:
+        row = list(csv.reader(f))
+        row1 = row[1]
+        target = row1[18]
+
+
+    x = datetime.datetime.strptime(obs_start, '%H:%M')
+    time_s = datetime.datetime.strftime(x, '%H:%M:%S')
+    xx = datetime.datetime.strptime(obs_end, '%H:%M')
+    time_e = datetime.datetime.strftime(xx, '%H:%M:%S')
+
+    if x.hour <= 12:
+        day_start = str(start_date + datetime.timedelta(days=1))
+    else:
+        day_start = str(start_date)
+    if xx.hour <= 12:
+        day_end = str(start_date + datetime.timedelta(days=1))
+    else:
+        day_start = str(start_date)
+    #all the information for the target
+    coordinates = target.split(r' ')
+    begin = '{} {}'.format(day_start, time_s)
+    end = '{} {}'.format(day_end, time_e)
+    tonight_toi = toi_input.replace(r' ', r'_')
+    exposure = exposure.rstrip('s')
+    filter_input = str(filter_input)
+    num_exposures = 9999
+
+    #Inserts the target info into the text boxes
+    name.insert(10, str(tonight_toi))
+    ra.insert(10, str(coordinates[0]))
+    dec.insert(10, str(coordinates[1]))
+    start_time.insert(10, str(begin))
+    end_time.insert(10, str(end))
+    filter_.insert(10, str(filter_input))
+    n_exposures.insert(10, str(num_exposures))
+    exposure_time.insert(10, str(exposure))
 
 def dst_check():
     """
@@ -153,10 +250,11 @@ def savetxt():
 master = tk.Tk()
 # Creates window
 master.title('Observation Ticket Creator')
-master.geometry('550x300')
+master.geometry('800x300')
 
 box_labels()
 exampletxt()
+check_toi()
 
 # Creates the input text boxes
 name = tk.Entry(master)
@@ -197,9 +295,11 @@ exposure_time.grid(row=7, column=1)
 
 quit_ = tk.Button(master, text='Quit', command=quit_func)
 apply = tk.Button(master, text='Apply', command=savetxt)
+fetch = tk.Button(master, text='Fetch', command=target_grab)
 
 # Places the buttons in the window
 quit_.place(x=200, y=250)
 apply.place(x=235, y=250)
+fetch.place(x=278, y=250)
 
 master.mainloop()
