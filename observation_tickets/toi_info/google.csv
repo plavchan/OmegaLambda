@@ -6,9 +6,9 @@ NoD,NoW,Target,Vmag,Ingress,Egress,Start,End,Filter,Exp,Priority,Dis,TOC,Observe
 2020-12-30,Wednesday,TOI 2267.01,15.6,20:24,21:16,17:00,2:00,R,120s,2,PC,,Mohammed,,,,
 2021-01-06,Wednesday,TOI 1782.01,12.3,23:57,2:15,22:20,7:00,R,60s,1,PC,,Owen,,,,
 2021-01-07,Thursday,TOI 1724.01,14.7,19:51,20:54,18:00,6:00,R,120s,1,PC,,Michael R,,,,
-2021-01-08,Friday,TOI 1724.01,14.7,4:44,5:47,0:00,6:30,R,120s,1,PC,,,,,"Mohammed, Peter, Owen, Justin",
-2021-01-09,Saturday,,,,,,,,,,,,,,,"Mohammed, Peter, Owen, Justin",
-2021-01-10,Sunday,,,,,,,,,,,,,,,"Mohammed, Peter, Owen, Justin",
+2021-01-08,Friday,TOI 1724.01,14.7,4:44,5:47,0:00,6:30,R,120s,1,PC,,Owen,,,,
+2021-01-09,Saturday,TOI 1724.01,14.7,21:10,22:14,18:30,6:30,R,120s,1,PC,,Owen,,,,
+2021-01-10,Sunday,TOI 1681.01,11,19:00,19:53,18:00,6:00,R,60s,1,PC,,Justin,,,,get as much post-transit data as possible before humidity rises too much
 2021-01-11,Monday,,,,,,,,,,,,,,,,iSHELL
 2021-01-12,Tuesday,,,,,,,,,,,,Owen,,,,iSHELL
 2021-01-13,Wednesday,,,,,,,,,,,,,,,"Mohammed, Peter, Owen, Justin",

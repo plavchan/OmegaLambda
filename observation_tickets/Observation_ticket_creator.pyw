@@ -1,3 +1,4 @@
+#1 C:\Users\GMU Observtory1\anaconda3\envs\omegalambda_env\pythonw.exe
 import tkinter as tk
 import time
 import json
@@ -14,14 +15,14 @@ def box_labels():
     Labels for each input box
 
     """
-    tk.Label(master, text='Target Name').grid(row=0)
-    tk.Label(master, text='Target RA').grid(row=1)
-    tk.Label(master, text='Target DEC').grid(row=2)
-    tk.Label(master, text='Observation Start Time').grid(row=3)
-    tk.Label(master, text='Observation End Time').grid(row=4)
-    tk.Label(master, text='Filter(s)').grid(row=5)
-    tk.Label(master, text='Number of Exposures').grid(row=6)
-    tk.Label(master, text='Exposure Time(s)').grid(row=7)
+    tk.Label(master, text='Target Name').grid(row=1)
+    tk.Label(master, text='Target RA').grid(row=2)
+    tk.Label(master, text='Target DEC').grid(row=3)
+    tk.Label(master, text='Observation Start Time').grid(row=4)
+    tk.Label(master, text='Observation End Time').grid(row=5)
+    tk.Label(master, text='Filter(s)').grid(row=6)
+    tk.Label(master, text='Number of Exposures').grid(row=7)
+    tk.Label(master, text='Exposure Time(s)').grid(row=8)
 
 
 def exampletxt():
@@ -32,17 +33,17 @@ def exampletxt():
     possible formatting options
 
     """
-    tk.Label(master, text='Ex: TOI1234-01').grid(row=0, column=2)
-    tk.Label(master, text='Ex: 04:52:53.6698, 04h52m53.67s, 04 52 53.67').grid(row=1, column=2)
-    tk.Label(master, text='Ex: -05:27:09.702, -05d27m09.70s, -05 27 09.70').grid(row=2, column=2)
-    tk.Label(master, text='Ex: 2020-07-03 10:00:00 (Must be in 24hrs local time)').grid(row=3, column=2)
-    tk.Label(master, text='Ex: 2020-07-03 23:00:00 (Must be in 24hrs local time)').grid(row=4, column=2)
-    tk.Label(master, text='Can be single filter or list. (clr, uv, b, v, r, ir, Ha)').grid(row=5, column=2)
-    tk.Label(master, text='Number of science exposures to be taken').grid(row=6, column=2)
-    tk.Label(master, text='Exposure time in seconds for each science image').grid(row=7, column=2)
-    tk.Label(master, text='Enable self guiding').grid(row=8, column=2)
-    tk.Label(master, text='Enable 3rd party guiding').grid(row=9, column=2)
-    tk.Label(master, text='Cycle filter after each science image').grid(row=10, column=2)
+    tk.Label(master, text='Ex: TOI1234-01').grid(row=1, column=2)
+    tk.Label(master, text='Ex: 04:52:53.6698, 04h52m53.67s, 04 52 53.67').grid(row=2, column=2)
+    tk.Label(master, text='Ex: -05:27:09.702, -05d27m09.70s, -05 27 09.70').grid(row=3, column=2)
+    tk.Label(master, text='Ex: 2020-07-03 10:00:00 (Must be in 24hrs local time)').grid(row=4, column=2)
+    tk.Label(master, text='Ex: 2020-07-03 23:00:00 (Must be in 24hrs local time)').grid(row=5, column=2)
+    tk.Label(master, text='Can be single filter or list. (clr, uv, b, v, r, ir, Ha)').grid(row=6, column=2)
+    tk.Label(master, text='Number of science exposures to be taken').grid(row=7, column=2)
+    tk.Label(master, text='Exposure time in seconds for each science image').grid(row=8, column=2)
+    tk.Label(master, text='Enable self guiding').grid(row=9, column=2)
+    tk.Label(master, text='Enable 3rd party guiding').grid(row=10, column=2)
+    tk.Label(master, text='Cycle filter after each science image').grid(row=11, column=2)
 
 
 def quit_func():
@@ -80,7 +81,10 @@ def check_toi():
         for row in reader:
             if row[0] == str(start_date):
                 toi_tonight = row[2]
-    tk.Label(master, text='Tonights TOI is {}'.format(toi_tonight), font=('Courier', 11)).grid(row=0, column=4)
+    if toi_tonight:
+        tk.Label(master, text='Tonights TOI is {}'.format(toi_tonight), font=('Courier', 12)).grid(row=0, column=1)
+    else:
+        tk.Label(master, text='No target specified for tonight', font=('Courier', 12)).grid(row=0, column=1)
 
 def target_grab():
     '''
@@ -250,7 +254,7 @@ def savetxt():
 master = tk.Tk()
 # Creates window
 master.title('Observation Ticket Creator')
-master.geometry('800x300')
+master.geometry('800x315')
 
 box_labels()
 exampletxt()
@@ -274,21 +278,21 @@ cycle_filter = tk.IntVar()
 # Creates check buttons
 self_guide.set(1)
 b1 = tk.Checkbutton(master, text='Self Guide', onvalue=1, offvalue=0, variable=self_guide)
-b1.grid(row=8, column=1)
+b1.grid(row=9, column=1)
 b2 = tk.Checkbutton(master, text='Guide', onvalue=1, offvalue=0, variable=guide)
-b2.place(x=147, y=190)
+b2.grid(row=10, column=1)
 b3 = tk.Checkbutton(master, text='Cycle Filter', onvalue=1, offvalue=0, variable=cycle_filter)
-b3.place(x=147, y=212)
+b3.grid(row=11, column=1)
 
 # Places text boxes in the window
-name.grid(row=0, column=1)
-ra.grid(row=1, column=1)
-dec.grid(row=2, column=1)
-start_time.grid(row=3, column=1)
-end_time.grid(row=4, column=1)
-filter_.grid(row=5, column=1)
-n_exposures.grid(row=6, column=1)
-exposure_time.grid(row=7, column=1)
+name.grid(row=1, column=1)
+ra.grid(row=2, column=1)
+dec.grid(row=3, column=1)
+start_time.grid(row=4, column=1)
+end_time.grid(row=5, column=1)
+filter_.grid(row=6, column=1)
+n_exposures.grid(row=7, column=1)
+exposure_time.grid(row=8, column=1)
 
 
 # Creates Quit and Apply buttons
@@ -298,8 +302,8 @@ apply = tk.Button(master, text='Apply', command=savetxt)
 fetch = tk.Button(master, text='Fetch', command=target_grab)
 
 # Places the buttons in the window
-quit_.place(x=200, y=250)
-apply.place(x=235, y=250)
-fetch.place(x=278, y=250)
+quit_.place(x=220, y=275)
+apply.place(x=255, y=275)
+fetch.place(x=298, y=275)
 
 master.mainloop()

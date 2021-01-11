@@ -281,3 +281,6 @@ dmypy.json
 cython_debug/
 
 /observation_tickets/toi_info/*.csv
+!/observation_tickets/toi_info/info_chart.csv
+!/observation_tickets/toi_info/google.csv
+!/observation_tickets/toi_info/
