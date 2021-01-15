@@ -15,7 +15,7 @@ with open(os.path.join(current_directory, 'url_config.json')) as f:
     passw = url_dict['Password']
 
 def box_labels():
-    """ss
+    """
     Description
     -----------
     Labels for each input box
