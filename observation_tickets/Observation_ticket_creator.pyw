@@ -7,6 +7,12 @@ import requests
 import datetime
 import csv
 
+#Loads the urls and passwords needed from url_config.json
+current_directory = os.path.abspath(os.path.dirname(__file__))
+with open(os.path.join(current_directory, 'url_config.json')) as f:
+    url_dict = json.load(f)
+    user = url_dict['Username']
+    passw = url_dict['Password']
 
 def box_labels():
     """ss
@@ -65,14 +71,11 @@ def check_toi():
 
     '''
     global info_directory
-    link = 'https://docs.google.com/spreadsheets/d/17tqqRnaXuI9q_w1uz35wttQQFGpOIP3hhVXZ5-bYnQA/export?format=csv&id=17tqqRnaXuI9q_w1uz35wttQQFGpOIP3hhVXZ5-bYnQA'
-    savefile = requests.get(url=link)
+    savefile = requests.get(url=url_dict['Google-Sheet'])
     current_directory = os.path.abspath(os.path.dirname(__file__))
     info_directory = os.path.join(current_directory, r'toi_info')
-    try:
+    if not os.path.exists(info_directory):
         os.mkdir(info_directory)
-    except:
-        pass
 
     open(os.path.abspath(os.path.join(info_directory, 'google.csv')), 'wb').write(savefile.content)
     start_date = datetime.date.today()
@@ -96,8 +99,6 @@ def target_grab():
     -------
 
     '''
-    username = 'tess_nda_observer'
-    password = 'F1nd_TE$S_PlaNets!'
     start_date = datetime.date.today()
     with open(os.path.abspath(os.path.join(info_directory, 'google.csv')), 'r') as f:
         reader = csv.reader(f)
@@ -110,9 +111,7 @@ def target_grab():
                 exposure = row[9]
     toi = toi_input.split(' ')[1]
     day = 'today'
-    homeurl_csv = "https://{}:{}@astro.swarthmore.edu/telescope/tess-secure/print_eclipses.cgi?observatory_string=38.828095%3B-77.3056879%3BAmerica%2FNew_York%3BGeorge+Mason+Observatory+%280.8m%29%3BGeorge+Mason&use_utc=0&observatory_latitude=38.828095&observatory_longitude=-77.3056879&timezone=UTC&start_date={}&days_to_print=3&days_in_past=0&minimum_start_elevation=0&and_vs_or=or&minimum_end_elevation=0&minimum_ha=-12&maximum_ha=12&baseline_hrs=0&show_unc=1&maximum_priority=5&minimum_depth=0&maximum_V_mag=&target_string={}&lco_only=0&single_object=0&ra=&dec=&epoch=&period=&duration=&target=&show_ephemeris=0&print_html=2&twilight=-12&max_airmass=2.4".format(
-        username, password, day, toi
-    )
+    homeurl_csv = url_dict['Transit_site'].format(user, passw, day, toi)
     tbl_page = requests.get(homeurl_csv)
     with open(os.path.abspath(os.path.join(info_directory, 'info_chart.csv')), 'wb+') as f:
         f.write(tbl_page.content)
