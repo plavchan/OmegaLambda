@@ -270,7 +270,7 @@ class Conditions(threading.Thread):
                    + '&ts={}'.format(str(esec_round))
                    + '&xyz={}'.format(coords[key]) + '&apiKey={}'.format(api_key))
             # Constructs url of 4 nearest radar images
-            path_to_images: = os.path.abspath(os.path.join(
+            path_to_images: str = os.path.abspath(os.path.join(
                 self.weather_directory, r'radar-img{0:04}.png'.format(key + 1)))
             try:
                 req = s.get(url, headers={'User-Agent': self.config_dict.user_agent})
