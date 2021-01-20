@@ -158,7 +158,7 @@ class ObservationRun:
                     if self.focus_toggle:
                         self.focus_target(self.current_ticket)
                     if self.current_ticket.self_guide:
-                        self.guider.onThread(self.guider.guiding_procedure)
+                        self.guider.onThread(self.guider.guiding_procedure, self.image_directories[self.current_ticket])
             else:
                 logging.info('Weather is still too poor to resume observing.')
                 self.everything_ok()
