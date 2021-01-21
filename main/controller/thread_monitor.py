@@ -5,12 +5,12 @@ import threading
 
 class Monitor(threading.Thread):
     def __init__(self):
-        self.runthemonitor = True
+        self.run_th_monitor = True
         self.threadcrash = threading.Event()
         self.crashed = []
         super(Monitor, self).__init__(name='Monitor')
 
-    def monitor_run(self, threadlist):
+    def run(self, threadlist):
         '''
         Description
         -----------
@@ -19,33 +19,21 @@ class Monitor(threading.Thread):
 
         Parameters
         ----------
-        threadlist : LIST
+        threadlist : DICT
             List of thread handles
         Returns
         -------
         None.
         '''
         logging.info('Beginning thread monitoring')
-        while self.runthemonitor:
-            for th_name in threadlist:
+        while self.run_th_monitor:
+            for th_name in threadlist.keys():
                 if not threadlist[th_name].is_alive():
                     if not threadlist[th_name].name in self.crashed:
                         self.crashed.append(threadlist[th_name].name)
                         logging.error('{} thread has raised an exception'.format(threadlist[th_name].name))
                     self.threadcrash.set()
 
-    def crash_return(self):
-        '''
-        Description
-        -----------
-        Returns the crashed thread list created in monitor_run
-
-        Returns
-        -------
-        self.crashed: LIST
-            list of crashed threads to be restarted
-        '''
-        return self.crashed
 
 
 

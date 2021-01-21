@@ -123,12 +123,7 @@ class ObservationRun:
         if message:
             logging.error('Hardware connection timeout: {}'.format(message))
 
-        self.monitor.monitor_run(self.th_dict)
-
-        print('---Checking Threads--- LINE 128')
-        self.threadcheck()
-
-        self.threadcheck()
+        self.monitor.start(self.th_dict)
 
         if self.conditions.weather_alert.isSet():
             calibration = (self.config_dict.calibration_time == "end") and (self.calibration_toggle is True)
@@ -490,7 +485,6 @@ class ObservationRun:
                 continue
 
             self.crash_check('RoboFocus.exe')
-            self.threadcheck()
 
             if cycle_filter:
                 if names_list:
@@ -685,13 +679,10 @@ class ObservationRun:
         -------
         None
         '''
-        #print('---In thread Check')
-        threadlist = self.monitor.crash_return()
-        if self.monitor.threadcrash == True:
-            #print('Threads have crashed')
-            threadlist = self.monitor.crash_return()
+        threadlist = self.monitor.crashed()
+        if self.monitor.threadcrash.isSet():
             for thname in threadlist:
-                self.threadrestart(thname)
+                self.restart(thname)
         else:
             logging.info('All threads OK')
 
@@ -707,24 +698,23 @@ class ObservationRun:
             Handle of the original thread to restart
         '''
 
-        for x in self.th_dict:
-            print('In thread restart')
-            if self.th_dict[x] == thname:
-                if x == 'camera':
-                    self.camera = Camera()
-                    self.camera.start()
-                elif x == 'telescope':
-                    self.telescope = Telescope()
-                    self.telescope.start()
-                elif x == 'dome':
-                    self.dome = Dome()
-                    self.dome.start()
-                elif x == 'flatlamp':
-                    self.flatlamp = FlatLamp()
-                    self.flatlamp.start()
-                elif x == 'conditions':
-                    self.conditions = Conditions()
-                    self.conditions.start()
-                elif x == 'guider':
-                    self.guider = Guider()
-                    self.guider.start()
+        for x in self.th_dict.keys():
+            logging.debug('In thread restart')
+            if x == 'camera':
+                self.camera = Camera()
+                self.camera.start()
+            elif x == 'telescope':
+                self.telescope = Telescope()
+                self.telescope.start()
+            elif x == 'dome':
+                self.dome = Dome()
+                self.dome.start()
+            elif x == 'flatlamp':
+                self.flatlamp = FlatLamp()
+                self.flatlamp.start()
+            elif x == 'conditions':
+                self.conditions = Conditions()
+                self.conditions.start()
+            elif x == 'guider':
+                self.guider = Guider()
+                self.guider.start()

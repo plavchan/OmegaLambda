@@ -147,3 +147,4 @@ deprecated/
 main/common/**/__pycache__/
 main/**/__pycache__/
 .git/MERGE_HEAD
+/resources/weather_status/
