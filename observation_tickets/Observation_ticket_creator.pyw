@@ -11,8 +11,7 @@ import csv
 current_directory = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(current_directory, 'url_config.json')) as f:
     url_dict = json.load(f)
-    user = url_dict['Username']
-    passw = url_dict['Password']
+    exofop_page = url_dict['Transit_Site']
 
 def box_labels():
     """
@@ -110,15 +109,22 @@ def target_grab():
                 filter_input = row[8]
                 exposure = row[9]
     toi = toi_input.split(' ')[1]
-    day = 'today'
-    homeurl_csv = url_dict['Transit_site'].format(user, passw, day, toi)
-    tbl_page = requests.get(homeurl_csv)
-    with open(os.path.abspath(os.path.join(info_directory, 'info_chart.csv')), 'wb+') as f:
-        f.write(tbl_page.content)
+    if os.path.exists(os.path.abspath(os.path.join(info_directory, 'info_chart.csv'))):
+        tbl_page = requests.get(exofop_page)
+        with open(os.path.abspath(os.path.join(info_directory, 'info_chart.csv')), 'wb+') as f:
+            f.write(tbl_page.content)
+
     with open(os.path.abspath(os.path.join(info_directory, 'info_chart.csv')), 'r') as f:
         row = list(csv.reader(f))
-        row1 = row[1]
-        target = row1[18]
+        for x in range(len(row)):
+            if row[x][1] == toi:
+                ra_coord = row[x][18]
+                dec_coord = row[x][19]
+                break
+            else:
+                ra_coord = None
+                dec_coord = None
+
 
 
     x = datetime.datetime.strptime(obs_start, '%H:%M')
@@ -135,7 +141,6 @@ def target_grab():
     else:
         day_start = str(start_date)
     #all the information for the target
-    coordinates = target.split(r' ')
     begin = '{} {}'.format(day_start, time_s)
     end = '{} {}'.format(day_end, time_e)
     tonight_toi = toi_input.replace(r' ', r'_')
@@ -145,8 +150,8 @@ def target_grab():
 
     #Inserts the target info into the text boxes
     name.insert(10, str(tonight_toi))
-    ra.insert(10, str(coordinates[0]))
-    dec.insert(10, str(coordinates[1]))
+    ra.insert(10, str(ra_coord))
+    dec.insert(10, str(dec_coord))
     start_time.insert(10, str(begin))
     end_time.insert(10, str(end))
     filter_.insert(10, str(filter_input))
