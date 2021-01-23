@@ -290,6 +290,7 @@ class ObservationRun:
             if not self._ticket_slew(ticket):
                 return
             if initial_shutter in (1, 3, 4):
+                time.sleep(10)
                 self.dome.move_done.wait()
                 self.dome.shutter_done.wait()
             self.camera.cooler_settle.wait()

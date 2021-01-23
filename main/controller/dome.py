@@ -224,6 +224,9 @@ class Dome(Hardware):
             else: 
                 logging.info("Dome is syncing to scope")
                 self._is_ready()
+                # Extra wait in case the dome pauses in the middle of syncing
+                time.sleep(5)
+                self._is_ready()
                 self.move_done.set()
         elif toggle is False:
             try:
