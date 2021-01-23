@@ -89,13 +89,15 @@ class Telescope(Hardware):
 
         """
         lst = time_utils.get_local_sidereal_time(self.config_dict.site_longitude, time)
-        ha = lst - ra # in hours
+        ha = (lst - ra) % 24 # in hours
+        if ha > 12:
+            ha = 24 - ha
         (az, alt) = conversion_utils.convert_radec_to_altaz(ra, dec, self.config_dict.site_latitude,
                                                             self.config_dict.site_longitude, time)
         logging.debug('Checking coordinates for telescope slew...')
         if (alt <= 15) or (dec > 90) or (abs(ha) > 8.75):
             msg = "Altitude less than 15 degrees" if (alt <= 15) else "Declination above 90 degrees" if (dec > 90) else \
-                "Hour angle greater than 8h 45m" if (abs(ha) > 8.75) else "None"
+                "Hour angle = {}h > 8h 45m".format(ha) if (abs(ha) > 8.75) else "None"
             logging.error('Coordinates not good.  Aborting slew.  Reason: {}'.format(msg))
             return False
         else:
