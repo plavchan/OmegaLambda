@@ -91,7 +91,7 @@ class Telescope(Hardware):
         lst = time_utils.get_local_sidereal_time(self.config_dict.site_longitude, time)
         ha = (lst - ra) % 24 # in hours
         if ha > 12:
-            ha = 24 - ha
+            ha -= 24
         (az, alt) = conversion_utils.convert_radec_to_altaz(ra, dec, self.config_dict.site_latitude,
                                                             self.config_dict.site_longitude, time)
         logging.debug('Checking coordinates for telescope slew...')
