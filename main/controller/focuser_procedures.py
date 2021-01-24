@@ -4,6 +4,7 @@ import logging
 import time
 import threading
 import numpy as np
+import datetime
 from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
 
@@ -228,8 +229,13 @@ class FocusProcedures(Hardware):
             ax.set_title('Focus Positions Graph')
             ax.grid()
             current_path = os.path.abspath(os.path.dirname(__file__))
-            target_path = os.path.abspath(os.path.join(current_path, r'../../test/FocusPlot.png'))
+            target_path = os.path.abspath(os.path.join(current_path, r'../../test/FocusPlot_{}.png'.format(
+                datetime.datetime.now().strftime('%Y%m%d_%H%M%S'))))
+            target_path_2 = os.path.abspath(os.path.join(current_path, r'../../test/FocusData_{}.txt'.format(
+                datetime.datetime.now().strftime('%Y%m%d_%H%M%S'))))
             plt.savefig(target_path)
+            d = np.array([[xi, yi] for xi, yi in zip(x, y)])
+            np.savetxt(target_path_2, d, delimiter=',', header='Position [steps], FWHM [px]')
 
             minindex = np.where(yfit == min(yfit))[0][0]
             if np.any(np.isin(minindex, [np.where(yfit == yfit[0]), np.where(yfit == yfit[-1])])):
