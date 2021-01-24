@@ -235,7 +235,7 @@ class FocusProcedures(Hardware):
                 datetime.datetime.now().strftime('%Y%m%d_%H%M%S'))))
             plt.savefig(target_path)
             d = np.array([[xi, yi] for xi, yi in zip(x, y)])
-            np.savetxt(target_path_2, d, delimiter=',', header='Position [steps], FWHM [px]')
+            np.savetxt(target_path_2, d, delimiter=',', header='Position [steps], FWHM [px]', fmt=('%d', '%.5f'))
 
             minindex = np.where(yfit == min(yfit))[0][0]
             if np.any(np.isin(minindex, [np.where(yfit == yfit[0]), np.where(yfit == yfit[-1])])):
