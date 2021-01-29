@@ -155,8 +155,9 @@ class ObservationRun:
                 self._startup_procedure(cooler=cooler)
                 if self.current_ticket.end_time > datetime.datetime.now(self.tz):
                     self._ticket_slew(self.current_ticket)
-                    if self.focus_toggle:
-                        self.focus_target(self.current_ticket)
+                    ###  Probably don't need to redo coarse focus after reopening from weather
+                    # if self.focus_toggle:
+                    #     self.focus_target(self.current_ticket)
                     if self.current_ticket.self_guide:
                         self.guider.onThread(self.guider.guiding_procedure, self.image_directories[self.current_ticket])
             else:
@@ -319,6 +320,7 @@ class ObservationRun:
             (taken, total) = self.run_ticket(ticket)
             logging.info("{} out of {} exposures were taken for {}.  Moving on to next target.".format(taken, total,
                                                                                                        ticket.name))
+            self.focus_procedures.focused.clear()
 
         calibration = (self.config_dict.calibration_time == "end") and (self.calibration_toggle is True)
         self.shutdown(calibration)
@@ -339,6 +341,7 @@ class ObservationRun:
         None.
 
         """
+        self.focus_procedures.focused.clear()
         focus_filter = str(ticket.filter[0]) if type(ticket.filter) is list \
             else ticket.filter if type(ticket.filter) is str else None
         focus_exp = float(ticket.exp_time[0]) if type(ticket.exp_time) is list \
@@ -353,6 +356,7 @@ class ObservationRun:
             focus_exposure = 30
         self.focus_procedures.onThread(self.focus_procedures.startup_focus_procedure, focus_exposure,
                                        self.filterwheel_dict[focus_filter], self.image_directories[ticket])
+        time.sleep(5)
         self.focus_procedures.focused.wait()
 
     def run_ticket(self, ticket):
