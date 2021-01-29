@@ -20,7 +20,7 @@ from ..common.IO import config_reader
 
 
 class Conditions(threading.Thread):
-    
+
     def __init__(self):
         """
         Subclassed from threading.Thread.  Conditions periodically checks the humidity, wind, sun position, clouds, and
@@ -39,7 +39,7 @@ class Conditions(threading.Thread):
         self.connection_alert = threading.Event()
         self.stop = threading.Event()
         # Threading events to set flags and interact between threads
-        self.config_dict = config_reader.get_config()                       # Global config dictionary
+        self.config_dict = config_reader.get_config()  # Global config dictionary
         self.weather_url = 'http://weather.cos.gmu.edu/Current_Monitor.htm'
         self.backup_weather_url = 'https://weather.com/weather/hourbyhour/' + \
                                   'l/e8321c2fb1f8234f40bf92ce494921d94e657d54cc2c01f1882755e04b761dee'
@@ -51,7 +51,7 @@ class Conditions(threading.Thread):
         self.temperature = None
         current_directory = os.path.abspath(os.path.dirname(__file__))
         self.weather_directory = os.path.join(current_directory, r'..', r'..', r'resources', r'weather_status')
-        
+
     def run(self):
         """
         Description
@@ -124,7 +124,7 @@ class Conditions(threading.Thread):
             return True
         except (urllib.error.URLError, urllib.error.HTTPError):
             return False
-   
+
     def weather_check(self):
         """
 
@@ -239,20 +239,29 @@ class Conditions(threading.Thread):
                 requests.exceptions.HTTPError):
             self.connection_alert.set()
             return None
-        api_key = re.search(r'"SUN_V3_API_KEY":"(.+?)",', self.radar.text).group(1)
+        # api_key = re.search(r'"SUN_V3_API_KEY":"(.+?)",', self.radar.text).group(1)
         # API key needed to access radar images from the weather.com website
+        api_key = re.search(r'\\"SUN_V3_API_KEY(.+?)\\":\\"(.+?)\\",', self.radar.text)
+        if api_key:
+            api_key = api_key.group(2)
+        else:
+            logging.warning('Could not retrieve weather.com API key.  Continuing without radar checks.')
+            return None
 
         target_path = os.path.abspath(os.path.join(self.weather_directory, r'radar.txt'))
-        with open(target_path, 'w') as file:
-            # Writes weather.com html to a text file
-            file.write(str(self.radar.text))
-            
+        try:
+            with open(target_path, 'w') as file:
+                # Writes weather.com html to a text file
+                file.write(str(self.radar.content))
+        except (UnicodeError, UnicodeEncodeError, UnicodeDecodeError):
+            logging.warning('Could not save weather.com html due to a unicode error.')
+
         epoch_sec = time_utils.datetime_to_epoch_milli_converter(datetime.datetime.utcnow()) / 1000
         esec_round = time_utils.rounddown_300(epoch_sec)
         # Website radar images only update every 300 seconds
         if abs(epoch_sec - esec_round) < 10:
             time.sleep(10 - abs(epoch_sec - esec_round))
-        
+
         coords = {0: '291:391:10', 1: '291:392:10', 2: '292:391:10', 3: '292:392:10'}
         # Radar map coordinates found by looking through html
         rain = []
@@ -261,7 +270,7 @@ class Conditions(threading.Thread):
                    + '&ts={}'.format(str(esec_round))
                    + '&xyz={}'.format(coords[key]) + '&apiKey={}'.format(api_key))
             # Constructs url of 4 nearest radar images
-            path_to_images = os.path.abspath(os.path.join(
+            path_to_images: str = os.path.abspath(os.path.join(
                 self.weather_directory, r'radar-img{0:04}.png'.format(key + 1)))
             try:
                 req = s.get(url, headers={'User-Agent': self.config_dict.user_agent})
@@ -273,11 +282,11 @@ class Conditions(threading.Thread):
             with open(path_to_images, 'wb') as file:
                 file.write(req.content)
                 # Writes 4 images to local png files
-            
+
             img = Image.open(path_to_images)
-            px = img.size[0]*img.size[1]
+            px = img.size[0] * img.size[1]
             colors = img.getcolors()
-            if len(colors) > 1:     # Checks for any colors (green to red for rain) in the images
+            if len(colors) > 1:  # Checks for any colors (green to red for rain) in the images
                 percent_colored = (1 - colors[-1][0] / px) * 100
                 if percent_colored >= 10:
                     return True
@@ -290,7 +299,7 @@ class Conditions(threading.Thread):
             return True
         else:
             return False
-        
+
     def cloud_check(self):
         """
         Description
@@ -305,16 +314,16 @@ class Conditions(threading.Thread):
 
         """
         satellite = self.config_dict.cloud_satellite
-        day = int(time_utils.days_of_year())
+        day = str(int(time_utils.days_of_year())).zfill(3)
         conus_band = 13
         _time = datetime.datetime.now(datetime.timezone.utc)
         year = _time.year
-        time_round = time_utils.rounddown_300(_time.hour*60*60 + _time.minute*60 + _time.second)
+        time_round = time_utils.rounddown_300(_time.hour * 60 * 60 + _time.minute * 60 + _time.second)
         req = None
         s = requests.Session()
         for i in range(6):
-            hour = int(time_round/(60*60))
-            minute = int((time_round - hour*60*60)/60) - i
+            hour = int(time_round / (60 * 60))
+            minute = int((time_round - hour * 60 * 60) / 60) - i
             _time = '{0:02d}{1:02d}'.format(hour, minute)
             if (minute - 1) % 5 != 0:
                 continue
@@ -330,18 +339,18 @@ class Conditions(threading.Thread):
         target_path = os.path.abspath(os.path.join(self.weather_directory, r'cloud-img.gif'))
         with open(target_path, 'wb') as file:
             file.write(req.content)
-        
+
         if os.stat(target_path).st_size <= 2000:
             logging.error('Cloud coverage image cannot be retrieved')
             return False
-        
+
         img = Image.open(target_path)
         img_array = np.array(img)
         img_array = img_array.astype('float64')
         # fairfax coordinates ~300, 1350
         img_internal = img_array[295:335, 1340:1380]
         img_small = Image.fromarray(img_internal)
-        px = img_small.size[0]*img_small.size[1]
+        px = img_small.size[0] * img_small.size[1]
         colors = img_small.getcolors()
         clouds = [color for color in colors if color[1] > 50]
         percent_cover = sum([cloud[0] for cloud in clouds]) / px * 100

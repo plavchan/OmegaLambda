@@ -1,6 +1,7 @@
 import os
 import logging
 import re
+import datetime
 from json.decoder import JSONDecodeError
 
 from ...logger.logger import Logger
@@ -91,7 +92,8 @@ def run(obs_tickets, data=None, config=None, _filter=None, logger=None, shutdown
     if data:
         folder = [r'{}'.format(data)]  # Reads as a raw string
     else:
-        folder = [os.path.join(config_dict.data_directory, ticket.start_time.strftime('%Y%m%d'), ticket.name)
+        folder = [os.path.join(config_dict.data_directory, ticket.start_time.strftime('%Y') + '_Data',
+                               ticket.start_time.strftime('%Y%m%d'), ticket.name)
                   for ticket in observation_request_list]
     if len(folder) != len(observation_request_list):
         raise ValueError('The length of tickets does not match with the length of folders...something has gone wrong.')
@@ -159,6 +161,7 @@ def alphanumeric_sort(_list):
     ----------
     _list : LIST
         Alphanumeric list to be sorted.
+
     Returns
     -------
     LIST
@@ -167,3 +170,4 @@ def alphanumeric_sort(_list):
     conversion = lambda item: int(item) if item.isdigit() else item
     alphanum_sorting = lambda key: [conversion(n) for n in re.split('([0-9]+)', key)]
     return sorted(_list, key=alphanum_sorting)
+
