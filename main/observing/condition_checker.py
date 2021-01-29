@@ -239,13 +239,22 @@ class Conditions(threading.Thread):
                 requests.exceptions.HTTPError):
             self.connection_alert.set()
             return None
-        api_key = re.search(r'"SUN_V3_API_KEY":"(.+?)",', self.radar.text).group(1)
+        # api_key = re.search(r'"SUN_V3_API_KEY":"(.+?)",', self.radar.text).group(1)
         # API key needed to access radar images from the weather.com website
+        api_key = re.search(r'\\"SUN_V3_API_KEY(.+?)\\":\\"(.+?)\\",', self.radar.text)
+        if api_key:
+            api_key = api_key.group(2)
+        else:
+            logging.warning('Could not retrieve weather.com API key.  Continuing without radar checks.')
+            return None
 
         target_path = os.path.abspath(os.path.join(self.weather_directory, r'radar.txt'))
-        with open(target_path, 'w') as file:
-            # Writes weather.com html to a text file
-            file.write(str(self.radar.text))
+        try:
+            with open(target_path, 'w') as file:
+                # Writes weather.com html to a text file
+                file.write(str(self.radar.content))
+        except (UnicodeError, UnicodeEncodeError, UnicodeDecodeError):
+            logging.warning('Could not save weather.com html due to a unicode error.')
 
         epoch_sec = time_utils.datetime_to_epoch_milli_converter(datetime.datetime.utcnow()) / 1000
         esec_round = time_utils.rounddown_300(epoch_sec)
@@ -261,7 +270,7 @@ class Conditions(threading.Thread):
                    + '&ts={}'.format(str(esec_round))
                    + '&xyz={}'.format(coords[key]) + '&apiKey={}'.format(api_key))
             # Constructs url of 4 nearest radar images
-            path_to_images = os.path.abspath(os.path.join(
+            path_to_images: str = os.path.abspath(os.path.join(
                 self.weather_directory, r'radar-img{0:04}.png'.format(key + 1)))
             try:
                 req = s.get(url, headers={'User-Agent': self.config_dict.user_agent})
@@ -305,7 +314,7 @@ class Conditions(threading.Thread):
 
         """
         satellite = self.config_dict.cloud_satellite
-        day = int(time_utils.days_of_year())
+        day = str(int(time_utils.days_of_year())).zfill(3)
         conus_band = 13
         _time = datetime.datetime.now(datetime.timezone.utc)
         year = _time.year
