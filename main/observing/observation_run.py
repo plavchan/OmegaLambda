@@ -232,15 +232,24 @@ class ObservationRun:
 
         Returns
         -------
-        None.
+        shutdown: bool
+            Whether or not the ticket start time caused a shutdown.
         """
+        shutdown = False
         current_time = datetime.datetime.now(self.tz)
         if ticket.start_time > current_time:
             logging.info("It is not the start time {} of {} observation, "
                          "waiting till start time.".format(ticket.start_time.isoformat(), ticket.name))
+            if ticket != self.observation_request_list[0] and \
+                    ((ticket.start_time - current_time) > datetime.timedelta(minutes=20)):
+                logging.info("Start time of the next ticket will not be for at least 20 minutes.  Shutting down "
+                             "observatory in the meantime.")
+                self._shutdown_procedure(calibration=False, cooler=False)
+                shutdown = True
             current_epoch_milli = time_utils.datetime_to_epoch_milli_converter(current_time)
             start_time_epoch_milli = time_utils.datetime_to_epoch_milli_converter(ticket.start_time)
             time.sleep((start_time_epoch_milli - current_epoch_milli) / 1000)
+        return shutdown
 
     def observe(self):
         """
@@ -278,7 +287,7 @@ class ObservationRun:
             self.crash_check('ASCOMDome.exe')
 
             self.tz = ticket.start_time.tzinfo
-            self.check_start_time(ticket)
+            shutdown = self.check_start_time(ticket)
             if ticket.end_time < datetime.datetime.now(self.tz):
                 logging.info("the end time {} of {} observation has already passed. "
                              "Skipping to next target.".format(ticket.end_time.isoformat(), ticket.name))
@@ -286,6 +295,8 @@ class ObservationRun:
             if not self.everything_ok():
                 self.shutdown()
                 return
+            if shutdown:
+                initial_shutter = self._startup_procedure(cooler=False)
 
             if not self._ticket_slew(ticket):
                 return
