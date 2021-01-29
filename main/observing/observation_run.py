@@ -241,8 +241,8 @@ class ObservationRun:
             logging.info("It is not the start time {} of {} observation, "
                          "waiting till start time.".format(ticket.start_time.isoformat(), ticket.name))
             if ticket != self.observation_request_list[0] and \
-                    ((ticket.start_time - current_time) > datetime.timedelta(minutes=20)):
-                logging.info("Start time of the next ticket will not be for at least 20 minutes.  Shutting down "
+                    ((ticket.start_time - current_time) > datetime.timedelta(minutes=3)):
+                logging.info("Start time of the next ticket is not immediate.  Shutting down "
                              "observatory in the meantime.")
                 self._shutdown_procedure(calibration=False, cooler=False)
                 shutdown = True
