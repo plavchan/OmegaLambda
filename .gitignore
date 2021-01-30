@@ -144,7 +144,13 @@ test/
 logger/omegalambda_log.log*
 deprecated/
 /observation_tickets/*.json
-main/common/**/__pycache__/
+main/common/util/__pycache__/
+main/common/IO/__pycache__
 main/**/__pycache__/
 .git/MERGE_HEAD
 /resources/weather_status/
+**/__pycache__/
+/observation_tickets/toi_info
+/logger/omegalambda_log.log
+main/common/*/__pycache__/
+

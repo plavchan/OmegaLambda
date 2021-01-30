@@ -89,9 +89,10 @@ class ObservationRun:
 
         self.th_dict = {'camera': self.camera, 'telescope': self.telescope,
                         'dome': self.dome, 'focuser': self.focuser, 'flatlamp': self.flatlamp,
-                        'conditions': self.conditions, 'guider': self.guider
+                        'Conditions-Th': self.conditions, 'guider': self.guider,
                         }
-
+        self.monitor.start()
+        self.monitor.pass_dict(th_dict=self.th_dict)
 
     def everything_ok(self):
         """
@@ -123,7 +124,7 @@ class ObservationRun:
         if message:
             logging.error('Hardware connection timeout: {}'.format(message))
 
-        self.monitor.start(self.th_dict)
+        self.threadcheck()
 
         if self.conditions.weather_alert.isSet():
             calibration = (self.config_dict.calibration_time == "end") and (self.calibration_toggle is True)
@@ -136,7 +137,6 @@ class ObservationRun:
                          "a possible re-open.".format(self.config_dict.min_reopen_time))
             time.sleep(self.config_dict.min_reopen_time * 60)
             if self.conditions.sun:
-                print('---Checking Threads--- LINE 142')
                 self.threadcheck()
                 sunset_time = conversion_utils.get_sunset(datetime.datetime.now(self.tz),
                                                           self.config_dict.site_latitude,
@@ -162,7 +162,6 @@ class ObservationRun:
             if not self.conditions.weather_alert.isSet():
                 check = True
                 self._startup_procedure(cooler=cooler)
-
                 self.threadcheck()
 
                 if self.current_ticket.end_time > datetime.datetime.now(self.tz):
@@ -192,7 +191,6 @@ class ObservationRun:
 
         """
         initial_check = self.everything_ok()
-        print('---Checking Threads--- LINE 198')
         self.threadcheck()
         if cooler:
             self.camera.onThread(self.camera.cooler_set, True)
@@ -250,7 +248,6 @@ class ObservationRun:
         time.sleep(10)
         if ticket.start_time > current_time:
 
-            print('---Checking Threads--- LINE 256')
             self.threadcheck()
 
             logging.info("It is not the start time {} of {} observation, "
@@ -282,12 +279,10 @@ class ObservationRun:
             self.take_calibration_images(beginning=True)
         else:
             cooler = True
-        
         self.threadcheck()
         self.check_start_time(self.observation_request_list[0])
         initial_shutter = self._startup_procedure(cooler=cooler)
 
-        print('---Threadcheck at 295')
         self.threadcheck()
 
         if initial_shutter == -1:
@@ -667,6 +662,9 @@ class ObservationRun:
             self.take_calibration_images()
         if cooler:
             self.camera.onThread(self.camera.cooler_set, False)
+        logging.info('Stopping thread monitoring')
+        self.monitor.run_th_monitor = False
+        logging.debug('Number of thread restarts: {}'.format(self.monitor.n_restarts))
 
     def threadcheck(self):
         '''
@@ -679,7 +677,7 @@ class ObservationRun:
         -------
         None
         '''
-        threadlist = self.monitor.crashed()
+        threadlist = self.monitor.crashed
         if self.monitor.threadcrash.isSet():
             for thname in threadlist:
                 self.restart(thname)
@@ -697,24 +695,29 @@ class ObservationRun:
         thname : Handle
             Handle of the original thread to restart
         '''
-
-        for x in self.th_dict.keys():
-            logging.debug('In thread restart')
-            if x == 'camera':
-                self.camera = Camera()
-                self.camera.start()
-            elif x == 'telescope':
-                self.telescope = Telescope()
-                self.telescope.start()
-            elif x == 'dome':
-                self.dome = Dome()
-                self.dome.start()
-            elif x == 'flatlamp':
-                self.flatlamp = FlatLamp()
-                self.flatlamp.start()
-            elif x == 'conditions':
-                self.conditions = Conditions()
-                self.conditions.start()
-            elif x == 'guider':
-                self.guider = Guider()
-                self.guider.start()
+        logging.info('Restarting thread {}'.format(thname))
+        if thname == 'camera':
+            self.camera = Camera()
+            self.camera.start()
+            self.monitor.n_restarts['camera']+= 1
+        elif thname == 'telescope':
+            self.telescope = Telescope()
+            self.telescope.start()
+            self.monitor.n_restarts['telescope'] += 1
+        elif thname == 'dome':
+            self.dome = Dome()
+            self.dome.start()
+            self.monitor.n_restarts['dome'] += 1
+        elif thname == 'flatlamp':
+            self.flatlamp = FlatLamp()
+            self.flatlamp.start()
+            self.monitor.n_restarts['flatlamp'] += 1
+        elif thname == 'Conditions-Th':
+            self.conditions = Conditions()
+            self.conditions.start()
+            self.monitor.n_restarts['Conditions-Th'] += 1
+        elif thname == 'guider':
+            self.guider = Guider()
+            self.guider.start()
+            self.monitor.n_restarts['guider'] += 1
+        self.monitor.crashed(thname)

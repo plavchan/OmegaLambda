@@ -3,14 +3,18 @@ import logging
 import threading
 
 
+
 class Monitor(threading.Thread):
     def __init__(self):
         self.run_th_monitor = True
         self.threadcrash = threading.Event()
         self.crashed = []
+        self.n_restarts = {'camera': 0, 'telescope': 0,'dome': 0, 'focuser': 0,
+                           'flatlamp': 0,'Conditions-Th': 0, 'guider': 0,
+                           }
         super(Monitor, self).__init__(name='Monitor')
 
-    def run(self, threadlist):
+    def run(self):
         '''
         Description
         -----------
@@ -35,6 +39,9 @@ class Monitor(threading.Thread):
                     self.threadcrash.set()
 
 
+    def pass_dict(self, th_dict):
+        global threadlist
+        threadlist = th_dict
 
 
 
