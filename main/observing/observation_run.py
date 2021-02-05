@@ -89,10 +89,10 @@ class ObservationRun:
 
         self.th_dict = {'camera': self.camera, 'telescope': self.telescope,
                         'dome': self.dome, 'focuser': self.focuser, 'flatlamp': self.flatlamp,
-                        'Conditions-Th': self.conditions, 'guider': self.guider,
+                        'conditions': self.conditions, 'guider': self.guider,
+                        'focus_procedures': self.focus_procedures, 'gui': self.gui
                         }
-        self.monitor.start()
-        self.monitor.pass_dict(th_dict=self.th_dict)
+        self.monitor.start(self.th_dict)
 
     def everything_ok(self):
         """
@@ -137,7 +137,6 @@ class ObservationRun:
                          "a possible re-open.".format(self.config_dict.min_reopen_time))
             time.sleep(self.config_dict.min_reopen_time * 60)
             if self.conditions.sun:
-                self.threadcheck()
                 sunset_time = conversion_utils.get_sunset(datetime.datetime.now(self.tz),
                                                           self.config_dict.site_latitude,
                                                           self.config_dict.site_longitude)
@@ -153,6 +152,7 @@ class ObservationRun:
 
             else:
                 while self.conditions.weather_alert.isSet():
+                    self.threadcheck()
                     logging.info("Still waiting for good conditions to reopen.")
                     current_time = datetime.datetime.now(self.tz)
                     if current_time > self.observation_request_list[-1].end_time:
@@ -162,7 +162,6 @@ class ObservationRun:
             if not self.conditions.weather_alert.isSet():
                 check = True
                 self._startup_procedure(cooler=cooler)
-                self.threadcheck()
 
                 if self.current_ticket.end_time > datetime.datetime.now(self.tz):
                     self._ticket_slew(self.current_ticket)
@@ -191,7 +190,6 @@ class ObservationRun:
 
         """
         initial_check = self.everything_ok()
-        self.threadcheck()
         if cooler:
             self.camera.onThread(self.camera.cooler_set, True)
         self.dome.onThread(self.dome.shutter_position)
@@ -245,18 +243,13 @@ class ObservationRun:
         None.
         """
         current_time = datetime.datetime.now(self.tz)
-        time.sleep(10)
         if ticket.start_time > current_time:
-
-            self.threadcheck()
-
             logging.info("It is not the start time {} of {} observation, "
                          "waiting till start time.".format(ticket.start_time.isoformat(), ticket.name))
             current_epoch_milli = time_utils.datetime_to_epoch_milli_converter(current_time)
             start_time_epoch_milli = time_utils.datetime_to_epoch_milli_converter(ticket.start_time)
-            #time.sleep((start_time_epoch_milli - current_epoch_milli) / 1000)
+            time.sleep((start_time_epoch_milli - current_epoch_milli) / 1000)
         time.sleep(5)
-        self.threadcheck()
 
     def observe(self):
         """
@@ -283,7 +276,6 @@ class ObservationRun:
         self.check_start_time(self.observation_request_list[0])
         initial_shutter = self._startup_procedure(cooler=cooler)
 
-        self.threadcheck()
 
         if initial_shutter == -1:
             return
@@ -326,7 +318,7 @@ class ObservationRun:
             (taken, total) = self.run_ticket(ticket)
             logging.info("{} out of {} exposures were taken for {}.  Moving on to next target.".format(taken, total,
                                                                                                        ticket.name))
-
+            self.focus_procedures.focus_isfinished.clear()
         calibration = (self.config_dict.calibration_time == "end") and (self.calibration_toggle is True)
         self.shutdown(calibration)
 
@@ -346,7 +338,6 @@ class ObservationRun:
         None.
 
         """
-        self.threadcheck()
         focus_filter = str(ticket.filter[0]) if type(ticket.filter) is list \
             else ticket.filter if type(ticket.filter) is str else None
         focus_exp = float(ticket.exp_time[0]) if type(ticket.exp_time) is list \
@@ -361,6 +352,9 @@ class ObservationRun:
             focus_exposure = 30
         self.focus_procedures.onThread(self.focus_procedures.startup_focus_procedure, focus_exposure,
                                        self.filterwheel_dict[focus_filter], self.image_directories[ticket])
+        while not self.focus_procedures.focus_isfinished.isSet():
+            self.threadcheck()
+            time.sleep(60)
         self.focus_procedures.focused.wait()
 
     def run_ticket(self, ticket):
@@ -379,7 +373,6 @@ class ObservationRun:
             The total number of images that are specified on the
             observation ticket.
         """
-        self.threadcheck()
         self.focus_procedures.onThread(self.focus_procedures.constant_focus_procedure)
 
         ticket.exp_time = [ticket.exp_time] if type(ticket.exp_time) in (int, float) else ticket.exp_time
@@ -446,7 +439,6 @@ class ObservationRun:
         i = 0
         while i < num:
             logging.debug('In take_images loop')
-            self.threadcheck()
             if end_time <= datetime.datetime.now(self.tz):
                 logging.info("The observations end time of {} has passed.  "
                              "Stopping observation of {}.".format(end_time, name))
@@ -513,7 +505,6 @@ class ObservationRun:
             False.
 
         """
-        self.threadcheck()
         prog_dict = {'MaxIm_DL.exe': [self.camera, Camera], 'TheSkyX.exe': [self.telescope, Telescope],
                      'ASCOMDome.exe': [self.dome, Dome]}
         if program not in prog_dict.keys():
@@ -646,6 +637,7 @@ class ObservationRun:
         """
         logging.info("Shutting down observatory.")
         time.sleep(5)
+        self.monitor.run_th_monitor = False
         self.dome.onThread(self.dome.slave_dome_to_scope, False)
         self.telescope.onThread(self.telescope.park)
         self.dome.onThread(self.dome.park)
@@ -678,11 +670,11 @@ class ObservationRun:
         None
         '''
         threadlist = self.monitor.crashed
-        if self.monitor.threadcrash.isSet():
+        if threadlist:
             for thname in threadlist:
                 self.restart(thname)
         else:
-            logging.info('All threads OK')
+            logging.debug('All threads OK')
 
     def restart(self, thname):
         '''
@@ -695,7 +687,7 @@ class ObservationRun:
         thname : Handle
             Handle of the original thread to restart
         '''
-        logging.info('Restarting thread {}'.format(thname))
+        logging.error('Restarting thread {}'.format(thname))
         if thname == 'camera':
             self.camera = Camera()
             self.camera.start()
@@ -712,12 +704,20 @@ class ObservationRun:
             self.flatlamp = FlatLamp()
             self.flatlamp.start()
             self.monitor.n_restarts['flatlamp'] += 1
-        elif thname == 'Conditions-Th':
+        elif thname == 'conditions':
             self.conditions = Conditions()
             self.conditions.start()
-            self.monitor.n_restarts['Conditions-Th'] += 1
+            self.monitor.n_restarts['conditions'] += 1
         elif thname == 'guider':
             self.guider = Guider()
             self.guider.start()
             self.monitor.n_restarts['guider'] += 1
+        elif thname == 'focus_procedures':
+            self.guider = Guider()
+            self.guider.start()
+            self.monitor.n_restarts['focus_procedures'] += 1
+        elif thname == 'gui':
+            self.guider = Guider()
+            self.guider.start()
+            self.monitor.n_restarts['gui'] += 1
         self.monitor.crashed(thname)
