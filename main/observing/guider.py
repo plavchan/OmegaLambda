@@ -71,6 +71,7 @@ class Guider(Hardware):
 
         """
         stars, peaks = filereader_utils.findstars(path, self.config_dict.saturation, subframe=subframe)
+        guider_star = None
         if not subframe:
             i = 1
             j = 0
@@ -81,7 +82,8 @@ class Guider(Hardware):
                     peaks.pop(i)
                     stars.pop(i)
                     j += 1
-                i += 1
+                else:
+                    i += 1
             if len(peaks) >= 3:
                 maxindex = peaks.index(max(peaks[1:len(peaks)-1]))
                 guider_star = stars[maxindex]
@@ -96,7 +98,7 @@ class Guider(Hardware):
                 if distance < minsep:
                     minsep = distance
                     minstar = star
-            guider_star = minstar if minstar else None
+            guider_star = minstar
         return guider_star
 
     @staticmethod
