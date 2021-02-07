@@ -55,7 +55,6 @@ class FocusProcedures(Hardware):
        
         self.focused = threading.Event()
         self.continuous_focusing = threading.Event()
-        self.focus_isfinished = threading.Event()
         super(FocusProcedures, self).__init__(name='FocusProcedures')
 
     def _class_connect(self):

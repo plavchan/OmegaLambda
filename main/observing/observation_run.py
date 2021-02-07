@@ -144,6 +144,7 @@ class ObservationRun:
                              'at {}.'.format(sunset_time.strftime('%Y-%m-%d %H:%M:%S%z')))
                 current_time = datetime.datetime.now(self.tz)
                 while current_time < sunset_time:
+                    self.threadcheck()
                     current_time = datetime.datetime.now(self.tz)
                     if current_time > self.observation_request_list[-1].end_time:
                         return False
@@ -249,7 +250,6 @@ class ObservationRun:
             current_epoch_milli = time_utils.datetime_to_epoch_milli_converter(current_time)
             start_time_epoch_milli = time_utils.datetime_to_epoch_milli_converter(ticket.start_time)
             time.sleep((start_time_epoch_milli - current_epoch_milli) / 1000)
-        time.sleep(5)
 
     def observe(self):
         """
@@ -272,7 +272,6 @@ class ObservationRun:
             self.take_calibration_images(beginning=True)
         else:
             cooler = True
-        self.threadcheck()
         self.check_start_time(self.observation_request_list[0])
         initial_shutter = self._startup_procedure(cooler=cooler)
 
@@ -318,7 +317,6 @@ class ObservationRun:
             (taken, total) = self.run_ticket(ticket)
             logging.info("{} out of {} exposures were taken for {}.  Moving on to next target.".format(taken, total,
                                                                                                        ticket.name))
-            self.focus_procedures.focus_isfinished.clear()
         calibration = (self.config_dict.calibration_time == "end") and (self.calibration_toggle is True)
         self.shutdown(calibration)
 
@@ -352,7 +350,7 @@ class ObservationRun:
             focus_exposure = 30
         self.focus_procedures.onThread(self.focus_procedures.startup_focus_procedure, focus_exposure,
                                        self.filterwheel_dict[focus_filter], self.image_directories[ticket])
-        while not self.focus_procedures.focus_isfinished.isSet():
+        while not self.focus_procedures.focused.isSet():
             self.threadcheck()
             time.sleep(60)
         self.focus_procedures.focused.wait()
@@ -616,6 +614,7 @@ class ObservationRun:
         self.guider.stop()
         self.flatlamp.onThread(self.flatlamp.stop)
         self.calibration.onThread(self.calibration.stop)
+        self.monitor.run_th_monitor = False
         time.sleep(5)
     
     def _shutdown_procedure(self, calibration, cooler=True):
@@ -637,7 +636,6 @@ class ObservationRun:
         """
         logging.info("Shutting down observatory.")
         time.sleep(5)
-        self.monitor.run_th_monitor = False
         self.dome.onThread(self.dome.slave_dome_to_scope, False)
         self.telescope.onThread(self.telescope.park)
         self.dome.onThread(self.dome.park)
