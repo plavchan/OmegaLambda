@@ -50,20 +50,21 @@ class ObservationRun:
         self.observation_request_list = observation_request_list
         self.image_directories = {ticket: path for (ticket, path) in zip(observation_request_list, image_directory)}
         self.calibrated_tickets = [0] * len(observation_request_list)
-        self.current_ticket = None
+        self.current_ticket = self.observation_request_list[0]
         self.shutdown_toggle = shutdown_toggle
         self.calibration_toggle = calibration_toggle
         self.focus_toggle = focus_toggle
+        self.continuous_focus_toggle = True
         self.tz = observation_request_list[0].start_time.tzinfo
 
         # Initializes all relevant hardware
         self.camera = Camera()
         self.telescope = Telescope()
         self.dome = Dome()
-        self.conditions = Conditions()
         self.focuser = Focuser()
+        self.conditions = Conditions()
         self.flatlamp = FlatLamp()
-        self.monitor = Monitor()
+
 
         # Initializes higher level structures - focuser, guider, and calibration
         self.focus_procedures = FocusProcedures(self.focuser, self.camera, self.conditions)
@@ -87,12 +88,14 @@ class ObservationRun:
         self.guider.start()
         self.gui.start()
 
+
         self.th_dict = {'camera': self.camera, 'telescope': self.telescope,
                         'dome': self.dome, 'focuser': self.focuser, 'flatlamp': self.flatlamp,
                         'conditions': self.conditions, 'guider': self.guider,
                         'focus_procedures': self.focus_procedures, 'gui': self.gui
                         }
-        self.monitor.start(self.th_dict)
+        self.monitor = Monitor(self.th_dict)
+        self.monitor.start()
 
     def everything_ok(self):
         """
@@ -113,7 +116,6 @@ class ObservationRun:
             'Camera': self.camera,
             'Telescope': self.telescope,
             'Dome': self.dome,
-            'Focuser': self.focuser,
             'FlatLamp': self.flatlamp
         }
         message = ''
@@ -123,6 +125,10 @@ class ObservationRun:
                 check = False
         if message:
             logging.error('Hardware connection timeout: {}'.format(message))
+        if not self.focuser.live_connection.wait(timeout=10):
+            self.continuous_focus_toggle = False
+            self.focus_toggle = False
+            logging.warning('Hardware connection timeout: Focuser.  Will continue observing without focusing.')
 
         self.threadcheck()
 
@@ -169,7 +175,7 @@ class ObservationRun:
                     if self.focus_toggle:
                         self.focus_target(self.current_ticket)
                     if self.current_ticket.self_guide:
-                        self.guider.onThread(self.guider.guiding_procedure)
+                        self.guider.onThread(self.guider.guiding_procedure, self.image_directories[self.current_ticket])
             else:
                 logging.info('Weather is still too poor to resume observing.')
                 self.everything_ok()
@@ -236,20 +242,31 @@ class ObservationRun:
     def check_start_time(self, ticket):
         """
         Checks the start time of the given ticket and waits if it has not been reached yet.
+
         Parameters
         ----------
         ticket : ObservationTicket object
+
         Returns
         -------
-        None.
+        shutdown: bool
+            Whether or not the ticket start time caused a shutdown.
         """
+        shutdown = False
         current_time = datetime.datetime.now(self.tz)
         if ticket.start_time > current_time:
             logging.info("It is not the start time {} of {} observation, "
                          "waiting till start time.".format(ticket.start_time.isoformat(), ticket.name))
+            if ticket != self.observation_request_list[0] and \
+                    ((ticket.start_time - current_time) > datetime.timedelta(minutes=3)):
+                logging.info("Start time of the next ticket is not immediate.  Shutting down "
+                             "observatory in the meantime.")
+                self._shutdown_procedure(calibration=False, cooler=False)
+                shutdown = True
             current_epoch_milli = time_utils.datetime_to_epoch_milli_converter(current_time)
             start_time_epoch_milli = time_utils.datetime_to_epoch_milli_converter(ticket.start_time)
             time.sleep((start_time_epoch_milli - current_epoch_milli) / 1000)
+        return shutdown
 
     def observe(self):
         """
@@ -288,7 +305,7 @@ class ObservationRun:
             self.crash_check('ASCOMDome.exe')
 
             self.tz = ticket.start_time.tzinfo
-            self.check_start_time(ticket)
+            shutdown = self.check_start_time(ticket)
             if ticket.end_time < datetime.datetime.now(self.tz):
                 logging.info("the end time {} of {} observation has already passed. "
                              "Skipping to next target.".format(ticket.end_time.isoformat(), ticket.name))
@@ -296,10 +313,13 @@ class ObservationRun:
             if not self.everything_ok():
                 self.shutdown()
                 return
+            if shutdown:
+                initial_shutter = self._startup_procedure(cooler=False)
 
             if not self._ticket_slew(ticket):
                 return
             if initial_shutter in (1, 3, 4):
+                time.sleep(10)
                 self.dome.move_done.wait()
                 self.dome.shutter_done.wait()
             self.camera.cooler_settle.wait()
@@ -371,7 +391,8 @@ class ObservationRun:
             The total number of images that are specified on the
             observation ticket.
         """
-        self.focus_procedures.onThread(self.focus_procedures.constant_focus_procedure)
+        if self.continuous_focus_toggle:
+            self.focus_procedures.onThread(self.focus_procedures.constant_focus_procedure)
 
         ticket.exp_time = [ticket.exp_time] if type(ticket.exp_time) in (int, float) else ticket.exp_time
         ticket.filter = [ticket.filter] if type(ticket.filter) is str else ticket.filter
@@ -381,7 +402,8 @@ class ObservationRun:
             img_count = self.take_images(ticket.name, ticket.num, ticket.exp_time,
                                          ticket.filter, ticket.end_time, self.image_directories[ticket],
                                          True)
-            self.focus_procedures.stop_constant_focusing()
+            if self.continuous_focus_toggle:
+                self.focus_procedures.stop_constant_focusing()
             if ticket.self_guide:
                 self.guider.stop_guiding()
                 self.guider.loop_done.wait(timeout=10)
@@ -396,7 +418,8 @@ class ObservationRun:
                                                     [ticket.filter[i]], ticket.end_time, self.image_directories[ticket],
                                                     False)
                 img_count += img_count_filter
-            self.focus_procedures.stop_constant_focusing()
+            if self.continuous_focus_toggle:
+                self.focus_procedures.stop_constant_focusing()
             if ticket.self_guide:
                 self.guider.stop_guiding()
                 self.guider.loop_done.wait(timeout=10)
@@ -447,7 +470,7 @@ class ObservationRun:
             current_exp = exp_time[i % num_exptimes]
             image_name = "{0:s}_{1:.3f}s_{2:s}-{3:04d}.fits".format(name, current_exp, str(current_filter).upper(),
                                                                     image_num)
-            
+
             if i == 0 and os.path.exists(os.path.join(path, image_name)):
                 # Checks if images already exist (in the event of a crash)
                 for f, exp in zip(_filter, exp_time):
@@ -457,15 +480,15 @@ class ObservationRun:
                                           fname):
                             names_list.append(int(n.group(1)))
                     image_base[f] = max(names_list) + 1
-                
+
                 image_name = "{0:s}_{1:.3f}s_{2:s}-{3:04d}.fits".format(name, current_exp, str(current_filter).upper(),
                                                                         image_base[current_filter])
-                
-            self.camera.onThread(self.camera.expose, 
+
+            self.camera.onThread(self.camera.expose,
                                  current_exp, self.filterwheel_dict[current_filter],
                                  os.path.join(path, image_name), "light")
             self.camera.image_done.wait(timeout=int(current_exp)*2 + 60)
-            
+
             if self.crash_check('MaxIm_DL.exe'):
                 continue
 
@@ -483,7 +506,7 @@ class ObservationRun:
                     image_num += 1
             i += 1
         return i
-    
+
     def crash_check(self, program):
         """
         Description
@@ -511,7 +534,7 @@ class ObservationRun:
         cmd = 'tasklist /FI "IMAGENAME eq %s" /FI "STATUS eq running"' % program
         status = subprocess.Popen(cmd, stdout=subprocess.PIPE).stdout.read()
         responding = program in str(status)
-            
+
         if not responding:
             prog_dict[program][0].crashed.set()
             logging.error('{} is not responding.  Restarting...'.format(program))
@@ -534,7 +557,7 @@ class ObservationRun:
             return True
         else:
             return False
-        
+
     def take_calibration_images(self, beginning=False):
         """
         Description
@@ -546,11 +569,9 @@ class ObservationRun:
         ----------
         beginning : BOOL, optional
             True if taking images before observations start, otherwise False. The default is False.
-
         Returns
         -------
         None.
-
         """
         for i in range(len(self.observation_request_list)):
             if self.calibrated_tickets[i]:
@@ -562,7 +583,7 @@ class ObservationRun:
             self.calibrated_tickets[i] = 1
             if self.current_ticket == self.observation_request_list[i] and beginning is False:
                 break
-    
+
     def shutdown(self, calibration=False):
         """
         Description
@@ -585,7 +606,7 @@ class ObservationRun:
             self.stop_threads()
         else:
             return
-        
+
     def stop_threads(self):
         """
         Description
@@ -615,8 +636,9 @@ class ObservationRun:
         self.flatlamp.onThread(self.flatlamp.stop)
         self.calibration.onThread(self.calibration.stop)
         self.monitor.run_th_monitor = False
+        logging.debug(' Shutting down thread monitor. Number of thread restarts: {}'.format(self.monitor.n_restarts))
         time.sleep(5)
-    
+
     def _shutdown_procedure(self, calibration, cooler=True):
         """
         Description
@@ -652,9 +674,7 @@ class ObservationRun:
             self.take_calibration_images()
         if cooler:
             self.camera.onThread(self.camera.cooler_set, False)
-        logging.info('Stopping thread monitoring')
-        self.monitor.run_th_monitor = False
-        logging.debug('Number of thread restarts: {}'.format(self.monitor.n_restarts))
+
 
     def threadcheck(self):
         '''

@@ -60,7 +60,7 @@ def findstars(path: str, saturation: Union[int, float], subframe: Optional[Tuple
     """
     image = fits.getdata(path)
     mean, median, stdev = sigma_clipped_stats(image, sigma=3)
-    data = (image - median)**2
+    data = (image - median) ** 2
     threshold = photutils.detect_threshold(image, nsigma=5)
     if not subframe:
         starfound = photutils.find_peaks(data, threshold=threshold, box_size=50, border_width=500,

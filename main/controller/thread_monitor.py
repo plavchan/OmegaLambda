@@ -37,6 +37,7 @@ class Monitor(threading.Thread):
                     if not self.threadlist[th_name].name in self.crashed:
                         self.crashed.append(self.threadlist[th_name].name)
                         logging.error('{} thread has raised an exception'.format(self.threadlist[th_name].name))
+                    time.sleep(15)
 
 
 
