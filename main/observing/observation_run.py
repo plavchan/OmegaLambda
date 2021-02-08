@@ -492,7 +492,6 @@ class ObservationRun:
             if self.crash_check('MaxIm_DL.exe'):
                 continue
 
-            self.crash_check('RoboFocus.exe')
 
             if cycle_filter:
                 if names_list:
@@ -688,7 +687,7 @@ class ObservationRun:
         None
         '''
         threadlist = self.monitor.crashed
-        if threadlist:
+        if threadlist and len(threadlist) != 0:
             for thname in threadlist:
                 self.restart(thname)
         else:
