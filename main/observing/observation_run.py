@@ -737,4 +737,5 @@ class ObservationRun:
             self.guider = Guider()
             self.guider.start()
             self.monitor.n_restarts['gui'] += 1
-        self.monitor.crashed(thname)
+        self.monitor.crashed.remove(thname)
+        logging.error('crashed list {}'.format(self.monitor.crashed))
