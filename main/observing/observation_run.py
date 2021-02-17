@@ -151,6 +151,9 @@ class ObservationRun:
                     time.sleep(self.config_dict.weather_freq * 60)
 
             if not self.conditions.weather_alert.isSet():
+                current_time = datetime.datetime.now(self.tz)
+                if current_time + datetime.timedelta(minutes=15) > self.observation_request_list[-1].end_time:
+                    return False
                 check = True
                 self._startup_procedure(cooler=cooler)
                 if self.current_ticket.end_time > datetime.datetime.now(self.tz):
