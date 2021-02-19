@@ -167,13 +167,17 @@ class ObservationRun:
                     time.sleep(self.config_dict.weather_freq * 60)
 
             if not self.conditions.weather_alert.isSet():
+                current_time = datetime.datetime.now(self.tz)
+                if current_time + datetime.timedelta(minutes=15) > self.observation_request_list[-1].end_time:
+                    return False
                 check = True
                 self._startup_procedure(cooler=cooler)
 
                 if self.current_ticket.end_time > datetime.datetime.now(self.tz):
                     self._ticket_slew(self.current_ticket)
-                    if self.focus_toggle:
-                        self.focus_target(self.current_ticket)
+                    ###  Probably don't need to redo coarse focus after reopening from weather
+                    # if self.focus_toggle:
+                    #     self.focus_target(self.current_ticket)
                     if self.current_ticket.self_guide:
                         self.guider.onThread(self.guider.guiding_procedure, self.image_directories[self.current_ticket])
             else:
@@ -356,6 +360,7 @@ class ObservationRun:
         None.
 
         """
+        self.focus_procedures.focused.clear()
         focus_filter = str(ticket.filter[0]) if type(ticket.filter) is list \
             else ticket.filter if type(ticket.filter) is str else None
         focus_exp = float(ticket.exp_time[0]) if type(ticket.exp_time) is list \
@@ -370,9 +375,6 @@ class ObservationRun:
             focus_exposure = 30
         self.focus_procedures.onThread(self.focus_procedures.startup_focus_procedure, focus_exposure,
                                        self.filterwheel_dict[focus_filter], self.image_directories[ticket])
-        while not self.focus_procedures.focused.isSet():
-            self.threadcheck()
-            time.sleep(60)
         self.focus_procedures.focused.wait()
 
     def run_ticket(self, ticket):

@@ -71,6 +71,7 @@ class Guider(Hardware):
 
         """
         stars, peaks = filereader_utils.findstars(path, self.config_dict.saturation, subframe=subframe)
+        guider_star = None
         if not subframe:
             i = 1
             j = 0
@@ -81,7 +82,8 @@ class Guider(Hardware):
                     peaks.pop(i)
                     stars.pop(i)
                     j += 1
-                i += 1
+                else:
+                    i += 1
             if len(peaks) >= 3:
                 maxindex = peaks.index(max(peaks[1:len(peaks)-1]))
                 guider_star = stars[maxindex]
@@ -96,7 +98,7 @@ class Guider(Hardware):
                 if distance < minsep:
                     minsep = distance
                     minstar = star
-            guider_star = minstar if minstar else None
+            guider_star = minstar
         return guider_star
 
     @staticmethod
@@ -179,22 +181,15 @@ class Guider(Hardware):
             if separation >= self.config_dict.guiding_threshold:
                 xdistance = x - x_0
                 ydistance = y - y_0
-                if xdistance == 0:
-                    if ydistance > 0:
-                        angle = (1/2)*np.pi
-                    else:
-                        angle = (-1/2)*np.pi
-                else:
-                    angle = np.arctan(ydistance/xdistance)
-                    if xdistance < 0:
-                        angle += np.pi
-
-                deltangle = angle - self.config_dict.guider_angle
+                # Produce angles in the domain [0, 2pi]
+                angle = np.arctan2(ydistance, xdistance) % (2 * np.pi)
+                # With the domain angle in [0, 2pi], this always produces the correct delta angle (assuming guider angle > 0)
+                deltangle = (angle - self.config_dict.guider_angle) % (2 * np.pi)
                 # Assumes guider angle (angle b/w RA/Dec axes and Image X/Y axes) is constant
-                if ((-1/2)*np.pi <= deltangle <= (1/2)*np.pi) or ((3/2)*np.pi <= deltangle <= 2*np.pi):
-                    xdirection = 'right'
-                else:
+                if (1/2)*np.pi <= deltangle <= (3/2)*np.pi:
                     xdirection = 'left'
+                else:
+                    xdirection = 'right'
                 if 0 <= deltangle <= np.pi:
                     ydirection = 'down'
                 else:
