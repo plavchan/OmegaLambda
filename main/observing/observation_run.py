@@ -623,6 +623,7 @@ class ObservationRun:
         self.focuser.onThread(self.focuser.disconnect)
         self.flatlamp.onThread(self.flatlamp.disconnect)
 
+        self.monitor.run_th_monitor = False                 #Have to stop this first otherwise it will restart everything
         self.conditions.stop.set()
         self.focus_procedures.stop_constant_focusing()      # Should already be stopped, but just in case
         self.guider.stop_guiding()                          # Should already be stopped, but just in case
@@ -634,7 +635,6 @@ class ObservationRun:
         self.guider.stop()
         self.flatlamp.onThread(self.flatlamp.stop)
         self.calibration.onThread(self.calibration.stop)
-        self.monitor.run_th_monitor = False
         logging.debug(' Shutting down thread monitor. Number of thread restarts: {}'.format(self.monitor.n_restarts))
         time.sleep(5)
 

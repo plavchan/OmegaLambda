@@ -102,7 +102,7 @@ class Hardware(threading.Thread):
             pythoncom.CoUninitialize()
             return
         while not self.stopping.isSet():
-            logging.debug("{0:s} thread is alive".format(self.label))
+            #logging.debug("{0:s} thread is alive".format(self.label))
             try:
                 function, args, kwargs = self.q.get(timeout=self.timeout)
                 function(*args, **kwargs)
