@@ -182,6 +182,10 @@ class Guider(Hardware):
                 xdistance = x - x_0
                 ydistance = y - y_0
                 angle = np.arctan2(ydistance, xdistance)
+                if angle < 0:
+                    # Produce angles in the domain [0, 2pi]
+                    angle += 2*np.pi
+                # With the domain angle in [0, 2pi], this always produces the correct delta angle (assuming guider angle > 0)
                 deltangle = angle - self.config_dict.guider_angle
                 # Assumes guider angle (angle b/w RA/Dec axes and Image X/Y axes) is constant
                 if ((-1/2)*np.pi <= deltangle <= (1/2)*np.pi) or ((3/2)*np.pi <= deltangle <= 2*np.pi):
