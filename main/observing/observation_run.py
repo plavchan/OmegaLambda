@@ -728,16 +728,16 @@ class ObservationRun:
             self.conditions.start()
             self.monitor.n_restarts['conditions'] += 1
         elif thname == 'guider':
-            self.guider = Guider()
+            self.guider = Guider(self.camera, self.telescope)
             self.guider.start()
             self.monitor.n_restarts['guider'] += 1
         elif thname == 'focus_procedures':
-            self.guider = Guider()
-            self.guider.start()
+            self.focus_procedures = FocusProcedures(self.focuser, self.camera, self.conditions)
+            self.focus_procedures.start()
             self.monitor.n_restarts['focus_procedures'] += 1
         elif thname == 'gui':
-            self.guider = Guider()
-            self.guider.start()
+            self.gui = Gui(self.focuser, self.focus_procedures, focus_toggle)
+            self.gui.start()
             self.monitor.n_restarts['gui'] += 1
         self.monitor.crashed.remove(thname)
         logging.error('crashed list {}'.format(self.monitor.crashed))

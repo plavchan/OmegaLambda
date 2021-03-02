@@ -59,6 +59,7 @@ def findstars(path: str, saturation: Union[int, float], subframe: Optional[Tuple
 
     """
     image = fits.getdata(path)
+    logging.debug('Image data read sucessfully from {}'.format(path))
     mean, median, stdev = sigma_clipped_stats(image, sigma=3)
     data = (image - median) ** 2
     threshold = photutils.detect_threshold(image, nsigma=5)
