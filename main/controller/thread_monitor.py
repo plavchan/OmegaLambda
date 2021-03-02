@@ -34,7 +34,7 @@ class Monitor(threading.Thread):
         while self.run_th_monitor:
             for th_name in self.threadlist.keys():
                 if not self.threadlist[th_name].is_alive():
-                    if not self.threadlist[th_name] in self.crashed:
+                    if not th_name in self.crashed:
                         self.crashed.append(th_name)
                         logging.error('{} thread has raised an exception'.format(self.threadlist[th_name].name))
                         logging.debug('List of crashed threads: {}'.format(self.crashed))
