@@ -14,7 +14,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="omegalambda",
-    version="1.2.3",
+    version="1.3.0",
     author=["Michael Reefe", "Owen Alfaro", "Shawn Foster", "Vedhas Banaji"],
     author_email=["michael.reefe8@gmail.com", "owenalfaro@gmail.com", "sfoster@mail.rit.edu", ""],
     description="Automation of the GMU campus observatory telescope",

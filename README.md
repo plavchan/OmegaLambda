@@ -1,9 +1,9 @@
-# Welcome to -OmegaLambda
+<h1>Welcome to -OmegaLambda</h1>
 This is the complete code for automating the
 campus telescope at the George Mason University Observatory.
 <br>
 <br>
-## I. Installation
+<h2>I. Installation</h2>
 To install, simply download the repository 
 into any directory you'd like, and make sure that you have all
 of the requirements from the requirements.txt file installed
@@ -13,6 +13,7 @@ for a Windows environment and there has been no testing done on other OSs.
 <br>
 You can also use:
 <br>
+
 `git clone https://github.com/Kakon24/omegalambda`
 
 Also make sure you install the module by running `pip install .` from your `omegalambda` directory.
@@ -23,15 +24,15 @@ it does not depend on any hardware connections.
 Please note that since the code requires Python >= 3.8, you may wish to make a separate environment for
 this module, whether that be a conda environment or a Python virtual environment.
 
-##II. Modules
-###A. Config
+<h2>II. Modules</h2>
+<h3>A. Config</h3>
 
 The `config` module contains basic configuration files for the code in the `.json` format.  Each
 configuration parameter is explained in the docstring for said parameter's software object, and also later
 in the relevant sections of this readme.  The `parameters_config` file is for general code configurations,
 `logging` is for the logging module, and `fw_config` is for the filter wheel positions.
 
-###B. Logger
+<h3>B. Logger</h3>
 
 The `logger` module is pretty self-explanatory, it handles the logging messages and log file writing of the code.
 We use a rotating file handler, keeping backups of the previous 9 logs before overwriting the oldest ones.
@@ -43,7 +44,7 @@ The logger can be initiated by this simple example:
 
 And that's it!  A log file will now be automatically generated until the logger is stopped by calling `Logger.stop()`.
 
-###C. Input/Output (IO) and Datatypes
+<h3>C. Input/Output (IO) and Datatypes</h3>
 
 The `main/common/IO` directory includes the main file reader object (`Reader`) that converts these `.json`
 files into Python dictionaries.  These are then fed to the `ObjectReader` which sorts them into the appropriate
@@ -191,14 +192,14 @@ and have valid values.  This generally should not be an issue if one utilizes th
 creator widget, located in `observation_tickets/`.  This GUI is created using `tkinter` and allows for easy
 creation of observation tickets.
 
-###D. Utils
+<h3>D. Utils</h3>
 The `main/common/util` folder contains three utility files with different classes of utility functions used throughout
 the code.  `conversion_utils` handles unit conversions and coordinate conversions, `time_utils` handles
 timezone and other date/time conversions, and `filereader_utils` handles image reading
 to find stars peaks, FWHMs, and other image properties.
 
-###E. Controller
-####i. Hardware
+<h3>E. Controller</h3>
+<h4>i. Hardware</h4>
 The `main/controller/hardware.py` file contains the `Hardware` object, which is a parent class that all of
 our hardware modules are subclassed from.  `Hardware` itself is a subclass of `threading.Thread`, allowing
 each of our hardware objects to run concurrently on their own separate threads.  Before any hardware object
@@ -222,7 +223,7 @@ The `Hardware` class itself overwrite `threading.Thread`'s `__init__` and `run` 
 queue system for placing methods on the queue list for a hardware object.
 A concrete example will be provided for the `Camera` module.
 
-####ii. Camera
+<h4>ii. Camera</h4>
 `main/controller/camera.py` controls the CCD camera via a win32com port dispatch to MaxIm DL.
 It has methods for setting the cooler, exposing images, etc.  Now, for that example of how the threading and queue system works
 (keep in mind this example assumes the global config objects have already been read in):
@@ -244,38 +245,38 @@ It has methods for setting the cooler, exposing images, etc.  Now, for that exam
         camera.onThread(camera.disconnect)
         camera.onThread(camera.stop)
 
-####iii. Dome
+<h4>iii. Dome</h4>
 `main/controller/dome.py` controls the dome via a win32com port dispatch to ASCOM.  It has methods
 for slewing, parking, home, syncing, opening & closing the shutter, etc.
 
-####iv. Telescope
+<h4>iv. Telescope</h4>
 `main/controller/telescope.py` controls the telescope via a win32com port dispatch to ASCOM, specifically
 our SoftwareBisque mount.  It has methods for slewing, parking, unparking, tracking, guiding, etc.
 
-####v. Focus Control
+<h4>v. Focus Control</h4>
 `main/controller/focus_control.py` controls the position tertiary mirror of the telescope via a serial port
 connection.  It does not rely on RoboFocus or any other API and talks directly to the rotor mechanism.  It has methods
 for moving the focus in/out, or moving to an arbitrary position.
 
-####vi. Focus GUI
+<h4>vi. Focus GUI</h4>
 `main/controller/focuser_gui.py` is a GUI for controlling the focuser.  This was created to still allow user control
 of the focus manually while the code is running.  The win32com dispatches already allow this because
 MaxIm DL, ASCOM, etc. all have GUIs for manual control, but because we used a serial connection for
 the focuser, this was a necessary addition.
 
-####vii. Flatfield Lamp
+<h4>vii. Flatfield Lamp</h4>
 `main/controller/flatfield_lamp.py` controls the flatfield lamp inside the dome.  This is done via a serial
 connection to an Arduino device that turns the lamp on or off.  As such, there are methods for turning the lamp on
 and off.
 
-###F. High-Level Hardware Structures
-####i. Weather Conditions
+<h3>F. High-Level Hardware Structures</h3
+<h4>i. Weather Conditions</h4>
 `main/observing/condition_checker.py` implements a framework for checking the current weather conditions
 periodically to ensure that it is still safe to be observing.  The weather is checked via the GMU
 College of Science weather monitor, or, if that website is down/outdated, it uses estimates from weather.com instead.
 
 
-####ii. Focus Procedures
+<h4>ii. Focus Procedures</h4>
 `main/controller/focuser_procedures.py` implements a framework for automatically determining the best
 focus position at the beginning of an observation, as well as gradually adjusting the focus position over the
 course of the night.  
@@ -292,7 +293,7 @@ over the course of the night.
 The `FocusProcedures` object thus requires the `Focus`, `Camera`, and `Conditions` objects
 as input parameters.
 
-####iii. Guiding
+<h4>iii. Guiding</h4>
 `main/observing/guider.py` implements a framework for actively guiding on a target to keep it relatively
 stable within an image.
 
@@ -302,7 +303,7 @@ the displacement.
 
 The `Guider` object thus requires the `Camera` and `Telescope` objects as input parameters.
 
-####iv. Calibration
+<h4>iv. Calibration</h4>
 `main/observing/calibration.py` implements a framework for gathering calibration images (i.e. darks
 and flats) for a given target.
 
@@ -313,13 +314,13 @@ when it has been called, as it does not force the dome to close itself.
 The `Calibration` object thus requires the `Camera` and `FlatLamp` objects as input parameters, as
 well as the image directories for each target.
 
-####v. Thread Monitoring
+<h4>v. Thread Monitoring</h4>
 `main/controller/thread_monitor.py` implements a framework for monitoring the status of each hardware
 thread and making sure it is still "alive" (i.e. running).  If it finds that a thread has crashed, it will send instructions
 to restart it to the main observation run code.  It requires all of the code's threads sorted into a
 dictionary as an input parameter.
 
-###G. The Main Observation Run
+<h3>G. The Main Observation Run</h3>
 `main/observing/observation_run.py` is the heart of the OmegaLambda code.  This is where everything is put 
 together into a complete framework for observation runs.  It instantiates all of the hardware objects and starts
 their threads before beginning the observing sequence, which generally follows the order of: check 
@@ -346,7 +347,7 @@ this is assuming the global config objects have already been initialized):
         # Call the observe() function to begin
         run_object.observe()
 
-##III. The Main Driver
+<h2>III. The Main Driver</h2>
 All of the examples thus far have been to demonstrate how the code works, but they would not actually be
 particularly useful for a real nightly observation.  This code was really only built to be utilized by its main driver, 
 under `main/drivers/driver.py`.  The `run()` function properly initializes all of the config objects, reads
@@ -355,7 +356,7 @@ One could call the `run()` function in the driver directly, but this can also be
 we have developed a command-line interface (CLI) to run the code, which is the main way that
 it is utilized nightly at our observatory.
 
-##IV. The Command-Line Interface (CLI)
+<h2>IV. The Command-Line Interface (CLI)</h2>
 `main/__main__.py` is responsible for creating the CLI, so one is able to simply create an observation ticket
 and pass it into the code via the CLI without worrying about any of its inner-workings.  The CLI only has one 
 function, `run`, which calls the `run()` function in the driver.  Run has the observation tickets as its only required
@@ -432,7 +433,7 @@ These arguments can be stacked of course, so if you are in a situation where all
 
 `python -m omegalambda run -nf -ns -nc '/path/to/observation/ticket'`.
 
-##V. The Observation Ticket Creator Widget
+<h2>V. The Observation Ticket Creator Widget</h2>
 Under `observation_tickets/` there is a widget called `Observation_ticket_creator.pyw`.  This is a
 GUI designed to make it easy to create observation tickets for a given target.  Simply run the python file and 
 input your target specifications into the appropriate blanks.  Also note the checkboxes for the `self_guide`, `guide`, 
