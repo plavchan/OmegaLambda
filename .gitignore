@@ -139,11 +139,12 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
-<<<<<<< HEAD
 #Extras
 .idea
 .idea/
-test/
+
+/omegalambda/test/*.py
+!/omegalambda/test/__init__.py
 logger/omegalambda_log.log*
 deprecated/
 /observation_tickets/*.json
@@ -299,9 +300,9 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
-/observation_tickets/toi_info/*.csv
-/observation_tickets/toi_info/info_chart.csv
-/observation_tickets/toi_info/google.csv
-!/observation_tickets/toi_info/
-!/observation_tickets/url_config.json
->>>>>>> ticket_creator
+/omegalambda/observation_tickets/*.json
+/omegalambda/observation_tickets/toi_info/*.csv
+/omegalambda/observation_tickets/toi_info/info_chart.csv
+/omegalambda/observation_tickets/toi_info/google.csv
+!/omegalambda/observation_tickets/toi_info/
+!/omegalambda/observation_tickets/url_config.json
