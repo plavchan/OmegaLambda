@@ -736,7 +736,7 @@ class ObservationRun:
             self.focus_procedures.start()
             self.monitor.n_restarts['focus_procedures'] += 1
         elif thname == 'gui':
-            self.gui = Gui(self.focuser, self.focus_procedures, focus_toggle)
+            self.gui = Gui(self.focuser, self.focus_procedures, self.focus_toggle)
             self.gui.start()
             self.monitor.n_restarts['gui'] += 1
         self.monitor.crashed.remove(thname)
