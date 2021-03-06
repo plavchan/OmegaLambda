@@ -442,3 +442,7 @@ is designed to automatically fetch the planned target information for the curren
 observatory.  This target also appears in the title of the GUI.  Please note that this Fetch button WILL NOT WORK
 unless you are running the code on the GMU observatory control computer, because it requires
 a local file with usernames/passwords that we do not want to give out to the public.
+
+<h2>Final Note</h2>
+For an even more in-depth guide on how the code is utilized in our observatory and how a typical night
+of observation might go, please see this user guide: https://docs.google.com/document/d/1nmQr_vSFRBtiRrTm_y940Fxu_KhYTOQgs1gg9rFC_TQ/edit#.
