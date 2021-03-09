@@ -233,14 +233,20 @@ class ObservationRun:
 
         """
         self.telescope.onThread(self.telescope.slew, ticket.ra, ticket.dec)
-        slew = self.telescope.slew_done.wait()
+        self.telescope.slew_done.wait()
+        time.sleep(2)
+        slew = self.telescope.last_slew_status
         if not slew:
-            logging.error('Telescope slew has failed.  Retrying...')
-            self.telescope.onThread(self.telescope.slew, ticket.ra, ticket.dec)
-            slew2 = self.telescope.slew_done.wait()
-            if not slew2:
-                logging.critical('Telescope still cannot slew to target.  Cannot continue observing.')
-                return False
+            logging.warning('Telescope cannot slew to target.  Waiting until slew conditions are acceptable.')
+            while not slew:
+                self.telescope.onThread(self.telescope.park)
+                time.sleep(self.config_dict.weather_freq*60)
+                if not self.everything_ok():
+                    return False
+                self.telescope.onThread(self.telescope.slew, ticket.ra, ticket.dec)
+                self.telescope.slew_done.wait()
+                time.sleep(2)
+                slew = self.telescope.last_slew_status
         return True
 
     def check_start_time(self, ticket):
@@ -321,6 +327,7 @@ class ObservationRun:
                 initial_shutter = self._startup_procedure(cooler=False)
 
             if not self._ticket_slew(ticket):
+                self.shutdown()
                 return
             if initial_shutter in (1, 3, 4):
                 time.sleep(10)

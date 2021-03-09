@@ -40,7 +40,7 @@ class Focuser(Hardware):
         Returns
         -------
         BOOL
-            True if successful, otherwise False.
+            Always True
         """
         logging.info('Checking connection for the {}'.format(self.label))
         self.live_connection.clear()
@@ -50,7 +50,7 @@ class Focuser(Hardware):
             return True
         else:
             logging.error("Could not connect to focuser")
-            return False
+            return True
 
     def _class_connect(self):
         """

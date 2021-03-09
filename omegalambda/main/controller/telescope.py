@@ -23,6 +23,7 @@ class Telescope(Hardware):
         """
         self.slew_done = threading.Event()
         self.movement_lock = threading.Lock()
+        self.last_slew_status = None
         # Threading event sets flags and allows threads to interact with each other
         super(Telescope, self).__init__(name='Telescope')       # Calls Hardware.__init__ with the name 'Telescope'
 
@@ -205,7 +206,7 @@ class Telescope(Hardware):
         # Telescope internally uses apparent epoch coordinates, but we input in J2000
         if self.__check_coordinate_limit(ra, dec) is False:
             logging.error("Coordinates are outside of physical slew limits.")
-            return False
+            self.last_slew_status = False
         else:
             self._is_ready()
             try:
@@ -214,13 +215,24 @@ class Telescope(Hardware):
                     self.Telescope.SlewToCoordinates(ra, dec)
                     self.Telescope.Tracking = tracking
             except (AttributeError, pywintypes.com_error):
-                logging.error("Error slewing to target")
+                logging.debug("ASCOM Error slewing to target.  You may safely ignore this warning.")
             self._is_ready()
             if abs(self.Telescope.RightAscension - ra) <= 0.05 and abs(self.Telescope.Declination - dec) <= 0.05:
-                self.slew_done.set()
-                return True
+                self.last_slew_status = True
             else:
-                return False
+                self.last_slew_status = False
+        self.slew_done.set()
+        return self.last_slew_status
+
+    def set_tracking(self, tracking):
+        try:
+            with self.movement_lock:
+                logging.info('Setting telescope tracking to {}'.format(str(tracking)))
+                self.Telescope.Tracking = tracking
+        except (AttributeError, pywintypes.com_error):
+            logging.error('Could not set telescope tracking!')
+        self._is_ready()
+        return True
     
     def pulse_guide(self, direction, duration):
         """
