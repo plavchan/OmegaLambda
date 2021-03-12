@@ -164,12 +164,14 @@ class Guider(Hardware):
             if not star:
                 logging.warning('Guider could not find a suitable guide star...waiting for next image to try again.')
                 failures += 1
+                self.loop_done.set()
                 continue
             elif failures >= 3:
                 failures = 0
                 x_initial = star[0]
                 y_initial = star[1]
                 logging.info('Guider has selected a new guide star.  Continuing to guide.')
+                self.loop_done.set()
                 continue
             failures = 0
             x_0 = y_0 = self.config_dict.guider_max_move / self.config_dict.plate_scale * 1.5
@@ -205,8 +207,13 @@ class Guider(Hardware):
                                     'picked a new star.')
                     # Changes initial absolute coordinates to match the "new" guide star
                     new_star = self.find_guide_star(newest_image)
-                    x_initial = new_star[0]
-                    y_initial = new_star[1]
+                    if new_star:
+                        x_initial = new_star[0]
+                        y_initial = new_star[1]
+                    else:
+                        logging.warning(
+                            'Guider could not find a suitable guide star...waiting for next image to try again.')
+                        failures += 1
                 elif jog_separation < self.config_dict.guider_max_move:
                     logging.debug('Guider is making an adjustment')
                     logging.debug('xdistance: {}\"; ydistance: {}\"'.format(xjog_distance, yjog_distance))
