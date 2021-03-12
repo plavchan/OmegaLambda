@@ -717,7 +717,7 @@ class ObservationRun:
         if thname == 'camera':
             self.camera = Camera()
             self.camera.start()
-            self.monitor.n_restarts['camera']+= 1
+            self.monitor.n_restarts['camera'] += 1
         elif thname == 'telescope':
             self.telescope = Telescope()
             self.telescope.start()
@@ -738,10 +738,17 @@ class ObservationRun:
             self.guider = Guider(self.camera, self.telescope)
             self.guider.start()
             self.monitor.n_restarts['guider'] += 1
+            if self.current_ticket:
+                if self.current_ticket.self_guide:
+                    self.guider.onThread(self.guider.guiding_procedure, self.image_directories[self.current_ticket])
         elif thname == 'focus_procedures':
             self.focus_procedures = FocusProcedures(self.focuser, self.camera, self.conditions)
             self.focus_procedures.start()
             self.monitor.n_restarts['focus_procedures'] += 1
+            if self.focus_toggle and not self.focus_procedures.focused:
+                self.focus_target(self.current_ticket)
+            if self.continuous_focus_toggle:
+                self.focus_procedures.onThread(self.focus_procedures.constant_focus_procedure)
         elif thname == 'gui':
             self.gui = Gui(self.focuser, self.focus_procedures, self.focus_toggle)
             self.gui.start()
