@@ -79,11 +79,12 @@ class Conditions(threading.Thread):
             cloud_cover = self.cloud_check()
             if self.connection_alert.isSet():
                 connection_failures += 1
-                if connection_failures >= 2:
+                if connection_failures >= 1:
                     self.weather_alert.set()
                     logging.critical("A connection error was encountered and the weather can no longer be monitored"
                                      "Shutting down for safety.")
                     connection_failures = 0
+                    self.stop.wait(timeout=self.config_dict.weather_freq * 60)
                     self.connection_alert.clear()
                     continue
             if humidity is None or wind is None:
@@ -246,6 +247,7 @@ class Conditions(threading.Thread):
             api_key = api_key.group(2)
         else:
             logging.warning('Could not retrieve weather.com API key.  Continuing without radar checks.')
+            self.connection_alert.set()
             return None
 
         target_path = os.path.abspath(os.path.join(self.weather_directory, r'radar.txt'))
