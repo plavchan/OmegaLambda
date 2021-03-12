@@ -11,6 +11,7 @@
 	"cloud_cover_limit": 100,
 	"user_agent": "Mozilla/5.0",
 	"cloud_satellite": "goes-16",
+	"weather_api_key": "\"SUN_V3_API_KEY(.+?)\":\"(.+?)\",",
 	"min_reopen_time": 30,
 	"plate_scale": 0.350,
 	"saturation": 25000,

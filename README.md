@@ -80,6 +80,9 @@ It has the following attributes:
         cloud_satellite : str, optional
             Which satellite to use to check for cloud cover.  Currently only supports goes-16.  
             Our default is goes-16.
+        weather_api_key : STR, optional
+            The api key to search for in weather.com's api.  Sometimes changes and needs an update.  
+            Should be a regex search string.
         min_reopen_time : int or float, optional
             Minimum wait time to reopen (in minutes) after a weather check has gone off.  
             Our default is 30 minutes.

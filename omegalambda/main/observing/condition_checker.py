@@ -98,7 +98,7 @@ class Conditions(threading.Thread):
                 message = ""
                 message += "| Humidity |" if (humidity is None or humidity >= self.config_dict.humidity_limit) else ""
                 message += "| Wind |" if (wind is None or wind >= self.config_dict.wind_limit) else ""
-                message += "| Rain |" if (last_rain != rain and last_rain is not None) else ""
+                message += "| Rain |" if (rain not in (None, 0) and last_rain is not None and last_rain != rain) else ""
                 message += "| Nearby Rain |" if radar else ""
                 message += "| Sun Elevation |" if self.sun else ""
                 message += "| Clouds |" if cloud_cover else ""
@@ -242,9 +242,10 @@ class Conditions(threading.Thread):
             return None
         # api_key = re.search(r'"SUN_V3_API_KEY":"(.+?)",', self.radar.text).group(1)
         # API key needed to access radar images from the weather.com website
-        api_key = re.search(r'\\"SUN_V3_API_KEY(.+?)\\":\\"(.+?)\\",', self.radar.text)
+        api_key = re.search(r'{}'.format(self.config_dict.weather_api_key), self.radar.text)
         if api_key:
             api_key = api_key.group(2)
+            logging.debug('API Key for weather.com was successful!')
         else:
             logging.warning('Could not retrieve weather.com API key.  Continuing without radar checks.')
             self.connection_alert.set()

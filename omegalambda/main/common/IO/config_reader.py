@@ -14,7 +14,8 @@ class Config:
                  site_longitude: Optional[float] = None, humidity_limit: Optional[int] = None,
                  wind_limit: Optional[int] = None, weather_freq: Optional[int] = None,
                  cloud_cover_limit: Optional[float] = None, user_agent: Optional[str] = None,
-                 cloud_satellite: Optional[str] = None, min_reopen_time: Optional[Union[int, float]] = None,
+                 cloud_satellite: Optional[str] = None, weather_api_key: Optional[str] = None,
+                 min_reopen_time: Optional[Union[int, float]] = None,
                  plate_scale: Optional[float] = None, saturation: Optional[int] = None,
                  focus_exposure_multiplier: Optional[float] = None, initial_focus_delta: Optional[int] = None,
                  focus_temperature_constant: Optional[float] = None, focus_max_distance: Optional[int] = None,
@@ -51,6 +52,9 @@ class Config:
             Internet user agent for connections, specifically to weather.com.  Our default is Mozilla/5.0.
         cloud_satellite : STR, optional
             Which satellite to use to check for cloud cover.  Currently only supports goes-16.  Our default is goes-16.
+        weather_api_key : STR, optional
+            The api key to search for in weather.com's api.  Sometimes changes and needs an update.  Should be a regex
+            search string.
         min_reopen_time : INT or FLOAT, optional
             Minimum wait time to reopen (in minutes) after a weather check has gone off.  Our default is 30 minutes.
         plate_scale : FLOAT, optional
@@ -114,6 +118,7 @@ class Config:
         self.cloud_cover_limit = cloud_cover_limit
         self.user_agent = user_agent
         self.cloud_satellite = cloud_satellite
+        self.weather_api_key = weather_api_key
         self.min_reopen_time = min_reopen_time
         self.plate_scale = plate_scale
         self.saturation = saturation
@@ -186,7 +191,7 @@ def _dict_to_config_object(dic: Dict) -> Config:
                      site_longitude=dic['site_longitude'], maximum_jog=dic['maximum_jog'],
                      humidity_limit=dic['humidity_limit'], wind_limit=dic['wind_limit'],
                      weather_freq=dic['weather_freq'], cloud_cover_limit=dic['cloud_cover_limit'],
-                     user_agent=dic['user_agent'], cloud_satellite=dic['cloud_satellite'],
+                     user_agent=dic['user_agent'], cloud_satellite=dic['cloud_satellite'], weather_api_key=dic['weather_api_key'],
                      min_reopen_time=dic['min_reopen_time'], plate_scale=dic['plate_scale'],
                      saturation=dic['saturation'], focus_exposure_multiplier=dic['focus_exposure_multiplier'],
                      initial_focus_delta=dic['initial_focus_delta'],
