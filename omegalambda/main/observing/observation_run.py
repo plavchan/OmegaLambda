@@ -745,10 +745,11 @@ class ObservationRun:
             self.focus_procedures = FocusProcedures(self.focuser, self.camera, self.conditions)
             self.focus_procedures.start()
             self.monitor.n_restarts['focus_procedures'] += 1
-            if self.focus_toggle and not self.focus_procedures.focused:
-                self.focus_target(self.current_ticket)
-            if self.continuous_focus_toggle:
-                self.focus_procedures.onThread(self.focus_procedures.constant_focus_procedure)
+            if self.current_ticket:
+                if self.focus_toggle and not self.focus_procedures.focused:
+                    self.focus_target(self.current_ticket)
+                if self.continuous_focus_toggle:
+                    self.focus_procedures.onThread(self.focus_procedures.constant_focus_procedure)
         elif thname == 'gui':
             self.gui = Gui(self.focuser, self.focus_procedures, self.focus_toggle)
             self.gui.start()
