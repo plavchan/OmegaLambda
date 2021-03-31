@@ -13,7 +13,8 @@ class Config:
                  maximum_jog: Optional[Union[int, float]] = None, site_latitude: Optional[float] = None,
                  site_longitude: Optional[float] = None, humidity_limit: Optional[int] = None,
                  wind_limit: Optional[int] = None, weather_freq: Optional[int] = None,
-                 cloud_cover_limit: Optional[float] = None, user_agent: Optional[str] = None,
+                 cloud_cover_limit: Optional[float] = None, cloud_saturation_limit: Optional[float] = None,
+                 rain_percent_limit: Optional[float] = None, user_agent: Optional[str] = None,
                  cloud_satellite: Optional[str] = None, weather_api_key: Optional[str] = None,
                  min_reopen_time: Optional[Union[int, float]] = None,
                  plate_scale: Optional[float] = None, saturation: Optional[int] = None,
@@ -48,6 +49,12 @@ class Config:
             Frequency of weather checks in minutes.  Our default is 10 minutes.
         cloud_cover_limit : FLOAT, optional
             Limit for percentage of sky around Fairfax to be covered by clouds before closing up.  Our default is 75%.
+        cloud_saturation_limit: FLOAT, optional
+            Limit for the saturation of a pixel in the cloud image to be considered a cloud or not (out of 256?).
+            Our default is 100.
+        rain_percent_limit: FLOAT, optional
+            Limit for the percentage of rain present in 1/4 of the field surveyed before shutting down (two tiles
+            out of the four must pass this threshold).  Our default is 5%.
         user_agent : STR, optional
             Internet user agent for connections, specifically to weather.com.  Our default is Mozilla/5.0.
         cloud_satellite : STR, optional
@@ -116,6 +123,8 @@ class Config:
         self.wind_limit = wind_limit                         
         self.weather_freq = weather_freq 
         self.cloud_cover_limit = cloud_cover_limit
+        self.cloud_saturation_limit = cloud_saturation_limit
+        self.rain_percent_limit = rain_percent_limit
         self.user_agent = user_agent
         self.cloud_satellite = cloud_satellite
         self.weather_api_key = weather_api_key
@@ -191,6 +200,7 @@ def _dict_to_config_object(dic: Dict) -> Config:
                      site_longitude=dic['site_longitude'], maximum_jog=dic['maximum_jog'],
                      humidity_limit=dic['humidity_limit'], wind_limit=dic['wind_limit'],
                      weather_freq=dic['weather_freq'], cloud_cover_limit=dic['cloud_cover_limit'],
+                     cloud_saturation_limit=dic['cloud_saturation_limit'], rain_percent_limit=dic['rain_percent_limit'],
                      user_agent=dic['user_agent'], cloud_satellite=dic['cloud_satellite'], weather_api_key=dic['weather_api_key'],
                      min_reopen_time=dic['min_reopen_time'], plate_scale=dic['plate_scale'],
                      saturation=dic['saturation'], focus_exposure_multiplier=dic['focus_exposure_multiplier'],

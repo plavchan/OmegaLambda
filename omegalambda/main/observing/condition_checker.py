@@ -285,13 +285,15 @@ class Conditions(threading.Thread):
             with open(path_to_images, 'wb') as file:
                 file.write(req.content)
                 # Writes 4 images to local png files
-
-            img = Image.open(path_to_images)
+            logging.debug('Weather.com radar image url: {}'.format(url))
+            img = Image.open(path_to_images).convert("RGBA")
             px = img.size[0] * img.size[1]
-            colors = img.getcolors()
+            colors = np.array(img.getcolors())
             if len(colors) > 1:  # Checks for any colors (green to red for rain) in the images
-                percent_colored = (1 - colors[-1][0] / px) * 100
-                if percent_colored >= 10:
+                colsum = [np.nansum(colors[:, 1][i]) for i in range(len(colors))]
+                uncolored_i = np.where(np.isclose(colsum, 0))[0]
+                percent_colored = (1 - colors[uncolored_i][0] / px) * 100
+                if percent_colored >= self.config_dict.rain_percent_limit:
                     return True
                 else:
                     rain.append(1)
@@ -355,7 +357,7 @@ class Conditions(threading.Thread):
         img_small = Image.fromarray(img_internal)
         px = img_small.size[0] * img_small.size[1]
         colors = img_small.getcolors()
-        clouds = [color for color in colors if color[1] > 100]
+        clouds = [color for color in colors if color[1] > self.config_dict.cloud_saturation_limit]
         percent_cover = sum([cloud[0] for cloud in clouds]) / px * 100
         img.close()
         img_small.close()

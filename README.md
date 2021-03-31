@@ -74,6 +74,12 @@ It has the following attributes:
         cloud_cover_limit : float, optional
             Limit for percentage of sky around Fairfax to be covered by clouds before closing up.  
             Our default is 75%.
+        cloud_saturation_limit: float, optional
+            Limit for the saturation of a pixel in the cloud image to be considered a cloud or not (out of 256?).
+            Our default is 100.
+        rain_percent_limit: float, optional
+            Limit for the percentage of rain present in 1/4 of the field surveyed before shutting down (two tiles
+            out of the four must pass this threshold).  Our default is 5%.
         user_agent : str, optional
             internet user agent for connections, specifically required for connections to weather.com.  
             Our default is Mozilla/5.0.  Currently only supports Mozilla/5.0 as far as we are aware.
@@ -210,16 +216,18 @@ is instantiated, a global config object must be created.  This is done automatic
 file is read in via the `json_reader` and then the `object_reader`.  An example of how
 this would be done is shown:
 
-        from omegalambda.main.common.IO.json_reader import Reader
-        from omegalambda.main.common.datatype.object_reader import ObjectReader
+        import omegalambda as om
         
         # Read the config file in via the json reader
-        reader = Reader('C:\Users\[username]\omegalambda\omegalambda\'
+        reader = om.Reader('C:\Users\[username]\omegalambda\omegalambda\'
                         + 'config\parameters_config.json')
         # Sort the object into the correct type (in this case, Config)
-        obj_reader = ObjectReader(reader)
+        obj_reader = om.ObjectReader(reader)
         # The global object is automatically created!  Now you can instantiate any hardware class.
 
+HOWEVER, it is not necessary to undergo this procedure, as it is done automatically upon
+importing the OmegaLambda package.  If you wish to read the config file from a different directory from the default, you will
+need to perform this step with your preferred directory.
 The filter wheel configuration file may be read in in the exact same manner.
 
 The `Hardware` class itself overwrite `threading.Thread`'s `__init__` and `run` methods to create a 
@@ -228,13 +236,12 @@ A concrete example will be provided for the `Camera` module.
 
 <h4>ii. Camera</h4>
 `main/controller/camera.py` controls the CCD camera via a win32com port dispatch to MaxIm DL.
-It has methods for setting the cooler, exposing images, etc.  Now, for that example of how the threading and queue system works
-(keep in mind this example assumes the global config objects have already been read in):
+It has methods for setting the cooler, exposing images, etc.  Now, for that example of how the threading and queue system works:
 
-        from omegalambda.main.controller.camera import Camera
+        import omegalambda as om
 
         # Initialize the camera object (does not connect to the hardware yet)
-        camera = Camera()
+        camera = om.Camera()
 
         # Start the camera thread (actually calls camera.run).  When the thread is started, it will
         # automatically try connecting to the hardware.
@@ -332,8 +339,7 @@ instructed while checking the weather, focusing, and guiding in the background; 
 off, shut down and take calibration images and wait for the weather to clear up again; move on to the next target;
 repeat for all targets; shut down the observatory and end all processes.
 
-An example of how the code would be started using the obesrvation run module looks like this (again,
-this is assuming the global config objects have already been initialized):
+An example of how the code would be started using the obesrvation run module looks like this:
 
         # Read in your observation ticket
         reader = Reader('observation_ticket_example.json')
