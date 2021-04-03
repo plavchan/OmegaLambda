@@ -145,6 +145,7 @@ class Conditions(threading.Thread):
         """
         s = requests.Session()
         backup = False
+        humidity = wind = rain = temperature = None
         try:
             header = requests.head(self.weather_url).headers
         except (urllib3.exceptions.MaxRetryError, urllib3.exceptions.HTTPError, urllib3.exceptions.TimeoutError,
@@ -176,21 +177,16 @@ class Conditions(threading.Thread):
                 self.connection_alert.set()
                 return None, None, None, None
             conditions = re.findall(r'<font color="#3366FF">(.+?)</font>', self.weather.text)
-            humidity = float(conditions[1].replace('%', ''))
+            if '-' not in conditions[1]:
+                humidity = float(conditions[1].replace('%', ''))
             if temperature_0 := re.search(r'[+-]?\d+\.\d+', conditions[0]):
                 temperature = float(temperature_0.group())
-            else:
-                temperature = None
             if test_wind := re.search(r'[+-]?\d+\.\d+', conditions[3]):
                 wind = float(test_wind.group())
-            else:
-                wind = None
             if test_rain := re.search(r'[+-]?\d+\.\d+', conditions[5]):
                 rain = float(test_rain.group())
-            else:
-                rain = None
 
-        else:
+        if backup or (None in (humidity, wind, rain)):
             try:
                 self.weather = s.get(self.backup_weather_url, headers={'User-Agent': self.config_dict.user_agent})
             except (urllib3.exceptions.MaxRetryError, urllib3.exceptions.HTTPError, urllib3.exceptions.TimeoutError,
@@ -199,8 +195,10 @@ class Conditions(threading.Thread):
                 self.connection_alert.set()
                 return None, None, None, None
 
-            weather_ids = {'PercentageValue': None, 'Wind': None, 'TemperatureValue': None}
+            weather_ids = {'PercentageValue': humidity, 'Wind': wind, 'TemperatureValue': temperature}
             for key, value in weather_ids.items():
+                if weather_ids[key] is not None:
+                    continue
                 condition_data = re.search(r'<span data-testid="' + key + '" class="(.+?)' +
                                            r'>(.+?)</span>', self.weather.text)
                 if condition_data:
