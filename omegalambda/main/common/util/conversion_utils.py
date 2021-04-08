@@ -255,9 +255,9 @@ def sexagesimal(decimal):
     f1 = hh if hh != 0 else 1
 
     extra = decimal % f1
-    mm = int(extra * 60)
+    mm = abs(int(extra * 60))
     f2 = mm if mm != 0 else 1
 
     extra2 = (extra * 60) % f2
-    ss = extra2 * 60
+    ss = abs(extra2 * 60)
     return '{:02d} {:02d} {:08.5f}'.format(hh, mm, ss)
