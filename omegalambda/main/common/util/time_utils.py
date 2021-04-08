@@ -193,8 +193,11 @@ def decimal_year(time=None) -> float:
     logging.debug('Called time_utils function')
     if time is None:
         time = datetime.datetime.now()
-    return time.year + time.month/12 + time.day/365.25 + time.hour/(365.25*24) + time.minute/(365.25*24*60) + \
-        time.second/(365.25*24*60*60)
+    mods = ((time.year % 400 == 0), (time.year % 100 == 0), (time.year % 4 == 0))
+    leap = True if mods[0] else False if mods[1] else True if mods[2] else False
+    days_in_year = 365 if not leap else 366
+    return time.year + (time.month - 1)/12 + (time.day - 1)/days_in_year + time.hour/(days_in_year*24) + \
+        time.minute/(days_in_year*24*60) + time.second/(days_in_year*24*60*60)
 
 
 def get_local_sidereal_time(longitude: float, date: Optional[Union[str, datetime.datetime]] = None) -> float:
