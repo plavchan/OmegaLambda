@@ -1,4 +1,5 @@
 import datetime
+from astropy.time import Time
 import time
 import os
 import re
@@ -556,7 +557,7 @@ class ObservationRun:
         header_info['ZD_OBJ'] = 90 - header_info['ALT_OBJ']
         header_info['AIRMASS'] = conversion_utils.airmass(header_info['ALT_OBJ'])
 
-        lmst = time_utils.get_local_sidereal_time(self.config_dict.site_longitude)
+        lmst = time_utils.get_local_sidereal_time(self.config_dict.site_longitude, date=Time(header_info['JD_UTC'], format='jd').datetime)
         ha = (lmst - header_info['RAOBJ2K']) % 24
         if ha > 12:
             ha -= 24
