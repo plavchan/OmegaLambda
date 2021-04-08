@@ -290,7 +290,7 @@ class Conditions(threading.Thread):
             if len(colors) > 1:  # Checks for any colors (green to red for rain) in the images
                 colsum = [np.nansum(colors[:, 1][i]) for i in range(len(colors))]
                 uncolored_i = np.where(np.isclose(colsum, 0))[0]
-                percent_colored = (1 - colors[uncolored_i][0] / px) * 100
+                percent_colored = (1 - colors[uncolored_i][0][0] / px) * 100
                 if percent_colored >= self.config_dict.rain_percent_limit:
                     return True
                 else:
