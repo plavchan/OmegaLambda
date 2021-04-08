@@ -245,5 +245,6 @@ def get_sunset(day: Union[str, datetime.datetime], latitude: float, longitude: f
         if alt <= 0:
             return time.replace(tzinfo=datetime.timezone.utc) - time.utcoffset()
 
+
 def airmass(altitude: float) -> float:
     return 1/np.cos(np.pi/2 - np.radians(altitude))

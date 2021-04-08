@@ -2,6 +2,7 @@ import datetime
 import time
 import os
 import re
+import copy
 import logging
 import subprocess
 # import threading
@@ -411,10 +412,11 @@ class ObservationRun:
         ticket.filter = [ticket.filter] if type(ticket.filter) is str else ticket.filter
         if ticket.self_guide:
             self.guider.onThread(self.guider.guiding_procedure, self.image_directories[ticket])
+        header_info = self.get_general_header_info(ticket)
         if ticket.cycle_filter:
             img_count = self.take_images(ticket.name, ticket.num, ticket.exp_time,
                                          ticket.filter, ticket.end_time, self.image_directories[ticket],
-                                         True)
+                                         True, header_info)
             if self.continuous_focus_toggle:
                 self.focus_procedures.stop_constant_focusing()
             if ticket.self_guide:
@@ -429,7 +431,7 @@ class ObservationRun:
             for i in range(len(ticket.filter)):
                 img_count_filter = self.take_images(ticket.name, ticket.num, [ticket.exp_time[i]],
                                                     [ticket.filter[i]], ticket.end_time, self.image_directories[ticket],
-                                                    False)
+                                                    False, header_info)
                 img_count += img_count_filter
             if self.continuous_focus_toggle:
                 self.focus_procedures.stop_constant_focusing()
@@ -438,7 +440,7 @@ class ObservationRun:
                 self.guider.loop_done.wait(timeout=10)
             return img_count, ticket.num * len(ticket.filter)
 
-    def take_images(self, name, num, exp_time, _filter, end_time, path, cycle_filter):
+    def take_images(self, name, num, exp_time, _filter, end_time, path, cycle_filter, header_info):
         """
         Parameters
         ----------
@@ -496,10 +498,10 @@ class ObservationRun:
 
                 image_name = "{0:s}_{1:.3f}s_{2:s}-{3:04d}.fits".format(name, current_exp, str(current_filter).upper(),
                                                                         image_base[current_filter])
-            header_info = self.get_header_info(name)
+            header_info_i = self.add_timed_header_info(header_info, name)
             self.camera.onThread(self.camera.expose,
                                  current_exp, self.filterwheel_dict[current_filter],
-                                 os.path.join(path, image_name), "light", **header_info)
+                                 os.path.join(path, image_name), "light", **header_info_i)
             self.camera.image_done.wait(timeout=int(current_exp)*2 + 60)
 
             if self.crash_check('MaxIm_DL.exe'):
@@ -518,45 +520,41 @@ class ObservationRun:
             i += 1
         return i
 
-    def get_header_info(self, name):
-        self.telescope.onThread(self.telescope.store_coords)
-        time.sleep(1)
-        az, alt = conversion_utils.radec_to_altaz_astropy(self.telescope.ra,
-                                                          self.telescope.dec,
-                                                          self.config_dict.site_latitude,
-                                                          self.config_dict.site_longitude,
-                                                          self.config_dict.site_altitude,
-                                                          equatorial=True)
-        jd = time_utils.convert_to_jd_utc()
-        lmst = time_utils.get_local_sidereal_time(self.config_dict.site_longitude)
-        try:
-            bjd_tdb = time_utils.convert_to_bjd_tdb(jd, name, self.config_dict.site_latitude,
-                                                    self.config_dict.site_longitude,
-                                                    self.config_dict.site_altitude)
-        except ValueError:
-            logging.debug('Could not retrieve SIMBAD query info for {}.  No BJD_TDB can be '
-                          'recorded in the header.'.format(name))
-            bjd_tdb = None
-        ra2k, dec2k = conversion_utils.convert_apparent_to_j2000(self.telescope.ra, self.telescope.dec)
-        ha = (lmst - ra2k) % 24
-        if ha > 12:
-            ha -= 24
+    def get_general_header_info(self, ticket):
+        ra2k, dec2k = ticket.ra, ticket.dec
+        ra_ap, dec_ap = conversion_utils.convert_j2000_to_apparent(ra2k, dec2k)
         header_info = {
             'SITEALT': self.config_dict.site_altitude,
             'JD_SOBS': self.time_start,
-            'JD_UTC': jd,
-            'ALT_OBJ': alt,
-            'AZ_OBJ': az,
-            'HA_MEAN': ha,
-            'ZD_OBJ': 90 - alt,
-            'AIRMASS': conversion_utils.airmass(90 - alt),
-            'RA_OBJ': self.telescope.ra,
-            'DEC_OBJ': self.telescope.dec,
+            'RA_OBJ': ra_ap,
+            'DEC_OBJ': dec_ap,
             'RAOBJ2K': ra2k,
-            'DECOBJ2K': dec2k
+            'DECOBJ2K': dec2k,
         }
+        return header_info
+
+    def add_timed_header_info(self, header_info_orig, name):
+        header_info = copy.deepcopy(header_info_orig)
+        header_info['AZ_OBJ'], header_info['ALT_OBJ'] = conversion_utils.radec_to_altaz_astropy(header_info['RAOB2K'], header_info['DECOB2K'],
+                                                          self.config_dict.site_latitude,
+                                                          self.config_dict.site_longitude,
+                                                          self.config_dict.site_altitude)
+        header_info['ZD_OBJ'] = 90 - header_info['ALT_OBJ']
+        header_info['AIRMASS'] = conversion_utils.airmass(header_info['ALT_OBJ'])
+        header_info['JD_UTC'] = time_utils.convert_to_jd_utc()
+        lmst = time_utils.get_local_sidereal_time(self.config_dict.site_longitude)
+        try:
+            bjd_tdb = time_utils.convert_to_bjd_tdb(header_info['JD_UTC'], name, self.config_dict.site_latitude,
+                                                    self.config_dict.site_longitude,
+                                                    self.config_dict.site_altitude)
+        except ValueError:
+            bjd_tdb = None
         if bjd_tdb:
             header_info['BJD_TDB'] = bjd_tdb
+        ha = (lmst - header_info['RAOB2K']) % 24
+        if ha > 12:
+            ha -= 24
+        header_info['HA_MEAN'] = ha
         return header_info
 
     def crash_check(self, program):
