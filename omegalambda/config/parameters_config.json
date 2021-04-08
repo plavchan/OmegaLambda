@@ -5,6 +5,7 @@
 	"maximum_jog": 1800,
 	"site_latitude": 38.828,
 	"site_longitude": -77.305,
+	"site_altitude": 154.0,
 	"humidity_limit": 85,
 	"wind_limit": 20,
 	"weather_freq": 15,

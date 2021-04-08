@@ -11,7 +11,7 @@ class Config:
     def __init__(self, cooler_setpoint: Optional[Union[int, float]] = None,
                  cooler_idle_setpoint: Optional[Union[int, float]] = None, cooler_settle_time: Optional[int] = None,
                  maximum_jog: Optional[Union[int, float]] = None, site_latitude: Optional[float] = None,
-                 site_longitude: Optional[float] = None, humidity_limit: Optional[int] = None,
+                 site_longitude: Optional[float] = None, site_altitude: Optional[float] = None, humidity_limit: Optional[int] = None,
                  wind_limit: Optional[int] = None, weather_freq: Optional[int] = None,
                  cloud_cover_limit: Optional[float] = None, cloud_saturation_limit: Optional[float] = None,
                  rain_percent_limit: Optional[float] = None, user_agent: Optional[str] = None,
@@ -41,6 +41,8 @@ class Config:
             Latitude at the telescope location.  Our default is +38.828 degrees.
         site_longitude : FLOAT, optional
             Longitude at the telescope location.  Our default is -77.305 degrees.
+        site_altitude : FLOAT, optional
+            Altitude above sea level at the telescope location.  Our default is 154 meters.
         humidity_limit : INT, optional
             Limit for humidity while observing.  Our default is 85%.
         wind_limit : INT, optional
@@ -118,7 +120,8 @@ class Config:
         self.cooler_settle_time = cooler_settle_time                
         self.maximum_jog = maximum_jog                             
         self.site_latitude = site_latitude                    
-        self.site_longitude = site_longitude                
+        self.site_longitude = site_longitude
+        self.site_altitude = site_altitude
         self.humidity_limit = humidity_limit                      
         self.wind_limit = wind_limit                         
         self.weather_freq = weather_freq 
@@ -197,7 +200,7 @@ def _dict_to_config_object(dic: Dict) -> Config:
     global _config
     _config = Config(cooler_setpoint=dic['cooler_setpoint'], cooler_idle_setpoint=dic['cooler_idle_setpoint'],
                      cooler_settle_time=dic['cooler_settle_time'], site_latitude=dic['site_latitude'],
-                     site_longitude=dic['site_longitude'], maximum_jog=dic['maximum_jog'],
+                     site_longitude=dic['site_longitude'], site_altitude=dic['site_altitude'], maximum_jog=dic['maximum_jog'],
                      humidity_limit=dic['humidity_limit'], wind_limit=dic['wind_limit'],
                      weather_freq=dic['weather_freq'], cloud_cover_limit=dic['cloud_cover_limit'],
                      cloud_saturation_limit=dic['cloud_saturation_limit'], rain_percent_limit=dic['rain_percent_limit'],

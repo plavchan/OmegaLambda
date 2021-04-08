@@ -1,4 +1,6 @@
 import datetime
+from astropy.time import Time
+from barycorrpy import JDUTC_to_BJDTDB
 import logging
 from typing import Union, Optional
 
@@ -178,7 +180,7 @@ def fractional_hours_of_day(time: Optional[Union[str, datetime.datetime]] = None
     return hours
 
 
-def current_decimal_year() -> float:
+def decimal_year(time=None) -> float:
     """
 
     Returns
@@ -189,8 +191,10 @@ def current_decimal_year() -> float:
 
     """
     logging.debug('Called time_utils function')
-    d = datetime.datetime.now()
-    return d.year + d.month/12
+    if time is None:
+        time = datetime.datetime.now()
+    return time.year + time.month/12 + time.day/365.25 + time.hour/(365.25*24) + time.minute/(365.25*24*60) + \
+        time.second/(365.25*24*60*60)
 
 
 def get_local_sidereal_time(longitude: float, date: Optional[Union[str, datetime.datetime]] = None) -> float:
@@ -199,7 +203,7 @@ def get_local_sidereal_time(longitude: float, date: Optional[Union[str, datetime
     Parameters
     ----------
     longitude : FLOAT
-        Site longitude where you want to calculate LST.
+        Site longitude where you want to calculate LST.  West is negative.
     date : DATETIME.DATETIME, optional
         Date and time for which you want to calculate LST. The default is None, which
         will calculate the LST for the current date & time.
@@ -215,13 +219,24 @@ def get_local_sidereal_time(longitude: float, date: Optional[Union[str, datetime
         date = datetime.datetime.now(datetime.timezone.utc)
     if type(date) is not datetime.datetime:
         date = convert_to_datetime_utc(date)
-    days = days_since_j2000(date)
-    hours = fractional_hours_of_day(date)
-    lst = 100.46 + 0.985647*days + 15*hours + longitude
-    # Special formula retrieved from http://www.stargazing.net/kepler/altaz.html
-    while lst > 360:
-        lst -= 360
-    while lst < 0:
-        lst += 360
-    lst = lst/15
-    return lst
+    date = convert_to_jd_utc(date)
+    tmid = (date - 2451545.0) / 36525.0
+    # gmst in seconds
+    gmst = 280.46061837 + 360.98564736629 * 36525.0 * tmid + 0.000387933 * (tmid**2) - (tmid**3) / 38710000
+    gmst = (gmst % 360)
+    lmst = (gmst + longitude)/15 % 24
+    return lmst
+
+
+def convert_to_jd_utc(time=None):
+    if not time:
+        time = datetime.datetime.now(datetime.timezone.utc)
+    if type(time) is not datetime.datetime:
+        time = convert_to_datetime_utc(time)
+    t = Time(time, format='datetime', scale='utc')
+    return t.jd
+
+
+def convert_to_bjd_tdb(jd, starname, lat, lon, height):
+    # J2000 coords
+    return JDUTC_to_BJDTDB(JDUTC=jd, starname=starname, leap_update=False, lat=lat, longi=lon, alt=height)[0]

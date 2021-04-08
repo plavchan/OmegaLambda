@@ -213,7 +213,7 @@ class Camera(Hardware):
         """
         self.fwhm = self.Camera.fwhm
 
-    def expose(self, exposure_time, filter, save_path=None, type="light"):
+    def expose(self, exposure_time, filter, save_path=None, type="light", **header_kwargs):
         """
         Parameters
         ----------
@@ -243,10 +243,20 @@ class Camera(Hardware):
             self.Camera.SetFullFrame()
             self.Camera.Expose(exposure_time, type, filter)
             check = self._image_ready()
+            if header_kwargs:
+                try:
+                    image_doc = win32com.client.Dispatch("MaxIm.Document")
+                    for key, value in header_kwargs.items():
+                        image_doc.SetFitsKey(key, value)
+                except (AttributeError, pywintypes.com_error):
+                    logging.debug("Could not save image header info!")
             if save_path is None:
                 return
             elif check:
-                self.Camera.SaveImage(save_path)
+                if image_doc:
+                    image_doc.SaveFile(save_path)
+                else:
+                    self.Camera.SaveImage(save_path)
                 self.image_done.set()
                 self.image_done.clear()
                 

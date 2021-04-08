@@ -56,6 +56,7 @@ class ObservationRun:
         self.focus_toggle = focus_toggle
         self.continuous_focus_toggle = True
         self.tz = observation_request_list[0].start_time.tzinfo
+        self.time_start = None
 
         # Initializes all relevant hardware
         self.camera = Camera()
@@ -345,6 +346,7 @@ class ObservationRun:
             #     input("The program is ready to start taking images of {}.  Please take this time to "
             #           "check the focus and pointing of the target.  When you are ready, press Enter: ".format(
             #         ticket.name))
+            self.time_start = time_utils.convert_to_jd()
             (taken, total) = self.run_ticket(ticket)
             logging.info("{} out of {} exposures were taken for {}.  Moving on to next target.".format(taken, total,
                                                                                                        ticket.name))
@@ -492,15 +494,14 @@ class ObservationRun:
 
                 image_name = "{0:s}_{1:.3f}s_{2:s}-{3:04d}.fits".format(name, current_exp, str(current_filter).upper(),
                                                                         image_base[current_filter])
-
+            header_info = self.get_header_info(name)
             self.camera.onThread(self.camera.expose,
                                  current_exp, self.filterwheel_dict[current_filter],
-                                 os.path.join(path, image_name), "light")
+                                 os.path.join(path, image_name), "light", **header_info)
             self.camera.image_done.wait(timeout=int(current_exp)*2 + 60)
 
             if self.crash_check('MaxIm_DL.exe'):
                 continue
-
 
             if cycle_filter:
                 if names_list:
@@ -514,6 +515,40 @@ class ObservationRun:
                     image_num += 1
             i += 1
         return i
+
+    def get_header_info(self, name):
+        az, alt = conversion_utils.radec_to_altaz_astropy(self.telescope.Telescope.RightAscension,
+                                                          self.telescope.Telescope.Declination,
+                                                          self.config_dict.site_latitude,
+                                                          self.config_dict.site_longitude,
+                                                          self.config_dict.site_altitude,
+                                                          equatorial=True)
+        jd = time_utils.convert_to_jd_utc()
+        lmst = time_utils.get_local_sidereal_time(self.config_dict.site_longitude)
+        bjd_tdb = time_utils.convert_to_bjd_tdb(jd, name, self.config_dict.site_latitude,
+                                                self.config_dict.site_longitude,
+                                                self.config_dict.site_altitude)
+        ra2k, dec2k = conversion_utils.convert_apparent_to_j2000(self.telescope.Telescope.RightAscension,
+                                                                 self.telescope.Telescope.Declination)
+        ha = (lmst - ra2k) % 24
+        if ha > 12:
+            ha -= 24
+        header_info = {
+            'SITEALT': self.config_dict.site_altitude,
+            'JD_SOBS': self.time_start,
+            'JD_UTC': jd,
+            'BJD_TDB': bjd_tdb,
+            'ALT_OBJ': alt,
+            'AZ_OBJ': az,
+            'HA_MEAN': ha,
+            'ZD_OBJ': 90 - alt,
+            'AIRMASS': conversion_utils.airmass(90 - alt),
+            'RA_OBJ': self.telescope.Telescope.RightAscension,
+            'DEC_OBJ': self.telescope.Telescope.Declination,
+            'RAOBJ2K': ra2k,
+            'DECOBJ2K': dec2k
+        }
+        return header_info
 
     def crash_check(self, program):
         """

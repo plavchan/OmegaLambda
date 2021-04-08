@@ -3,7 +3,7 @@ import datetime
 from typing import Tuple, Union, Optional
 
 from astropy import units as u
-from astropy.coordinates import SkyCoord, FK5, get_sun
+from astropy.coordinates import SkyCoord, FK5, AltAz, get_sun, EarthLocation
 from astropy.time import Time
 
 from . import time_utils
@@ -109,6 +109,38 @@ def convert_radec_to_altaz(ra: float, dec: float, latitude: float, longitude: fl
     (az, alt) = np.degrees([az_r, alt_r])
     return az, alt
 
+def radec_to_altaz_astropy(ra: float, dec: float, latitude: float, longitude: float, height: float,
+                           time: Time = None, equatorial=False) -> Tuple[float, float]:
+    """
+    Parameters
+    ----------
+    ra: FLOAT
+        Right ascension of target in hours, J2000 or equatorial.
+    dec: FLOAT
+        Declination of target in degrees, J2000 or equatorial.
+    latitude: FLOAT
+        Latitude of observation site, in degrees.
+    longitude: FLOAT
+        Longitude of observation site, in degrees.
+    height: FLOAT
+        Altitude above sea level of observation site, in meters.
+    time: astropy.Time
+        Time of observation.
+    equatorial: bool
+        True if using equatorial coordinates, False if J2000.  Default is False.
+
+    Returns
+    -------
+        azimuth in degrees, altitude in degrees
+    """
+    loc = EarthLocation(lat=latitude, lon=longitude, height=height)
+    if not time:
+        time = Time(datetime.datetime.now(datetime.timezone.utc))
+    frame = AltAz(location=loc, obstime=time)
+    radec_frame = 'icrs' if not equatorial else FK5(equinox='J{}'.format(time.byear))
+    coords = SkyCoord(ra=ra*u.hourangle, dec=dec*u.degree, frame=radec_frame)
+    coords_altaz = coords.transform_to(frame=frame)
+    return coords_altaz.az.degree, coords_altaz.alt.degree
 
 def convert_j2000_to_apparent(ra: float, dec: float) -> Tuple[float, float]:
     """
@@ -127,11 +159,35 @@ def convert_j2000_to_apparent(ra: float, dec: float) -> Tuple[float, float]:
     coords_apparent.dec.degree: FLOAT
         Declination of target in local topocentric coordinates ("JNow").
     """
-    year = time_utils.current_decimal_year()
+    year = time_utils.decimal_year()
     coords_j2000 = SkyCoord(ra=ra*u.hourangle, dec=dec*u.degree, frame='icrs')
     # ICRS Equinox is always J2000
     coords_apparent = coords_j2000.transform_to(FK5(equinox='J{}'.format(year)))
     return coords_apparent.ra.hour, coords_apparent.dec.degree
+
+
+def convert_apparent_to_j2000(ra: float, dec: float) -> Tuple[float, float]:
+    """
+    Parameters
+    ----------
+    ra : FLOAT
+        Right ascension to be converted from apparent to J2000 coordinates.
+        coordinates.
+    dec : FLOAT
+        Declination to be converted from apparent to J2000 coordinates.
+
+    Returns
+    -------
+    coords_j2000.ra.hour: FLOAT
+        Right ascension of target in J2000.
+    coords_j2000.dec.degree: FLOAT
+        Declination of target in J2000.
+    """
+    year = time_utils.decimal_year()
+    coords_apparent = SkyCoord(ra=ra*u.hourangle, dec=dec*u.degree, frame=FK5(equinox='J{}'.format(year)))
+    # ICRS Equinox is always J2000
+    coords_j2000 = coords_apparent.transform_to('icrs')
+    return coords_j2000.ra.hour, coords_j2000.dec.degree
 
 
 def get_sun_elevation(time: Union[str, datetime.datetime], latitude: float, longitude: float) -> float:
@@ -188,3 +244,6 @@ def get_sunset(day: Union[str, datetime.datetime], latitude: float, longitude: f
         alt = get_sun_elevation(time, latitude, longitude)
         if alt <= 0:
             return time.replace(tzinfo=datetime.timezone.utc) - time.utcoffset()
+
+def airmass(altitude: float) -> float:
+    return 1/np.cos(np.pi/2 - np.radians(altitude))
