@@ -232,6 +232,7 @@ class Camera(Hardware):
         -------
         None.
         """
+        image_doc = None
         while self.crashed.isSet():
             time.sleep(1)
         with self.camera_lock:
