@@ -174,7 +174,7 @@ class Dome(Hardware):
                     logging.warning('Shutter is still opening...ASCOM may be incorrectly reporting status.')
                     break
             time.sleep(2)
-            if self.Dome.ShutterStatus in (0, 2):
+            if self.Dome.ShutterStatus in (0, 2, 4):
                 self.shutter_done.set()
             else:
                 logging.error('Dome did not open correctly.  Trying again...')
@@ -192,7 +192,7 @@ class Dome(Hardware):
                     logging.warning('Shutter is still closing...ASCOM may be incorrectly reporting status.')
                     break
             time.sleep(2)
-            if self.Dome.ShutterStatus in (1, 3):
+            if self.Dome.ShutterStatus in (1, 3, 4):
                 self.shutter_done.set()
             else:
                 logging.error('Dome did not close correctly.  Trying again...')
