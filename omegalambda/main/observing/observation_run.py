@@ -346,7 +346,7 @@ class ObservationRun:
             #     input("The program is ready to start taking images of {}.  Please take this time to "
             #           "check the focus and pointing of the target.  When you are ready, press Enter: ".format(
             #         ticket.name))
-            self.time_start = time_utils.convert_to_jd()
+            self.time_start = time_utils.convert_to_jd_utc()
             (taken, total) = self.run_ticket(ticket)
             logging.info("{} out of {} exposures were taken for {}.  Moving on to next target.".format(taken, total,
                                                                                                        ticket.name))
@@ -525,9 +525,14 @@ class ObservationRun:
                                                           equatorial=True)
         jd = time_utils.convert_to_jd_utc()
         lmst = time_utils.get_local_sidereal_time(self.config_dict.site_longitude)
-        bjd_tdb = time_utils.convert_to_bjd_tdb(jd, name, self.config_dict.site_latitude,
-                                                self.config_dict.site_longitude,
-                                                self.config_dict.site_altitude)
+        try:
+            bjd_tdb = time_utils.convert_to_bjd_tdb(jd, name, self.config_dict.site_latitude,
+                                                    self.config_dict.site_longitude,
+                                                    self.config_dict.site_altitude)
+        except ValueError:
+            logging.debug('Could not retrieve SIMBAD query info for {}.  No BJD_TDB can be '
+                          'recorded in the header.'.format(name))
+            bjd_tdb = None
         ra2k, dec2k = conversion_utils.convert_apparent_to_j2000(self.telescope.Telescope.RightAscension,
                                                                  self.telescope.Telescope.Declination)
         ha = (lmst - ra2k) % 24
@@ -537,7 +542,6 @@ class ObservationRun:
             'SITEALT': self.config_dict.site_altitude,
             'JD_SOBS': self.time_start,
             'JD_UTC': jd,
-            'BJD_TDB': bjd_tdb,
             'ALT_OBJ': alt,
             'AZ_OBJ': az,
             'HA_MEAN': ha,
@@ -548,6 +552,8 @@ class ObservationRun:
             'RAOBJ2K': ra2k,
             'DECOBJ2K': dec2k
         }
+        if bjd_tdb:
+            header_info['BJD_TDB'] = bjd_tdb
         return header_info
 
     def crash_check(self, program):

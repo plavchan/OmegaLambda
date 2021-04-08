@@ -232,7 +232,6 @@ class Camera(Hardware):
         -------
         None.
         """
-        image_doc = None
         while self.crashed.isSet():
             time.sleep(1)
         with self.camera_lock:
@@ -245,19 +244,12 @@ class Camera(Hardware):
             self.Camera.Expose(exposure_time, type, filter)
             check = self._image_ready()
             if header_kwargs:
-                try:
-                    image_doc = win32com.client.Dispatch("MaxIm.Document")
-                    for key, value in header_kwargs.items():
-                        image_doc.SetFitsKey(key, value)
-                except (AttributeError, pywintypes.com_error):
-                    logging.debug("Could not save image header info!")
+                for key, value in header_kwargs.items():
+                    self.Camera.SetFITSKey(key, value)
             if save_path is None:
                 return
             elif check:
-                if image_doc:
-                    image_doc.SaveFile(save_path)
-                else:
-                    self.Camera.SaveImage(save_path)
+                self.Camera.SaveImage(save_path)
                 self.image_done.set()
                 self.image_done.clear()
                 
