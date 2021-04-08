@@ -24,6 +24,7 @@ class Telescope(Hardware):
         self.slew_done = threading.Event()
         self.movement_lock = threading.Lock()
         self.last_slew_status = None
+        self.ra = self.dec = None
         # Threading event sets flags and allows threads to interact with each other
         super(Telescope, self).__init__(name='Telescope')       # Calls Hardware.__init__ with the name 'Telescope'
 
@@ -121,6 +122,10 @@ class Telescope(Hardware):
             time.sleep(1)
         if not self.Telescope.Slewing:
             return
+
+    def store_coords(self):
+        self.ra = self.Telescope.RightAscension
+        self.dec = self.Telescope.Declination
           
     def park(self):
         """

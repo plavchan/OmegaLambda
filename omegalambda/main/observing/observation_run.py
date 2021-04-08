@@ -519,8 +519,10 @@ class ObservationRun:
         return i
 
     def get_header_info(self, name):
-        az, alt = conversion_utils.radec_to_altaz_astropy(self.telescope.Telescope.RightAscension,
-                                                          self.telescope.Telescope.Declination,
+        self.telescope.onThread(self.telescope.store_coords)
+        time.sleep(1)
+        az, alt = conversion_utils.radec_to_altaz_astropy(self.telescope.ra,
+                                                          self.telescope.dec,
                                                           self.config_dict.site_latitude,
                                                           self.config_dict.site_longitude,
                                                           self.config_dict.site_altitude,
@@ -535,8 +537,7 @@ class ObservationRun:
             logging.debug('Could not retrieve SIMBAD query info for {}.  No BJD_TDB can be '
                           'recorded in the header.'.format(name))
             bjd_tdb = None
-        ra2k, dec2k = conversion_utils.convert_apparent_to_j2000(self.telescope.Telescope.RightAscension,
-                                                                 self.telescope.Telescope.Declination)
+        ra2k, dec2k = conversion_utils.convert_apparent_to_j2000(self.telescope.ra, self.telescope.dec)
         ha = (lmst - ra2k) % 24
         if ha > 12:
             ha -= 24
@@ -549,8 +550,8 @@ class ObservationRun:
             'HA_MEAN': ha,
             'ZD_OBJ': 90 - alt,
             'AIRMASS': conversion_utils.airmass(90 - alt),
-            'RA_OBJ': self.telescope.Telescope.RightAscension,
-            'DEC_OBJ': self.telescope.Telescope.Declination,
+            'RA_OBJ': self.telescope.ra,
+            'DEC_OBJ': self.telescope.dec,
             'RAOBJ2K': ra2k,
             'DECOBJ2K': dec2k
         }
