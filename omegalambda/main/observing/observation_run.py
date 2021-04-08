@@ -498,7 +498,7 @@ class ObservationRun:
 
                 image_name = "{0:s}_{1:.3f}s_{2:s}-{3:04d}.fits".format(name, current_exp, str(current_filter).upper(),
                                                                         image_base[current_filter])
-            header_info_i = self.add_timed_header_info(header_info, name)
+            header_info_i = self.add_timed_header_info(header_info, name, exp_time)
             self.camera.onThread(self.camera.expose,
                                  current_exp, self.filterwheel_dict[current_filter],
                                  os.path.join(path, image_name), "light", **header_info_i)
@@ -537,16 +537,10 @@ class ObservationRun:
         }
         return header_info
 
-    def add_timed_header_info(self, header_info_orig, name):
+    def add_timed_header_info(self, header_info_orig, name, exp_time):
         header_info = copy.deepcopy(header_info_orig)
-        header_info['AZ_OBJ'], header_info['ALT_OBJ'] = conversion_utils.radec_to_altaz_astropy(header_info['RAOBJ2K'], header_info['DECOBJ2K'],
-                                                          self.config_dict.site_latitude,
-                                                          self.config_dict.site_longitude,
-                                                          self.config_dict.site_altitude)
-        header_info['ZD_OBJ'] = 90 - header_info['ALT_OBJ']
-        header_info['AIRMASS'] = conversion_utils.airmass(header_info['ALT_OBJ'])
-        header_info['JD_UTC'] = time_utils.convert_to_jd_utc()
-        lmst = time_utils.get_local_sidereal_time(self.config_dict.site_longitude)
+        # Define for mid-exposure time
+        header_info['JD_UTC'] = time_utils.convert_to_jd_utc() + (exp_time/2) / (24*60*60)
         try:
             bjd_tdb = time_utils.convert_to_bjd_tdb(header_info['JD_UTC'], name, self.config_dict.site_latitude,
                                                     self.config_dict.site_longitude,
@@ -555,6 +549,14 @@ class ObservationRun:
             bjd_tdb = None
         if bjd_tdb:
             header_info['BJD_TDB'] = bjd_tdb
+        header_info['AZ_OBJ'], header_info['ALT_OBJ'] = conversion_utils.radec_to_altaz_astropy(header_info['RAOBJ2K'], header_info['DECOBJ2K'],
+                                                          self.config_dict.site_latitude,
+                                                          self.config_dict.site_longitude,
+                                                          self.config_dict.site_altitude, time=header_info['JD_UTC'])
+        header_info['ZD_OBJ'] = 90 - header_info['ALT_OBJ']
+        header_info['AIRMASS'] = conversion_utils.airmass(header_info['ALT_OBJ'])
+
+        lmst = time_utils.get_local_sidereal_time(self.config_dict.site_longitude)
         ha = (lmst - header_info['RAOBJ2K']) % 24
         if ha > 12:
             ha -= 24

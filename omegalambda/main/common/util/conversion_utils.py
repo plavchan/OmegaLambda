@@ -109,6 +109,7 @@ def convert_radec_to_altaz(ra: float, dec: float, latitude: float, longitude: fl
     (az, alt) = np.degrees([az_r, alt_r])
     return az, alt
 
+
 def radec_to_altaz_astropy(ra: float, dec: float, latitude: float, longitude: float, height: float,
                            time: Time = None, equatorial=False) -> Tuple[float, float]:
     """
@@ -125,7 +126,7 @@ def radec_to_altaz_astropy(ra: float, dec: float, latitude: float, longitude: fl
     height: FLOAT
         Altitude above sea level of observation site, in meters.
     time: astropy.Time
-        Time of observation.
+        Time of observation, either as a Time object or a julian date.
     equatorial: bool
         True if using equatorial coordinates, False if J2000.  Default is False.
 
@@ -136,11 +137,14 @@ def radec_to_altaz_astropy(ra: float, dec: float, latitude: float, longitude: fl
     loc = EarthLocation(lat=latitude, lon=longitude, height=height)
     if not time:
         time = Time(datetime.datetime.now(datetime.timezone.utc))
+    if type(time) is not Time:
+        time = Time(time, format='jd')
     frame = AltAz(location=loc, obstime=time)
     radec_frame = 'icrs' if not equatorial else FK5(equinox='J{}'.format(time.byear))
     coords = SkyCoord(ra=ra*u.hourangle, dec=dec*u.degree, frame=radec_frame)
     coords_altaz = coords.transform_to(frame=frame)
     return coords_altaz.az.degree, coords_altaz.alt.degree
+
 
 def convert_j2000_to_apparent(ra: float, dec: float) -> Tuple[float, float]:
     """
