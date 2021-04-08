@@ -248,3 +248,16 @@ def get_sunset(day: Union[str, datetime.datetime], latitude: float, longitude: f
 
 def airmass(altitude: float) -> float:
     return 1/np.cos(np.pi/2 - np.radians(altitude))
+
+
+def sexagesimal(decimal):
+    hh = int(decimal)
+    f1 = hh if hh != 0 else 1
+
+    extra = decimal % f1
+    mm = int(extra * 60)
+    f2 = mm if mm != 0 else 1
+
+    extra2 = (extra * 60) % f2
+    ss = extra2 * 60
+    return '{:02d} {:02d} {:08.5f}'.format(hh, mm, ss)

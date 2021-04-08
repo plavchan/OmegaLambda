@@ -524,10 +524,10 @@ class ObservationRun:
         ra2k, dec2k = ticket.ra, ticket.dec
         ra_ap, dec_ap = conversion_utils.convert_j2000_to_apparent(ra2k, dec2k)
         header_info = {
-            'SITELAT': self.config_dict.site_latitude,
-            'SITELONG': self.config_dict.site_longitude,
             'OBJECT': ticket.name,
             'OBSERVER': 'Omegalambda automation code',
+            'SITELAT': conversion_utils.sexagesimal(self.config_dict.site_latitude),
+            'SITELONG': conversion_utils.sexagesimal(self.config_dict.site_longitude),
             'SITEALT': self.config_dict.site_altitude,
             'JD_SOBS': self.time_start,
             'RA_OBJ': ra_ap,
