@@ -535,7 +535,7 @@ class ObservationRun:
 
     def add_timed_header_info(self, header_info_orig, name):
         header_info = copy.deepcopy(header_info_orig)
-        header_info['AZ_OBJ'], header_info['ALT_OBJ'] = conversion_utils.radec_to_altaz_astropy(header_info['RAOB2K'], header_info['DECOB2K'],
+        header_info['AZ_OBJ'], header_info['ALT_OBJ'] = conversion_utils.radec_to_altaz_astropy(header_info['RAOBJ2K'], header_info['DECOBJ2K'],
                                                           self.config_dict.site_latitude,
                                                           self.config_dict.site_longitude,
                                                           self.config_dict.site_altitude)
@@ -551,7 +551,7 @@ class ObservationRun:
             bjd_tdb = None
         if bjd_tdb:
             header_info['BJD_TDB'] = bjd_tdb
-        ha = (lmst - header_info['RAOB2K']) % 24
+        ha = (lmst - header_info['RAOBJ2K']) % 24
         if ha > 12:
             ha -= 24
         header_info['HA_MEAN'] = ha
