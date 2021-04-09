@@ -256,7 +256,7 @@ def get_local_sidereal_time(longitude: float, date: Optional[Union[str, datetime
         date = pytz.utc.localize(date)
     if date.tzinfo not in (pytz.UTC, pytz.utc, datetime.timezone.utc):
         raise ValueError('Time must be in UTC!')
-    jd = int(convert_to_jd_utc(date)) + 0.5
+    jd = convert_to_jd_utc(date.replace(hour=0, minute=0, second=0, microsecond=0))
     ut_hours = fractional_hours_of_day(date)
 
     tmid = (jd - 2451545.0) / 36525.0  # offset Julian centuries
@@ -323,6 +323,8 @@ def n_longitude(julian_date, leap_seconds):
     References:
         1.  K. Collins and J. Kielkopf, “Astroimagej: Imagej for astronomy,” (2013). Astrophysics source code library.
             https://github.com/karenacollins/AstroImageJ.
+        2. J. Souchay and N. Capitaine, "Precession and Nutation of the Earth," from Ideas in Astronomy and Astrophysics
+            (2013).  Springer Berlin Heidelberg: Berlin, Heidelberg. 115-166, DOI: 10.1007/978-3-642-32961-6_4.
 
     Parameters
     ----------
@@ -336,7 +338,7 @@ def n_longitude(julian_date, leap_seconds):
     omega, glsun, lmoon = sun_moon_longitudes(julian_date, leap_seconds)
 
     # Nutation correction
-    dpsi = -17.20 * np.sin(omega) - 1.32 * np.sin(2. * glsun) - 0.23 * np.sin(2. * lmoon) + 0.21 * np.sin(2. * omega)
+    dpsi = -17.16 * np.sin(omega) - 1.263 * np.sin(2. * glsun) - 0.205 * np.sin(2. * lmoon) - 0.034 * np.sin(2. * lmoon - omega)
     dpsi /= 3600
     return dpsi
 
@@ -347,7 +349,9 @@ def true_obliquity(julian_date, leap_seconds):
     Formulas gathered from the following references.
     References:
         1.  K. Collins and J. Kielkopf, “Astroimagej: Imagej for astronomy,” (2013). Astrophysics source code library.
-            https://github.com/karenacollins/AstroImageJ.
+            https://github.com/karenacollins/AstroImageJ.\
+        2. J. Souchay and N. Capitaine, "Precession and Nutation of the Earth," from Ideas in Astronomy and Astrophysics
+            (2013).  Springer Berlin Heidelberg: Berlin, Heidelberg. 115-166, DOI: 10.1007/978-3-642-32961-6_4.
 
     Parameters
     ----------
@@ -368,17 +372,19 @@ def true_obliquity(julian_date, leap_seconds):
     eps0 += (-46.8150 * t - 0.00059 * t**2 + 0.001813 * t**3)/3600
 
     omega, glsun, lmoon = sun_moon_longitudes(julian_date, leap_seconds)
-    deps = 9.20 * np.cos(omega) + 0.57 * np.cos(2. * glsun) + 0.1 * np.cos(2. * lmoon) - 0.09 * np.cos(2. * omega)
+    deps = 9.17 * np.cos(omega) + 0.548 * np.cos(2. * glsun) + 0.089 * np.cos(2. * lmoon) + 0.018 * np.cos(2. * lmoon - omega)
     deps /= 3600
     return eps0 + deps
 
 
-def convert_to_jd_utc(time=None):
+def convert_to_jd_utc(time=None, split_date=False):
     if not time:
         time = datetime.datetime.now(datetime.timezone.utc)
     if type(time) is not datetime.datetime:
         time = convert_to_datetime_utc(time)
     t = Time(time, format='datetime', scale='utc')
+    if split_date:
+        return t.jd1, t.jd2
     return t.jd
 
 
