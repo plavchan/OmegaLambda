@@ -152,7 +152,6 @@ def convert_radec_to_altaz(ra: float, dec: float, latitude: float, longitude: fl
         dalt /= 3600.
         dalt = dalt * (pressure / 760.) * (283. / (273. + temperature))
         alt += dalt
-
     return az, alt
 
 

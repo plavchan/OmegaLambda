@@ -313,7 +313,6 @@ def sun_moon_longitudes(julian_date, leap_seconds):
     glsun = (lsun + csun) % 360
 
     omega, glsun, lmoon = np.radians([omega, glsun, lmoon])
-
     return omega, glsun, lmoon
 
 
