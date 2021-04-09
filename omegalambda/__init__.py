@@ -3,9 +3,9 @@ from .main.common.datatype.observation_ticket import *
 from .main.common.datatype.object_reader import *
 from .main.common.IO.config_reader import *
 from .main.common.IO.json_reader import *
-from .main.common.util import time_utils as time
-from .main.common.util import filereader_utils as file
-from .main.common.util import conversion_utils as conversion
+from .main.common.util import time_utils as omtime
+from .main.common.util import filereader_utils as omfile
+from .main.common.util import conversion_utils as omconversion
 from .main.controller.camera import *
 from .main.controller.dome import *
 from .main.controller.flatfield_lamp import *

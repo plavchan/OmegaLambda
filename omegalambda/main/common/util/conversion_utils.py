@@ -73,7 +73,7 @@ def convert_altaz_to_radec(azimuth: float, altitude: float, latitude: float, lon
 
 
 def convert_radec_to_altaz(ra: float, dec: float, latitude: float, longitude: float,
-                           time: datetime.datetime) -> Tuple[float, float]:
+                           time: datetime.datetime, leap_seconds: float = 0, refraction=True) -> Tuple[float, float]:
     """
     Parameters
     ----------
@@ -95,55 +95,35 @@ def convert_radec_to_altaz(ra: float, dec: float, latitude: float, longitude: fl
     alt : FLOAT
         Calculated altitude of target.
     """
-    lst = time_utils.get_local_sidereal_time(longitude, time)
-    ha = (lst - ra)*15
-    while ha < 0:
-        ha += 360
-    while ha > 360:
-        ha -= 360
+    lst = time_utils.get_local_sidereal_time(longitude, time, leap_seconds)
+    ha = (lst - ra) % 24
+    if ha > 12:
+        ha -= 24
+    # Convert to degrees
+    ha *= 15
     (dec_r, latitude_r, longitude_r, HA_r) = np.radians([dec, latitude, longitude, ha])
+
     alt_r = np.arcsin(np.sin(dec_r)*np.sin(latitude_r)+np.cos(dec_r)*np.cos(latitude_r)*np.cos(HA_r))
-    az_r = np.arccos((np.sin(dec_r) - np.sin(alt_r)*np.sin(latitude_r))/(np.cos(alt_r)*np.cos(latitude_r)))
-    if np.sin(HA_r) > 0:
-        az_r = 2*np.pi - az_r
+    az_r = np.arctan2(-np.cos(dec_r)*np.sin(HA_r), np.sin(dec_r)*np.cos(latitude_r)-np.sin(latitude_r)*np.cos(dec_r)*np.cos(HA_r))
     (az, alt) = np.degrees([az_r, alt_r])
+    az = az % 360
+
+    if refraction:
+        pressure = 760
+        temperature = 10
+        if alt >= 15.0:
+            arg = (90.0 - alt) * np.pi/180
+        elif alt >= 0.0:
+            arg = (90.0 - 15.0) * np.pi/180
+        else:
+            return az, alt
+        dalt = np.tan(arg)
+        dalt = 58.276 * dalt - 0.0824 * dalt**3
+        dalt /= 3600.
+        dalt = dalt * (pressure / 760.) * (283. / (273. + temperature))
+        alt += dalt
+
     return az, alt
-
-
-def radec_to_altaz_astropy(ra: float, dec: float, latitude: float, longitude: float, height: float,
-                           time: Time = None, equatorial=False) -> Tuple[float, float]:
-    """
-    Parameters
-    ----------
-    ra: FLOAT
-        Right ascension of target in hours, J2000 or equatorial.
-    dec: FLOAT
-        Declination of target in degrees, J2000 or equatorial.
-    latitude: FLOAT
-        Latitude of observation site, in degrees.
-    longitude: FLOAT
-        Longitude of observation site, in degrees.
-    height: FLOAT
-        Altitude above sea level of observation site, in meters.
-    time: astropy.Time
-        Time of observation, either as a Time object or a julian date.
-    equatorial: bool
-        True if using equatorial coordinates, False if J2000.  Default is False.
-
-    Returns
-    -------
-        azimuth in degrees, altitude in degrees
-    """
-    loc = EarthLocation(lat=latitude, lon=longitude, height=height)
-    if not time:
-        time = Time(datetime.datetime.now(datetime.timezone.utc))
-    if type(time) is not Time:
-        time = Time(time, format='jd')
-    frame = AltAz(location=loc, obstime=time)
-    radec_frame = 'icrs' if not equatorial else FK5(equinox='J{}'.format(time.byear))
-    coords = SkyCoord(ra=ra*u.hourangle, dec=dec*u.degree, frame=radec_frame)
-    coords_altaz = coords.transform_to(frame=frame)
-    return coords_altaz.az.degree, coords_altaz.alt.degree
 
 
 def convert_j2000_to_apparent(ra: float, dec: float) -> Tuple[float, float]:

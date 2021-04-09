@@ -542,6 +542,7 @@ class ObservationRun:
         header_info = copy.deepcopy(header_info_orig)
         # Define for mid-exposure time
         header_info['JD_UTC'] = time_utils.convert_to_jd_utc() + (exp_time/2) / (24*60*60)
+        epoch_datetime = Time(header_info['JD_UTC'], format='jd').datetime
         try:
             bjd_tdb = time_utils.convert_to_bjd_tdb(header_info['JD_UTC'], name, self.config_dict.site_latitude,
                                                     self.config_dict.site_longitude,
@@ -550,18 +551,17 @@ class ObservationRun:
             bjd_tdb = None
         if bjd_tdb:
             header_info['BJD_TDB'] = bjd_tdb
-        header_info['AZ_OBJ'], header_info['ALT_OBJ'] = conversion_utils.radec_to_altaz_astropy(header_info['RAOBJ2K'], header_info['DECOBJ2K'],
+        header_info['AZ_OBJ'], header_info['ALT_OBJ'] = conversion_utils.convert_radec_to_altaz(header_info['RAOBJ2K'], header_info['DECOBJ2K'],
                                                           self.config_dict.site_latitude,
-                                                          self.config_dict.site_longitude,
-                                                          self.config_dict.site_altitude, time=header_info['JD_UTC'])
+                                                          self.config_dict.site_longitude, time=epoch_datetime)
         header_info['ZD_OBJ'] = 90 - header_info['ALT_OBJ']
         header_info['AIRMASS'] = conversion_utils.airmass(header_info['ALT_OBJ'])
 
-        lmst = time_utils.get_local_sidereal_time(self.config_dict.site_longitude, date=Time(header_info['JD_UTC'], format='jd').datetime)
+        lmst = time_utils.get_local_sidereal_time(self.config_dict.site_longitude, date=epoch_datetime)
         ha = (lmst - header_info['RAOBJ2K']) % 24
         if ha > 12:
             ha -= 24
-        header_info['HA_MEAN'] = ha
+        header_info['HA_OBJ'] = ha
         return header_info
 
     def crash_check(self, program):

@@ -1,8 +1,13 @@
 import datetime
+import numpy as np
 from astropy.time import Time
 from barycorrpy import JDUTC_to_BJDTDB
 import logging
 from typing import Union, Optional
+import requests
+import requests.exceptions
+import re
+import urllib3.exceptions
 
 import pytz
 import dateutil.parser
@@ -175,6 +180,7 @@ def fractional_hours_of_day(time: Optional[Union[str, datetime.datetime]] = None
         time = datetime.datetime.now(datetime.timezone.utc)
     if type(time) is not datetime.datetime:
         time = convert_to_datetime_utc(time)
+    time = time.astimezone(datetime.timezone.utc)
     hours = (time - datetime.datetime(time.year, time.month, time.day, 0, 0, 0, tzinfo=datetime.timezone.utc))
     hours = hours.total_seconds()/(60*60)
     return hours
@@ -200,7 +206,8 @@ def decimal_year(time=None) -> float:
         time.minute/(days_in_year*24*60) + time.second/(days_in_year*24*60*60)
 
 
-def get_local_sidereal_time(longitude: float, date: Optional[Union[str, datetime.datetime]] = None) -> float:
+def get_local_sidereal_time(longitude: float, date: Optional[Union[str, datetime.datetime]] = None,
+                            leap_seconds = 0) -> float:
     """
 
     Parameters
@@ -217,18 +224,89 @@ def get_local_sidereal_time(longitude: float, date: Optional[Union[str, datetime
         Local sidereal time in hours.
 
     """
+    if leap_seconds == 0:
+        s = requests.Session()
+        try:
+            req = s.get('https://hpiers.obspm.fr/eop-pc/webservice/CURL/leapSecond.php')
+            match = re.search('([0-9]+)|', req.text)
+            if match:
+                leap_seconds = int(match.group(0))
+        except (urllib3.exceptions.MaxRetryError, urllib3.exceptions.HTTPError, urllib3.exceptions.TimeoutError,
+                urllib3.exceptions.InvalidHeader, requests.exceptions.ConnectionError, requests.exceptions.Timeout,
+                requests.exceptions.HTTPError):
+            logging.warning('Could not get leap second data!')
     logging.debug('Called time_utils function')
     if date is None:
         date = datetime.datetime.now(datetime.timezone.utc)
     if type(date) is not datetime.datetime:
         date = convert_to_datetime_utc(date)
-    date = convert_to_jd_utc(date)
-    tmid = (date - 2451545.0) / 36525.0
-    # gmst in seconds
-    gmst = 280.46061837 + 360.98564736629 * 36525.0 * tmid + 0.000387933 * (tmid**2) - (tmid**3) / 38710000
-    gmst = (gmst % 360)
-    lmst = (gmst + longitude)/15 % 24
+
+    date = date.astimezone(datetime.timezone.utc)
+    jd = int(convert_to_jd_utc(date)) + 0.5
+    ut_hours = fractional_hours_of_day(date)
+
+    tmid = (jd - 2451545.0) / 36525.0  # offset Julian centuries
+    t0 = (6.697374558 + 2400.0513369072 * tmid + (2.58622 * tmid**2)*1e-5 - (1.7222078704899681391543959355894 * tmid**3)*1e-9) % 24
+    gmst = (t0 + ut_hours * 1.00273790935 + n_longitude(jd, leap_seconds) * np.cos(true_obliquity(jd, leap_seconds)*np.pi/180) / 15) % 24
+
+    lmst_frac = (gmst + longitude / 15) / 24
+    day_frac = lmst_frac - int(lmst_frac)
+    if day_frac < 0:
+        day_frac += 1
+    lmst = 24.0 * day_frac
     return lmst
+
+
+def sun_moon_longitudes(julian_date, leap_seconds):
+
+    # leap second offset between TT and UT1
+    dt = (leap_seconds + 32.184) / (36525 * 24 * 60 * 60)
+    t = (julian_date - 2451545.0) / 36525.0
+    t += dt
+
+    # Moon orbit longitude of ascending node
+    omega = (125.04452 - 1934.136261 * t + 0.0020708 * t**2 + t**3 / 450000) % 360
+    lmoon = (218.31654591 + 481267.88134236 * t - 0.00163 * t**2 + t**3 / 538841. - t**4 / 65194000) % 360
+    # Sun orbit longitude
+    lsun = (280.46645 + 36000.76983 * t + 0.0003032 * t**2) % 360
+    # Mean anomaly of sun
+    msun = (357.52910 + 35999.05030 * t - 0.0001559 * t**2 - 0.00000048 * t**3) % 360
+    msun = np.radians(msun)
+    # Center of sun
+    csun = (1.9146000 - 0.004817 * t - 0.000014 * t**2) * np.sin(msun) + (0.019993 - 0.000101 * t) * np.sin(2. * msun) \
+            + 0.000290 * np.sin(3. * msun)
+    # Geometric longitude
+    glsun = (lsun + csun) % 360
+
+    omega, glsun, lmoon = np.radians([omega, glsun, lmoon])
+
+    return omega, glsun, lmoon
+
+
+def n_longitude(julian_date, leap_seconds):
+    omega, glsun, lmoon = sun_moon_longitudes(julian_date, leap_seconds)
+
+    # Nutation correction
+    dpsi = -17.20 * np.sin(omega) - 1.32 * np.sin(2. * glsun) - 0.23 * np.sin(2. * lmoon) + 0.21 * np.sin(2. * omega)
+    dpsi /= 3600
+    return dpsi
+
+
+def true_obliquity(julian_date, leap_seconds):
+
+    # leap second offset between TT and UT1
+    dt = (leap_seconds + 32.184) / (36525 * 24 * 60 * 60)
+    t = (julian_date - 2451545.0) / 36525.0
+    t += dt
+
+    # Mean Obliquity (deg)
+    eps0 = 23.0 + 26/60 + 21.448/3600
+    eps0 += (-46.8150 * t - 0.00059 * t**2 + 0.001813 * t**3)/3600
+
+    omega, glsun, lmoon = sun_moon_longitudes(julian_date, leap_seconds)
+    deps = 9.20 * np.cos(omega) + 0.57 * np.cos(2. * glsun) + 0.1 * np.cos(2. * lmoon) - 0.09 * np.cos(2. * omega)
+    deps /= 3600
+    return eps0 + deps
 
 
 def convert_to_jd_utc(time=None):
