@@ -129,6 +129,8 @@ def days_since_j2000(date: Optional[Union[datetime.datetime, str]] = None) -> fl
         date = datetime.datetime.now(datetime.timezone.utc)
     if type(date) is not datetime.datetime:
         date = convert_to_datetime_utc(date)
+    if not date.tzinfo:
+        date = pytz.utc.localize(date)
     j2000 = datetime.datetime(2000, 1, 1, 12, 0, 0, tzinfo=datetime.timezone.utc)
     days = (date - j2000).total_seconds()/(60*60*24)
     return days
@@ -180,7 +182,8 @@ def fractional_hours_of_day(time: Optional[Union[str, datetime.datetime]] = None
         time = datetime.datetime.now(datetime.timezone.utc)
     if type(time) is not datetime.datetime:
         time = convert_to_datetime_utc(time)
-    time = time.astimezone(datetime.timezone.utc)
+    if not time.tzinfo:
+        time = pytz.utc.localize(time)
     hours = (time - datetime.datetime(time.year, time.month, time.day, 0, 0, 0, tzinfo=datetime.timezone.utc))
     hours = hours.total_seconds()/(60*60)
     return hours
@@ -209,14 +212,23 @@ def decimal_year(time=None) -> float:
 def get_local_sidereal_time(longitude: float, date: Optional[Union[str, datetime.datetime]] = None,
                             leap_seconds = 0) -> float:
     """
+    Find the local mean sidereal time for a particular longitude and datetime.
+    Formulas gathered from the following references.
+    References:
+        1.  K. Collins and J. Kielkopf, “Astroimagej: Imagej for astronomy,” (2013). Astrophysics source code library.
+            https://github.com/karenacollins/AstroImageJ.
+        2.  R. Fisher, "Astronomical Times," Harvard University. https://lweb.cfa.harvard.edu/~jzhao/times.html.
 
     Parameters
     ----------
     longitude : FLOAT
         Site longitude where you want to calculate LST.  West is negative.
     date : DATETIME.DATETIME, optional
-        Date and time for which you want to calculate LST. The default is None, which
+        UTC Date and time for which you want to calculate LST. The default is None, which
         will calculate the LST for the current date & time.
+    leap_seconds : INT, optional
+        The number of seconds offset between TAI and TT.  As of April 9, 2021, there are 37 seconds offset.
+        If 0, will do an html request to get the current number.
 
     Returns
     -------
@@ -240,8 +252,10 @@ def get_local_sidereal_time(longitude: float, date: Optional[Union[str, datetime
         date = datetime.datetime.now(datetime.timezone.utc)
     if type(date) is not datetime.datetime:
         date = convert_to_datetime_utc(date)
-
-    date = date.astimezone(datetime.timezone.utc)
+    if not date.tzinfo:
+        date = pytz.utc.localize(date)
+    if date.tzinfo not in (pytz.UTC, pytz.utc, datetime.timezone.utc):
+        raise ValueError('Time must be in UTC!')
     jd = int(convert_to_jd_utc(date)) + 0.5
     ut_hours = fractional_hours_of_day(date)
 
@@ -258,6 +272,26 @@ def get_local_sidereal_time(longitude: float, date: Optional[Union[str, datetime
 
 
 def sun_moon_longitudes(julian_date, leap_seconds):
+    """
+    Find the longitude of the moon's ascending node, the mean orbital longitude of the moon, and the geometric mean longitude
+    of the sun for a particular julian date.
+    Formulas gathered from the following references.
+    References:
+        1.  K. Collins and J. Kielkopf, “Astroimagej: Imagej for astronomy,” (2013). Astrophysics source code library.
+            https://github.com/karenacollins/AstroImageJ.
+
+    Parameters
+    ----------
+    julian_date: FLOAT, the julian date at which to calculate.
+    leap_seconds: INT, number of leap seconds offset between TAI and TT.
+
+    Returns
+    -------
+    all in radians
+    omega: FLOAT, longitude of moon's ascending node
+    glsun: FLOAT, mean geometric longitude of sun
+    lmoon: FLOAT, mean longitude of the moon
+    """
 
     # leap second offset between TT and UT1
     dt = (leap_seconds + 32.184) / (36525 * 24 * 60 * 60)
@@ -284,6 +318,22 @@ def sun_moon_longitudes(julian_date, leap_seconds):
 
 
 def n_longitude(julian_date, leap_seconds):
+    """
+    Find the nutation of the longitude of the ecliptic for a specific julian date.
+    Formulas gathered from the following references.
+    References:
+        1.  K. Collins and J. Kielkopf, “Astroimagej: Imagej for astronomy,” (2013). Astrophysics source code library.
+            https://github.com/karenacollins/AstroImageJ.
+
+    Parameters
+    ----------
+    julian_date: FLOAT, the julian date at which to calculate.
+    leap_seconds: INT, number of leap seconds offset between TAI and TT.
+
+    Returns
+    -------
+    dpsi: FLOAT, nutation of the ecliptic, in degrees
+    """
     omega, glsun, lmoon = sun_moon_longitudes(julian_date, leap_seconds)
 
     # Nutation correction
@@ -293,7 +343,22 @@ def n_longitude(julian_date, leap_seconds):
 
 
 def true_obliquity(julian_date, leap_seconds):
+    """
+    Find the true obliquity of the ecliptic for a specific julian date.
+    Formulas gathered from the following references.
+    References:
+        1.  K. Collins and J. Kielkopf, “Astroimagej: Imagej for astronomy,” (2013). Astrophysics source code library.
+            https://github.com/karenacollins/AstroImageJ.
 
+    Parameters
+    ----------
+    julian_date: FLOAT, the julian date at which to calculate.
+    leap_seconds: INT, number of leap seconds offset between TAI and TT.
+
+    Returns
+    -------
+    eps0+deps : FLOAT, obliquity of the ecliptic in degrees
+    """
     # leap second offset between TT and UT1
     dt = (leap_seconds + 32.184) / (36525 * 24 * 60 * 60)
     t = (julian_date - 2451545.0) / 36525.0

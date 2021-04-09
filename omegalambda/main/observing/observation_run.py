@@ -1,4 +1,5 @@
 import datetime
+import pytz
 from astropy.time import Time
 import time
 import os
@@ -542,7 +543,8 @@ class ObservationRun:
         header_info = copy.deepcopy(header_info_orig)
         # Define for mid-exposure time
         header_info['JD_UTC'] = time_utils.convert_to_jd_utc() + (exp_time/2) / (24*60*60)
-        epoch_datetime = Time(header_info['JD_UTC'], format='jd').datetime
+        epoch_datetime = Time(header_info['JD_UTC'], format='jd', scale='utc').datetime
+        epoch_datetime = pytz.utc.localize(epoch_datetime)
         try:
             bjd_tdb = time_utils.convert_to_bjd_tdb(header_info['JD_UTC'], name, self.config_dict.site_latitude,
                                                     self.config_dict.site_longitude,

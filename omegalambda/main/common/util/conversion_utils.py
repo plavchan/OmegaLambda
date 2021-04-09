@@ -9,72 +9,98 @@ from astropy.time import Time
 from . import time_utils
 
 
-def get_decha_from_altaz(azimuth: float, altitude: float, latitude: float) -> Tuple[float, float]:
-    """
-    Parameters
-    ----------
-    azimuth : FLOAT
-        The azimuth of intended target.
-    altitude : FLOAT
-        The altitude of intended target.
-    latitude : FLOAT
-        The latitude of observatory.
-
-    Returns
-    -------
-    dec : FLOAT
-        The calculated declination of the target.
-    HA : FLOAT
-        The calculated hour angle of intended target.
-    """
-    (azimuth_r, altitude_r, latitude_r) = np.radians([azimuth, altitude, latitude])
-    dec_r = np.arcsin(np.sin(altitude_r)*np.sin(latitude_r)
-                      + np.cos(altitude_r)*np.cos(latitude_r)*np.cos(azimuth_r))
-    ha_r = np.arccos((np.sin(altitude_r)
-                      - np.sin(latitude_r)*np.sin(dec_r))/(np.cos(latitude_r)*np.cos(dec_r)))
-    if np.sin(azimuth_r) > 0:
-        ha_r = 2*np.pi - ha_r
-    (dec, HA) = np.degrees([dec_r, ha_r])
-    return dec, HA
-
-
 def convert_altaz_to_radec(azimuth: float, altitude: float, latitude: float, longitude: float,
-                           time: datetime.datetime) -> Tuple[float, float]:
+                           time: datetime.datetime, leap_seconds: float = 0, refraction = True) -> Tuple[float, float]:
     """
+    Convert horizontal coordinates to celestial coordinates.
+    Formulas gathered from the following references.
+    References:
+        1.  K. Collins and J. Kielkopf, “Astroimagej: Imagej for astronomy,” (2013). Astrophysics source code library.
+            https://github.com/karenacollins/AstroImageJ.
+
     Parameters
     ----------
     azimuth : FLOAT
-        The azimuth of the intended target.
+        Given azimuth of target, degrees.
     altitude : FLOAT
-        The altitude of the intended target.
+        Given altitude of target, degrees.
     latitude : FLOAT
-        The lattitude of the observatory.
+        Latitude of observatory, degrees North.
     longitude : FLOAT
-        The longitude of the observatory.
+        Longitude of observatory, degrees East.
     time : datetime.datetime object
         Time to be converted.
+    leap_seconds : INT
+        Leap second offset between TAI and TT.
+    refraction : BOOL
+        Whether or not to correct for atmospheric refraction.
 
     Returns
     -------
     ra : FLOAT
-        The calculated Right Ascension from Alt/Az.
-    dec : FLOAT
-        The calculated Declination from Alt/Az.
+        Calculated right ascension of target.
+    declination : FLOAT
+        Calculated declination of target.
     """
-    lst = time_utils.get_local_sidereal_time(longitude, time)
-    lst *= 15
-    (dec, HA) = get_decha_from_altaz(azimuth, altitude, latitude)
-    ra = (lst - HA)/15
-    while ra < 0:
-        ra += 24
-    while ra > 24:
-        ra -= 24
-    return ra, dec
+    if refraction:
+        pressure = 760
+        temperature = 10
+        if altitude >= 15.0:
+            arg = (90.0 - altitude) * np.pi/180.0
+        elif altitude >= 0.0:
+            arg = (90.0 - 15.0) * np.pi/180.0
+        else:
+            arg = 0
+        dalt = np.tan(arg)
+        dalt = 58.294 * dalt - 0.0668 * dalt**3
+        dalt /= 3600.
+        dalt = dalt * (pressure / 760.) * (283. / (273. + temperature))
+
+        altitude -= dalt
+
+    lst = time_utils.get_local_sidereal_time(longitude, time, leap_seconds)
+    alt = altitude % 360
+    if alt > 180:
+        alt -= 360
+    az = azimuth % 360
+    alt_r, az_r, lat_r = np.radians([alt, az, latitude])
+
+    HA_r = np.arctan2(-np.sin(az_r)*np.cos(alt_r), np.cos(lat_r)*np.sin(alt_r) - np.sin(lat_r)*np.cos(alt_r)*np.cos(az_r))
+    dec_r = np.arcsin(np.sin(lat_r)*np.sin(alt_r) + np.cos(lat_r)*np.cos(alt_r)*np.cos(az_r))
+    ha = (np.degrees(HA_r)/15) % 24
+    if ha > 12:
+        ha -= 24
+    dec = (np.degrees(dec_r)) % 360
+    if dec > 180:
+        dec -= 360
+
+    if dec > 90:
+        hourangle = (ha + 12) % 24
+        if hourangle > 12:
+            hourangle -= 24
+        declination = 180 - dec
+    elif dec < -90:
+        hourangle = (ha + 12) % 24
+        if hourangle > 12:
+            hourangle -= 24
+        declination = dec + 180
+    else:
+        hourangle = ha
+        declination = dec
+
+    ra = (lst - hourangle) % 24
+    return ra, declination
 
 
 def convert_radec_to_altaz(ra: float, dec: float, latitude: float, longitude: float,
                            time: datetime.datetime, leap_seconds: float = 0, refraction=True) -> Tuple[float, float]:
     """
+    Convert celestial coordinates to horizontal coordinates.
+    Formulas gathered from the following references.
+    References:
+        1.  K. Collins and J. Kielkopf, “Astroimagej: Imagej for astronomy,” (2013). Astrophysics source code library.
+            https://github.com/karenacollins/AstroImageJ.
+
     Parameters
     ----------
     ra : FLOAT
@@ -87,6 +113,10 @@ def convert_radec_to_altaz(ra: float, dec: float, latitude: float, longitude: fl
         Longitude of observatory.
     time : datetime.datetime object
         Time to be converted.
+    leap_seconds : INT
+        Leap second offset between TAI and TT.
+    refraction : BOOL
+        Whether or not to correct for atmospheric refraction.
 
     Returns
     -------
