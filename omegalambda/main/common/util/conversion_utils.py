@@ -1,4 +1,5 @@
 import numpy as np
+import re
 import datetime
 from typing import Tuple, Union, Optional
 
@@ -263,7 +264,7 @@ def airmass(altitude: float) -> float:
     return 1/np.cos(np.pi/2 - np.radians(altitude))
 
 
-def sexagesimal(decimal):
+def sexagesimal(decimal: float) -> str:
     hh = int(decimal)
     f1 = hh if hh != 0 else 1
 
@@ -277,3 +278,13 @@ def sexagesimal(decimal):
     mm = abs(mm)
     ss = abs(ss)
     return '{:02d} {:02d} {:08.5f}'.format(hh, mm, ss)
+
+
+def decimal(sexagesimal: str) -> float:
+    splitter = 'd|h|m|s|:| '
+    valtup = re.split(splitter, sexagesimal)
+    hh, mm, ss = float(valtup[0]), float(valtup[1]), float(valtup[2])
+    if hh > 0 or valtup[0] == '+00' or valtup[0] == '00':
+        return hh + mm/60 + ss/3600
+    elif hh < 0 or valtup[0] == '-00':
+        return hh - mm/60 - ss/3600

@@ -1,6 +1,10 @@
 import datetime
 import numpy as np
 from astropy.time import Time
+import pandas as pd
+from astroquery.simbad import Simbad
+from astropy.coordinates import SkyCoord
+import astropy.units as u
 from barycorrpy import JDUTC_to_BJDTDB
 import logging
 from typing import Union, Optional
@@ -388,6 +392,74 @@ def convert_to_jd_utc(time=None, split_date=False):
     return t.jd
 
 
-def convert_to_bjd_tdb(jd, starname, lat, lon, height):
-    # J2000 coords
-    return JDUTC_to_BJDTDB(JDUTC=jd, starname=starname, leap_update=False, lat=lat, longi=lon, alt=height)[0]
+def convert_to_bjd_tdb(jd, name, lat, lon, height, ra=None, dec=None):
+    # Get target proper motion, parallax, and radial velocity from exofop
+    epoch = 2451545.0
+    pmra = pmdec = None
+    if ra:
+        ra *= 15
+
+    # First try ExoFOP for proper motions
+    # if ('TOI' in name) or ('toi' in name):
+    #     toi_table = pd.read_csv('https://exofop.ipac.caltech.edu/tess/download_toi.php?sort=toi&output=pipe', delimiter='|')
+    #     toi = re.search('(?:TOI|toi)(?:_| |-|.)(\d+)(?:.|-| |_)(\d+)', name)
+    #     if toi:
+    #         toi = int(toi.group(1)) + int(toi.group(2))/100
+    #         if int(toi) == toi:
+    #             toi += .01
+    #         toi_info = toi_table.loc[toi_table['TOI'] == toi]
+    #         if toi_info.values.size:
+    #             pmra = toi_info['PM RA (mas/yr)'].values[0]
+    #             pmdec = toi_info['PM Dec (mas/yr)'].values[0]
+
+    # Query SIMBAD for proper motion, parallax, and RV
+    simbad = Simbad()
+    simbad.add_votable_fields('ra(2;A;ICRS;J2000)', 'dec(2;D;ICRS;J2000)','pm', 'plx','parallax','rv_value')
+    simbad.remove_votable_fields('coordinates')
+    table = simbad.query_object(name)
+    if not table:
+        if not ra or not dec:
+            return None
+        table = simbad.query_region(SkyCoord(ra*u.degree, dec*u.degree, frame='icrs'), radius='5m')
+    if table:
+        if not ra:
+            ra = decimal(table['RA_2_A_ICRS_J2000'][0]) * 15
+        if not dec:
+            dec = decimal(table['DEC_2_D_ICRS_J2000'][0])
+        if not pmra:
+            pmra = table['PMRA'][0]
+        if not pmdec:
+            pmdec = table['PMDEC'][0]
+        parallax = table['PLX_VALUE'][0]
+        radial_velocity = table['RV_VALUE'][0] * 1000
+    else:
+        return None
+
+    return JDUTC_to_BJDTDB(JDUTC=jd, ra=ra, dec=dec, epoch=epoch, pmra=pmra, pmdec=pmdec, px=parallax,
+                           rv=radial_velocity, lat=lat, longi=lon, alt=height, leap_update=False)[0][0]
+
+
+def sexagesimal(decimal: float) -> str:
+    hh = int(decimal)
+    f1 = hh if hh != 0 else 1
+
+    extra = decimal % f1
+    mm = int(extra * 60)
+    f2 = mm if mm != 0 else 1
+
+    extra2 = (extra * 60) % f2
+    ss = extra2 * 60
+
+    mm = abs(mm)
+    ss = abs(ss)
+    return '{:02d} {:02d} {:08.5f}'.format(hh, mm, ss)
+
+
+def decimal(sexagesimal: str) -> float:
+    splitter = 'd|h|m|s|:| '
+    valtup = re.split(splitter, sexagesimal)
+    hh, mm, ss = float(valtup[0]), float(valtup[1]), float(valtup[2])
+    if hh > 0 or valtup[0] == '+00' or valtup[0] == '00':
+        return hh + mm/60 + ss/3600
+    elif hh < 0 or valtup[0] == '-00':
+        return hh - mm/60 - ss/3600
