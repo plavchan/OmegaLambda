@@ -98,9 +98,9 @@ class Config:
             The clocking angle of the CCD camera's x and y axes against the RA and Dec axes of the telescope, in
             degrees.  This is the angle between the POSITIVE x/y axis and the NEGATIVE RA/Dec axis.  In other words,
             0.0 degrees corresponds to 180 degrees between +x/+y and +RA/+Dec.
-            This angle should be in the domain (-pi, pi), with -pi/pi corresponding to alignment of the +x/+y axis with
-            the +RA/+Dec axis.  Then, -pi/2 is a configuration in which +x aligns with +Dec and +y aligns with -RA.  And
-            +pi/2 is a configuration in which +x aligns with -Dec and +y aligns with +RA.
+            This angle should be in the domain (-180, 180], with -180/180 corresponding to alignment of the +x/+y axis with
+            the +RA/+Dec axis.  Then, -90 is a configuration in which +x aligns with +Dec and +y aligns with -RA.  And
+            +90 is a configuration in which +x aligns with -Dec and +y aligns with +RA.
             Does NOT support mirrored configurations--i.e. +x is +RA while +y is -Dec; or +x is -RA while +y is +Dec.
             Our default is 0.0 degrees.
         data_directory : STR, optional
