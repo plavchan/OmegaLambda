@@ -245,7 +245,7 @@ class Telescope(Hardware):
         Parameters
         ----------
         direction : STR
-            Direction that the telescope should pulse guide.  Up, down, left, or right.
+            Direction that the telescope should pulse guide.  north, south, east, or west.
         duration : INT
             Duration in seconds that the telescope should pulse guide for.
 
@@ -256,7 +256,7 @@ class Telescope(Hardware):
 
         """
         self.slew_done.clear()
-        direction_key = {"up": 0, "down": 1, "left": 2, "right": 3}
+        direction_key = {"north": 0, "south": 1, "east": 2, "west": 3}
         # Converts str to int, used by internal telescope calls
         
         if direction in direction_key:
@@ -286,7 +286,7 @@ class Telescope(Hardware):
         Parameters
         ----------
         direction : STR
-            Direction to jog the telescope.  Up, down, left, or right.
+            Direction to jog the telescope.  North, south, east, or west.
         distance : INT
             Distance to jog the telescope in arcseconds.
 
@@ -297,11 +297,11 @@ class Telescope(Hardware):
         """
         self.slew_done.clear()
         logging.debug('Sending telescope jog request...')
-        rates_key = {**dict.fromkeys(["up", "down"], self.Telescope.GuideRateDeclination),
-                     **dict.fromkeys(["left", "right"], self.Telescope.GuideRateRightAscension)}
+        rates_key = {**dict.fromkeys(["north", "south"], self.Telescope.GuideRateDeclination),
+                     **dict.fromkeys(["east", "west"], self.Telescope.GuideRateRightAscension)}
         # Dictionaries to convert direction str to distance
-        distance_key = {**dict.fromkeys(["up", "left"], distance),
-                        **dict.fromkeys(["down", "right"], -distance)}
+        distance_key = {**dict.fromkeys(["north", "east"], distance),
+                        **dict.fromkeys(["south", "west"], -distance)}
         
         if direction in rates_key:
             rate = rates_key[direction]
@@ -309,15 +309,15 @@ class Telescope(Hardware):
         else:
             logging.error('Invalid jog direction')
             return
-        if distance < 30*60:                            # Less than 30', pulse guide
+        if abs(distance) < 30*60:                            # Less than 30', pulse guide
             duration = (abs(distance)/3600)/rate
             logging.debug('Calculated Pulse Guide Duration: {} milliseconds'.format(duration*1000))
             self.pulse_guide(direction, duration)
             
-        elif distance >= 30*60:                         # More than 30', slew normally
-            if direction in ("up", "down"):
+        elif abs(distance) >= 30*60:                         # More than 30', slew normally
+            if direction in ("north", "south"):
                 self.slew(self.Telescope.RightAscension, self.Telescope.Declination + distance)
-            elif direction in ("left", "right"):
+            elif direction in ("east", "west"):
                 self.slew(self.Telescope.RightAscension + distance, self.Telescope.Declination)
             logging.info('Telescope is jogging')
     

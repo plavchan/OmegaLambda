@@ -51,102 +51,87 @@ files into Python dictionaries.  These are then fed to the `ObjectReader` which 
 datatype to be deserialzed.  One of these objects is the `Config` class in `config_reader.py`.
 It has the following attributes:
 
-        cooler_setpoint : int, float, optional
+        cooler_setpoint : INT, FLOAT, optional
             Setpoint in C when running camera cooler.  Our default is -30 C.
-        cooler_idle_setpoint : int, float, optional
+        cooler_idle_setpoint : INT, FLOAT, optional
             Setpoint in C when not running camera cooler.  Our default is +5 C.
-        cooler_settle_time : int, optional
-            Time in minutes given for the cooler to settle to its setpoint. Our default is 5-10 
-            minutes.
-        maximum_jog : int, optional
-            Maximum distance in arcseconds to be used for the telescope jog function. Our default is 
-            1800 arcseconds.
-        site_latitude : float, optional
+        cooler_settle_time : INT, optional
+            Time in minutes given for the cooler to settle to its setpoint. Our default is 5-10 minutes.
+        maximum_jog : INT, optional
+            Maximum distance in arcseconds to be used for the telescope jog function. Our default is 1800 arcseconds.
+        site_latitude : FLOAT, optional
             Latitude at the telescope location.  Our default is +38.828 degrees.
-        site_longitude : float, optional
+        site_longitude : FLOAT, optional
             Longitude at the telescope location.  Our default is -77.305 degrees.
-        humidity_limit : int, optional
+        site_altitude : FLOAT, optional
+            Altitude above sea level at the telescope location.  Our default is 154 meters.
+        humidity_limit : INT, optional
             Limit for humidity while observing.  Our default is 85%.
-        wind_limit : int, optional
+        wind_limit : INT, optional
             Limit for wind speed in mph while observing.  Our default is 20 mph.
-        weather_freq : int, optional
+        weather_freq : INT, optional
             Frequency of weather checks in minutes.  Our default is 10 minutes.
-        cloud_cover_limit : float, optional
-            Limit for percentage of sky around Fairfax to be covered by clouds before closing up.  
-            Our default is 75%.
-        cloud_saturation_limit: float, optional
+        cloud_cover_limit : FLOAT, optional
+            Limit for percentage of sky around Fairfax to be covered by clouds before closing up.  Our default is 75%.
+        cloud_saturation_limit: FLOAT, optional
             Limit for the saturation of a pixel in the cloud image to be considered a cloud or not (out of 256?).
             Our default is 100.
-        rain_percent_limit: float, optional
+        rain_percent_limit: FLOAT, optional
             Limit for the percentage of rain present in 1/4 of the field surveyed before shutting down (two tiles
             out of the four must pass this threshold).  Our default is 5%.
-        user_agent : str, optional
-            internet user agent for connections, specifically required for connections to weather.com.  
-            Our default is Mozilla/5.0.  Currently only supports Mozilla/5.0 as far as we are aware.
-        cloud_satellite : str, optional
-            Which satellite to use to check for cloud cover.  Currently only supports goes-16.  
-            Our default is goes-16.
+        user_agent : STR, optional
+            Internet user agent for connections, specifically to weather.com.  Our default is Mozilla/5.0.
+        cloud_satellite : STR, optional
+            Which satellite to use to check for cloud cover.  Currently only supports goes-16.  Our default is goes-16.
         weather_api_key : STR, optional
-            The api key to search for in weather.com's api.  Sometimes changes and needs an update.  
-            Should be a regex search string.
-        min_reopen_time : int or float, optional
-            Minimum wait time to reopen (in minutes) after a weather check has gone off.  
-            Our default is 30 minutes.
-        plate_scale : float, optional
-            CCD camera conversion factor between pixels and arcseconds, in arcseconds/pixel.  
-            Our default is 0.350 arcseconds/pixel.
-        saturation : int, optional
-            CCD camera saturation limit for exposure in counts.  This is more like the exposure 
-            linearity limit, after which you'd prefer not to have targets pass.  
-            Our default is 25,000 counts.
-        focus_exposure_multiplier : float, optional
-            Multiplier for exposure times on focusing images.  The multiplier is applied to the 
-            exposure time for the current ticket.  Our default is 0.33.
-        initial_focus_delta : int, optional
-            Initial number of steps the focuser will move for each adjustment.  
-            Our default is 15 steps.
-        focus_temperature_constant : float, optional
-            Relationship between focuser steps and degrees Fahrenheit, in steps/degF.  
-            Our default is 2 steps/degF.
-        focus_iterations : int, optional
-            The total number of exposures to take at the beginning of the night while focusing.  
-            Our default is 11.
-        focus_adjust_frequency : float or int, optional
-            How often the focus will adjust over the course of the night, in minutes.  
-            Our default is 15 minutes.
-        focus_max_distance : int, optional
-            Maximum distance away from the initial focus position that the focuser can move.  
-            Our default is 100 steps.
-        guiding_threshold : float, optional
-            How far to let a star drift, in arcseconds, before making a guiding correction. 
-            Our default is 10 arcseconds.
-        guider_ra_dampening : float, optional
-            Dampening coefficient for guider telescope corrections on the RA axis.  
-            Our default is 0.75.
-        guider_dec_dampening : float, optional
-            Dampening coefficient for guider telescope corrections on the Dec axis.  
-            Our default is 0.5.
-        guider_max_move : float, optional
-            The maximum distance in arcseconds that the guider can make adjustments for.  
-            Our default is 30 arcseconds.
-        guider_angle : float, optional
-            The clocking angle of the CCD camera's x and y axes against the RA and Dec axes of the 
-            telescope, in degrees.  Our default is 0.0 degrees.
-        data_directory : str, optional
+            The api key to search for in weather.com's api.  Sometimes changes and needs an update.  Should be a regex
+            search string.
+        min_reopen_time : INT or FLOAT, optional
+            Minimum wait time to reopen (in minutes) after a weather check has gone off.  Our default is 30 minutes.
+        plate_scale : FLOAT, optional
+            CCD camera conversion factor between pixels and arcseconds, in arcseconds/pixel.  Our default is
+            0.350 arcseconds/pixel.
+        saturation : INT, optional
+            CCD camera saturation limit for exposure in counts.  This is more like the exposure linearity limit, after
+            which you'd prefer not to have targets pass.  Our default is 25,000 counts.
+        focus_exposure_multiplier : FLOAT, optional
+            Multiplier for exposure times on focusing images.  The multiplier is applied to the exposure time for the
+            current ticket.  Our default is 0.33.
+        initial_focus_delta : INT, optional
+            Initial number of steps the focuser will move for each adjustment.  Our default is 15 steps.
+        focus_temperature_constant : FLOAT, optional
+            Relationship between focuser steps and degrees Fahrenheit, in steps/degF.  Our default is 2 steps/degF.
+        focus_iterations : INT, optional
+            The total number of exposures to take at the beginning of the night while focusing.  Our default is 11.
+        focus_adjust_frequency : FLOAT or INT, optional
+            How often the focus will adjust over the course of the night, in minutes.  Our default is 15 minutes.
+        focus_max_distance : INT, optional
+            Maximum distance away from the initial focus position that the focuser can move.  Our default is 100 steps.
+        guiding_threshold : FLOAT, optional
+            How far to let a star drift, in arcseconds, before making a guiding correction. Our default is 10
+            arcseconds.
+        guider_ra_dampening : FLOAT, optional
+            Dampening coefficient for guider telescope corrections on the RA axis.  Our default is 0.75.
+        guider_dec_dampening : FLOAT, optional
+            Dampening coefficient for guider telescope corrections on the Dec axis.  Our default is 0.5.
+        guider_max_move : FLOAT, optional
+            The maximum distance in arcseconds that the guider can make adjustments for.  Our default is 30 arcseconds.
+        guider_angle : FLOAT, optional
+            The clocking angle of the CCD camera's x and y axes against the RA and Dec axes of the telescope, in
+            degrees.  This is the angle between the POSITIVE x/y axis and the NEGATIVE RA/Dec axis.  
+            Our default is 0.0 degrees, which corresponds to 180 degrees between +x/+y and +RA/+Dec.
+        data_directory : STR, optional
             Where images and other data are saved on the computer.  Our default is
             H:/Observatory Files/Observing Sessions/2020_Data.
-        calibration_time : str, optional
-            If darks and flats should be taken at the start or end of a given observing session.  
-            Can be str "start" or "end."  If "start", it will take darks and flats for ALL 
-            observing tickets at the start of the night. If "end", it will take darks and 
-            flats for all FINISHED tickets at the end of the night.  Also, if "end", it will
-            utilize the time while (potentially) closed up due to bad weather to gather calibration
-            images.  Our default is "end".
-        calibration_num : int, optional
-            The number of darks and flats that should be taken per target.  Note that there will 
-            be one set of flats with this number of exposures PER FILTER, but multiple sets of darks, 
-            each with this number of exposures: one to match each of the flat exposure times one to 
-            match each of the science exposure times.  Our default is 10.
+        calibration_time : STR, optional
+            If darks and flats should be taken at the start or end of a given observing session.  Can be str "start"
+            or "end."  If "start", it will take darks and flats for ALL observing tickets at the start of the night.
+            If "end", it will take darks and flats for all FINISHED tickets at the end of the night.
+            Our default is "end".
+        calibration_num : INT, optional
+            The number of darks and flats that should be taken per target.  Note that there will be one set of flats
+            with this number of exposures, but two sets of darks, each with this number of exposures: one to match
+            the flat exposure time and the other to match the science exposure time.  Our default is 10.
 
 As you can see, this object contains general configuration parameters that affect nearly every aspect of how
 the code runs.  The only methods associated with this object are the `serialized()` and `deserialized()` methods,

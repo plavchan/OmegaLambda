@@ -181,25 +181,30 @@ class Guider(Hardware):
             logging.debug('Guide star absolute coordinates: x={}, y={}'.format(x_initial, y_initial))
             separation = np.sqrt((x - x_0)**2 + (y - y_0)**2)
             if separation >= self.config_dict.guiding_threshold:
-                xdistance = x - x_0
-                ydistance = y - y_0
-                # Produce angles in the domain [0, 2pi]
-                angle = np.arctan2(ydistance, xdistance) % (2 * np.pi)
-                # With the domain angle in [0, 2pi], this always produces the correct delta angle (assuming guider angle > 0)
-                deltangle = (angle - self.config_dict.guider_angle) % (2 * np.pi)
+                # Position vector
+                position = np.array([x - x_0, y - y_0])
+                # Rotation matrix
+                # Guider angle: between the +x camera axis and the NEGATIVE RA axis. Add 180 so that a guider angle of 0
+                # corresponds to 180 degrees between +x and +RA.
+                gamma = (self.config_dict.guider_angle + 180) * np.pi/180
+                rot = np.array([[np.cos(-gamma), -np.sin(-gamma)], [np.sin(-gamma), np.cos(-gamma)]])
+                # New position
+                rot_x, rot_y = np.matmul(rot, position)
                 # Assumes guider angle (angle b/w RA/Dec axes and Image X/Y axes) is constant
-                if (1/2)*np.pi <= deltangle <= (3/2)*np.pi:
-                    xdirection = 'left'
+                if rot_x < 0:
+                    # The pixel distance is positive in this case (for gamma = 180), but the RA distance is negative because RA increases
+                    # to the left.  So in order to move the star back to the left, we move the telescope right/west.
+                    xdirection = 'west'
                 else:
-                    xdirection = 'right'
-                if 0 <= deltangle <= np.pi:
-                    ydirection = 'down'
+                    xdirection = 'east'
+                if rot_y > 0:
+                    # The pixel distance is negative (for gamma = 180), but the declination distance is positive.
+                    # So to move the star back down, we move the telescope up/north.
+                    ydirection = 'north'
                 else:
-                    ydirection = 'up'
-                xjog_distance = abs(separation * np.cos(deltangle)) * self.config_dict.plate_scale * \
-                    self.config_dict.guider_ra_dampening
-                yjog_distance = abs(separation * np.sin(deltangle)) * self.config_dict.plate_scale * \
-                    self.config_dict.guider_dec_dampening
+                    ydirection = 'south'
+                xjog_distance = abs(rot_x) * self.config_dict.plate_scale * self.config_dict.guider_ra_dampening
+                yjog_distance = abs(rot_y) * self.config_dict.plate_scale * self.config_dict.guider_dec_dampening
                 jog_separation = np.sqrt(xjog_distance**2 + yjog_distance**2)
                 if jog_separation >= self.config_dict.guider_max_move:
                     logging.warning('Guide star has moved substantially between images...If the telescope did not move '
@@ -217,7 +222,6 @@ class Guider(Hardware):
                 elif jog_separation < self.config_dict.guider_max_move:
                     logging.debug('Guider is making an adjustment')
                     logging.debug('xdistance: {}\"; ydistance: {}\"'.format(xjog_distance, yjog_distance))
-                    logging.debug('Delta Angle: {} rad'.format(deltangle))
                     logging.debug('Separation: {} px'.format(separation))
                     logging.debug('Move Direction: {} {}'.format(xdirection, ydirection))
                     logging.debug('Plate Scale: {}\"/px'.format(self.config_dict.plate_scale))
