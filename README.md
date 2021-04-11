@@ -123,6 +123,7 @@ It has the following attributes:
             This angle should be in the domain (-pi, pi), with -pi/pi corresponding to alignment of the +x/+y axis with
             the +RA/+Dec axis.  Then, -pi/2 is a configuration in which +x aligns with +Dec and +y aligns with -RA.  And
             +pi/2 is a configuration in which +x aligns with -Dec and +y aligns with +RA.
+            Does NOT support mirrored configurations--i.e. +x is +RA while +y is -Dec; or +x is -RA while +y is +Dec.
             Our default is 0.0 degrees.
         data_directory : STR, optional
             Where images and other data are saved on the computer.  Our default is
