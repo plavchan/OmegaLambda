@@ -187,8 +187,8 @@ class Guider(Hardware):
                     position[1] *= -1
                 # Guider angle: between the +x camera axis and the +RA axis
                 gamma = self.config_dict.guider_angle
-                # Rotation matrix to rotate through NEGATIVE gamma
-                rot = np.array([[np.cos(gamma), np.sin(gamma)], [-np.sin(gamma), np.cos(gamma)]])
+                # Rotation matrix to rotate through gamma
+                rot = np.array([[np.cos(gamma), -np.sin(gamma)], [np.sin(gamma), np.cos(gamma)]])
                 # New position
                 rot_x, rot_y = np.matmul(rot, position)
                 # Assumes guider angle (angle b/w RA/Dec axes and Image X/Y axes) is constant

@@ -117,9 +117,10 @@ It has the following attributes:
         guider_max_move : FLOAT, optional
             The maximum distance in arcseconds that the guider can make adjustments for.  Our default is 30 arcseconds.
         guider_angle : FLOAT, optional
+        guider_angle : FLOAT, optional
             The clocking angle of the CCD camera's x and y axes against the RA and Dec axes of the telescope, in
-            degrees.  This is the angle between the POSITIVE x/y axis and the POSITIVE RA/Dec axis.  In other words,
-            0.0 degrees corresponds to alignment between +x/+y and +RA/+Dec.  Our default is 180 degrees.
+            degrees.  This is defined as the angle between the +x axis and the +RA axis, by rotating through the +y axis.
+            In other words, 0.0 degrees corresponds to alignment between +x/+y and +RA/+Dec.  Our default is 180 degrees.
         guider_flip_y : BOOL, optional
             This supports guider axes configurations that are mirrored with respect to a simple guider angle flip.
             If True, this will flip the y axis of the guider.
