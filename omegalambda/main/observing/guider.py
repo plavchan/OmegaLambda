@@ -183,7 +183,7 @@ class Guider(Hardware):
             if separation >= self.config_dict.guiding_threshold:
                 # Position vector
                 position = np.array([x - x_0, y - y_0])
-                # Guider angle: between the +x camera axis and the NEGATIVE RA axis. Add 180 so that a guider angle of 0
+                # Guider angle: between the +x camera axis and the +RA axis. Add 180 so that a guider angle of 0
                 # corresponds to 180 degrees between +x and +RA.
                 gamma = self.config_dict.guider_angle
                 # Rotation matrix to rotate through NEGATIVE gamma
