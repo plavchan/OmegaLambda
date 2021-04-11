@@ -183,13 +183,15 @@ class Guider(Hardware):
             if separation >= self.config_dict.guiding_threshold:
                 # Position vector
                 position = np.array([x - x_0, y - y_0])
-                # Rotation matrix
                 # Guider angle: between the +x camera axis and the NEGATIVE RA axis. Add 180 so that a guider angle of 0
                 # corresponds to 180 degrees between +x and +RA.
-                gamma = (self.config_dict.guider_angle + 180) * np.pi/180
-                rot = np.array([[np.cos(-gamma), -np.sin(-gamma)], [np.sin(-gamma), np.cos(-gamma)]])
+                gamma = self.config_dict.guider_angle
+                # Rotation matrix to rotate through NEGATIVE gamma
+                rot = np.array([[np.cos(gamma), np.sin(gamma)], [-np.sin(gamma), np.cos(gamma)]])
                 # New position
                 rot_x, rot_y = np.matmul(rot, position)
+                if self.config_dict.guider_flip_y:
+                    rot_y *= -1
                 # Assumes guider angle (angle b/w RA/Dec axes and Image X/Y axes) is constant
                 if rot_x < 0:
                     # The pixel distance is positive in this case (for gamma = 180), but the RA distance is negative because RA increases

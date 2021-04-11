@@ -118,13 +118,14 @@ It has the following attributes:
             The maximum distance in arcseconds that the guider can make adjustments for.  Our default is 30 arcseconds.
         guider_angle : FLOAT, optional
             The clocking angle of the CCD camera's x and y axes against the RA and Dec axes of the telescope, in
-            degrees.  This is the angle between the POSITIVE x/y axis and the NEGATIVE RA/Dec axis.  In other words,
-            0.0 degrees corresponds to 180 degrees between +x/+y and +RA/+Dec.
-            This angle should be in the domain (-180, 180], with -180/180 corresponding to alignment of the +x/+y axis with
-            the +RA/+Dec axis.  Then, -90 is a configuration in which +x aligns with +Dec and +y aligns with -RA.  And
-            +90 is a configuration in which +x aligns with -Dec and +y aligns with +RA.
-            Does NOT support mirrored configurations--i.e. +x is +RA while +y is -Dec; or +x is -RA while +y is +Dec.
-            Our default is 0.0 degrees.
+            degrees.  This is the angle between the POSITIVE x/y axis and the POSITIVE RA/Dec axis.  In other words,
+            0.0 degrees corresponds to alignment between +x/+y and +RA/+Dec.  Our default is 180 degrees.
+        guider_flip_y : BOOL, optional
+            This supports guider axes configurations that are mirrored with respect to a simple guider angle flip.
+            If True, this will flip the y axis of the guider.
+            This would correspond to configurations that, at a 0 degree guider angle, would have +x aligned with +RA
+            while +y is aligned with -Dec.  Or similarly if the guider angle is 180 degrees, +x aligns with -RA while
+            +y aligns with +Dec.  Our default is False.
         data_directory : STR, optional
             Where images and other data are saved on the computer.  Our default is
             H:/Observatory Files/Observing Sessions/2020_Data.

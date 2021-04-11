@@ -23,7 +23,7 @@ class Config:
                  focus_iterations: Optional[int] = None, focus_adjust_frequency: Optional[Union[float, int]] = None,
                  guiding_threshold: Optional[float] = None, guider_ra_dampening: Optional[float] = None,
                  guider_dec_dampening: Optional[float] = None, guider_max_move: Optional[float] = None,
-                 guider_angle: Optional[float] = None, data_directory: Optional[str] = None,
+                 guider_angle: Optional[float] = None, guider_flip_y: Optional[bool] = None, data_directory: Optional[str] = None,
                  calibration_time: Optional[str] = None, calibration_num: Optional[int] = None):
         """
 
@@ -96,13 +96,14 @@ class Config:
             The maximum distance in arcseconds that the guider can make adjustments for.  Our default is 30 arcseconds.
         guider_angle : FLOAT, optional
             The clocking angle of the CCD camera's x and y axes against the RA and Dec axes of the telescope, in
-            degrees.  This is the angle between the POSITIVE x/y axis and the NEGATIVE RA/Dec axis.  In other words,
-            0.0 degrees corresponds to 180 degrees between +x/+y and +RA/+Dec.
-            This angle should be in the domain (-180, 180], with -180/180 corresponding to alignment of the +x/+y axis with
-            the +RA/+Dec axis.  Then, -90 is a configuration in which +x aligns with +Dec and +y aligns with -RA.  And
-            +90 is a configuration in which +x aligns with -Dec and +y aligns with +RA.
-            Does NOT support mirrored configurations--i.e. +x is +RA while +y is -Dec; or +x is -RA while +y is +Dec.
-            Our default is 0.0 degrees.
+            degrees.  This is the angle between the POSITIVE x/y axis and the POSITIVE RA/Dec axis.  In other words,
+            0.0 degrees corresponds to alignment between +x/+y and +RA/+Dec.  Our default is 180 degrees.
+        guider_flip_y : BOOL, optional
+            This supports guider axes configurations that are mirrored with respect to a simple guider angle flip.
+            If True, this will flip the y axis of the guider.
+            This would correspond to configurations that, at a 0 degree guider angle, would have +x aligned with +RA
+            while +y is aligned with -Dec.  Or similarly if the guider angle is 180 degrees, +x aligns with -RA while
+            +y aligns with +Dec.  Our default is False.
         data_directory : STR, optional
             Where images and other data are saved on the computer.  Our default is
             H:/Observatory Files/Observing Sessions/2020_Data.
@@ -152,6 +153,7 @@ class Config:
         self.guider_dec_dampening = guider_dec_dampening
         self.guider_max_move = guider_max_move                                  # Input in arcsec, output in arcsec
         self.guider_angle = guider_angle*pi/180
+        self.guider_flip_y = guider_flip_y
         self.data_directory = data_directory                     
         self.calibration_time = calibration_time
         self.calibration_num: int = calibration_num
@@ -218,7 +220,7 @@ def _dict_to_config_object(dic: Dict) -> Config:
                      focus_iterations=dic['focus_iterations'], focus_adjust_frequency=dic['focus_adjust_frequency'],
                      focus_max_distance=dic['focus_max_distance'], guiding_threshold=dic['guiding_threshold'],
                      guider_ra_dampening=dic['guider_ra_dampening'], guider_dec_dampening=dic['guider_dec_dampening'],
-                     guider_max_move=dic['guider_max_move'], guider_angle=dic['guider_angle'],
+                     guider_max_move=dic['guider_max_move'], guider_angle=dic['guider_angle'], guider_flip_y=dic['guider_flip_y'],
                      data_directory=dic['data_directory'], calibration_time=dic['calibration_time'],
                      calibration_num=dic['calibration_num'])
     logging.info('Global config object has been created')
