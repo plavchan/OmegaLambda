@@ -173,10 +173,11 @@ def convert_j2000_to_apparent(ra: float, dec: float) -> Tuple[float, float]:
     coords_apparent.dec.degree: FLOAT
         Declination of target in local topocentric coordinates ("JNow").
     """
-    year = time_utils.decimal_year()
+    obstime = Time(datetime.datetime.now(datetime.timezone.utc))
+    # Start with ICRS
     coords_j2000 = SkyCoord(ra=ra*u.hourangle, dec=dec*u.degree, frame='icrs')
-    # ICRS Equinox is always J2000
-    coords_apparent = coords_j2000.transform_to(FK5(equinox='J{}'.format(year)))
+    # Convert to FK5 (close enough to ICRS) with equinox at current time
+    coords_apparent = coords_j2000.transform_to(FK5(equinox=obstime))
     return coords_apparent.ra.hour, coords_apparent.dec.degree
 
 
@@ -197,8 +198,9 @@ def convert_apparent_to_j2000(ra: float, dec: float) -> Tuple[float, float]:
     coords_j2000.dec.degree: FLOAT
         Declination of target in J2000.
     """
-    year = time_utils.decimal_year()
-    coords_apparent = SkyCoord(ra=ra*u.hourangle, dec=dec*u.degree, frame=FK5(equinox='J{}'.format(year)))
+    obstime = Time(datetime.datetime.now(datetime.timezone.utc))
+    # Start with FK5 (close enough to ICRS) with equinox at apparent time
+    coords_apparent = SkyCoord(ra=ra*u.hourangle, dec=dec*u.degree, frame=FK5(equinox=obstime))
     # ICRS Equinox is always J2000
     coords_j2000 = coords_apparent.transform_to('icrs')
     return coords_j2000.ra.hour, coords_j2000.dec.degree
