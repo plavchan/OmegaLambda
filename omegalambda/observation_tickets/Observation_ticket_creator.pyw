@@ -78,6 +78,7 @@ def check_toi():
 
     open(os.path.abspath(os.path.join(info_directory, 'google.csv')), 'wb').write(savefile.content)
     start_date = datetime.date.today()
+    toi_tonight = None
     with open(os.path.abspath(os.path.join(info_directory, 'google.csv')), 'r') as f:
         reader = csv.reader(f)
         for row in reader:
