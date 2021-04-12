@@ -435,6 +435,9 @@ def convert_to_bjd_tdb(jd, name, lat, lon, height, ra=None, dec=None):
     else:
         return None
 
+    if (not radial_velocity) or (not pmra) or (not pmdec) or (not ra) or (not dec) or (not parallax):
+        return None
+
     return JDUTC_to_BJDTDB(JDUTC=jd, ra=ra, dec=dec, epoch=epoch, pmra=pmra, pmdec=pmdec, px=parallax,
                            rv=radial_velocity, lat=lat, longi=lon, alt=height, leap_update=False)[0][0]
 

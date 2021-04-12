@@ -500,7 +500,7 @@ class ObservationRun:
 
                 image_name = "{0:s}_{1:.3f}s_{2:s}-{3:04d}.fits".format(name, current_exp, str(current_filter).upper(),
                                                                         image_base[current_filter])
-            header_info_i = self.add_timed_header_info(header_info, name, exp_time)
+            header_info_i = self.add_timed_header_info(header_info, name, current_exp)
             self.camera.onThread(self.camera.expose,
                                  current_exp, self.filterwheel_dict[current_filter],
                                  os.path.join(path, image_name), "light", **header_info_i)
