@@ -97,7 +97,8 @@ class Config:
         guider_angle : FLOAT, optional
             The clocking angle of the CCD camera's x and y axes against the RA and Dec axes of the telescope, in
             degrees.  This is defined as the angle between the +x axis and the +RA axis, by rotating counterclockwise
-            (i.e. counterclockwise angles are positive, while clockwise angles are negative).
+            in the reference frame where RA increases to the left and Dec increases upwards.
+            (i.e. counterclockwise angles in this frame are positive, while clockwise angles are negative).
             0.0 degrees corresponds to alignment between +x/+y and +RA/+Dec.  Our default is 180 degrees.
         guider_flip_y : BOOL, optional
             This supports guider axes configurations that are mirrored with respect to a simple guider angle flip.
