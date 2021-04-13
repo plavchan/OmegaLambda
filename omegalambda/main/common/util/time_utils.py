@@ -263,9 +263,11 @@ def get_local_sidereal_time(longitude: float, date: Optional[Union[str, datetime
     jd = convert_to_jd_utc(date.replace(hour=0, minute=0, second=0, microsecond=0))
     ut_hours = fractional_hours_of_day(date)
 
+    omega = sun_moon_longitudes(jd, leap_seconds)[0]
     tmid = (jd - 2451545.0) / 36525.0  # offset Julian centuries
     t0 = (6.697374558 + 2400.0513369072 * tmid + (2.58622 * tmid**2)*1e-5 - (1.7222078704899681391543959355894 * tmid**3)*1e-9) % 24
     gmst = (t0 + ut_hours * 1.00273790935 + n_longitude(jd, leap_seconds) * np.cos(true_obliquity(jd, leap_seconds)*np.pi/180) / 15) % 24
+    gmst += (0.00625 * np.sin(omega) + 0.0000063 * np.sin(2 * omega)) / 3600
 
     lmst_frac = (gmst + longitude / 15) / 24
     day_frac = lmst_frac - int(lmst_frac)

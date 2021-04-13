@@ -345,11 +345,11 @@ class Telescope(Hardware):
         if alt <= 15:
             return logging.error("Cannot slew below 15 degrees altitude.")
         else:
-            with self.movement_lock:
-                (ra, dec) = conversion_utils.convert_altaz_to_radec(az, alt, self.config_dict.site_latitude,
-                                                                    self.config_dict.site_longitude, time)
-                self.slew(ra, dec, tracking)
-                logging.info('Slewing to Alt/Az')
+            (ra, dec) = conversion_utils.convert_altaz_to_radec(az, alt, self.config_dict.site_latitude,
+                                                                self.config_dict.site_longitude, time)
+            (ra, dec) = conversion_utils.convert_apparent_to_j2000(ra, dec)
+            self.slew(ra, dec, tracking)
+            logging.info('Slewing to Alt/Az')
     
     def abort(self):
         """

@@ -105,10 +105,13 @@ class Calibration(Hardware):
                     self.image_directories[ticket], r'Flats_{}'.format(ticket.name), image_name))
                 if scaled is False and median < self.config_dict.saturation:
                     # Calculate exposure time
-                    desired = 15000
-                    scale_factor = desired/median
-                    self.filter_exp_times[f] = round(self.filter_exp_times[f] * scale_factor)
-                    if self.filter_exp_times[f] <= 0.001:
+                    scale_factor = 0.6*self.config_dict.saturation / median
+                    scaled_exp_time = self.filter_exp_times[f] * scale_factor
+                    if scaled_exp_time >= 5:
+                        self.filter_exp_times[f] = round(self.filter_exp_times[f] * scale_factor)
+                    elif 0.25 <= scaled_exp_time < 5:
+                        self.filter_exp_times[f] = round(self.filter_exp_times[f] * scale_factor * 2) / 2
+                    else:
                         self.filter_exp_times[f] = 0.001
                     scaled = True
                 elif j == 0 and median >= self.config_dict.saturation:
