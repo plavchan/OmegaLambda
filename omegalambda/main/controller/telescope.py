@@ -316,9 +316,9 @@ class Telescope(Hardware):
             
         elif abs(distance) >= 30*60:                         # More than 30', slew normally
             if direction in ("north", "south"):
-                self.slew(self.Telescope.RightAscension, self.Telescope.Declination + distance)
+                self.slew(self.Telescope.RightAscension, self.Telescope.Declination + distance/3600)
             elif direction in ("east", "west"):
-                self.slew(self.Telescope.RightAscension + distance, self.Telescope.Declination)
+                self.slew(self.Telescope.RightAscension + distance/(15*3600), self.Telescope.Declination)
             logging.info('Telescope is jogging')
     
     def slewaltaz(self, az, alt, time=None, tracking=False):
