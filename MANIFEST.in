@@ -1,0 +1,4 @@
+include omegalambda/config/fw_config.json
+include omegalambda/config/logging.json
+include omegalambda/config/parameters_config.json
+include observation_tickets/url_config.json
