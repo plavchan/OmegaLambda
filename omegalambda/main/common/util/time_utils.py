@@ -415,10 +415,13 @@ def convert_to_bjd_tdb(jd, name, lat, lon, height, ra=None, dec=None):
     #             pmdec = toi_info['PM Dec (mas/yr)'].values[0]
 
     # Query SIMBAD for proper motion, parallax, and RV
-    simbad = Simbad()
-    simbad.add_votable_fields('ra(2;A;ICRS;J2000)', 'dec(2;D;ICRS;J2000)','pm', 'plx','parallax','rv_value')
-    simbad.remove_votable_fields('coordinates')
-    table = simbad.query_object(name)
+    try:
+        simbad = Simbad()
+        simbad.add_votable_fields('ra(2;A;ICRS;J2000)', 'dec(2;D;ICRS;J2000)','pm', 'plx','parallax','rv_value')
+        simbad.remove_votable_fields('coordinates')
+        table = simbad.query_object(name)
+    except TimeoutError:
+        return None
     if not table:
         if not ra or not dec:
             return None
