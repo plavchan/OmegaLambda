@@ -420,7 +420,9 @@ def convert_to_bjd_tdb(jd, name, lat, lon, height, ra=None, dec=None):
         simbad.add_votable_fields('ra(2;A;ICRS;J2000)', 'dec(2;D;ICRS;J2000)','pm', 'plx','parallax','rv_value')
         simbad.remove_votable_fields('coordinates')
         table = simbad.query_object(name)
-    except TimeoutError:
+    except (urllib3.exceptions.MaxRetryError, urllib3.exceptions.HTTPError, urllib3.exceptions.TimeoutError,
+            urllib3.exceptions.InvalidHeader, requests.exceptions.ConnectionError, requests.exceptions.Timeout,
+            requests.exceptions.HTTPError, TimeoutError):
         return None
     if not table:
         if not ra or not dec:
