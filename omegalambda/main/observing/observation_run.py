@@ -148,7 +148,8 @@ class ObservationRun:
             time.sleep(self.config_dict.min_reopen_time * 60)
 
             while self.conditions.weather_alert.isSet():
-                if cooler := self.conditions.sun:
+                if self.conditions.sun:
+                    cooler = True
                     self.camera.onThread(self.camera.cooler_set, False)
                     sunset_time = conversion_utils.get_sunset(datetime.datetime.now(self.tz),
                                                               self.config_dict.site_latitude,
