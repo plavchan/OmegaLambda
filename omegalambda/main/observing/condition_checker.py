@@ -290,11 +290,11 @@ class Conditions(threading.Thread):
                 uncolored_i = np.where(np.isclose(colsum, 0))[0]
                 percent_colored = (1 - colors[uncolored_i][0][0] / px) * 100
                 logging.debug('Rain percentage: {:.5f}'.format(percent_colored))
+                img.close()
                 if percent_colored >= self.config_dict.rain_percent_limit:
                     return True
                 else:
                     rain.append(1)
-                    img.close()
             else:
                 img.close()
                 continue
