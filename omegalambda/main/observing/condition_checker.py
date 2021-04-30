@@ -258,10 +258,8 @@ class Conditions(threading.Thread):
             logging.warning('Could not save weather.com html due to a unicode error.')
 
         epoch_sec = time_utils.datetime_to_epoch_milli_converter(datetime.datetime.utcnow()) / 1000
-        esec_round = time_utils.rounddown_300(epoch_sec)
+        esec_round = int(time_utils.rounddown_300(epoch_sec) - 300)
         # Website radar images only update every 300 seconds
-        if abs(epoch_sec - esec_round) < 10:
-            time.sleep(10 - abs(epoch_sec - esec_round))
 
         coords = {0: '291:391:10', 1: '291:392:10', 2: '292:391:10', 3: '292:392:10'}
         # Radar map coordinates found by looking through html
@@ -291,13 +289,15 @@ class Conditions(threading.Thread):
                 colsum = [np.nansum(colors[:, 1][i]) for i in range(len(colors))]
                 uncolored_i = np.where(np.isclose(colsum, 0))[0]
                 percent_colored = (1 - colors[uncolored_i][0][0] / px) * 100
+                logging.debug('Rain percentage: {:.5f}'.format(percent_colored))
                 if percent_colored >= self.config_dict.rain_percent_limit:
                     return True
                 else:
                     rain.append(1)
+                    img.close()
             else:
+                img.close()
                 continue
-            img.close()
         if sum(rain) >= 2:
             return True
         else:
