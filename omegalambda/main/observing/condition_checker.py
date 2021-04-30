@@ -319,7 +319,7 @@ class Conditions(threading.Thread):
         satellite = self.config_dict.cloud_satellite
         day = str(int(time_utils.days_of_year())).zfill(3)
         conus_band = 13
-        _time = datetime.datetime.now(datetime.timezone.utc)
+        _time = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(minutes=5)
         year = _time.year
         time_round = time_utils.rounddown_300(_time.hour * 60 * 60 + _time.minute * 60 + _time.second)
         req = None
@@ -355,8 +355,9 @@ class Conditions(threading.Thread):
         img_small = Image.fromarray(img_internal)
         px = img_small.size[0] * img_small.size[1]
         colors = img_small.getcolors()
-        clouds = [color for color in colors if color[1] > self.config_dict.cloud_saturation_limit]
-        percent_cover = sum([cloud[0] for cloud in clouds]) / px * 100
+        percent_cover = sum([colorn * (0, colorp - self.config_dict.cloud_saturation_limit)[colorp - self.config_dict.cloud_saturation_limit >= 0] /
+                             (256 - self.config_dict.cloud_saturation_limit) for (colorn, colorp) in colors]) / px * 100
+        logging.debug('Cloud coverage saturation (%): {:.5f}'.format(percent_cover))
         img.close()
         img_small.close()
         if percent_cover >= self.config_dict.cloud_cover_limit:
