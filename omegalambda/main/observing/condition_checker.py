@@ -355,7 +355,7 @@ class Conditions(threading.Thread):
         img_small = Image.fromarray(img_internal)
         px = img_small.size[0] * img_small.size[1]
         colors = img_small.getcolors()
-        percent_cover = sum([colorn * (0, colorp - self.config_dict.cloud_saturation_limit)[colorp - self.config_dict.cloud_saturation_limit >= 0] /
+        percent_cover = sum([colorn * (0, colorp)[colorp - self.config_dict.cloud_saturation_limit >= 0] /
                              (256 - self.config_dict.cloud_saturation_limit) for (colorn, colorp) in colors]) / px * 100
         logging.debug('Cloud coverage saturation (%): {:.5f}'.format(percent_cover))
         img.close()

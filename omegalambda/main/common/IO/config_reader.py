@@ -50,8 +50,8 @@ class Config:
         weather_freq : INT, optional
             Frequency of weather checks in minutes.  Our default is 10 minutes.
         cloud_cover_limit : FLOAT, optional
-            Limit for percentage of sky around Fairfax to be completely saturated (not just covered) by clouds before closing up.
-            Our default is 35%.
+            Limit for percentage of sky around Fairfax to be covered by clouds before closing up.
+            Our default is 75%.
         cloud_saturation_limit: FLOAT, optional
             Pixel value that represents no clouds in the satellite image.  Our default is 73.
         rain_percent_limit: FLOAT, optional
