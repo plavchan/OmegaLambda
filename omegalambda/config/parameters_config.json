@@ -9,7 +9,7 @@
 	"humidity_limit": 85,
 	"wind_limit": 20,
 	"weather_freq": 5,
-	"cloud_cover_limit": 75,
+	"cloud_cover_limit": 85,
 	"cloud_saturation_limit": 73,
 	"rain_percent_limit": 5,
 	"user_agent": "Mozilla/5.0",
