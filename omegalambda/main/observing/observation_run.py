@@ -7,7 +7,7 @@ import re
 import copy
 import logging
 import subprocess
-# import threading
+import threading
 
 from ..common.util import time_utils, conversion_utils
 from ..common.IO import config_reader
@@ -60,18 +60,19 @@ class ObservationRun:
         self.continuous_focus_toggle = True
         self.tz = observation_request_list[0].start_time.tzinfo
         self.time_start = None
+        self.plot_lock = threading.Lock()
 
         # Initializes all relevant hardware
         self.camera = Camera()
         self.telescope = Telescope()
         self.dome = Dome()
         self.focuser = Focuser()
-        self.conditions = Conditions()
+        self.conditions = Conditions(plot_lock=self.plot_lock)
         self.flatlamp = FlatLamp()
 
 
         # Initializes higher level structures - focuser, guider, and calibration
-        self.focus_procedures = FocusProcedures(self.focuser, self.camera, self.conditions)
+        self.focus_procedures = FocusProcedures(self.focuser, self.camera, self.conditions, plot_lock=self.plot_lock)
         self.calibration = Calibration(self.camera, self.flatlamp, self.image_directories)
         self.guider = Guider(self.camera, self.telescope)
         self.gui = Gui(self.focuser, self.focus_procedures, focus_toggle)

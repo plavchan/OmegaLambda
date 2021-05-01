@@ -23,10 +23,15 @@ from ..common.IO import config_reader
 
 class Conditions(threading.Thread):
 
-    def __init__(self):
+    def __init__(self, plot_lock=None):
         """
         Subclassed from threading.Thread.  Conditions periodically checks the humidity, wind, sun position, clouds, and
         rain while observing.
+
+        Parameters
+        ----------
+        plot_lock : threading.Lock
+            A thread lock to prevent multiple matplotlib plots from being opened simultaneously across different threads.
 
         Returns
         -------
@@ -40,6 +45,7 @@ class Conditions(threading.Thread):
         self.weather_alert = threading.Event()
         self.connection_alert = threading.Event()
         self.stop = threading.Event()
+        self.plot_lock = plot_lock
         # Threading events to set flags and interact between threads
         self.config_dict = config_reader.get_config()  # Global config dictionary
         self.weather_url = 'http://weather.cos.gmu.edu/Current_Monitor.htm'
@@ -370,6 +376,10 @@ class Conditions(threading.Thread):
             percent_cover = sum([colorn * (0, colorp)[colorp - self.config_dict.cloud_saturation_limit >= 0] /
                                  reference for (colorn, colorp) in colors]) / px * 100
         logging.debug('Cloud coverage saturation (%): {:.5f}'.format(percent_cover))
+        if not isinstance(self.plot_lock, type(None)):
+            self.plot_lock.acquire()
+        else:
+            logging.warning('No thread lock is being utilized for plot drawing: plots may draw incorrectly!')
         colornorm = mplc.Normalize(vmin=0, vmax=256)
         fig, ax = plt.subplots()
         plot = ax.imshow(img_internal, cmap=plt.get_cmap('PuOr'), norm=colornorm)
@@ -378,6 +388,8 @@ class Conditions(threading.Thread):
         cbar = fig.colorbar(plot, cax=cbar_ax)
         ax.set_title('Percent Cover: {:.2f}%'.format(percent_cover))
         plt.savefig(os.path.abspath(os.path.join(self.weather_directory, r'cloud-img-small.png')))
+        if not isinstance(self.plot_lock, type(None)):
+            self.plot_lock.release()
         img.close()
         img_small.close()
         if percent_cover >= self.config_dict.cloud_cover_limit:
