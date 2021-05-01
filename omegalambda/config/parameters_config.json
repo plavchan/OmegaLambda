@@ -10,7 +10,7 @@
 	"wind_limit": 20,
 	"weather_freq": 6,
 	"cloud_cover_limit": 75,
-	"cloud_saturation_limit": 100,
+	"cloud_saturation_limit": 110,
 	"rain_percent_limit": 5,
 	"user_agent": "Mozilla/5.0",
 	"cloud_satellite": "goes-16",
