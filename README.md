@@ -73,9 +73,9 @@ It has the following attributes:
             Frequency of weather checks in minutes.  Our default is 10 minutes.
         cloud_cover_limit : FLOAT, optional
             Limit for percentage of sky around Fairfax to be covered by clouds before closing up.
-            Our default is 85%.
+            Our default is 75%.
         cloud_saturation_limit: FLOAT, optional
-            Pixel value that represents no clouds in the satellite image.  Our default is 73.
+            Minimum pixel value that represents a clouds in the satellite image.  Our default is 100.
         rain_percent_limit: FLOAT, optional
             Limit for the percentage of rain present in 1/4 of the field surveyed before shutting down (two tiles
             out of the four must pass this threshold).  Our default is 5%.

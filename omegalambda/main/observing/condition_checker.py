@@ -12,6 +12,8 @@ import logging
 import datetime
 import time
 import numpy as np
+from matplotlib import pyplot as plt
+from matplotlib import colors as mplc
 
 from PIL import Image
 
@@ -327,6 +329,9 @@ class Conditions(threading.Thread):
         for i in range(6):
             hour = int(time_round / (60 * 60))
             minute = int((time_round - hour * 60 * 60) / 60) - i
+            if minute < 0:
+                hour -= 1
+                minute += 60
             _time = '{0:02d}{1:02d}'.format(hour, minute)
             if (minute - 1) % 5 != 0:
                 continue
@@ -334,11 +339,13 @@ class Conditions(threading.Thread):
                 '{}_{}{}_{}_{}_conus.gif'.format(satellite, year, day, _time, conus_band)
             try:
                 req = s.get(url, headers={'User-Agent': self.config_dict.user_agent})
+                break
             except (urllib3.exceptions.MaxRetryError, urllib3.exceptions.HTTPError, urllib3.exceptions.TimeoutError,
                     urllib3.exceptions.InvalidHeader, requests.exceptions.ConnectionError, requests.exceptions.Timeout,
                     requests.exceptions.HTTPError):
                 self.connection_alert.set()
                 return None
+
         target_path = os.path.abspath(os.path.join(self.weather_directory, r'cloud-img.gif'))
         with open(target_path, 'wb') as file:
             file.write(req.content)
@@ -355,9 +362,22 @@ class Conditions(threading.Thread):
         img_small = Image.fromarray(img_internal)
         px = img_small.size[0] * img_small.size[1]
         colors = img_small.getcolors()
-        percent_cover = sum([colorn * (0, colorp)[colorp - self.config_dict.cloud_saturation_limit >= 0] /
-                             (256 - self.config_dict.cloud_saturation_limit) for (colorn, colorp) in colors]) / px * 100
+        clouds = [color[1] for color in colors]
+        if max(clouds) < self.config_dict.cloud_saturation_limit:
+            percent_cover = 0.0
+        else:
+            reference = max(clouds) if max(clouds) < 255 else 255
+            percent_cover = sum([colorn * (0, colorp)[colorp - self.config_dict.cloud_saturation_limit >= 0] /
+                                 reference for (colorn, colorp) in colors]) / px * 100
         logging.debug('Cloud coverage saturation (%): {:.5f}'.format(percent_cover))
+        colornorm = mplc.Normalize(vmin=0, vmax=256)
+        fig, ax = plt.subplots()
+        plot = ax.imshow(img_internal, cmap=plt.get_cmap('PuOr'), norm=colornorm)
+        pos = ax.get_position()
+        cbar_ax = fig.add_axes([0.83, pos.y0, 0.025, pos.height])
+        cbar = fig.colorbar(plot, cax=cbar_ax)
+        ax.set_title('Percent Cover: {:.2f}%'.format(percent_cover))
+        plt.savefig(os.path.abspath(os.path.join(self.weather_directory, r'cloud-img-small.png')))
         img.close()
         img_small.close()
         if percent_cover >= self.config_dict.cloud_cover_limit:
