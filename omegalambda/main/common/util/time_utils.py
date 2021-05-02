@@ -259,7 +259,7 @@ def get_local_sidereal_time(longitude: float, date: Optional[Union[str, datetime
     if not date.tzinfo:
         date = pytz.utc.localize(date)
     if date.tzinfo not in (pytz.UTC, pytz.utc, datetime.timezone.utc):
-        raise ValueError('Time must be in UTC!')
+        date = date.astimezone(pytz.UTC)
     jd = convert_to_jd_utc(date.replace(hour=0, minute=0, second=0, microsecond=0))
     ut_hours = fractional_hours_of_day(date)
 
