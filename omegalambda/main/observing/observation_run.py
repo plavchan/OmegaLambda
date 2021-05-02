@@ -209,7 +209,7 @@ class ObservationRun:
 
         """
         # Give initial time lag to allow first weather check to complete
-        time.sleep(5)
+        time.sleep(10)
         initial_check = self.everything_ok()
         if cooler:
             self.camera.onThread(self.camera.cooler_set, True)
