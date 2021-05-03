@@ -374,14 +374,8 @@ class Conditions(threading.Thread):
         img_small = Image.fromarray(img_internal)
         px = img_small.size[0] * img_small.size[1]
         colors = img_small.getcolors()
-        clouds = [color[1] for color in colors]
-        if max(clouds) < self.config_dict.cloud_saturation_limit:
-            percent_cover = 0.0
-        else:
-            reference = max(clouds) if max(clouds) < 255 else 255
-            percent_cover = sum([colorn * (0, colorp)[colorp - self.config_dict.cloud_saturation_limit >= 0] /
-                                 reference for (colorn, colorp) in colors]) / px * 100
-        logging.debug('Cloud coverage saturation (%): {:.5f}'.format(percent_cover))
+        percent_cover = sum([(0, colorn)[colorp - self.config_dict.cloud_saturation_limit >= 0] for (colorn, colorp) in colors]) / px * 100
+        logging.debug('Cloud coverage (%): {:.5f}'.format(percent_cover))
         if not isinstance(self.plot_lock, type(None)):
             self.plot_lock.acquire()
         else:
