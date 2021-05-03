@@ -338,6 +338,9 @@ class Conditions(threading.Thread):
             if minute < 0:
                 hour -= 1
                 minute += 60
+            if hour < 0:
+                day = str(int(time_utils.days_of_year() - 1)).zfill(3)
+                hour += 24
             _time = '{0:02d}{1:02d}'.format(hour, minute)
             if (minute - 1) % 5 != 0:
                 continue
@@ -351,7 +354,6 @@ class Conditions(threading.Thread):
                     requests.exceptions.HTTPError):
                 self.connection_alert.set()
                 return None
-
         target_path = os.path.abspath(os.path.join(self.weather_directory, r'cloud-img.gif'))
         with open(target_path, 'wb') as file:
             file.write(req.content)
