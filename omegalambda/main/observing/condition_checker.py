@@ -325,7 +325,7 @@ class Conditions(threading.Thread):
 
         """
         satellite = self.config_dict.cloud_satellite
-        day = str(int(time_utils.days_of_year())).zfill(3)
+        day = int(time_utils.days_of_year())
         conus_band = 13
         _time = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(minutes=5)
         year = _time.year
@@ -339,8 +339,12 @@ class Conditions(threading.Thread):
                 hour -= 1
                 minute += 60
             if hour < 0:
-                day = str(int(time_utils.days_of_year() - 1)).zfill(3)
+                day -= 1
                 hour += 24
+            if int(day) < 0:
+                year -= 1
+                day += 365
+            day = str(day).zfill(3)
             _time = '{0:02d}{1:02d}'.format(hour, minute)
             if (minute - 1) % 5 != 0:
                 continue
