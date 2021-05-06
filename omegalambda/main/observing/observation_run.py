@@ -305,7 +305,7 @@ class ObservationRun:
             self.camera.onThread(self.camera.cooler_set, True)
             self.camera.onThread(self.camera.cooler_ready)
             self.camera.cooler_settle.wait()
-            logging.info('Taking darks and flats...')
+            logging.info('Beginning flat and dark collection...')
             self.take_calibration_images(beginning=True)
         else:
             cooler = True
@@ -635,9 +635,12 @@ class ObservationRun:
         None.
         """
         for i in range(len(self.observation_request_list)):
+            logging.debug('In calibration loop: taking calibration images for index {}, {}'.format(i, self.observation_request_list[i].name))
             if self.calibrated_tickets[i]:
+                logging.debug('The target\'s calibration images have already been collected...skipping to next.')
                 continue
             if (self.observation_request_list[i].start_time >= datetime.datetime.now(self.tz)) and (beginning is False):
+                logging.debug('The start time of the ticket has not passed yet, ending calibration loop.')
                 break
             self.calibration.onThread(self.calibration.take_flats, self.observation_request_list[i])
             self.calibration.flats_done.wait()
@@ -734,7 +737,7 @@ class ObservationRun:
         self.telescope.onThread(self.telescope.park)      # Backup in case a pulse guide interrupted the last park
         self.telescope.slew_done.wait()
         if calibration:
-            logging.info('Taking flats and darks...')
+            logging.info('Beginning flat and dark collection...')
             self.take_calibration_images()
         if cooler:
             self.camera.onThread(self.camera.cooler_set, False)
