@@ -637,13 +637,16 @@ class ObservationRun:
         for i in range(len(self.observation_request_list)):
             if self.calibrated_tickets[i]:
                 continue
+            if (self.observation_request_list[i].start_time >= datetime.datetime.now(self.tz)) and (beginning is False):
+                break
             self.calibration.onThread(self.calibration.take_flats, self.observation_request_list[i])
             self.calibration.flats_done.wait()
             self.calibration.onThread(self.calibration.take_darks, self.observation_request_list[i])
             self.calibration.darks_done.wait()
             self.calibrated_tickets[i] = 1
-            if self.current_ticket == self.observation_request_list[i] and beginning is False:
-                break
+            # Doesn't work?
+            # if self.current_ticket == self.observation_request_list[i] and beginning is False:
+            #     break
 
     def shutdown(self, calibration=False):
         """
