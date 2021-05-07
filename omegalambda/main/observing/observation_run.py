@@ -273,20 +273,31 @@ class ObservationRun:
             Whether or not the ticket start time caused a shutdown.
         """
         shutdown = False
+        cooler = False
         current_time = datetime.datetime.now(self.tz)
         if ticket.start_time > current_time:
             logging.info("It is not the start time {} of {} observation, "
                          "waiting till start time.".format(ticket.start_time.isoformat(), ticket.name))
             if ticket != self.observation_request_list[0] and \
-                    ((ticket.start_time - current_time) > datetime.timedelta(minutes=3)):
+                    ((ticket.start_time - current_time) > datetime.timedelta(hours=8)):
+                logging.info("Start time of the next ticket is at least 8 hours in advance.  Shutting down "
+                             "observatory in the meantime.")
+                cooler = True
+                calibration = (self.config_dict.calibration_time == "end") and (self.calibration_toggle is True)
+                self._shutdown_procedure(calibration=calibration, cooler=cooler)
+                shutdown = True
+            elif ticket != self.observation_request_list[0] and \
+                    ((ticket.start_time - current_time) > datetime.timedelta(minutes=5)):
                 logging.info("Start time of the next ticket is not immediate.  Shutting down "
                              "observatory in the meantime.")
-                self._shutdown_procedure(calibration=False, cooler=False)
+                cooler = False
+                self._shutdown_procedure(calibration=False, cooler=cooler)
                 shutdown = True
+            current_time = datetime.datetime.now(self.tz)
             current_epoch_milli = time_utils.datetime_to_epoch_milli_converter(current_time)
             start_time_epoch_milli = time_utils.datetime_to_epoch_milli_converter(ticket.start_time)
             time.sleep((start_time_epoch_milli - current_epoch_milli) / 1000)
-        return shutdown
+        return shutdown, cooler
 
     def observe(self):
         """
@@ -325,7 +336,7 @@ class ObservationRun:
             self.crash_check('ASCOMDome.exe')
 
             self.tz = ticket.start_time.tzinfo
-            shutdown = self.check_start_time(ticket)
+            shutdown, cooler = self.check_start_time(ticket)
             if ticket.end_time < datetime.datetime.now(self.tz):
                 logging.info("the end time {} of {} observation has already passed. "
                              "Skipping to next target.".format(ticket.end_time.isoformat(), ticket.name))
@@ -334,7 +345,7 @@ class ObservationRun:
                 self.shutdown()
                 return
             if shutdown:
-                initial_shutter = self._startup_procedure(cooler=False)
+                initial_shutter = self._startup_procedure(cooler=cooler)
 
             if not self._ticket_slew(ticket):
                 self.shutdown()
