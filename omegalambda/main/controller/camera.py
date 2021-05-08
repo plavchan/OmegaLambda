@@ -126,9 +126,9 @@ class Camera(Hardware):
                 self.cooler_set(True)
 
             t_diff = self.Camera.Temperature - self.Camera.TemperatureSetpoint
-            power = self.Camera.CoolerPower
+            # power = self.Camera.CoolerPower
 
-            if t_diff >= 0.1 and power >= 90:
+            if t_diff >= 0.1:
                 if t_diff >= 10:
                     self.Camera.TemperatureSetpoint += 5
                 elif t_diff >= 5:
@@ -138,7 +138,7 @@ class Camera(Hardware):
                 else:
                     self.Camera.TemperatureSetpoint += 0.5
                 print("Cooler Setpoint adjusted to {0:.1f} C".format(self.Camera.TemperatureSetpoint))
-            elif t_diff <= -0.5 and power <= 40:
+            elif t_diff <= -0.5:
                 self.Camera.TemperatureSetpoint -= 0.5
                 print("Cooler Setpoint adjusted to {0:.1f} C".format(self.Camera.TemperatureSetpoint))
             else:
@@ -168,12 +168,12 @@ class Camera(Hardware):
                 continue
             temp = self.Camera.Temperature
             temp_rate = abs(temp - last_temp)
-            if temp_rate <= 3:
-                self._cooler_adjust()
-            elif temp_rate <= 0.5:
+            if temp_rate <= 0.5:
                 self.Camera.TemperatureSetPoint = self.Camera.Temperature
                 logging.info("Cooler Setpoint adjusted to {0:.1f} C".format(self.Camera.TemperatureSetpoint))
                 break
+            elif temp_rate <= 3:
+                self._cooler_adjust()
             if self.Camera.Temperature < self.Camera.TemperatureSetpoint:
                 break
             last_temp = temp
