@@ -143,10 +143,18 @@ class ObservationRun:
             self.guider.loop_done.wait(timeout=10)
             time.sleep(5)
             cooler = self.conditions.sun
+            calib_start = time.monotonic()
             self._shutdown_procedure(calibration=calibration, cooler=cooler)
+            calib_end = time.monotonic()
+            if calibration:
+                sleep_time = (self.config_dict.min_reopen_time + 3) * 60 - (calib_end - calib_start)
+                if sleep_time <= 0:
+                    sleep_time = 0
+            else:
+                sleep_time = self.config_dict.min_reopen_time * 60
             logging.info("Sleeping for {} minutes, then weather checks will resume to attempt "
-                         "a possible re-open.".format(self.config_dict.min_reopen_time))
-            time.sleep(self.config_dict.min_reopen_time * 60)
+                         "a possible re-open.".format(sleep_time // 60))
+            time.sleep(sleep_time)
 
             while self.conditions.weather_alert.isSet():
                 if self.conditions.sun:
