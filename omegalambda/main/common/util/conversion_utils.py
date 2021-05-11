@@ -3,6 +3,7 @@ import re
 import datetime
 from typing import Tuple, Union, Optional
 
+from scipy.optimize import minimize_scalar
 from astropy import units as u
 from astropy.coordinates import SkyCoord, FK5, AltAz, get_sun, EarthLocation
 from astropy.time import Time
@@ -246,20 +247,22 @@ def get_sunset(day: Union[str, datetime.datetime], latitude: float, longitude: f
     Returns
     -------
     datetime.datetime object
-        Time to the nearest 15 minutes that the Sun will set
+        Time that the Sun will set
         below the horizon for the specified day at the specified
         coordinates.
 
     """
     if type(day) is not datetime.datetime:
         day = time_utils.convert_to_datetime(day)
-    for i in range(12*4):
-        hour = int(i/4) + 12
-        minute = 15*(i % 4)
-        time = datetime.datetime(day.year, day.month, day.day, hour, minute, 0, tzinfo=day.tzinfo)
-        alt = get_sun_elevation(time, latitude, longitude)
-        if alt <= -12:
-            return time.replace(tzinfo=datetime.timezone.utc) - time.utcoffset()
+
+    def sunalt12(hours):
+        hms = sexagesimal(hours)
+        h, m, s = hms.split(' ')
+        return (get_sun_elevation(day.replace(hour=int(h), minute=int(m), second=int(float(s))), latitude, longitude) + 12)**2
+
+    sunset_hours = minimize_scalar(sunalt12, bounds=(12, 23), method='bounded')['x']
+    hour, minute, second = sexagesimal(sunset_hours).split(' ')
+    return day.replace(hour=int(hour), minute=int(minute), second=int(float(second)), tzinfo=datetime.timezone.utc) - day.utcoffset()
 
 
 def airmass(altitude: float) -> float:
