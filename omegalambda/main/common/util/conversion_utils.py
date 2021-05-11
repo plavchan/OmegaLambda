@@ -258,7 +258,7 @@ def get_sunset(day: Union[str, datetime.datetime], latitude: float, longitude: f
         minute = 15*(i % 4)
         time = datetime.datetime(day.year, day.month, day.day, hour, minute, 0, tzinfo=day.tzinfo)
         alt = get_sun_elevation(time, latitude, longitude)
-        if alt <= 0:
+        if alt <= -12:
             return time.replace(tzinfo=datetime.timezone.utc) - time.utcoffset()
 
 
