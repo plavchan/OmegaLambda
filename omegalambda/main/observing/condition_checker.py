@@ -306,10 +306,8 @@ class Conditions(threading.Thread):
             else:
                 img.close()
                 continue
-        if sum(rain) >= 2:
-            return True
-        else:
-            return False
+
+        return False
 
     def cloud_check(self):
         """
