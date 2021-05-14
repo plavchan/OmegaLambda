@@ -341,15 +341,15 @@ class Conditions(threading.Thread):
             if hour < 0:
                 day -= 1
                 hour += 24
-            if int(day) < 0:
+            if day < 0:
                 year -= 1
                 day += 365
-            day = str(day).zfill(3)
             _time = '{0:02d}{1:02d}'.format(hour, minute)
             if (minute - 1) % 5 != 0:
                 continue
+            daystr = str(day).zfill(3)
             url = 'https://www.ssec.wisc.edu/data/geo/images/goes-16/animation_images/' + \
-                '{}_{}{}_{}_{}_conus.gif'.format(satellite, year, day, _time, conus_band)
+                '{}_{}{}_{}_{}_conus.gif'.format(satellite, year, daystr, _time, conus_band)
             try:
                 req = s.get(url, headers={'User-Agent': self.config_dict.user_agent})
                 break
