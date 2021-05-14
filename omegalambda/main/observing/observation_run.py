@@ -61,6 +61,7 @@ class ObservationRun:
         self.tz = observation_request_list[0].start_time.tzinfo
         self.time_start = None
         self.plot_lock = threading.Lock()
+        self.shutdown_event = threading.Event()
 
         # Initializes all relevant hardware
         self.camera = Camera()
@@ -72,7 +73,7 @@ class ObservationRun:
 
 
         # Initializes higher level structures - focuser, guider, and calibration
-        self.focus_procedures = FocusProcedures(self.focuser, self.camera, self.conditions, plot_lock=self.plot_lock)
+        self.focus_procedures = FocusProcedures(self.focuser, self.camera, self.conditions, self.shutdown_event, plot_lock=self.plot_lock)
         self.calibration = Calibration(self.camera, self.flatlamp, self.image_directories)
         self.guider = Guider(self.camera, self.telescope)
         self.gui = Gui(self.focuser, self.focus_procedures, focus_toggle)
@@ -166,7 +167,7 @@ class ObservationRun:
                     logging.info('The Sun has risen above the horizon...observing will stop until the Sun sets again '
                                  'at {}.'.format(sunset_time.strftime('%Y-%m-%d %H:%M:%S%z')))
                     current_time = datetime.datetime.now(self.tz)
-                    while current_time < sunset_time:
+                    while current_time < (sunset_time - datetime.timedelta(minutes=5)):
                         self.threadcheck()
                         current_time = datetime.datetime.now(self.tz)
                         if current_time > self.observation_request_list[-1].end_time:
@@ -218,6 +219,7 @@ class ObservationRun:
         """
         # Give initial time lag to allow first weather check to complete
         time.sleep(10)
+        self.shutdown_event.clear()
         initial_check = self.everything_ok()
         if cooler:
             self.camera.onThread(self.camera.cooler_set, True)
@@ -412,7 +414,13 @@ class ObservationRun:
             focus_exposure = 30
         self.focus_procedures.onThread(self.focus_procedures.startup_focus_procedure, focus_exposure,
                                        self.filterwheel_dict[focus_filter], self.image_directories[ticket])
-        self.focus_procedures.focused.wait()
+        time.sleep(1)
+        while not self.focus_procedures.focused.isSet():
+            check = self.everything_ok()
+            if not check:
+                self.focus_procedures.stop_initial_focusing()
+                break
+            time.sleep(self.config_dict.weather_freq * 60)
 
     def run_ticket(self, ticket):
         """
@@ -745,6 +753,7 @@ class ObservationRun:
         None.
         """
         logging.info("Shutting down observatory.")
+        self.shutdown_event.set()
         time.sleep(5)
         self.dome.onThread(self.dome.slave_dome_to_scope, False)
         self.telescope.onThread(self.telescope.park)

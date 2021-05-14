@@ -29,7 +29,7 @@ def standard_parabola(x, a, b, c):
 
 class FocusProcedures(Hardware):
 
-    def __init__(self, focus_obj, camera_obj, conditions_obj, plot_lock=None):
+    def __init__(self, focus_obj, camera_obj, conditions_obj, shutdown_event, plot_lock=None):
         """
         Initializes focusprocedures as a subclass of hardware.
 
@@ -56,8 +56,10 @@ class FocusProcedures(Hardware):
         self.plot_lock = plot_lock
         self.position_previous = None
         self.temp_previous = None
+        self.shutdown_event = shutdown_event
        
         self.focused = threading.Event()
+        self.initial_focusing = threading.Event()
         self.continuous_focusing = threading.Event()
         super(FocusProcedures, self).__init__(name='FocusProcedures')
 
@@ -107,6 +109,7 @@ class FocusProcedures(Hardware):
 
         """
         self.focused.clear()
+        self.initial_focusing.set()
         
         if not os.path.exists(os.path.join(image_path, r'focuser_images')):
             os.mkdir(os.path.join(image_path, r'focuser_images'))
@@ -122,6 +125,8 @@ class FocusProcedures(Hardware):
         errors = 0
         crash_loops = 0
         while i < self.config_dict.focus_iterations:
+            if not self.initial_focusing.isSet():
+                break
             if self.camera.crashed.isSet() or self.focuser.crashed.isSet():
                 if crash_loops <= 4:
                     logging.warning('The camera or focuser has crashed...waiting for potential recovery.')
@@ -132,6 +137,9 @@ class FocusProcedures(Hardware):
                     logging.error('The camera or focuser has still not recovered from crashing...focus procedures '
                                   'cannot continue.')
                     break
+            while self.shutdown_event.isSet():
+                logging.info('Temporarily pausing focus procedures while shut down due to weather...')
+                time.sleep(self.config_dict.weather_freq * 60)
             image_name = '{0:s}_{1:.3f}s-{2:04d}.fits'.format('FocuserImage', exp_time, i + 1)
             path = os.path.join(image_path, r'focuser_images', image_name)
             self.camera.onThread(self.camera.expose, exp_time, _filter, save_path=path, type="light")
@@ -330,3 +338,19 @@ class FocusProcedures(Hardware):
         """
         logging.debug('Stopping continuous focusing')
         self.continuous_focusing.clear()
+
+    def stop_initial_focusing(self):
+        """
+        Description
+        -----------
+        Stops the initial focusing procedure that is used at the beginning of the night.
+        Must NOT be called with onThread, otherwise the focuser will be stuck on constant focusing on won't ever get
+        to execute stop.
+
+        Returns
+        -------
+        None.
+
+        """
+        logging.debug('Stopping continuous focusing')
+        self.initial_focusing.clear()
