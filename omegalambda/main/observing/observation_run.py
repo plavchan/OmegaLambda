@@ -420,7 +420,7 @@ class ObservationRun:
             if not check:
                 self.focus_procedures.stop_initial_focusing()
                 break
-            time.sleep(self.config_dict.weather_freq * 60)
+            time.sleep(10)
 
     def run_ticket(self, ticket):
         """
