@@ -119,7 +119,7 @@ def target_grab():
         clear_box()
         start_date = datetime.datetime.strptime(input_info[0], '%Y-%m-%d').date()
         target_toi = input_info[1]
-        google_sheet = pandas.read(os.path.abspath(os.path.join(info_directory, 'google.csv')))
+        google_sheet = pandas.read_csv(os.path.abspath(os.path.join(info_directory, 'google.csv')))
 
         for x in range(0, len(google_sheet['NoD'])):
             if str(start_date) == str(google_sheet['NoD'][x]) and str(google_sheet['Transit'][x]) == target_toi:
@@ -161,7 +161,7 @@ def target_grab():
         begin = '{} {}'.format(day_start, time_s)
         end = '{} {}'.format(day_end, time_e)
         tonight_toi = target_toi.replace(r' ', r'_')
-        exposure = exposure.rstrip('s')
+        exposure = exposure.replace('s', '')
         filter_input = str(filter_input)
         num_exposures = 9999
 
