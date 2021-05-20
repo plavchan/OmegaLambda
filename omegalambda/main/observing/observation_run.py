@@ -306,7 +306,9 @@ class ObservationRun:
             current_time = datetime.datetime.now(self.tz)
             current_epoch_milli = time_utils.datetime_to_epoch_milli_converter(current_time)
             start_time_epoch_milli = time_utils.datetime_to_epoch_milli_converter(ticket.start_time)
-            time.sleep((start_time_epoch_milli - current_epoch_milli) / 1000)
+            dt = (start_time_epoch_milli - current_epoch_milli) / 1000
+            if dt > 0:
+                time.sleep(dt)
         return shutdown, cooler
 
     def observe(self):
