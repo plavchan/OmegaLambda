@@ -6,6 +6,7 @@ import os
 import requests
 import datetime
 import csv
+import pandas
 
 #Loads the urls and passwords needed from url_config.json
 current_directory = os.path.abspath(os.path.dirname(__file__))
@@ -20,14 +21,14 @@ def box_labels():
     Labels for each input box
 
     """
-    tk.Label(master, text='Target Name').grid(row=1)
-    tk.Label(master, text='Target RA').grid(row=2)
-    tk.Label(master, text='Target DEC').grid(row=3)
-    tk.Label(master, text='Observation Start Time').grid(row=4)
-    tk.Label(master, text='Observation End Time').grid(row=5)
-    tk.Label(master, text='Filter(s)').grid(row=6)
-    tk.Label(master, text='Number of Exposures').grid(row=7)
-    tk.Label(master, text='Exposure Time(s)').grid(row=8)
+    tk.Label(master, text='Target Name').grid(row=2)
+    tk.Label(master, text='Target RA').grid(row=3)
+    tk.Label(master, text='Target DEC').grid(row=4)
+    tk.Label(master, text='Observation Start Time').grid(row=5)
+    tk.Label(master, text='Observation End Time').grid(row=6)
+    tk.Label(master, text='Filter(s)').grid(row=7)
+    tk.Label(master, text='Number of Exposures').grid(row=8)
+    tk.Label(master, text='Exposure Time(s)').grid(row=9)
 
 
 def exampletxt():
@@ -38,17 +39,17 @@ def exampletxt():
     possible formatting options
 
     """
-    tk.Label(master, text='Ex: TOI1234-01').grid(row=1, column=2)
-    tk.Label(master, text='Ex: 04:52:53.6698, 04h52m53.67s, 04 52 53.67').grid(row=2, column=2)
-    tk.Label(master, text='Ex: -05:27:09.702, -05d27m09.70s, -05 27 09.70').grid(row=3, column=2)
-    tk.Label(master, text='Ex: 2020-07-03 10:00:00 (Must be in 24hrs local time)').grid(row=4, column=2)
-    tk.Label(master, text='Ex: 2020-07-03 23:00:00 (Must be in 24hrs local time)').grid(row=5, column=2)
-    tk.Label(master, text='Can be single filter or list. (clr, uv, b, v, r, ir, Ha)').grid(row=6, column=2)
-    tk.Label(master, text='Number of science exposures to be taken').grid(row=7, column=2)
-    tk.Label(master, text='Exposure time in seconds for each science image').grid(row=8, column=2)
-    tk.Label(master, text='Enable self guiding').grid(row=9, column=2)
-    tk.Label(master, text='Enable 3rd party guiding').grid(row=10, column=2)
-    tk.Label(master, text='Cycle filter after each science image').grid(row=11, column=2)
+    tk.Label(master, text='Ex: TOI1234-01').grid(row=2, column=2)
+    tk.Label(master, text='Ex: 04:52:53.6698, 04h52m53.67s, 04 52 53.67').grid(row=3, column=2)
+    tk.Label(master, text='Ex: -05:27:09.702, -05d27m09.70s, -05 27 09.70').grid(row=4, column=2)
+    tk.Label(master, text='Ex: 2020-07-03 10:00:00 (Must be in 24hrs local time)').grid(row=5, column=2)
+    tk.Label(master, text='Ex: 2020-07-03 23:00:00 (Must be in 24hrs local time)').grid(row=6, column=2)
+    tk.Label(master, text='Can be single filter or list. (clr, uv, b, v, r, ir, Ha)').grid(row=7, column=2)
+    tk.Label(master, text='Number of science exposures to be taken').grid(row=8, column=2)
+    tk.Label(master, text='Exposure time in seconds for each science image').grid(row=9, column=2)
+    tk.Label(master, text='Enable self guiding').grid(row=10, column=2)
+    tk.Label(master, text='Enable 3rd party guiding').grid(row=11, column=2)
+    tk.Label(master, text='Cycle filter after each science image').grid(row=12, column=2)
 
 
 def quit_func():
@@ -60,6 +61,16 @@ def quit_func():
     """
     savetxt()
     master.quit()
+
+def clear_box():
+    '''
+    Description
+    -----------
+    Clears the box text in the widget
+    '''
+    box_list = [name, ra, dec, start_time, end_time, filter_, n_exposures, exposure_time]
+    for box in box_list:
+        box.delete(0, 'end')
 
 def check_toi():
     '''
@@ -99,65 +110,95 @@ def target_grab():
     -------
 
     '''
-    start_date = datetime.date.today()
-    with open(os.path.abspath(os.path.join(info_directory, 'google.csv')), 'r') as f:
-        reader = csv.reader(f)
-        for row in reader:
-            if row[0] == str(start_date):
-                toi_input = row[2]
-                obs_start = row[6]
-                obs_end = row[7]
-                filter_input = row[8]
-                exposure = row[9]
-    toi = toi_input.split(' ')[1]
-    if os.path.exists(os.path.abspath(os.path.join(info_directory, 'info_chart.csv'))):
-        tbl_page = requests.get(exofop_page)
-        with open(os.path.abspath(os.path.join(info_directory, 'info_chart.csv')), 'wb+') as f:
-            f.write(tbl_page.content)
+    if selection.get() != 'Observation List':
+        input_info = selection.get().split(': ')
+        clear_box()
+        start_date = datetime.datetime.strptime(input_info[0], '%Y-%m-%d').date()
+        target_toi = input_info[1]
+        google_sheet = pandas.read(os.path.abspath(os.path.join(info_directory, 'google.csv')))
 
-    with open(os.path.abspath(os.path.join(info_directory, 'info_chart.csv')), 'r') as f:
-        row = list(csv.reader(f))
-        for x in range(len(row)):
-            if row[x][1] == toi:
-                ra_coord = row[x][18]
-                dec_coord = row[x][19]
+        for x in range(0, len(google_sheet['NoD'])):
+            if str(start_date) == str(google_sheet['NoD'][x]) and str(google_sheet['Transit'][x]) == target_toi:
+                obs_start = str(google_sheet['Start'][x])
+                obs_end = str(google_sheet['End'][x])
+                filter_input = str(google_sheet['Filter'][x])
+                exposure = str(google_sheet['Exp'][x])
+
+        toi = target_toi.split(' ')[1]
+        if os.path.exists(os.path.abspath(os.path.join(info_directory, 'info_chart.csv'))):
+            tbl_page = requests.get(exofop_page)
+            with open(os.path.abspath(os.path.join(info_directory, 'info_chart.csv')), 'wb+') as f:
+                f.write(tbl_page.content)
+
+        info_csv = pandas.read_csv(os.path.abspath(os.path.join(info_directory, 'info_chart.csv')))
+        ra_coord = None
+        dec_coord = None
+        for y in range(len(info_csv['TOI'])):
+            if str(info_csv['TOI']) == toi:
+                raw_coords = str(info_csv['coords(J2000)'][y]).split(' ')
+                ra_coord = raw_coords[0]
+                dec_coord = raw_coords[1]
                 break
-            else:
-                ra_coord = None
-                dec_coord = None
 
 
 
-    x = datetime.datetime.strptime(obs_start, '%H:%M')
-    time_s = datetime.datetime.strftime(x, '%H:%M:%S')
-    xx = datetime.datetime.strptime(obs_end, '%H:%M')
-    time_e = datetime.datetime.strftime(xx, '%H:%M:%S')
+        x = datetime.datetime.strptime(obs_start, '%H:%M')
+        time_s = datetime.datetime.strftime(x, '%H:%M:%S')
+        xx = datetime.datetime.strptime(obs_end, '%H:%M')
+        time_e = datetime.datetime.strftime(xx, '%H:%M:%S')
 
-    if x.hour <= 12:
-        day_start = str(start_date + datetime.timedelta(days=1))
-    else:
-        day_start = str(start_date)
-    if xx.hour <= 12:
-        day_end = str(start_date + datetime.timedelta(days=1))
-    else:
-        day_start = str(start_date)
-    #all the information for the target
-    begin = '{} {}'.format(day_start, time_s)
-    end = '{} {}'.format(day_end, time_e)
-    tonight_toi = toi_input.replace(r' ', r'_')
-    exposure = exposure.rstrip('s')
-    filter_input = str(filter_input)
-    num_exposures = 9999
+        if x.hour <= 12:
+            day_start = str(start_date + datetime.timedelta(days=1))
+        else:
+            day_start = str(start_date)
+        if xx.hour <= 12:
+            day_end = str(start_date + datetime.timedelta(days=1))
+        else:
+            day_start = str(start_date)
+        #all the information for the target
+        begin = '{} {}'.format(day_start, time_s)
+        end = '{} {}'.format(day_end, time_e)
+        tonight_toi = target_toi.replace(r' ', r'_')
+        exposure = exposure.rstrip('s')
+        filter_input = str(filter_input)
+        num_exposures = 9999
 
-    #Inserts the target info into the text boxes
-    name.insert(10, str(tonight_toi))
-    ra.insert(10, str(ra_coord))
-    dec.insert(10, str(dec_coord))
-    start_time.insert(10, str(begin))
-    end_time.insert(10, str(end))
-    filter_.insert(10, str(filter_input))
-    n_exposures.insert(10, str(num_exposures))
-    exposure_time.insert(10, str(exposure))
+        #Inserts the target info into the text boxes
+        name.insert(10, str(tonight_toi))
+        ra.insert(10, str(ra_coord))
+        dec.insert(10, str(dec_coord))
+        start_time.insert(10, str(begin))
+        end_time.insert(10, str(end))
+        filter_.insert(10, str(filter_input))
+        n_exposures.insert(10, str(num_exposures))
+        exposure_time.insert(10, str(exposure))
+
+def create_list():
+    '''
+    Description
+    -----------
+    Generates a list of the observations listed in the google sheet
+    ex: (YYYY-MM-DD, TOI 1234.01)
+
+    Returns
+    -------
+    future_toi_list: LIST
+        List of targets in list format. Ex: YYYY-MM-DD: TOI 1234.01
+    '''
+    current_date = datetime.date.today()
+    num = 0
+    future_toi_list = []
+    sheet = pandas.read_csv(os.path.abspath(os.path.join(info_directory, 'google.csv')))
+
+    for x in range(0, len(sheet)):
+        if num < 11 and str(sheet['Target'][x]) != 'nan' and str(
+                sheet['NoD'][x]) != 'nan':  # There might be empty date spaces at the end of the csv
+            row_date = datetime.datetime.strptime(str(sheet['NoD'][x]), '%Y-%m-%d').date()
+            if row_date >= current_date and sheet['Target'][x] != 'NaN':
+                future_toi_list.append('{}: {}'.format(row_date, sheet['Target'][x]))
+                num += 1
+    return future_toi_list
+
 
 def dst_check():
     """
@@ -259,11 +300,17 @@ def savetxt():
 master = tk.Tk()
 # Creates window
 master.title('Observation Ticket Creator')
-master.geometry('800x315')
+master.geometry('800x380')
 
 box_labels()
 exampletxt()
 check_toi()
+toi_list = create_list()
+
+# Creates and places dropdown menu
+selection = tk.StringVar()
+selection.set('Observation List')
+obs_list = tk.OptionMenu(master, selection, *toi_list).grid(row=1, column=1)
 
 # Creates the input text boxes
 name = tk.Entry(master)
@@ -283,32 +330,34 @@ cycle_filter = tk.IntVar()
 # Creates check buttons
 self_guide.set(1)
 b1 = tk.Checkbutton(master, text='Self Guide', onvalue=1, offvalue=0, variable=self_guide)
-b1.grid(row=9, column=1)
+b1.grid(row=10, column=1)
 b2 = tk.Checkbutton(master, text='Guide', onvalue=1, offvalue=0, variable=guide)
-b2.grid(row=10, column=1)
+b2.grid(row=11, column=1)
 b3 = tk.Checkbutton(master, text='Cycle Filter', onvalue=1, offvalue=0, variable=cycle_filter)
-b3.grid(row=11, column=1)
+b3.grid(row=12, column=1)
 
 # Places text boxes in the window
-name.grid(row=1, column=1)
-ra.grid(row=2, column=1)
-dec.grid(row=3, column=1)
-start_time.grid(row=4, column=1)
-end_time.grid(row=5, column=1)
-filter_.grid(row=6, column=1)
-n_exposures.grid(row=7, column=1)
-exposure_time.grid(row=8, column=1)
+name.grid(row=2, column=1)
+ra.grid(row=3, column=1)
+dec.grid(row=4, column=1)
+start_time.grid(row=5, column=1)
+end_time.grid(row=6, column=1)
+filter_.grid(row=7, column=1)
+n_exposures.grid(row=8, column=1)
+exposure_time.grid(row=9, column=1)
 
 
-# Creates Quit and Apply buttons
+# Creates Quit, Apply, Clear buttons
 
+select = tk.Button(master, text='Select', command=target_grab)
 quit_ = tk.Button(master, text='Quit', command=quit_func)
 apply = tk.Button(master, text='Apply', command=savetxt)
-fetch = tk.Button(master, text='Fetch', command=target_grab)
+clear = tk.Button(master, text='Clear', command=clear_box)
 
 # Places the buttons in the window
-quit_.place(x=220, y=275)
-apply.place(x=255, y=275)
-fetch.place(x=298, y=275)
+quit_.place(x=220, y=350)
+apply.place(x=255, y=350)
+clear.place(x=298, y=350)
+select.place(x=350, y=23)
 
 master.mainloop()
