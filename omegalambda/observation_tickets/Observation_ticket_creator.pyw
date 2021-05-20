@@ -122,7 +122,7 @@ def target_grab():
         google_sheet = pandas.read_csv(os.path.abspath(os.path.join(info_directory, 'google.csv')))
 
         for x in range(0, len(google_sheet['NoD'])):
-            if str(start_date) == str(google_sheet['NoD'][x]) and str(google_sheet['Transit'][x]) == target_toi:
+            if str(start_date) == str(google_sheet['NoD'][x]) and str(google_sheet['Target'][x]) == target_toi:
                 obs_start = str(google_sheet['Start'][x])
                 obs_end = str(google_sheet['End'][x])
                 filter_input = str(google_sheet['Filter'][x])
