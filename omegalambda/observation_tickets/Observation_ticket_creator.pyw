@@ -1,4 +1,4 @@
-#1 C:\Users\GMU Observtory1\anaconda3\envs\omegalambda_env\pythonw.exe
+# 1 C:\Users\GMU Observtory1\anaconda3\envs\omegalambda_env\pythonw.exe
 import tkinter as tk
 import time
 import json
@@ -8,11 +8,12 @@ import datetime
 import csv
 import pandas
 
-#Loads the urls and passwords needed from url_config.json
+# Loads the urls and passwords needed from url_config.json
 current_directory = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(current_directory, 'url_config.json')) as f:
     url_dict = json.load(f)
     exofop_page = url_dict['Transit_Site']
+
 
 def box_labels():
     """
@@ -62,6 +63,7 @@ def quit_func():
     savetxt()
     master.quit()
 
+
 def clear_box():
     '''
     Description
@@ -71,6 +73,7 @@ def clear_box():
     box_list = [name, ra, dec, start_time, end_time, filter_, n_exposures, exposure_time]
     for box in box_list:
         box.delete(0, 'end')
+
 
 def check_toi():
     '''
@@ -99,6 +102,7 @@ def check_toi():
         tk.Label(master, text='Tonights TOI is {}'.format(toi_tonight), font=('Courier', 12)).grid(row=0, column=1)
     else:
         tk.Label(master, text='No target specified for tonight', font=('Courier', 12)).grid(row=0, column=1)
+
 
 def target_grab():
     '''
@@ -140,8 +144,6 @@ def target_grab():
                 dec_coord = raw_coords[1]
                 break
 
-
-
         x = datetime.datetime.strptime(obs_start, '%H:%M')
         time_s = datetime.datetime.strftime(x, '%H:%M:%S')
         xx = datetime.datetime.strptime(obs_end, '%H:%M')
@@ -155,7 +157,7 @@ def target_grab():
             day_end = str(start_date + datetime.timedelta(days=1))
         else:
             day_start = str(start_date)
-        #all the information for the target
+        # all the information for the target
         begin = '{} {}'.format(day_start, time_s)
         end = '{} {}'.format(day_end, time_e)
         tonight_toi = target_toi.replace(r' ', r'_')
@@ -163,7 +165,7 @@ def target_grab():
         filter_input = str(filter_input)
         num_exposures = 9999
 
-        #Inserts the target info into the text boxes
+        # Inserts the target info into the text boxes
         name.insert(10, str(tonight_toi))
         ra.insert(10, str(ra_coord))
         dec.insert(10, str(dec_coord))
@@ -172,6 +174,7 @@ def target_grab():
         filter_.insert(10, str(filter_input))
         n_exposures.insert(10, str(num_exposures))
         exposure_time.insert(10, str(exposure))
+
 
 def create_list():
     '''
@@ -214,7 +217,7 @@ def dst_check():
     """
     return '-04:00' if time.localtime().tm_isdst == 1 else '-05:00'
 
-    
+
 def truefalse_check():
     """
     Description
@@ -234,7 +237,7 @@ def truefalse_check():
     self_guide_var = 'true' if self_guide.get() == 1 else 'false'
     guide_var = 'true' if guide.get() == 1 else 'false'
     cycle_filter_var = 'true' if cycle_filter.get() == 1 else 'false'
-        
+
     return self_guide_var, guide_var, cycle_filter_var
 
 
@@ -345,7 +348,6 @@ end_time.grid(row=6, column=1)
 filter_.grid(row=7, column=1)
 n_exposures.grid(row=8, column=1)
 exposure_time.grid(row=9, column=1)
-
 
 # Creates Quit, Apply, Clear buttons
 
