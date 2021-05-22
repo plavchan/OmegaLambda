@@ -196,7 +196,7 @@ def radial_average(path: str, saturation: Union[int, float], plot_lock=None, ima
         File path to fits image to get fwhm from.
     saturation : INT
         Number of counts for a star to be considered saturated for a specific CCD Camera.
-    plot_lock : threading.Event
+    plot_lock : threading.Lock
         To prevent multiple plots from drawing across threads at once.
 
     Returns

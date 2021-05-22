@@ -202,8 +202,8 @@ class FocusProcedures(Hardware):
 
     def plot_focus_model(self, fwhm_values, position_values, peak_values):
         data = sorted(zip(position_values, fwhm_values, peak_values))
-        x = [_[0] for _ in data]
-        y = [_[1] for _ in data]
+        x = np.array([_[0] for _ in data])
+        y = np.array([_[1] for _ in data])
         good = np.where(np.isfinite(x) & np.isfinite(y))[0]
         x = x[good]
         y = y[good]
