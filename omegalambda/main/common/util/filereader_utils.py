@@ -217,6 +217,7 @@ def radial_average(path: str, saturation: Union[int, float], plot_lock=None, ima
         plot_lock.acquire()
     imdata = fits.getdata(path)
     plt.imshow(imdata, cmap='gray', norm=colors.Normalize(vmin=np.nanmedian(imdata), vmax=np.nanmedian(imdata) + 400))
+    plt.gca().invert_yaxis()
     plt.colorbar()
     for i, star in enumerate(stars):
         aperture = CircularAperture(star, r=5)
