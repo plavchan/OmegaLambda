@@ -111,6 +111,7 @@ def findstars(path: str, saturation: Union[int, float], subframe: Optional[Tuple
         return stars, peaks, image - median, stdev
 
 
+@njit(parallel=True, nogil=True)
 def gaussianfit(x, a, x0, sigma):
     """
     Gaussian Fit Function
@@ -136,7 +137,7 @@ def gaussianfit(x, a, x0, sigma):
 
 
 @jit(parallel=True, nogil=True)
-def _get_all_fwhm(stars, peaks, data, ri, sky, binsize, saturation):
+def _get_all_fwhm(stars, peaks, data, ri, sky, binsize):
     fwhm_list = np.empty((len(stars),), dtype=np.float64)
     snrs = np.empty((len(stars),), dtype=np.float64)
     xarr = np.empty((len(stars),), dtype=np.ndarray)
@@ -210,7 +211,7 @@ def radial_average(path: str, saturation: Union[int, float], plot_lock=None, ima
     sky = mediancounts(path)
     r_ = 30
     binsize = 0.5
-    fwhm_final, fwhm_peak, fwhm_list, snrs, xarr, yarr, rarr, stararr = _get_all_fwhm(stars, peaks, data, r_, sky, binsize, saturation)
+    fwhm_final, fwhm_peak, fwhm_list, snrs, xarr, yarr, rarr, stararr = _get_all_fwhm(stars, peaks, data, r_, sky, binsize)
 
     if plot_lock:
         plot_lock.acquire()
