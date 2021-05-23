@@ -23,6 +23,7 @@ class Camera(Hardware):
         self.image_done = threading.Event()
         self.camera_lock = threading.Lock()
         self.fwhm: Optional[Union[float, int]] = None
+        self.cooler_status = False
         super(Camera, self).__init__(name='Camera')
 
     def check_connection(self):
@@ -96,6 +97,7 @@ class Camera(Hardware):
             if self.Camera.CoolerOn and toggle is True:
                 try:
                     self.Camera.TemperatureSetpoint = self.config_dict.cooler_setpoint
+                    self.cooler_status = True
                 except (AttributeError, pywintypes.com_error):
                     logging.warning('Could not change camera cooler setpoint')
                 else:
@@ -103,6 +105,7 @@ class Camera(Hardware):
             elif toggle is False:
                 try:
                     self.Camera.TemperatureSetpoint = self.config_dict.cooler_idle_setpoint
+                    self.cooler_status = False
                 except (AttributeError, pywintypes.com_error):
                     logging.warning('Could not change camera cooler setpoint')
                 else:

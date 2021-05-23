@@ -663,6 +663,11 @@ class ObservationRun:
         -------
         None.
         """
+        if not self.camera.cooler_status:
+            self.camera.onThread(self.camera.cooler_set, True)
+            self.camera.onThread(self.camera.cooler_ready)
+            time.sleep(2)
+            self.camera.cooler_settle.wait()
         for i in range(len(self.observation_request_list)):
             logging.debug('In calibration loop: taking calibration images for index {}, {}'.format(i, self.observation_request_list[i].name))
             if self.calibrated_tickets[i]:
