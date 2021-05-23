@@ -219,7 +219,6 @@ class Telescope(Hardware):
                 with self.movement_lock:
                     logging.info('Slewing to RA/Dec')
                     self.Telescope.SlewToCoordinatesAsync(ra, dec)
-                    time.sleep(.5)
                     while self.Telescope.Slewing:
                         in_limits = self.__check_coordinate_limit(self.Telescope.RightAscension, self.Telescope.Declination)
                         if not in_limits:
@@ -231,7 +230,7 @@ class Telescope(Hardware):
                             time.sleep(2)
                             self.last_slew_status = -100
                             return -100
-                        time.sleep(.5)
+                        time.sleep(.1)
                     self.Telescope.Tracking = tracking
                     time.sleep(2)
             except (AttributeError, pywintypes.com_error):
