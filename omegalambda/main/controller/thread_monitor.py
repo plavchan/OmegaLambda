@@ -38,7 +38,7 @@ class Monitor(threading.Thread):
                         self.crashed.append(th_name)
                         logging.error('{} thread has raised an exception'.format(self.threadlist[th_name].name))
                         logging.debug('List of crashed threads: {}'.format(self.crashed))
-                    time.sleep(15)
+            time.sleep(15)
 
 
 

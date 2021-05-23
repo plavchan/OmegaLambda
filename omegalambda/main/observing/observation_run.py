@@ -8,7 +8,6 @@ import copy
 import logging
 import subprocess
 import threading
-import sys
 
 from ..common.util import time_utils, conversion_utils
 from ..common.IO import config_reader
@@ -795,7 +794,6 @@ class ObservationRun:
         if cooler:
             self.camera.onThread(self.camera.cooler_set, False)
 
-
     def _critical_shutdown_procedure(self):
         """
         Description
@@ -815,7 +813,6 @@ class ObservationRun:
         self.dome.shutter_done.wait()
         time.sleep(2)
         self.camera.onThread(self.camera.cooler_set, False)
-
 
     def threadcheck(self):
         '''
@@ -864,7 +861,7 @@ class ObservationRun:
             self.flatlamp.start()
             self.monitor.n_restarts['flatlamp'] += 1
         elif thname == 'conditions':
-            self.conditions = Conditions()
+            self.conditions = Conditions(self.plot_lock)
             self.conditions.start()
             self.monitor.n_restarts['conditions'] += 1
         elif thname == 'guider':
@@ -875,7 +872,7 @@ class ObservationRun:
                 if self.current_ticket.self_guide:
                     self.guider.onThread(self.guider.guiding_procedure, self.image_directories[self.current_ticket])
         elif thname == 'focus_procedures':
-            self.focus_procedures = FocusProcedures(self.focuser, self.camera, self.conditions)
+            self.focus_procedures = FocusProcedures(self.focuser, self.camera, self.conditions, self.shutdown_event, self.plot_lock)
             self.focus_procedures.start()
             self.monitor.n_restarts['focus_procedures'] += 1
             if self.current_ticket:
