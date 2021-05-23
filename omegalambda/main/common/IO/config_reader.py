@@ -189,6 +189,45 @@ class Config:
         self.data_directory = data_directory                     
         self.calibration_time = calibration_time
         self.calibration_num: int = calibration_num
+        self.verify()
+
+    def verify(self):
+        assert type(self.cooler_setpoint) in (int, float)
+        assert type(self.cooler_idle_setpoint) in (int, float)
+        assert self.cooler_settle_time > 0
+        assert self.maximum_jog > 0
+        assert -90 <= self.site_latitude <= 90
+        assert -180 < self.site_longitude <= 180
+        assert self.site_altitude >= 0
+        assert 0 <= self.telescope_park_az <= 360
+        assert 15 < self.telescope_park_alt <= 90
+        assert self.humidity_limit >= 0
+        assert self.wind_limit >= 0
+        assert self.weather_freq >= 0
+        assert self.cloud_cover_limit >= 0
+        assert self.cloud_saturation_limit >= 0
+        assert self.rain_percent_limit >= 0
+        assert type(self.user_agent) is str
+        assert type(self.cloud_satellite) is str
+        assert type(self.weather_api_key) is str
+        assert self.min_reopen_time >= 0
+        assert self.plate_scale > 0
+        assert self.saturation > 0
+        assert self.focus_exposure_multiplier > 0
+        assert self.initial_focus_delta > 0
+        assert type(self.focus_temperature_constant) in (int, float)
+        assert type(self.focus_iterations) is int and self.focus_iterations > 0
+        assert self.focus_adjust_frequency > 0
+        assert self.focus_max_distance > 0
+        assert self.guiding_threshold >= 0
+        assert 0 <= self.guider_ra_dampening < 2
+        assert 0 <= self.guider_dec_dampening < 2
+        assert self.guider_max_move >= 0
+        assert type(self.guider_angle) in (int, float)
+        assert type(self.guider_flip_y) is bool
+        assert type(self.data_directory) is str
+        assert self.calibration_time in ("start", "end")
+        assert self.calibration_num >= 0
         
     @staticmethod
     def deserialized(text: str):
