@@ -100,7 +100,7 @@ class ObservationRun:
                         'conditions': self.conditions, 'guider': self.guider,
                         'focus_procedures': self.focus_procedures, 'gui': self.gui
                         }
-        self.monitor = Monitor(self.th_dict)
+        self.monitor = Monitor(self.th_dict, self.telescope)
         self.monitor.start()
 
     def everything_ok(self):
