@@ -168,7 +168,7 @@ class Telescope(Hardware):
             logging.info('Telescope is parked, tracking off')
             self._is_ready()
             self.slew_done.set()
-            return park_status
+        return park_status
         
     def unpark(self):
         """
