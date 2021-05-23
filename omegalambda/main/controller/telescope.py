@@ -145,29 +145,28 @@ class Telescope(Hardware):
             logging.info("Telescope is at park")
             return True
         self._is_ready()
-        with self.movement_lock:
+        try:
+            # self.Telescope.Park()
+            park_status = self.slewaltaz(self.config_dict.telescope_park_az, self.config_dict.telescope_park_alt, tracking=False)
+        except (AttributeError, pywintypes.com_error) as exc:
+            logging.error("Could not park telescope.  Exception: {}".format(exc))
+            return False
+        time.sleep(1)
+        t = 0
+        while self.Telescope.Tracking:
             try:
-                # self.Telescope.Park()
-                park_status = self.slewaltaz(self.config_dict.telescope_park_az, self.config_dict.telescope_park_alt, tracking=False)
+                self.Telescope.Tracking = False
             except (AttributeError, pywintypes.com_error) as exc:
-                logging.error("Could not park telescope.  Exception: {}".format(exc))
-                return False
-            time.sleep(1)
-            t = 0
-            while self.Telescope.Tracking:
-                try:
-                    self.Telescope.Tracking = False
-                except (AttributeError, pywintypes.com_error) as exc:
-                    logging.error("Could not disable tracking.  Exception: {}".format(exc))
-                time.sleep(5)
-                t += 5
-                if t >= 25:
-                    logging.critical("Failed to disable telescope tracking. "
-                                     "Gave up after {} attempts.".format(t // 5))
-                    break
-            logging.info('Telescope is parked, tracking off')
-            self._is_ready()
-            self.slew_done.set()
+                logging.error("Could not disable tracking.  Exception: {}".format(exc))
+            time.sleep(5)
+            t += 5
+            if t >= 25:
+                logging.critical("Failed to disable telescope tracking. "
+                                 "Gave up after {} attempts.".format(t // 5))
+                break
+        logging.info('Telescope is parked, tracking off')
+        self._is_ready()
+        self.slew_done.set()
         return park_status
         
     def unpark(self):
@@ -355,8 +354,8 @@ class Telescope(Hardware):
 
         Returns
         -------
-        None
-            Returns nothing.  If there is an error, it returns a print statement that the altitude is below 15 degrees.
+        slew : BOOL
+            Whether or not slew was successful.
 
         """
         (ra, dec) = conversion_utils.convert_altaz_to_radec(az, alt, self.config_dict.site_latitude,
