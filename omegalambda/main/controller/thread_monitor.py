@@ -37,6 +37,8 @@ class Monitor(threading.Thread):
                         logging.debug('List of crashed threads: {}'.format(self.crashed))
             if 'telescope' not in self.crashed:
                 self.threadlist['telescope'].onThread(self.threadlist['telescope'].check_current_coords)
+                time.sleep(2)
+                self.telescope_coords_check = self.threadlist['telescope'].status
                 self.threadlist['telescope'].slew_done.wait(timeout=60)
                 time.sleep(2)
                 self.telescope_coords_check = self.threadlist['telescope'].status
