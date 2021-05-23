@@ -3,9 +3,9 @@ import logging
 import threading
 
 
-
 class Monitor(threading.Thread):
-    def __init__(self, th_dict):
+
+    def __init__(self, th_dict, telescope_obj):
         self.threadlist = th_dict
         self.run_th_monitor = True
         self.crashed = []
@@ -13,6 +13,8 @@ class Monitor(threading.Thread):
                            'flatlamp': 0,'conditions': 0, 'guider': 0,
                            'focus_procedures': 0, 'gui': 0
                            }
+        self.telescope = telescope_obj
+        self.telescope_coords_check = True
         super(Monitor, self).__init__(name='Monitor')
 
     def run(self):
@@ -38,7 +40,12 @@ class Monitor(threading.Thread):
                         self.crashed.append(th_name)
                         logging.error('{} thread has raised an exception'.format(self.threadlist[th_name].name))
                         logging.debug('List of crashed threads: {}'.format(self.crashed))
-            time.sleep(15)
+            if 'telescope' not in self.crashed:
+                self.telescope.onThread(self.telescope.check_current_coords)
+                self.telescope.slew_done.wait(timeout=60)
+                time.sleep(2)
+                self.telescope_coords_check = self.telescope.status
+            time.sleep(3)
 
 
 

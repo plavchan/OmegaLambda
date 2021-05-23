@@ -831,6 +831,13 @@ class ObservationRun:
                 self.restart(thname)
         else:
             logging.debug('All threads OK')
+        if not self.monitor.telescope_coords_check:
+            logging.critical('Telescope coordinates are outside of physical limits, most likely due to passive '
+                             'tracking.  Performing critical shutdown.')
+            self._shutdown_procedure(calibration=False)
+            time.sleep(1)
+            self.stop_threads()
+            raise RuntimeError('Critical shutdown due to telescope tracking outside of physical limits.')
 
     def restart(self, thname):
         '''
