@@ -8,6 +8,7 @@ import copy
 import logging
 import subprocess
 import threading
+import sys
 
 from ..common.util import time_utils, conversion_utils
 from ..common.IO import config_reader
@@ -191,7 +192,8 @@ class ObservationRun:
                 self._startup_procedure(cooler=cooler)
 
                 if self.current_ticket.end_time > datetime.datetime.now(self.tz):
-                    self._ticket_slew(self.current_ticket)
+                    if not self._ticket_slew(self.current_ticket):
+                        return False
                     ###  Probably don't need to redo coarse focus after reopening from weather
                     # if self.focus_toggle:
                     #     self.focus_target(self.current_ticket)
@@ -259,7 +261,7 @@ class ObservationRun:
         if not slew:
             logging.warning('Telescope cannot slew to target.  Waiting until slew conditions are acceptable.')
             while not slew:
-                self.telescope.onThread(self.telescope.park)
+                self._park_procedure()
                 time.sleep(self.config_dict.weather_freq*60)
                 if not self.everything_ok():
                     return False
@@ -267,7 +269,22 @@ class ObservationRun:
                 self.telescope.slew_done.wait()
                 time.sleep(2)
                 slew = self.telescope.last_slew_status
+        if slew == -100:
+            self._critical_shutdown_procedure()
+            self.stop_threads()
+            raise RuntimeError('Critical shutdown due to telescope slew path outside of physical limits.')
         return True
+
+    def _park_procedure(self):
+        self.telescope.onThread(self.telescope.park)
+        self.telescope.slew_done.wait()
+        time.sleep(2)
+        park = self.telescope.last_slew_status
+        if park == -100:
+            self._critical_shutdown_procedure()
+            self.stop_threads()
+            raise RuntimeError('Critical shutdown due to telescope slew path outside of physical limits.')
+        return park
 
     def check_start_time(self, ticket):
         """
@@ -765,21 +782,39 @@ class ObservationRun:
         self.shutdown_event.set()
         time.sleep(5)
         self.dome.onThread(self.dome.slave_dome_to_scope, False)
-        self.telescope.onThread(self.telescope.park)
         self.dome.onThread(self.dome.park)
         self.dome.onThread(self.dome.move_shutter, 'close')
-        time.sleep(2)
+        self._park_procedure()
         self.telescope.slew_done.wait()
         self.dome.move_done.wait()
         self.dome.shutter_done.wait()
-        time.sleep(2)
-        self.telescope.onThread(self.telescope.park)      # Backup in case a pulse guide interrupted the last park
-        self.telescope.slew_done.wait()
+        self._park_procedure()      # Backup in case a pulse guide interrupted the last park
         if calibration:
             logging.info('Beginning flat and dark collection...')
             self.take_calibration_images()
         if cooler:
             self.camera.onThread(self.camera.cooler_set, False)
+
+
+    def _critical_shutdown_procedure(self):
+        """
+        Description
+        ----------
+        For an emergency shutdown when it is not known whether park/slew commands are safe; simply shuts the dome
+        and stops the cooler.
+
+        Returns
+        -------
+        None.
+        """
+        self.shutdown_event.set()
+        time.sleep(5)
+        self.dome.onThread(self.dome.slave_dome_to_scope, False)
+        self.dome.onThread(self.dome.move_shutter, 'close')
+        time.sleep(2)
+        self.dome.shutter_done.wait()
+        time.sleep(2)
+        self.camera.onThread(self.camera.cooler_set, False)
 
 
     def threadcheck(self):

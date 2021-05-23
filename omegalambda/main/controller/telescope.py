@@ -144,7 +144,8 @@ class Telescope(Hardware):
         self._is_ready()
         with self.movement_lock:
             try:
-                self.Telescope.Park()
+                # self.Telescope.Park()
+                park_status = self.slewaltaz(self.config_dict.telescope_park_az, self.config_dict.telescope_park_alt, tracking=False)
             except (AttributeError, pywintypes.com_error) as exc:
                 logging.error("Could not park telescope.  Exception: {}".format(exc))
                 return False
@@ -164,7 +165,7 @@ class Telescope(Hardware):
             logging.info('Telescope is parked, tracking off')
             self._is_ready()
             self.slew_done.set()
-            return True
+            return park_status
         
     def unpark(self):
         """
@@ -217,8 +218,22 @@ class Telescope(Hardware):
             try:
                 with self.movement_lock:
                     logging.info('Slewing to RA/Dec')
-                    self.Telescope.SlewToCoordinates(ra, dec)
+                    self.Telescope.SlewToCoordinatesAsync(ra, dec)
+                    time.sleep(.5)
+                    while self.Telescope.Slewing:
+                        in_limits = self.__check_coordinate_limit(self.Telescope.RightAscension, self.Telescope.Declination)
+                        if not in_limits:
+                            self.abort()
+                            logging.critical('Telescope has slewed past limits, despite the final destination being within limits!'
+                                             ' Stopping slew, disabling tracking, and halting observations until the problem can'
+                                             ' be diagnosed by a human.')
+                            self.Telescope.Tracking = False
+                            time.sleep(2)
+                            self.last_slew_status = -100
+                            return -100
+                        time.sleep(.5)
                     self.Telescope.Tracking = tracking
+                    time.sleep(2)
             except (AttributeError, pywintypes.com_error):
                 logging.debug("ASCOM Error slewing to target.  You may safely ignore this warning.")
             self._is_ready()
@@ -342,14 +357,12 @@ class Telescope(Hardware):
             Returns nothing.  If there is an error, it returns a print statement that the altitude is below 15 degrees.
 
         """
-        if alt <= 15:
-            return logging.error("Cannot slew below 15 degrees altitude.")
-        else:
-            (ra, dec) = conversion_utils.convert_altaz_to_radec(az, alt, self.config_dict.site_latitude,
-                                                                self.config_dict.site_longitude, time)
-            (ra, dec) = conversion_utils.convert_apparent_to_j2000(ra, dec)
-            self.slew(ra, dec, tracking)
-            logging.info('Slewing to Alt/Az')
+        (ra, dec) = conversion_utils.convert_altaz_to_radec(az, alt, self.config_dict.site_latitude,
+                                                            self.config_dict.site_longitude, time)
+        (ra, dec) = conversion_utils.convert_apparent_to_j2000(ra, dec)
+        slew = self.slew(ra, dec, tracking)
+        logging.info('Slewing to Alt/Az')
+        return slew
     
     def abort(self):
         """

@@ -2,6 +2,7 @@ import json
 import logging
 from numpy import pi
 from typing import Dict, Optional, Union, Any, List
+import re
 
 _config = None
 
@@ -11,7 +12,9 @@ class Config:
     def __init__(self, cooler_setpoint: Optional[Union[int, float]] = None,
                  cooler_idle_setpoint: Optional[Union[int, float]] = None, cooler_settle_time: Optional[int] = None,
                  maximum_jog: Optional[Union[int, float]] = None, site_latitude: Optional[float] = None,
-                 site_longitude: Optional[float] = None, site_altitude: Optional[float] = None, humidity_limit: Optional[int] = None,
+                 site_longitude: Optional[float] = None, site_altitude: Optional[float] = None,
+                 telescope_park_alt: Optional[str] = None, telescope_park_az: Optional[str] = None,
+                 humidity_limit: Optional[int] = None,
                  wind_limit: Optional[int] = None, weather_freq: Optional[int] = None,
                  cloud_cover_limit: Optional[float] = None, cloud_saturation_limit: Optional[float] = None,
                  rain_percent_limit: Optional[float] = None, user_agent: Optional[str] = None,
@@ -43,6 +46,10 @@ class Config:
             Longitude at the telescope location.  Our default is -77.305 degrees.
         site_altitude : FLOAT, optional
             Altitude above sea level at the telescope location.  Our default is 154 meters.
+        telescope_park_alt : STR, optional
+            The altitude, in degrees DD:MM:SS, of the telescope park position.  Our default is +39:56:42.
+        telescope_park_az : STR, optional
+            The azimuth, in degrees DD:MM:SS, of the telescope park position.  Our default is 183:39:55.
         humidity_limit : INT, optional
             Limit for humidity while observing.  Our default is 85%.
         wind_limit : INT, optional
@@ -131,6 +138,29 @@ class Config:
         self.site_latitude = site_latitude                    
         self.site_longitude = site_longitude
         self.site_altitude = site_altitude
+        if type(telescope_park_az) is float and type(telescope_park_alt) is float:
+            self.telescope_park_az = telescope_park_az
+            self.telescope_park_alt = telescope_park_alt
+        elif type(telescope_park_az) is str and type(telescope_park_alt) is str:
+            parse = True
+            splitter = ':' if ':' in telescope_park_alt else 'h|m|s|d' if 'h' in telescope_park_alt \
+                else ' ' if ' ' in telescope_park_alt else None
+            if not splitter:
+                self.telescope_park_alt = float(self.telescope_park_alt)
+                self.telescope_park_az = float(self.telescope_park_az)
+                parse = False
+            coords = {'az': telescope_park_az, 'alt': telescope_park_alt}
+            if parse:
+                for key in coords:
+                    coord_split = re.split(splitter, coords[key])
+                    if float(coord_split[0]) > 0 or coord_split[0] == '+00' or coord_split[0] == '00':
+                        coords[key] = float(coord_split[0]) + float(coord_split[1])/60 + float(coord_split[2])/3600
+                    elif float(coord_split[0]) < 0 or coord_split[0] == '-00':
+                        coords[key] = float(coord_split[0]) - float(coord_split[1])/60 - float(coord_split[2])/3600
+                self.telescope_park_alt = coords['alt']
+                self.telescope_park_az = coords['az']
+        else:
+            raise ValueError('Could not parse config option: telescope park alt/az.')
         self.humidity_limit = humidity_limit                      
         self.wind_limit = wind_limit                         
         self.weather_freq = weather_freq 
@@ -210,7 +240,9 @@ def _dict_to_config_object(dic: Dict) -> Config:
     global _config
     _config = Config(cooler_setpoint=dic['cooler_setpoint'], cooler_idle_setpoint=dic['cooler_idle_setpoint'],
                      cooler_settle_time=dic['cooler_settle_time'], site_latitude=dic['site_latitude'],
-                     site_longitude=dic['site_longitude'], site_altitude=dic['site_altitude'], maximum_jog=dic['maximum_jog'],
+                     site_longitude=dic['site_longitude'], site_altitude=dic['site_altitude'],
+                     telescope_park_alt=dic['telescope_park_alt'], telescope_park_az=dic['telescope_park_az'],
+                     maximum_jog=dic['maximum_jog'],
                      humidity_limit=dic['humidity_limit'], wind_limit=dic['wind_limit'],
                      weather_freq=dic['weather_freq'], cloud_cover_limit=dic['cloud_cover_limit'],
                      cloud_saturation_limit=dic['cloud_saturation_limit'], rain_percent_limit=dic['rain_percent_limit'],
