@@ -673,8 +673,10 @@ class ObservationRun:
                 break
             logging.debug('Calibration ticket start time is {}'.format(self.observation_request_list[i].start_time.strftime('%Y-%m-%dT%H:%M:%S%z')))
             self.calibration.onThread(self.calibration.take_flats, self.observation_request_list[i])
+            time.sleep(2)
             self.calibration.flats_done.wait()
             self.calibration.onThread(self.calibration.take_darks, self.observation_request_list[i])
+            time.sleep(2)
             self.calibration.darks_done.wait()
             self.calibrated_tickets[i] = 1
             logging.debug('Calibration progress:\n Calibrated tickets: {}'.format(self.calibrated_tickets))
