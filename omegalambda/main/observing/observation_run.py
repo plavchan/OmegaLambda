@@ -254,8 +254,8 @@ class ObservationRun:
 
         """
         self.telescope.onThread(self.telescope.slew, ticket.ra, ticket.dec)
-        self.telescope.slew_done.wait()
         time.sleep(2)
+        self.telescope.slew_done.wait()
         slew = self.telescope.last_slew_status
         if not slew:
             logging.warning('Telescope cannot slew to target.  Waiting until slew conditions are acceptable.')
@@ -265,8 +265,8 @@ class ObservationRun:
                 if not self.everything_ok():
                     return False
                 self.telescope.onThread(self.telescope.slew, ticket.ra, ticket.dec)
-                self.telescope.slew_done.wait()
                 time.sleep(2)
+                self.telescope.slew_done.wait()
                 slew = self.telescope.last_slew_status
         if slew == -100:
             self._critical_shutdown_procedure()
@@ -276,8 +276,8 @@ class ObservationRun:
 
     def _park_procedure(self):
         self.telescope.onThread(self.telescope.park)
-        self.telescope.slew_done.wait()
         time.sleep(2)
+        self.telescope.slew_done.wait()
         park = self.telescope.last_slew_status
         if park == -100:
             self._critical_shutdown_procedure()
@@ -343,6 +343,7 @@ class ObservationRun:
             cooler = False
             self.camera.onThread(self.camera.cooler_set, True)
             self.camera.onThread(self.camera.cooler_ready)
+            time.sleep(2)
             self.camera.cooler_settle.wait()
             logging.info('Beginning flat and dark collection...')
             self.take_calibration_images(beginning=True)
@@ -553,6 +554,7 @@ class ObservationRun:
             self.camera.onThread(self.camera.expose,
                                  current_exp, self.filterwheel_dict[current_filter],
                                  os.path.join(path, image_name), "light", **header_info_i)
+            time.sleep(1)
             self.camera.image_done.wait(timeout=int(current_exp)*2 + 60)
 
             if self.crash_check('MaxIm_DL.exe'):
@@ -784,7 +786,6 @@ class ObservationRun:
         self.dome.onThread(self.dome.park)
         self.dome.onThread(self.dome.move_shutter, 'close')
         self._park_procedure()
-        self.telescope.slew_done.wait()
         self.dome.move_done.wait()
         self.dome.shutter_done.wait()
         self._park_procedure()      # Backup in case a pulse guide interrupted the last park
