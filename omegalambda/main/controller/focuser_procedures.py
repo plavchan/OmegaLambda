@@ -143,14 +143,12 @@ class FocusProcedures(Hardware):
             image_name = '{0:s}_{1:.3f}s-{2:04d}.fits'.format('FocuserImage', exp_time, i + 1)
             path = os.path.join(image_path, r'focuser_images', image_name)
             self.camera.onThread(self.camera.expose, exp_time, _filter, save_path=path, type="light")
+            self.focuser.onThread(self.focuser.current_position)
             self.camera.image_done.wait()
             time.sleep(2)
-            self.focuser.onThread(self.focuser.current_position)
-            self.camera.onThread(self.camera.get_fwhm)
-            time.sleep(2)
             current_position = self.focuser.position
-            fwhm_test, peak, saturated = filereader_utils.radial_average(path, self.config_dict.saturation)
-            fwhm = self.camera.fwhm if self.camera.fwhm and not saturated else fwhm_test
+            fwhm, peak = filereader_utils.radial_average(path, self.config_dict.saturation, plot_lock=self.plot_lock,
+                                                         image_save_path=os.path.join(image_path, r'focuser_images'))
             if abs(current_position - initial_position) >= self.config_dict.focus_max_distance:
                 logging.error('Focuser has stepped too far away from initial position and could not find a focus.')
                 break
@@ -204,22 +202,11 @@ class FocusProcedures(Hardware):
 
     def plot_focus_model(self, fwhm_values, position_values, peak_values):
         data = sorted(zip(position_values, fwhm_values, peak_values))
-        # fwhm_deltas = np.diff(data[1], n=1)
-        # peak_deltas = np.diff(data[2], n=1)
-        # x = []
-        # y = []
-        # for i in range(len(fwhm_deltas)):
-        #     if 0.2*data[2][i] < abs(peak_deltas[i]) < 3*data[2][i] and \
-        #             (peak_deltas[i] < 0 and fwhm_deltas[i] < 0) or (peak_deltas[i] > 0 and fwhm_deltas[i] > 0):
-        #         continue
-        #     else:
-        #         if i == 0:
-        #             x.append(data[0][i])
-        #             y.append(data[1][i])
-        #         x.append(data[0][i+1])
-        #         y.append(data[1][i+1])
-        x = [_[0] for _ in data]
-        y = [_[1] for _ in data]
+        x = np.array([_[0] for _ in data])
+        y = np.array([_[1] for _ in data])
+        good = np.where(np.isfinite(x) & np.isfinite(y))[0]
+        x = x[good]
+        y = y[good]
         logging.debug('Position Data: {}'.format(x))
         logging.debug('FWHM Data: {}'.format(y))
         logging.debug('Peak Data: {}'.format(peak_values))

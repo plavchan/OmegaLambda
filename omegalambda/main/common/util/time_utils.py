@@ -12,6 +12,7 @@ import requests
 import requests.exceptions
 import re
 import urllib3.exceptions
+from numba import jit, njit, prange
 
 import pytz
 import dateutil.parser
@@ -277,6 +278,7 @@ def get_local_sidereal_time(longitude: float, date: Optional[Union[str, datetime
     return lmst
 
 
+@njit
 def sun_moon_longitudes(julian_date, leap_seconds):
     """
     Find the longitude of the moon's ascending node, the mean orbital longitude of the moon, and the geometric mean longitude
@@ -318,10 +320,13 @@ def sun_moon_longitudes(julian_date, leap_seconds):
     # Geometric longitude
     glsun = (lsun + csun) % 360
 
-    omega, glsun, lmoon = np.radians([omega, glsun, lmoon])
+    omega *= np.pi/180
+    glsun *= np.pi/180
+    lmoon *= np.pi/180
     return omega, glsun, lmoon
 
 
+@njit
 def n_longitude(julian_date, leap_seconds):
     """
     Find the nutation of the longitude of the ecliptic for a specific julian date.
@@ -349,6 +354,7 @@ def n_longitude(julian_date, leap_seconds):
     return dpsi
 
 
+@njit
 def true_obliquity(julian_date, leap_seconds):
     """
     Find the true obliquity of the ecliptic for a specific julian date.
