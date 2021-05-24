@@ -139,9 +139,8 @@ def target_grab():
         dec_coord = None
         for y in range(len(info_csv['TOI'])):
             if str(info_csv['TOI']) == toi:
-                raw_coords = str(info_csv['coords(J2000)'][y]).split(' ')
-                ra_coord = raw_coords[0]
-                dec_coord = raw_coords[1]
+                ra_coord = info_csv['RA']
+                dec_coord = info_csv['DEC']
                 break
 
         x = datetime.datetime.strptime(obs_start, '%H:%M')
