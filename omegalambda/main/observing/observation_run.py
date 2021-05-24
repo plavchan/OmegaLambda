@@ -554,7 +554,6 @@ class ObservationRun:
             self.camera.onThread(self.camera.expose,
                                  current_exp, self.filterwheel_dict[current_filter],
                                  os.path.join(path, image_name), "light", **header_info_i)
-            time.sleep(1)
             self.camera.image_done.wait(timeout=int(current_exp)*2 + 60)
 
             if self.crash_check('MaxIm_DL.exe'):
