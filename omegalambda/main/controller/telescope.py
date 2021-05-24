@@ -22,6 +22,7 @@ class Telescope(Hardware):
 
         """
         self.slew_done = threading.Event()
+        self.slew_done.set()
         self.movement_lock = threading.Lock()
         self.last_slew_status = None
         self.status = True
@@ -96,14 +97,12 @@ class Telescope(Hardware):
             ha -= 24
         (az, alt) = conversion_utils.convert_radec_to_altaz(ra, dec, self.config_dict.site_latitude,
                                                             self.config_dict.site_longitude, time)
-        logging.debug('Checking coordinates for telescope slew...')
         if (alt <= 15) or (dec > 90) or (abs(ha) > 8.75):
             msg = "Altitude less than 15 degrees" if (alt <= 15) else "Declination above 90 degrees" if (dec > 90) else \
                 "Hour angle = {}h > 8h 45m".format(ha) if (abs(ha) > 8.75) else "None"
-            logging.error('Coordinates not good.  Aborting slew.  Reason: {}'.format(msg))
+            logging.error('Coordinates not good.  Reason: {}'.format(msg))
             return False
         else:
-            logging.debug('Coordinates are good.  Starting slew')
             return True
         # TODO: Figure out if there are any other limits
        
@@ -164,6 +163,13 @@ class Telescope(Hardware):
                 logging.critical("Failed to disable telescope tracking. "
                                  "Gave up after {} attempts.".format(t // 5))
                 break
+        self._is_ready()
+        with self.movement_lock:
+            try:
+                self.Telescope.Park()
+            except (AttributeError, pywintypes.com_error) as exc:
+                logging.error("Could not park telescope.  Exception: {}".format(exc))
+                return False
         logging.info('Telescope is parked, tracking off')
         self._is_ready()
         self.slew_done.set()

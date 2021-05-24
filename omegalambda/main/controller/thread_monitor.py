@@ -42,7 +42,7 @@ class Monitor(threading.Thread):
                 self.threadlist['telescope'].slew_done.wait(timeout=60)
                 time.sleep(2)
                 self.telescope_coords_check = self.threadlist['telescope'].status
-            time.sleep(3)
+            time.sleep(1)
 
 
 

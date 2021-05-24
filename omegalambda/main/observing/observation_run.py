@@ -219,7 +219,7 @@ class ObservationRun:
 
         """
         # Give initial time lag to allow first weather check to complete
-        time.sleep(10)
+        time.sleep(15)
         self.shutdown_event.clear()
         initial_check = self.everything_ok()
         if cooler:
