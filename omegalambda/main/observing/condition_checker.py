@@ -389,6 +389,7 @@ class Conditions(threading.Thread):
         cbar = fig.colorbar(plot, cax=cbar_ax)
         ax.set_title('Percent Cover: {:.2f}%'.format(percent_cover))
         plt.savefig(os.path.abspath(os.path.join(self.weather_directory, r'cloud-img-small.png')))
+        plt.close()
         if not isinstance(self.plot_lock, type(None)):
             self.plot_lock.release()
         img.close()
