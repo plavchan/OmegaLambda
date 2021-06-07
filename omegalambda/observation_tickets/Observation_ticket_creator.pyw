@@ -140,7 +140,7 @@ def target_grab():
         for y in range(len(info_csv['TOI'])):
             if str(info_csv['TOI'][y]) == toi:
                 ra_coord = info_csv['RA'][y]
-                dec_coord = info_csv['DEC'][y]
+                dec_coord = info_csv['Dec'][y]
                 break
 
         x = datetime.datetime.strptime(obs_start, '%H:%M')
