@@ -178,8 +178,11 @@ def _get_all_fwhm(stars, peaks, data, ri, sky, binsize):
         stararr[ii] = star
 
     peaks = np.array(peaks, dtype=np.float64)
-    saturation_index = np.argmax(peaks)
-    fwhm_peak = peaks[saturation_index]
+    if peaks.size:
+        saturation_index = np.argmax(peaks)
+        fwhm_peak = peaks[saturation_index]
+    else:
+        fwhm_peak = np.nan
     fwhm_final = float(np.nansum(fwhm_list * snrs) / np.nansum(snrs))
 
     return fwhm_final, fwhm_peak, fwhm_list, snrs, xarr, yarr, rarr, stararr
