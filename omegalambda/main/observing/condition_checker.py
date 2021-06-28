@@ -100,10 +100,10 @@ class Conditions(threading.Thread):
             if (humidity is None or humidity >= self.config_dict.humidity_limit) or \
                     (wind is None or wind >= self.config_dict.wind_limit) or \
                     (rain not in (None, 0) and last_rain is not None and last_rain != rain) or \
-                    (radar is True) or (sun_elevation >= (-12 + 2)) or (cloud_cover is True):
+                    (radar is True) or (sun_elevation >= (-5)) or (cloud_cover is True):
                 self.weather_alert.set()
                 # -12 degrees: nautical twilight, adjust slightly to allow observations to start earlier
-                self.sun = (sun_elevation >= (-12 + 2))
+                self.sun = (sun_elevation >= (-5))
                 message = ""
                 message += "| Humidity |" if (humidity is None or humidity >= self.config_dict.humidity_limit) else ""
                 message += "| Wind |" if (wind is None or wind >= self.config_dict.wind_limit) else ""
