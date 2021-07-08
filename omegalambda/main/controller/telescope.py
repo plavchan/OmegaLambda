@@ -22,9 +22,10 @@ class Telescope(Hardware):
 
         """
         self.slew_done = threading.Event()
+        self.slew_done.set()
         self.movement_lock = threading.Lock()
         self.last_slew_status = None
-        self.ra = self.dec = None
+        self.status = True
         # Threading event sets flags and allows threads to interact with each other
         super(Telescope, self).__init__(name='Telescope')       # Calls Hardware.__init__ with the name 'Telescope'
 
@@ -96,14 +97,12 @@ class Telescope(Hardware):
             ha -= 24
         (az, alt) = conversion_utils.convert_radec_to_altaz(ra, dec, self.config_dict.site_latitude,
                                                             self.config_dict.site_longitude, time)
-        logging.debug('Checking coordinates for telescope slew...')
         if (alt <= 15) or (dec > 90) or (abs(ha) > 8.75):
             msg = "Altitude less than 15 degrees" if (alt <= 15) else "Declination above 90 degrees" if (dec > 90) else \
                 "Hour angle = {}h > 8h 45m".format(ha) if (abs(ha) > 8.75) else "None"
-            logging.error('Coordinates not good.  Aborting slew.  Reason: {}'.format(msg))
+            logging.error('Coordinates not good.  Reason: {}'.format(msg))
             return False
         else:
-            logging.debug('Coordinates are good.  Starting slew')
             return True
         # TODO: Figure out if there are any other limits
        
@@ -123,9 +122,12 @@ class Telescope(Hardware):
         if not self.Telescope.Slewing:
             return
 
-    def store_coords(self):
-        self.ra = self.Telescope.RightAscension
-        self.dec = self.Telescope.Declination
+    def check_current_coords(self):
+        ra = self.Telescope.RightAscension
+        dec = self.Telescope.Declination
+        check = self.__check_coordinate_limit(ra, dec)
+        self.status = check
+        return self.status
           
     def park(self):
         """
@@ -142,29 +144,36 @@ class Telescope(Hardware):
             logging.info("Telescope is at park")
             return True
         self._is_ready()
+        try:
+            # self.Telescope.Park()
+            park_status = self.slewaltaz(self.config_dict.telescope_park_az, self.config_dict.telescope_park_alt, tracking=False)
+        except (AttributeError, pywintypes.com_error) as exc:
+            logging.error("Could not park telescope.  Exception: {}".format(exc))
+            return False
+        time.sleep(1)
+        t = 0
+        while self.Telescope.Tracking:
+            try:
+                self.Telescope.Tracking = False
+            except (AttributeError, pywintypes.com_error) as exc:
+                logging.error("Could not disable tracking.  Exception: {}".format(exc))
+            time.sleep(5)
+            t += 5
+            if t >= 25:
+                logging.critical("Failed to disable telescope tracking. "
+                                 "Gave up after {} attempts.".format(t // 5))
+                break
+        self._is_ready()
         with self.movement_lock:
             try:
                 self.Telescope.Park()
             except (AttributeError, pywintypes.com_error) as exc:
                 logging.error("Could not park telescope.  Exception: {}".format(exc))
                 return False
-            time.sleep(1)
-            t = 0
-            while self.Telescope.Tracking:
-                try:
-                    self.Telescope.Tracking = False
-                except (AttributeError, pywintypes.com_error) as exc:
-                    logging.error("Could not disable tracking.  Exception: {}".format(exc))
-                time.sleep(5)
-                t += 5
-                if t >= 25:
-                    logging.critical("Failed to disable telescope tracking. "
-                                     "Gave up after {} attempts.".format(t // 5))
-                    break
-            logging.info('Telescope is parked, tracking off')
-            self._is_ready()
-            self.slew_done.set()
-            return True
+        logging.info('Telescope is parked, tracking off')
+        self._is_ready()
+        self.slew_done.set()
+        return park_status
         
     def unpark(self):
         """
@@ -217,8 +226,21 @@ class Telescope(Hardware):
             try:
                 with self.movement_lock:
                     logging.info('Slewing to RA/Dec')
-                    self.Telescope.SlewToCoordinates(ra, dec)
+                    self.Telescope.SlewToCoordinatesAsync(ra, dec)
+                    while self.Telescope.Slewing:
+                        in_limits = self.__check_coordinate_limit(self.Telescope.RightAscension, self.Telescope.Declination)
+                        if not in_limits:
+                            self.abort()
+                            logging.critical('Telescope has slewed past limits, despite the final destination being within limits!'
+                                             ' Stopping slew, disabling tracking, and halting observations until the problem can'
+                                             ' be diagnosed by a human.')
+                            self.Telescope.Tracking = False
+                            time.sleep(2)
+                            self.last_slew_status = -100
+                            return -100
+                        time.sleep(.1)
                     self.Telescope.Tracking = tracking
+                    time.sleep(2)
             except (AttributeError, pywintypes.com_error):
                 logging.debug("ASCOM Error slewing to target.  You may safely ignore this warning.")
             self._is_ready()
@@ -338,18 +360,16 @@ class Telescope(Hardware):
 
         Returns
         -------
-        None
-            Returns nothing.  If there is an error, it returns a print statement that the altitude is below 15 degrees.
+        slew : BOOL
+            Whether or not slew was successful.
 
         """
-        if alt <= 15:
-            return logging.error("Cannot slew below 15 degrees altitude.")
-        else:
-            (ra, dec) = conversion_utils.convert_altaz_to_radec(az, alt, self.config_dict.site_latitude,
-                                                                self.config_dict.site_longitude, time)
-            (ra, dec) = conversion_utils.convert_apparent_to_j2000(ra, dec)
-            self.slew(ra, dec, tracking)
-            logging.info('Slewing to Alt/Az')
+        (ra, dec) = conversion_utils.convert_altaz_to_radec(az, alt, self.config_dict.site_latitude,
+                                                            self.config_dict.site_longitude, time)
+        (ra, dec) = conversion_utils.convert_apparent_to_j2000(ra, dec)
+        slew = self.slew(ra, dec, tracking)
+        logging.info('Slewing to Alt/Az')
+        return slew
     
     def abort(self):
         """
