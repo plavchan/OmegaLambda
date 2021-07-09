@@ -1,13 +1,19 @@
 # Filereader Utils for Focuser & Guider
 import logging
+import os
+import datetime
 import numpy as np
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
+import matplotlib.colors as colors
 from typing import Union, Optional, Tuple
 
 import photutils
 from astropy.io import fits
 from astropy.stats import sigma_clipped_stats
-from scipy.optimize import curve_fit
+from photutils.aperture import CircularAperture, CircularAnnulus
+import threading
+
+from numba import jit, njit, prange
 
 from ..IO import config_reader
 
@@ -105,6 +111,7 @@ def findstars(path: str, saturation: Union[int, float], subframe: Optional[Tuple
         return stars, peaks, image - median, stdev
 
 
+@njit(parallel=True, nogil=True)
 def gaussianfit(x, a, x0, sigma):
     """
     Gaussian Fit Function
@@ -129,8 +136,59 @@ def gaussianfit(x, a, x0, sigma):
     return a*np.exp(-(x-x0)**2/(2*sigma**2))
 
 
-def radial_average(path: str, saturation: Union[int, float]) -> Tuple[Optional[Union[float, int]],
-                                                                      Union[float, int], bool]:
+@jit(parallel=True, nogil=True)
+def _get_all_fwhm(stars, peaks, data, ri, sky, binsize):
+    fwhm_list = np.empty((len(stars),), dtype=np.float64)
+    snrs = np.empty((len(stars),), dtype=np.float64)
+    xarr = np.empty((len(stars),), dtype=np.ndarray)
+    yarr = np.empty((len(stars),), dtype=np.ndarray)
+    rarr = np.empty((len(stars),), dtype=np.ndarray)
+    stararr = np.empty((len(stars),), dtype=np.ndarray)
+
+    for ii in prange(len(stars)):
+        x_cent = stars[ii][0]
+        y_cent = stars[ii][1]
+        star = data[int(y_cent - ri):int(y_cent + ri), int(x_cent - ri):int(x_cent + ri)] + sky
+        centroidx, centroidy = photutils.centroids.centroid_com(star, oversampling=1)
+        stary, starx = np.indices(star.shape)
+        r = np.hypot(starx - centroidx, stary - centroidy).astype(np.float64)
+
+        nbins = int(np.round(r.max() / binsize) + 1)
+        maxbin = nbins * binsize
+        bins, interp_points = np.linspace(0, maxbin, nbins + 1), np.arange(0, maxbin + .01, .01)
+        r, star = r.ravel(), star.ravel()
+        radialprofile = np.histogram(r, bins, weights=star)[0] / np.histogram(r, bins)[0]
+        radialprofile = np.interp(interp_points, bins[1:][radialprofile == radialprofile], radialprofile[radialprofile == radialprofile])
+
+        target_counts = (np.nanmax(radialprofile) + np.nanmin(radialprofile))/2
+        # radialprofile /= maximum
+        fwhm_list[ii] = 0
+        for xi in np.arange(len(radialprofile) - 1, -1, -1):
+            if radialprofile[xi] >= target_counts:
+                fwhm_list[ii] = 2 * interp_points[xi]
+                break
+        # Signal to noise ratio of target, to be used as a weight
+        snrs[ii] = (peaks[ii] - sky) / np.sqrt(peaks[ii] + sky)
+        if fwhm_list[ii] < 3 or fwhm_list[ii] > 50:
+            snrs[ii] = 0
+
+        xarr[ii] = interp_points
+        yarr[ii] = radialprofile
+        rarr[ii] = r
+        stararr[ii] = star
+
+    peaks = np.array(peaks, dtype=np.float64)
+    if peaks.size:
+        saturation_index = np.argmax(peaks)
+        fwhm_peak = peaks[saturation_index]
+    else:
+        fwhm_peak = np.nan
+    fwhm_final = float(np.nansum(fwhm_list * snrs) / np.nansum(snrs))
+
+    return fwhm_final, fwhm_peak, fwhm_list, snrs, xarr, yarr, rarr, stararr
+
+
+def radial_average(path: str, saturation: Union[int, float], plot_lock=None, image_save_path=None) -> Tuple[Optional[Union[float, int]], Union[float, int]]:
     """
     Description
     -----------
@@ -142,6 +200,8 @@ def radial_average(path: str, saturation: Union[int, float]) -> Tuple[Optional[U
         File path to fits image to get fwhm from.
     saturation : INT
         Number of counts for a star to be considered saturated for a specific CCD Camera.
+    plot_lock : threading.Lock
+        To prevent multiple plots from drawing across threads at once.
 
     Returns
     -------
@@ -151,85 +211,55 @@ def radial_average(path: str, saturation: Union[int, float]) -> Tuple[Optional[U
 
     """
     stars, peaks, data, stdev = findstars(path, saturation, return_data=True)
+    sky = mediancounts(path)
     r_ = 30
-    fwhm_list = []
-    # a = 0
-    for star in stars:
-        x_cent = star[0]
-        y_cent = star[1]
-        star = data[int(y_cent-r_):int(y_cent+r_), int(x_cent-r_):int(x_cent+r_)]
-        starx, stary = np.indices(star.shape)
-        r = np.sqrt((stary - r_)**2 + (starx - r_)**2)
-        r = r.astype(np.int)
+    binsize = 0.5
+    fwhm_final, fwhm_peak, fwhm_list, snrs, xarr, yarr, rarr, stararr = _get_all_fwhm(stars, peaks, data, r_, sky, binsize)
 
-        tbin = np.bincount(r.ravel(), star.ravel())
-        nr = np.bincount(r.ravel())
-        radialprofile = tbin / nr
-       
-        if len(radialprofile) != 0:
-            maximum = max(radialprofile)
-            if maximum == 0:
-                continue
-            else:
-                radialprofile = radialprofile / maximum
-            f = np.linspace(0, len(radialprofile)-1, len(radialprofile))
-            mean = np.mean(radialprofile)
-            sigma = np.std(radialprofile)
-            try:
-                popt, pcov = curve_fit(gaussianfit, f, radialprofile, p0=[1 / (np.sqrt(2 * np.pi)), mean, sigma])
-                g = np.linspace(0, len(radialprofile)-1, 10*len(radialprofile))
-                function = gaussianfit(g, *popt)
-                for x in range(len(function)):
-                    if function[x] <= (1/2):
-                        fwhm = 2*g[x]
-                        fwhm_list.append(fwhm)
-                        break
-            except RuntimeError:
-                logging.debug("Could not find a Gaussian Fit...using whole pixel values to estimate fwhm")
-                for x in range(len(radialprofile)):
-                    if radialprofile[x] <= (1/2):
-                        fwhm = 2*f[x]
-                        fwhm_list.append(fwhm)
-                        break
+    if plot_lock:
+        plot_lock.acquire()
+    imdata = fits.getdata(path)
+    plt.imshow(imdata, cmap='gray', norm=colors.Normalize(vmin=np.nanmedian(imdata), vmax=np.nanmedian(imdata) + 400))
+    plt.gca().invert_yaxis()
+    plt.colorbar()
+    for i, star in enumerate(stars):
+        aperture = CircularAperture(star, r=5)
+        aperture.plot(color='blue', lw=2)
+        plt.text(star[0]+20, star[1]+20, s='{}'.format(i+1), color='blue')
 
-        else:
-            logging.error('Radial profile has length of 0...')
-            continue
-
-    fwhm_peaks = np.array((fwhm_list, peaks))
-    fwhm_peaks = np.delete(fwhm_peaks, np.where(fwhm_peaks[0, :] < 3), 1)
-    if not np.any(fwhm_peaks):
-        return None, -1, False
-
-    saturated_peak = max(fwhm_peaks[1, :])
-    saturated = (saturated_peak >= saturation * 2)
-    highest_peak = 0
-    for i in range(len(fwhm_peaks[0, :])):
-        if fwhm_peaks[1, highest_peak] < fwhm_peaks[1, i] <= saturation * 2:
-            highest_peak = i
-    if highest_peak != -1:
-        fwhm_final = fwhm_peaks[0, highest_peak]
-        fwhm_peak = fwhm_peaks[1, highest_peak]
+    if not image_save_path:
+        current_path = os.path.abspath(os.path.dirname(__file__))
+        target_path = os.path.join(current_path, r'../../../test/FocusApertures_{}.png'.format(datetime.datetime.now().strftime('%Y%m%d-%H%M%S')))
+        plt.savefig(target_path, dpi=300)
     else:
-        fwhm_final = float(np.median(fwhm_peaks[0, :]))
-        fwhm_peak = -1
+        plt.savefig(os.path.join(image_save_path, 'FocusApertures_{}.png'.format(datetime.datetime.now().strftime('%Y%m%d-%H%M%S'))), dpi=300)
+    plt.close()
 
-    return fwhm_final, fwhm_peak, saturated
+    fig, ax = plt.subplots(ncols=2, nrows=2)
+    highest_snr = np.argsort(snrs)[::-1][:4]
+    highest_fwhm = fwhm_list[highest_snr]
+    highest_x = xarr[highest_snr]
+    highest_y = yarr[highest_snr]
+    highest_r = rarr[highest_snr]
+    highest_star = stararr[highest_snr]
+    for n in range(len(highest_r)):
+        i = 0 if n <= 1 else 1
+        j = int((n + 1) % 2 == 0)
+        ax[j, i].scatter(highest_r[n], highest_star[n], c='b', s=2)
+        ax[j, i].plot(highest_x[n], highest_y[n], 'r-')
+        ax[j, i].set_title('SNR = {:.3f}, FWHM = {:.3f}'.format(snrs[highest_snr][n], highest_fwhm[n]))
+        ax[j, i].set_xlabel('Radial distance [px]')
+        ax[j, i].set_ylabel('Counts')
+    fig.subplots_adjust(wspace=.5, hspace=.5)
+    fig.suptitle('Radial Profiles for 4 Highest SNR stars')
+    if not image_save_path:
+        current_path = os.path.abspath(os.path.dirname(__file__))
+        target_path = os.path.join(current_path, r'../../../test/FocusProfiles_{}.png'.format(datetime.datetime.now().strftime('%Y%m%d-%H%M%S')))
+        plt.savefig(target_path, dpi=300)
+    else:
+        plt.savefig(os.path.join(image_save_path, 'FocusProfiles_{}.png'.format(datetime.datetime.now().strftime('%Y%m%d-%H%M%S'))), dpi=300)
+    plt.close()
+    if plot_lock:
+        plot_lock.release()
 
-
-"""
-Gaussian plot for future reference:
-
-            if a < 1:
-                 plt.plot(f, radialprofile, 'b+:', label='data')
-                 plt.plot(f, gaussianfit(f, *popt), 'ro:', label='fit')
-                 plt.plot([0, fwhm/2], [1/2, 1/2], 'g-.')
-                 plt.plot([fwhm/2, fwhm/2], [0, 1/2], 'g-.', label='HWHM')
-                 plt.legend()
-                 plt.xlabel('x position, HWHM = {}'.format(fwhm/2))
-                 plt.ylabel('normalized counts')
-                 plt.grid()
-                 plt.savefig(r'C:/Users/GMU Observtory1/-omegalambda/test/GaussianPlot.png')
-                 a += 1
-
-"""
+    return fwhm_final, fwhm_peak

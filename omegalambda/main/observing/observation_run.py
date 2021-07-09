@@ -7,7 +7,7 @@ import re
 import copy
 import logging
 import subprocess
-# import threading
+import threading
 
 from ..common.util import time_utils, conversion_utils
 from ..common.IO import config_reader
@@ -60,18 +60,20 @@ class ObservationRun:
         self.continuous_focus_toggle = True
         self.tz = observation_request_list[0].start_time.tzinfo
         self.time_start = None
+        self.plot_lock = threading.Lock()
+        self.shutdown_event = threading.Event()
 
         # Initializes all relevant hardware
         self.camera = Camera()
         self.telescope = Telescope()
         self.dome = Dome()
         self.focuser = Focuser()
-        self.conditions = Conditions()
+        self.conditions = Conditions(plot_lock=self.plot_lock)
         self.flatlamp = FlatLamp()
 
 
         # Initializes higher level structures - focuser, guider, and calibration
-        self.focus_procedures = FocusProcedures(self.focuser, self.camera, self.conditions)
+        self.focus_procedures = FocusProcedures(self.focuser, self.camera, self.conditions, self.shutdown_event, plot_lock=self.plot_lock)
         self.calibration = Calibration(self.camera, self.flatlamp, self.image_directories)
         self.guider = Guider(self.camera, self.telescope)
         self.gui = Gui(self.focuser, self.focus_procedures, focus_toggle)
@@ -142,27 +144,38 @@ class ObservationRun:
             self.guider.loop_done.wait(timeout=10)
             time.sleep(5)
             cooler = self.conditions.sun
+            calib_start = time.monotonic()
             self._shutdown_procedure(calibration=calibration, cooler=cooler)
-            logging.info("Sleeping for {} minutes, then weather checks will resume to attempt "
-                         "a possible re-open.".format(self.config_dict.min_reopen_time))
-            time.sleep(self.config_dict.min_reopen_time * 60)
-            if self.conditions.sun:
-                sunset_time = conversion_utils.get_sunset(datetime.datetime.now(self.tz),
-                                                          self.config_dict.site_latitude,
-                                                          self.config_dict.site_longitude)
-                logging.info('The Sun has risen above the horizon...observing will stop until the Sun sets again '
-                             'at {}.'.format(sunset_time.strftime('%Y-%m-%d %H:%M:%S%z')))
-                current_time = datetime.datetime.now(self.tz)
-                while current_time < sunset_time:
-                    self.threadcheck()
-                    current_time = datetime.datetime.now(self.tz)
-                    if current_time > self.observation_request_list[-1].end_time:
-                        return False
-                    time.sleep(self.config_dict.weather_freq * 60)
-                logging.info('The Sun should now be setting again...observing will resume shortly.')
-
+            calib_end = time.monotonic()
+            if calibration:
+                sleep_time = (self.config_dict.min_reopen_time + 3) * 60 - (calib_end - calib_start)
+                if sleep_time <= 0:
+                    sleep_time = 0
             else:
-                while self.conditions.weather_alert.isSet():
+                sleep_time = self.config_dict.min_reopen_time * 60
+            logging.info("Sleeping for {} minutes, then weather checks will resume to attempt "
+                         "a possible re-open.".format(sleep_time // 60))
+            time.sleep(sleep_time)
+
+            while self.conditions.weather_alert.isSet():
+                if self.conditions.sun:
+                    cooler = True
+                    self.camera.onThread(self.camera.cooler_set, False)
+                    sunset_time = conversion_utils.get_sunset(datetime.datetime.now(self.tz),
+                                                              self.config_dict.site_latitude,
+                                                              self.config_dict.site_longitude)
+                    logging.info('The Sun has risen above the horizon...observing will stop until the Sun sets again '
+                                 'at {}.'.format(sunset_time.strftime('%Y-%m-%d %H:%M:%S%z')))
+                    current_time = datetime.datetime.now(self.tz)
+                    while current_time < (sunset_time - datetime.timedelta(minutes=5)):
+                        self.threadcheck()
+                        current_time = datetime.datetime.now(self.tz)
+                        if current_time > self.observation_request_list[-1].end_time:
+                            return False
+                        time.sleep((self.config_dict.weather_freq + 1) * 60)
+                    logging.info('The Sun should now be setting again...observing will resume shortly.')
+
+                else:
                     self.threadcheck()
                     logging.info("Still waiting for good conditions to reopen.")
                     current_time = datetime.datetime.now(self.tz)
@@ -178,7 +191,8 @@ class ObservationRun:
                 self._startup_procedure(cooler=cooler)
 
                 if self.current_ticket.end_time > datetime.datetime.now(self.tz):
-                    self._ticket_slew(self.current_ticket)
+                    if not self._ticket_slew(self.current_ticket):
+                        return False
                     ###  Probably don't need to redo coarse focus after reopening from weather
                     # if self.focus_toggle:
                     #     self.focus_target(self.current_ticket)
@@ -205,7 +219,8 @@ class ObservationRun:
 
         """
         # Give initial time lag to allow first weather check to complete
-        time.sleep(5)
+        time.sleep(15)
+        self.shutdown_event.clear()
         initial_check = self.everything_ok()
         if cooler:
             self.camera.onThread(self.camera.cooler_set, True)
@@ -239,21 +254,36 @@ class ObservationRun:
 
         """
         self.telescope.onThread(self.telescope.slew, ticket.ra, ticket.dec)
-        self.telescope.slew_done.wait()
         time.sleep(2)
+        self.telescope.slew_done.wait()
         slew = self.telescope.last_slew_status
         if not slew:
             logging.warning('Telescope cannot slew to target.  Waiting until slew conditions are acceptable.')
             while not slew:
-                self.telescope.onThread(self.telescope.park)
+                self._park_procedure()
                 time.sleep(self.config_dict.weather_freq*60)
                 if not self.everything_ok():
                     return False
                 self.telescope.onThread(self.telescope.slew, ticket.ra, ticket.dec)
-                self.telescope.slew_done.wait()
                 time.sleep(2)
+                self.telescope.slew_done.wait()
                 slew = self.telescope.last_slew_status
+        if slew == -100:
+            self._critical_shutdown_procedure()
+            self.stop_threads()
+            raise RuntimeError('Critical shutdown due to telescope slew path outside of physical limits.')
         return True
+
+    def _park_procedure(self):
+        self.telescope.onThread(self.telescope.park)
+        time.sleep(2)
+        self.telescope.slew_done.wait()
+        park = self.telescope.last_slew_status
+        if park == -100:
+            self._critical_shutdown_procedure()
+            self.stop_threads()
+            raise RuntimeError('Critical shutdown due to telescope slew path outside of physical limits.')
+        return park
 
     def check_start_time(self, ticket):
         """
@@ -269,20 +299,33 @@ class ObservationRun:
             Whether or not the ticket start time caused a shutdown.
         """
         shutdown = False
+        cooler = False
         current_time = datetime.datetime.now(self.tz)
         if ticket.start_time > current_time:
             logging.info("It is not the start time {} of {} observation, "
                          "waiting till start time.".format(ticket.start_time.isoformat(), ticket.name))
             if ticket != self.observation_request_list[0] and \
-                    ((ticket.start_time - current_time) > datetime.timedelta(minutes=3)):
+                    ((ticket.start_time - current_time) > datetime.timedelta(hours=8)):
+                logging.info("Start time of the next ticket is at least 8 hours in advance.  Shutting down "
+                             "observatory in the meantime.")
+                cooler = True
+                calibration = (self.config_dict.calibration_time == "end") and (self.calibration_toggle is True)
+                self._shutdown_procedure(calibration=calibration, cooler=cooler)
+                shutdown = True
+            elif ticket != self.observation_request_list[0] and \
+                    ((ticket.start_time - current_time) > datetime.timedelta(minutes=5)):
                 logging.info("Start time of the next ticket is not immediate.  Shutting down "
                              "observatory in the meantime.")
-                self._shutdown_procedure(calibration=False, cooler=False)
+                cooler = False
+                self._shutdown_procedure(calibration=False, cooler=cooler)
                 shutdown = True
+            current_time = datetime.datetime.now(self.tz)
             current_epoch_milli = time_utils.datetime_to_epoch_milli_converter(current_time)
             start_time_epoch_milli = time_utils.datetime_to_epoch_milli_converter(ticket.start_time)
-            time.sleep((start_time_epoch_milli - current_epoch_milli) / 1000)
-        return shutdown
+            dt = (start_time_epoch_milli - current_epoch_milli) / 1000
+            if dt > 0:
+                time.sleep(dt)
+        return shutdown, cooler
 
     def observe(self):
         """
@@ -300,8 +343,9 @@ class ObservationRun:
             cooler = False
             self.camera.onThread(self.camera.cooler_set, True)
             self.camera.onThread(self.camera.cooler_ready)
+            time.sleep(2)
             self.camera.cooler_settle.wait()
-            logging.info('Taking darks and flats...')
+            logging.info('Beginning flat and dark collection...')
             self.take_calibration_images(beginning=True)
         else:
             cooler = True
@@ -321,7 +365,7 @@ class ObservationRun:
             self.crash_check('ASCOMDome.exe')
 
             self.tz = ticket.start_time.tzinfo
-            shutdown = self.check_start_time(ticket)
+            shutdown, cooler = self.check_start_time(ticket)
             if ticket.end_time < datetime.datetime.now(self.tz):
                 logging.info("the end time {} of {} observation has already passed. "
                              "Skipping to next target.".format(ticket.end_time.isoformat(), ticket.name))
@@ -330,7 +374,7 @@ class ObservationRun:
                 self.shutdown()
                 return
             if shutdown:
-                initial_shutter = self._startup_procedure(cooler=False)
+                initial_shutter = self._startup_procedure(cooler=cooler)
 
             if not self._ticket_slew(ticket):
                 self.shutdown()
@@ -389,7 +433,13 @@ class ObservationRun:
             focus_exposure = 30
         self.focus_procedures.onThread(self.focus_procedures.startup_focus_procedure, focus_exposure,
                                        self.filterwheel_dict[focus_filter], self.image_directories[ticket])
-        self.focus_procedures.focused.wait()
+        time.sleep(1)
+        while not self.focus_procedures.focused.isSet():
+            check = self.everything_ok()
+            if not check:
+                self.focus_procedures.stop_initial_focusing()
+                break
+            time.sleep(10)
 
     def run_ticket(self, ticket):
         """
@@ -630,16 +680,31 @@ class ObservationRun:
         -------
         None.
         """
+        if not self.camera.cooler_status:
+            self.camera.onThread(self.camera.cooler_set, True)
+            self.camera.onThread(self.camera.cooler_ready)
+            time.sleep(2)
+            self.camera.cooler_settle.wait()
         for i in range(len(self.observation_request_list)):
+            logging.debug('In calibration loop: taking calibration images for index {}, {}'.format(i, self.observation_request_list[i].name))
             if self.calibrated_tickets[i]:
+                logging.debug('The target\'s calibration images have already been collected...skipping to next.')
                 continue
+            if (self.observation_request_list[i].start_time >= datetime.datetime.now(self.tz)) and (beginning is False):
+                logging.debug('The start time of the ticket has not passed yet, ending calibration loop.')
+                break
+            logging.debug('Calibration ticket start time is {}'.format(self.observation_request_list[i].start_time.strftime('%Y-%m-%dT%H:%M:%S%z')))
             self.calibration.onThread(self.calibration.take_flats, self.observation_request_list[i])
+            time.sleep(2)
             self.calibration.flats_done.wait()
             self.calibration.onThread(self.calibration.take_darks, self.observation_request_list[i])
+            time.sleep(2)
             self.calibration.darks_done.wait()
             self.calibrated_tickets[i] = 1
-            if self.current_ticket == self.observation_request_list[i] and beginning is False:
-                break
+            logging.debug('Calibration progress:\n Calibrated tickets: {}'.format(self.calibrated_tickets))
+            # Doesn't work?
+            # if self.current_ticket == self.observation_request_list[i] and beginning is False:
+            #     break
 
     def shutdown(self, calibration=False):
         """
@@ -714,24 +779,40 @@ class ObservationRun:
         None.
         """
         logging.info("Shutting down observatory.")
+        self.shutdown_event.set()
         time.sleep(5)
         self.dome.onThread(self.dome.slave_dome_to_scope, False)
-        self.telescope.onThread(self.telescope.park)
         self.dome.onThread(self.dome.park)
         self.dome.onThread(self.dome.move_shutter, 'close')
-        time.sleep(2)
-        self.telescope.slew_done.wait()
+        self._park_procedure()
         self.dome.move_done.wait()
         self.dome.shutter_done.wait()
-        time.sleep(2)
-        self.telescope.onThread(self.telescope.park)      # Backup in case a pulse guide interrupted the last park
-        self.telescope.slew_done.wait()
+        self._park_procedure()      # Backup in case a pulse guide interrupted the last park
         if calibration:
-            logging.info('Taking flats and darks...')
+            logging.info('Beginning flat and dark collection...')
             self.take_calibration_images()
         if cooler:
             self.camera.onThread(self.camera.cooler_set, False)
 
+    def _critical_shutdown_procedure(self):
+        """
+        Description
+        ----------
+        For an emergency shutdown when it is not known whether park/slew commands are safe; simply shuts the dome
+        and stops the cooler.
+
+        Returns
+        -------
+        None.
+        """
+        self.shutdown_event.set()
+        time.sleep(5)
+        self.dome.onThread(self.dome.slave_dome_to_scope, False)
+        self.dome.onThread(self.dome.move_shutter, 'close')
+        time.sleep(2)
+        self.dome.shutter_done.wait()
+        time.sleep(2)
+        self.camera.onThread(self.camera.cooler_set, False)
 
     def threadcheck(self):
         '''
@@ -750,6 +831,13 @@ class ObservationRun:
                 self.restart(thname)
         else:
             logging.debug('All threads OK')
+        if not self.monitor.telescope_coords_check:
+            logging.critical('Telescope coordinates are outside of physical limits, most likely due to passive '
+                             'tracking.  Performing critical shutdown.')
+            self._shutdown_procedure(calibration=False)
+            time.sleep(1)
+            self.stop_threads()
+            raise RuntimeError('Critical shutdown due to telescope tracking outside of physical limits.')
 
     def restart(self, thname):
         '''
@@ -780,7 +868,7 @@ class ObservationRun:
             self.flatlamp.start()
             self.monitor.n_restarts['flatlamp'] += 1
         elif thname == 'conditions':
-            self.conditions = Conditions()
+            self.conditions = Conditions(self.plot_lock)
             self.conditions.start()
             self.monitor.n_restarts['conditions'] += 1
         elif thname == 'guider':
@@ -791,7 +879,7 @@ class ObservationRun:
                 if self.current_ticket.self_guide:
                     self.guider.onThread(self.guider.guiding_procedure, self.image_directories[self.current_ticket])
         elif thname == 'focus_procedures':
-            self.focus_procedures = FocusProcedures(self.focuser, self.camera, self.conditions)
+            self.focus_procedures = FocusProcedures(self.focuser, self.camera, self.conditions, self.shutdown_event, self.plot_lock)
             self.focus_procedures.start()
             self.monitor.n_restarts['focus_procedures'] += 1
             if self.current_ticket:

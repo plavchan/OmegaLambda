@@ -29,7 +29,7 @@ def standard_parabola(x, a, b, c):
 
 class FocusProcedures(Hardware):
 
-    def __init__(self, focus_obj, camera_obj, conditions_obj):
+    def __init__(self, focus_obj, camera_obj, conditions_obj, shutdown_event, plot_lock=None):
         """
         Initializes focusprocedures as a subclass of hardware.
 
@@ -41,6 +41,8 @@ class FocusProcedures(Hardware):
             From custom camera class.
         conditions_obj : CLASS INSTANCE OBJECT of Conditions
             From custom conditions class.
+        plot_lock : threading.Lock
+            Thread lock so as not to attempt multiple matplotlib plots at once.
 
         Returns
         -------
@@ -51,10 +53,13 @@ class FocusProcedures(Hardware):
         self.camera = camera_obj
         self.conditions = conditions_obj
         self.config_dict = config_reader.get_config()
+        self.plot_lock = plot_lock
         self.position_previous = None
         self.temp_previous = None
+        self.shutdown_event = shutdown_event
        
         self.focused = threading.Event()
+        self.initial_focusing = threading.Event()
         self.continuous_focusing = threading.Event()
         super(FocusProcedures, self).__init__(name='FocusProcedures')
 
@@ -104,6 +109,7 @@ class FocusProcedures(Hardware):
 
         """
         self.focused.clear()
+        self.initial_focusing.set()
         
         if not os.path.exists(os.path.join(image_path, r'focuser_images')):
             os.mkdir(os.path.join(image_path, r'focuser_images'))
@@ -119,6 +125,8 @@ class FocusProcedures(Hardware):
         errors = 0
         crash_loops = 0
         while i < self.config_dict.focus_iterations:
+            if not self.initial_focusing.isSet():
+                break
             if self.camera.crashed.isSet() or self.focuser.crashed.isSet():
                 if crash_loops <= 4:
                     logging.warning('The camera or focuser has crashed...waiting for potential recovery.')
@@ -129,17 +137,18 @@ class FocusProcedures(Hardware):
                     logging.error('The camera or focuser has still not recovered from crashing...focus procedures '
                                   'cannot continue.')
                     break
+            while self.shutdown_event.isSet():
+                logging.info('Temporarily pausing focus procedures while shut down due to weather...')
+                time.sleep(self.config_dict.weather_freq * 60)
             image_name = '{0:s}_{1:.3f}s-{2:04d}.fits'.format('FocuserImage', exp_time, i + 1)
             path = os.path.join(image_path, r'focuser_images', image_name)
             self.camera.onThread(self.camera.expose, exp_time, _filter, save_path=path, type="light")
+            self.focuser.onThread(self.focuser.current_position)
             self.camera.image_done.wait()
             time.sleep(2)
-            self.focuser.onThread(self.focuser.current_position)
-            self.camera.onThread(self.camera.get_fwhm)
-            time.sleep(2)
             current_position = self.focuser.position
-            fwhm_test, peak, saturated = filereader_utils.radial_average(path, self.config_dict.saturation)
-            fwhm = self.camera.fwhm if self.camera.fwhm and not saturated else fwhm_test
+            fwhm, peak = filereader_utils.radial_average(path, self.config_dict.saturation, plot_lock=self.plot_lock,
+                                                         image_save_path=os.path.join(image_path, r'focuser_images'))
             if abs(current_position - initial_position) >= self.config_dict.focus_max_distance:
                 logging.error('Focuser has stepped too far away from initial position and could not find a focus.')
                 break
@@ -191,25 +200,13 @@ class FocusProcedures(Hardware):
         self.position_previous = self.focuser.position
         return
 
-    @staticmethod
-    def plot_focus_model(fwhm_values, position_values, peak_values):
+    def plot_focus_model(self, fwhm_values, position_values, peak_values):
         data = sorted(zip(position_values, fwhm_values, peak_values))
-        # fwhm_deltas = np.diff(data[1], n=1)
-        # peak_deltas = np.diff(data[2], n=1)
-        # x = []
-        # y = []
-        # for i in range(len(fwhm_deltas)):
-        #     if 0.2*data[2][i] < abs(peak_deltas[i]) < 3*data[2][i] and \
-        #             (peak_deltas[i] < 0 and fwhm_deltas[i] < 0) or (peak_deltas[i] > 0 and fwhm_deltas[i] > 0):
-        #         continue
-        #     else:
-        #         if i == 0:
-        #             x.append(data[0][i])
-        #             y.append(data[1][i])
-        #         x.append(data[0][i+1])
-        #         y.append(data[1][i+1])
-        x = [_[0] for _ in data]
-        y = [_[1] for _ in data]
+        x = np.array([_[0] for _ in data])
+        y = np.array([_[1] for _ in data])
+        good = np.where(np.isfinite(x) & np.isfinite(y))[0]
+        x = x[good]
+        y = y[good]
         logging.debug('Position Data: {}'.format(x))
         logging.debug('FWHM Data: {}'.format(y))
         logging.debug('Peak Data: {}'.format(peak_values))
@@ -220,6 +217,10 @@ class FocusProcedures(Hardware):
                                bounds=([-np.inf, -np.inf, 1e-5], [np.inf, np.inf, np.inf]))
             xfit = np.linspace(med - 75, med + 75, 126)
             yfit = fit[2] * (xfit ** 2) + fit[1] * xfit + fit[0]
+            if not isinstance(self.plot_lock, type(None)):
+                self.plot_lock.acquire()
+            else:
+                logging.warning('No thread lock is being utilized for plot drawing: plots may draw incorrectly!')
             fig, ax = plt.subplots()
             ax.plot(x, y, 'bo', label='Raw data')
             ax.plot(xfit, yfit, 'r-', label='Parabolic fit')
@@ -234,6 +235,8 @@ class FocusProcedures(Hardware):
             target_path_2 = os.path.abspath(os.path.join(current_path, r'../../test/FocusData_{}.txt'.format(
                 datetime.datetime.now().strftime('%Y%m%d_%H%M%S'))))
             plt.savefig(target_path)
+            if not isinstance(self.plot_lock, type(None)):
+                self.plot_lock.release()
             d = np.array([[xi, yi] for xi, yi in zip(x, y)])
             np.savetxt(target_path_2, d, delimiter=',', header='Position [steps], FWHM [px]', fmt=('%d', '%.5f'))
 
@@ -322,3 +325,19 @@ class FocusProcedures(Hardware):
         """
         logging.debug('Stopping continuous focusing')
         self.continuous_focusing.clear()
+
+    def stop_initial_focusing(self):
+        """
+        Description
+        -----------
+        Stops the initial focusing procedure that is used at the beginning of the night.
+        Must NOT be called with onThread, otherwise the focuser will be stuck on constant focusing on won't ever get
+        to execute stop.
+
+        Returns
+        -------
+        None.
+
+        """
+        logging.debug('Stopping continuous focusing')
+        self.initial_focusing.clear()

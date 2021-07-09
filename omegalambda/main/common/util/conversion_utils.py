@@ -3,11 +3,67 @@ import re
 import datetime
 from typing import Tuple, Union, Optional
 
+from scipy.optimize import minimize_scalar
 from astropy import units as u
 from astropy.coordinates import SkyCoord, FK5, AltAz, get_sun, EarthLocation
 from astropy.time import Time
+from numba import jit, njit, prange
 
 from . import time_utils
+
+
+@njit(parallel=True)
+def _internal_altaz_to_radec(azimuth, altitude, latitude, lst, refraction):
+    if refraction:
+        pressure = 760
+        temperature = 10
+        if altitude >= 15.0:
+            arg = (90.0 - altitude) * np.pi / 180.0
+        elif altitude >= 0.0:
+            arg = (90.0 - 15.0) * np.pi / 180.0
+        else:
+            arg = 0
+        dalt = np.tan(arg)
+        dalt = 58.294 * dalt - 0.0668 * dalt ** 3
+        dalt /= 3600.
+        dalt = dalt * (pressure / 760.) * (283. / (273. + temperature))
+
+        altitude -= dalt
+
+    alt = altitude % 360
+    if alt > 180:
+        alt -= 360
+    az = azimuth % 360
+    alt_r = alt * np.pi/180
+    az_r = az * np.pi/180
+    lat_r = latitude * np.pi/180
+
+    HA_r = np.arctan2(-np.sin(az_r) * np.cos(alt_r),
+                      np.cos(lat_r) * np.sin(alt_r) - np.sin(lat_r) * np.cos(alt_r) * np.cos(az_r))
+    dec_r = np.arcsin(np.sin(lat_r) * np.sin(alt_r) + np.cos(lat_r) * np.cos(alt_r) * np.cos(az_r))
+    ha = (np.degrees(HA_r) / 15) % 24
+    if ha > 12:
+        ha -= 24
+    dec = (np.degrees(dec_r)) % 360
+    if dec > 180:
+        dec -= 360
+
+    if dec > 90:
+        hourangle = (ha + 12) % 24
+        if hourangle > 12:
+            hourangle -= 24
+        declination = 180 - dec
+    elif dec < -90:
+        hourangle = (ha + 12) % 24
+        if hourangle > 12:
+            hourangle -= 24
+        declination = dec + 180
+    else:
+        hourangle = ha
+        declination = dec
+
+    ra = (lst - hourangle) % 24
+    return ra, declination
 
 
 def convert_altaz_to_radec(azimuth: float, altitude: float, latitude: float, longitude: float,
@@ -43,54 +99,45 @@ def convert_altaz_to_radec(azimuth: float, altitude: float, latitude: float, lon
     declination : FLOAT
         Calculated declination of target.
     """
+    lst = time_utils.get_local_sidereal_time(longitude, time, leap_seconds)
+    ra, dec = _internal_altaz_to_radec(azimuth, altitude, latitude, lst, refraction)
+    return ra, dec
+
+
+@njit(parallel=True)
+def _internal_radec_to_altaz(ra, dec, latitude, longitude, lst, refraction):
+    ha = (lst - ra) % 24
+    if ha > 12:
+        ha -= 24
+    # Convert to degrees
+    ha *= 15
+    dec_r = dec * np.pi/180
+    latitude_r = latitude * np.pi/180
+    longitude_r = longitude * np.pi/180
+    HA_r = ha * np.pi/180
+
+    alt_r = np.arcsin(np.sin(dec_r) * np.sin(latitude_r) + np.cos(dec_r) * np.cos(latitude_r) * np.cos(HA_r))
+    az_r = np.arctan2(-np.cos(dec_r) * np.sin(HA_r),
+                      np.sin(dec_r) * np.cos(latitude_r) - np.sin(latitude_r) * np.cos(dec_r) * np.cos(HA_r))
+    az = az_r * 180/np.pi
+    alt = alt_r * 180/np.pi
+    az = az % 360
+
     if refraction:
         pressure = 760
         temperature = 10
-        if altitude >= 15.0:
-            arg = (90.0 - altitude) * np.pi/180.0
-        elif altitude >= 0.0:
-            arg = (90.0 - 15.0) * np.pi/180.0
+        if alt >= 15.0:
+            arg = (90.0 - alt) * np.pi / 180
+        elif alt >= 0.0:
+            arg = (90.0 - 15.0) * np.pi / 180
         else:
-            arg = 0
+            return az, alt
         dalt = np.tan(arg)
-        dalt = 58.294 * dalt - 0.0668 * dalt**3
+        dalt = 58.276 * dalt - 0.0824 * dalt ** 3
         dalt /= 3600.
         dalt = dalt * (pressure / 760.) * (283. / (273. + temperature))
-
-        altitude -= dalt
-
-    lst = time_utils.get_local_sidereal_time(longitude, time, leap_seconds)
-    alt = altitude % 360
-    if alt > 180:
-        alt -= 360
-    az = azimuth % 360
-    alt_r, az_r, lat_r = np.radians([alt, az, latitude])
-
-    HA_r = np.arctan2(-np.sin(az_r)*np.cos(alt_r), np.cos(lat_r)*np.sin(alt_r) - np.sin(lat_r)*np.cos(alt_r)*np.cos(az_r))
-    dec_r = np.arcsin(np.sin(lat_r)*np.sin(alt_r) + np.cos(lat_r)*np.cos(alt_r)*np.cos(az_r))
-    ha = (np.degrees(HA_r)/15) % 24
-    if ha > 12:
-        ha -= 24
-    dec = (np.degrees(dec_r)) % 360
-    if dec > 180:
-        dec -= 360
-
-    if dec > 90:
-        hourangle = (ha + 12) % 24
-        if hourangle > 12:
-            hourangle -= 24
-        declination = 180 - dec
-    elif dec < -90:
-        hourangle = (ha + 12) % 24
-        if hourangle > 12:
-            hourangle -= 24
-        declination = dec + 180
-    else:
-        hourangle = ha
-        declination = dec
-
-    ra = (lst - hourangle) % 24
-    return ra, declination
+        alt += dalt
+    return az, alt
 
 
 def convert_radec_to_altaz(ra: float, dec: float, latitude: float, longitude: float,
@@ -127,32 +174,7 @@ def convert_radec_to_altaz(ra: float, dec: float, latitude: float, longitude: fl
         Calculated altitude of target.
     """
     lst = time_utils.get_local_sidereal_time(longitude, time, leap_seconds)
-    ha = (lst - ra) % 24
-    if ha > 12:
-        ha -= 24
-    # Convert to degrees
-    ha *= 15
-    (dec_r, latitude_r, longitude_r, HA_r) = np.radians([dec, latitude, longitude, ha])
-
-    alt_r = np.arcsin(np.sin(dec_r)*np.sin(latitude_r)+np.cos(dec_r)*np.cos(latitude_r)*np.cos(HA_r))
-    az_r = np.arctan2(-np.cos(dec_r)*np.sin(HA_r), np.sin(dec_r)*np.cos(latitude_r)-np.sin(latitude_r)*np.cos(dec_r)*np.cos(HA_r))
-    (az, alt) = np.degrees([az_r, alt_r])
-    az = az % 360
-
-    if refraction:
-        pressure = 760
-        temperature = 10
-        if alt >= 15.0:
-            arg = (90.0 - alt) * np.pi/180
-        elif alt >= 0.0:
-            arg = (90.0 - 15.0) * np.pi/180
-        else:
-            return az, alt
-        dalt = np.tan(arg)
-        dalt = 58.276 * dalt - 0.0824 * dalt**3
-        dalt /= 3600.
-        dalt = dalt * (pressure / 760.) * (283. / (273. + temperature))
-        alt += dalt
+    az, alt = _internal_radec_to_altaz(ra, dec, latitude, longitude, lst, refraction)
     return az, alt
 
 
@@ -246,22 +268,25 @@ def get_sunset(day: Union[str, datetime.datetime], latitude: float, longitude: f
     Returns
     -------
     datetime.datetime object
-        Time to the nearest 15 minutes that the Sun will set
+        Time that the Sun will set
         below the horizon for the specified day at the specified
         coordinates.
 
     """
     if type(day) is not datetime.datetime:
         day = time_utils.convert_to_datetime(day)
-    for i in range(12*4):
-        hour = int(i/4) + 12
-        minute = 15*(i % 4)
-        time = datetime.datetime(day.year, day.month, day.day, hour, minute, 0, tzinfo=day.tzinfo)
-        alt = get_sun_elevation(time, latitude, longitude)
-        if alt <= 0:
-            return time.replace(tzinfo=datetime.timezone.utc) - time.utcoffset()
+
+    def sunalt12(hours):
+        hms = sexagesimal(hours)
+        h, m, s = hms.split(' ')
+        return (get_sun_elevation(day.replace(hour=int(h), minute=int(m), second=int(float(s))), latitude, longitude) + 12)**2
+
+    sunset_hours = minimize_scalar(sunalt12, bounds=(12, 23), method='bounded')['x']
+    hour, minute, second = sexagesimal(sunset_hours).split(' ')
+    return day.replace(hour=int(hour), minute=int(minute), second=int(float(second)), tzinfo=datetime.timezone.utc) - day.utcoffset()
 
 
+@njit(parallel=True)
 def airmass(altitude: float) -> float:
     return 1/np.cos(np.pi/2 - np.radians(altitude))
 
