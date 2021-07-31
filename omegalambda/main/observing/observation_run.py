@@ -83,6 +83,7 @@ class ObservationRun:
         self.config_dict = config_reader.get_config()
 
         # Starts the threads
+        self.gui.start()
         self.focuser.start()        # Must be started first so that it may check all available COM ports for robofocus
         self.conditions.start()
         self.camera.start()
@@ -93,7 +94,6 @@ class ObservationRun:
         self.flatlamp.start()
         self.calibration.start()
         self.guider.start()
-        self.gui.start()
 
 
         self.th_dict = {'camera': self.camera, 'telescope': self.telescope,
