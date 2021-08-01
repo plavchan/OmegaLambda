@@ -14,6 +14,7 @@ class Config:
                  maximum_jog: Optional[Union[int, float]] = None, site_latitude: Optional[float] = None,
                  site_longitude: Optional[float] = None, site_altitude: Optional[float] = None,
                  telescope_park_alt: Optional[str] = None, telescope_park_az: Optional[str] = None,
+                 dome_park_az: Optional[str] = None,
                  humidity_limit: Optional[int] = None,
                  wind_limit: Optional[int] = None, weather_freq: Optional[int] = None,
                  cloud_cover_limit: Optional[float] = None, cloud_saturation_limit: Optional[float] = None,
@@ -50,6 +51,8 @@ class Config:
             The altitude, in degrees DD:MM:SS, of the telescope park position.  Our default is +39:56:42.
         telescope_park_az : STR, optional
             The azimuth, in degrees DD:MM:SS, of the telescope park position.  Our default is 183:39:55.
+        dome_park_az : STR, optional
+            The azimuth, in degrees DD:MM:SS, of the dome park position.  Our default is 110:53:00.
         humidity_limit : INT, optional
             Limit for humidity while observing.  Our default is 85%.
         wind_limit : INT, optional
@@ -161,6 +164,24 @@ class Config:
                 self.telescope_park_az = coords['az']
         else:
             raise ValueError('Could not parse config option: telescope park alt/az.')
+        if type(dome_park_az) is float:
+            self.dome_park_az = dome_park_az
+        elif type(dome_park_az) is str:
+            parse = True
+            splitter = ':' if ':' in dome_park_az else 'h|m|s|d' if 'h' in dome_park_az \
+                else ' ' if ' ' in dome_park_az else None
+            if not splitter:
+                self.dome_park_az = float(self.dome_park_az)
+                parse = False
+            if parse:
+                coord_split = re.split(splitter, dome_park_az)
+                if float(coord_split[0]) > 0 or coord_split[0] == '+00' or coord_split[0] == '00':
+                    dome_park_az = float(coord_split[0]) + float(coord_split[1])/60 + float(coord_split[2])/3600
+                elif float(coord_split[0]) < 0 or coord_split[0] == '-00':
+                    dome_park_az = float(coord_split[0]) - float(coord_split[1])/60 - float(coord_split[2])/3600
+                self.dome_park_az = dome_park_az
+        else:
+            raise ValueError('Could not parse config option: dome park az.')
         self.humidity_limit = humidity_limit                      
         self.wind_limit = wind_limit                         
         self.weather_freq = weather_freq 
@@ -201,6 +222,7 @@ class Config:
         assert self.site_altitude >= 0
         assert 0 <= self.telescope_park_az <= 360
         assert 15 < self.telescope_park_alt <= 90
+        assert 0 <= self.dome_park_az <= 360
         assert self.humidity_limit >= 0
         assert self.wind_limit >= 0
         assert self.weather_freq >= 0
@@ -281,6 +303,7 @@ def _dict_to_config_object(dic: Dict) -> Config:
                      cooler_settle_time=dic['cooler_settle_time'], site_latitude=dic['site_latitude'],
                      site_longitude=dic['site_longitude'], site_altitude=dic['site_altitude'],
                      telescope_park_alt=dic['telescope_park_alt'], telescope_park_az=dic['telescope_park_az'],
+                     dome_park_az=dic['dome_park_az'],
                      maximum_jog=dic['maximum_jog'],
                      humidity_limit=dic['humidity_limit'], wind_limit=dic['wind_limit'],
                      weather_freq=dic['weather_freq'], cloud_cover_limit=dic['cloud_cover_limit'],
