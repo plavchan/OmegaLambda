@@ -130,7 +130,7 @@ class Dome(Hardware):
 
         """
         self.move_done.clear()
-        if self.Dome.AtPark:
+        if self.Dome.AtPark or (109 <= self.Dome.Azimuth <= 111):
             logging.info("Dome is at park")
             self.move_done.set()
             return True
