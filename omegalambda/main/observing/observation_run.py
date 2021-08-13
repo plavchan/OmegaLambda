@@ -747,7 +747,7 @@ class ObservationRun:
         self.focuser.onThread(self.focuser.disconnect)
         self.flatlamp.onThread(self.flatlamp.disconnect)
 
-        self.monitor.run_th_monitor = False                 #Have to stop this first otherwise it will restart everything
+        self.monitor.run_th_monitor.clear()                 #Have to stop this first otherwise it will restart everything
         self.conditions.stop.set()
         self.focus_procedures.stop_constant_focusing()      # Should already be stopped, but just in case
         self.guider.stop_guiding()                          # Should already be stopped, but just in case

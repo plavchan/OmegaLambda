@@ -156,7 +156,10 @@ class Guider(Hardware):
                 break
         failures = 0
         while self.guiding.isSet():
-            self.camera.image_done.wait(timeout=30*60)
+            imgcheck = self.camera.image_done.wait(timeout=30*60)
+            if not imgcheck:
+                logging.error('Guider has not received a new image in the last 30 minutes!  Stopping guiding procedures.')
+                break
             self.loop_done.clear()
             newest_image = self.find_newest_image(image_path)
             subframe = None if failures >= 3 else (x_initial, y_initial)
