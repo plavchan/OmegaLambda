@@ -155,6 +155,7 @@ class Guider(Hardware):
                 y_initial = star[1]
                 break
         failures = 0
+        prev_image = ''
         while self.guiding.isSet():
             imgcheck = self.camera.image_done.wait(timeout=30*60)
             if not imgcheck:
@@ -162,6 +163,9 @@ class Guider(Hardware):
                 break
             self.loop_done.clear()
             newest_image = self.find_newest_image(image_path)
+            if newest_image == prev_image:
+                logging.error('Guider has read in the same image twice in a row.  Stopping guiding procedures.')
+                break
             subframe = None if failures >= 3 else (x_initial, y_initial)
             star = self.find_guide_star(newest_image, subframe=subframe)
             if not star:
@@ -235,6 +239,7 @@ class Guider(Hardware):
                     self.telescope.slew_done.wait()
                     self.telescope.onThread(self.telescope.jog, ydirection, yjog_distance)
                     self.telescope.slew_done.wait()
+            prev_image = newest_image
             self.loop_done.set()
 
     def stop_guiding(self):
