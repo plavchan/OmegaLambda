@@ -455,20 +455,29 @@ def convert_to_bjd_tdb(jd, name, lat, lon, height, ra=None, dec=None):
                            rv=radial_velocity, lat=lat, longi=lon, alt=height, leap_update=False)[0][0]
 
 
-def sexagesimal(decimal: float) -> str:
+def sexagesimal(decimal: float, precision=2) -> str:
     hh = int(decimal)
     f1 = hh if hh != 0 else 1
 
     extra = decimal % f1
+    if f1 == 1 and decimal < 0:
+        extra -= 1
     mm = int(extra * 60)
     f2 = mm if mm != 0 else 1
 
     extra2 = (extra * 60) % f2
+    if f2 == 1 and (extra * 60) < 0:
+        extra2 -= 1
     ss = extra2 * 60
 
+    hh = abs(hh)
     mm = abs(mm)
     ss = abs(ss)
-    return '{:02d} {:02d} {:08.5f}'.format(hh, mm, ss)
+
+    ss = truncate(ss, precision)
+    fmt = '{:02d}:{:02d}:{:0%d.%df}' % (precision+3, precision)
+    sign = '-' if decimal < 0 else ''
+    return sign + fmt.format(hh, mm, ss)
 
 
 def decimal(sexagesimal: str) -> float:
