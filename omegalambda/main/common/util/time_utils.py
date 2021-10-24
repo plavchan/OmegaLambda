@@ -426,14 +426,15 @@ def convert_to_bjd_tdb(jd, name, lat, lon, height, ra=None, dec=None):
         simbad.add_votable_fields('ra(2;A;ICRS;J2000)', 'dec(2;D;ICRS;J2000)','pm', 'plx','parallax','rv_value')
         simbad.remove_votable_fields('coordinates')
         table = simbad.query_object(name)
-    except (urllib3.exceptions.MaxRetryError, urllib3.exceptions.HTTPError, urllib3.exceptions.TimeoutError,
-            urllib3.exceptions.InvalidHeader, requests.exceptions.ConnectionError, requests.exceptions.Timeout,
-            requests.exceptions.HTTPError, TimeoutError):
+    except:
         return None
     if not table:
         if not ra or not dec:
             return None
-        table = simbad.query_region(SkyCoord(ra*u.degree, dec*u.degree, frame='icrs'), radius='5m')
+        try:
+            table = simbad.query_region(SkyCoord(ra*u.degree, dec*u.degree, frame='icrs'), radius='5m')
+        except:
+            return None
     if table:
         if not ra:
             ra = decimal(table['RA_2_A_ICRS_J2000'][0]) * 15

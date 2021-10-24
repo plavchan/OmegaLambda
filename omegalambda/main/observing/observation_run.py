@@ -596,13 +596,10 @@ class ObservationRun:
         header_info['JD_UTC'] = time_utils.convert_to_jd_utc() + (exp_time/2) / (24*60*60)
         epoch_datetime = Time(header_info['JD_UTC'], format='jd', scale='utc').datetime
         epoch_datetime = pytz.utc.localize(epoch_datetime)
-        try:
-            bjd_tdb = time_utils.convert_to_bjd_tdb(header_info['JD_UTC'], name, self.config_dict.site_latitude,
-                                                    self.config_dict.site_longitude,
-                                                    self.config_dict.site_altitude,
-                                                    header_info['RAOBJ2K'], header_info['DECOBJ2K'])
-        except:
-            bjd_tdb = None
+        bjd_tdb = time_utils.convert_to_bjd_tdb(header_info['JD_UTC'], name, self.config_dict.site_latitude,
+                                                self.config_dict.site_longitude,
+                                                self.config_dict.site_altitude,
+                                                header_info['RAOBJ2K'], header_info['DECOBJ2K'])
         if bjd_tdb:
             header_info['BJD_TDB'] = bjd_tdb
         header_info['AZ_OBJ'], header_info['ALT_OBJ'] = conversion_utils.convert_radec_to_altaz(header_info['RAOBJ2K'], header_info['DECOBJ2K'],
