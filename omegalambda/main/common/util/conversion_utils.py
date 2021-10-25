@@ -291,6 +291,12 @@ def airmass(altitude: float) -> float:
     return 1/np.cos(np.pi/2 - np.radians(altitude))
 
 
+@njit
+def truncate(number, digits) -> float:
+    stepper = np.power(10, digits)
+    return int(stepper * number) / stepper
+
+
 def sexagesimal(decimal: float, precision=5) -> str:
     hh = int(decimal)
     f1 = hh if hh != 0 else 1

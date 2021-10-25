@@ -456,6 +456,12 @@ def convert_to_bjd_tdb(jd, name, lat, lon, height, ra=None, dec=None):
                            rv=radial_velocity, lat=lat, longi=lon, alt=height, leap_update=False)[0][0]
 
 
+@njit
+def truncate(number, digits) -> float:
+    stepper = np.power(10, digits)
+    return int(stepper * number) / stepper
+
+
 def sexagesimal(decimal: float, precision=2) -> str:
     hh = int(decimal)
     f1 = hh if hh != 0 else 1
