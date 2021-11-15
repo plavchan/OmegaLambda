@@ -21,6 +21,7 @@ class Dome(Hardware):
         """
         self.move_done = threading.Event()
         self.shutter_done = threading.Event()
+        self.has_homed = threading.Event()
         self.dome_move_lock = threading.Lock()
         self.shutter = None
         super(Dome, self).__init__(name='Dome')
@@ -106,6 +107,7 @@ class Dome(Hardware):
 
         """
         self._is_ready()
+        self.has_homed.clear()
         try:
             with self.dome_move_lock:
                 self.Dome.FindHome()
@@ -113,8 +115,14 @@ class Dome(Hardware):
             logging.error('Dome cannot find home')
         else: 
             logging.info("Dome is homing")
+            t = 0
             while not self.Dome.AtHome:
-                time.sleep(2)
+                time.sleep(5)
+                t += 5
+                if t >= 5*60:
+                    logging.warning('Dome is still homing...ASCOM may be incorrectly reporting status.')
+                    break
+            self.has_homed.set()
             return
     
     def park(self):
@@ -173,12 +181,12 @@ class Dome(Hardware):
                 if t >= 5*60:
                     logging.warning('Shutter is still opening...ASCOM may be incorrectly reporting status.')
                     break
-            time.sleep(2)
-            if self.Dome.ShutterStatus in (0, 2, 4):
-                self.shutter_done.set()
-            else:
-                logging.error('Dome did not open correctly.  Trying again...')
-                self.move_shutter('open')
+            # time.sleep(2)
+            # if self.Dome.ShutterStatus in (0, 2, 4):
+            self.shutter_done.set()
+            # else:
+            #     logging.error('Dome did not open correctly.  Trying again...')
+            #     self.move_shutter('open')
         elif open_or_close == 'close':
             with self.dome_move_lock:
                 self.Dome.CloseShutter()
@@ -191,12 +199,12 @@ class Dome(Hardware):
                 if t >= 5*60:
                     logging.warning('Shutter is still closing...ASCOM may be incorrectly reporting status.')
                     break
-            time.sleep(2)
-            if self.Dome.ShutterStatus in (1, 3, 4):
-                self.shutter_done.set()
-            else:
-                logging.error('Dome did not close correctly.  Trying again...')
-                self.move_shutter('close')
+            # time.sleep(2)
+            # if self.Dome.ShutterStatus in (1, 3, 4):
+            self.shutter_done.set()
+            # else:
+            #     logging.error('Dome did not close correctly.  Trying again...')
+            #     self.move_shutter('close')
         else:
             logging.critical("Invalid shutter move command")
         return

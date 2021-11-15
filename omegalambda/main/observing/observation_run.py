@@ -382,8 +382,9 @@ class ObservationRun:
                 return
             if initial_shutter in (1, 3, 4):
                 time.sleep(10)
-                self.dome.move_done.wait()
+                self.dome.has_homed.wait()
                 self.dome.shutter_done.wait()
+                self.dome.move_done.wait()
             self.camera.cooler_settle.wait()
             if self.focus_toggle:
                 self.focus_target(ticket)
