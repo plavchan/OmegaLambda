@@ -384,6 +384,7 @@ class ObservationRun:
                 time.sleep(10)
                 self.dome.has_homed.wait()
                 self.dome.shutter_done.wait()
+                time.sleep(10)
                 self.dome.move_done.wait()
             self.camera.cooler_settle.wait()
             if self.focus_toggle:
