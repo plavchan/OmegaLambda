@@ -265,6 +265,8 @@ class ObservationRun:
                 time.sleep(self.config_dict.weather_freq*60)
                 if not self.everything_ok():
                     return False
+                self.telescope.onThread(self.telescope.unpark)
+                time.sleep(2)
                 self.telescope.onThread(self.telescope.slew, ticket.ra, ticket.dec)
                 time.sleep(2)
                 self.telescope.slew_done.wait()
