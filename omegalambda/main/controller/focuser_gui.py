@@ -26,6 +26,7 @@ class Gui(threading.Thread):
         self.focuser = focus_obj
         self.focus_procedures = focusprocedures_obj
         self.focus_toggle = focus_toggle
+        self.close_window = threading.Event()
 
         self.comport_var = None
         self.comport = None
@@ -91,6 +92,8 @@ class Gui(threading.Thread):
             self.move_in['state'] = tk.NORMAL
             self.move_out['state'] = tk.NORMAL
         self.position_text.after(1000, self.update_labels)
+        if self.close_window.isSet():
+            self.root.after(1000, self.root.destroy)
 
     def create_root(self):
         """

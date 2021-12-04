@@ -763,6 +763,7 @@ class ObservationRun:
         self.guider.stop()
         self.flatlamp.onThread(self.flatlamp.stop)
         self.calibration.onThread(self.calibration.stop)
+        self.gui.close_window.set()
         logging.debug(' Shutting down thread monitor. Number of thread restarts: {}'.format(self.monitor.n_restarts))
         time.sleep(5)
 
