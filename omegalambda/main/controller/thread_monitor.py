@@ -15,7 +15,7 @@ class Monitor(threading.Thread):
                            'focus_procedures': 0, 'gui': 0
                            }
         self.telescope_coords_check = True
-        super(Monitor, self).__init__(name='Monitor')
+        super(Monitor, self).__init__(name='Monitor', daemon=True)
 
     def run(self):
         '''
