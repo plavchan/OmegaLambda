@@ -150,6 +150,9 @@ class Telescope(Hardware):
         except (AttributeError, pywintypes.com_error) as exc:
             logging.error("Could not park telescope.  Exception: {}".format(exc))
             return False
+        if park_status == -100:
+            self.slew_done.set()
+            return park_status
         time.sleep(1)
         t = 0
         while self.Telescope.Tracking:

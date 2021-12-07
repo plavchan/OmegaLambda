@@ -314,6 +314,9 @@ class ObservationRun:
                 cooler = True
                 calibration = (self.config_dict.calibration_time == "end") and (self.calibration_toggle is True)
                 self._shutdown_procedure(calibration=calibration, cooler=cooler)
+                # They should already be stopped, but just in case:
+                self.focus_procedures.stop_constant_focusing()
+                self.guider.stop_guiding()
                 shutdown = True
             elif ticket != self.observation_request_list[0] and \
                     ((ticket.start_time - current_time) > datetime.timedelta(minutes=5)):
@@ -321,6 +324,9 @@ class ObservationRun:
                              "observatory in the meantime.")
                 cooler = False
                 self._shutdown_procedure(calibration=False, cooler=cooler)
+                # They should already be stopped, but just in case:
+                self.focus_procedures.stop_constant_focusing()
+                self.guider.stop_guiding()
                 shutdown = True
             current_time = datetime.datetime.now(self.tz)
             current_epoch_milli = time_utils.datetime_to_epoch_milli_converter(current_time)
