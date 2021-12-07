@@ -278,11 +278,11 @@ def get_sunset(day: Union[str, datetime.datetime], latitude: float, longitude: f
 
     def sunalt12(hours):
         hms = sexagesimal(hours)
-        h, m, s = hms.split(' ')
+        h, m, s = hms.split(':')
         return (get_sun_elevation(day.replace(hour=int(h), minute=int(m), second=int(float(s))), latitude, longitude) + 12)**2
 
     sunset_hours = minimize_scalar(sunalt12, bounds=(12, 23), method='bounded')['x']
-    hour, minute, second = sexagesimal(sunset_hours).split(' ')
+    hour, minute, second = sexagesimal(sunset_hours).split(':')
     return day.replace(hour=int(hour), minute=int(minute), second=int(float(second)), tzinfo=datetime.timezone.utc) - day.utcoffset()
 
 
