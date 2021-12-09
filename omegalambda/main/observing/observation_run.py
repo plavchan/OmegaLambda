@@ -254,6 +254,7 @@ class ObservationRun:
             True if slew was successful, otherwise False.
 
         """
+        logging.info('Slewing the telescope to the target\'s ra=' + str(ticket.ra) ' and dec=' + str(ticket.dec))
         self.telescope.onThread(self.telescope.slew, ticket.ra, ticket.dec)
         time.sleep(2)
         self.telescope.slew_done.wait()
@@ -267,6 +268,7 @@ class ObservationRun:
                     return False
                 self.telescope.onThread(self.telescope.unpark)
                 time.sleep(2)
+                logging.info('Slewing the telescope to the target\'s ra=' + str(ticket.ra) + ' and dec=' + str(ticket.dec))
                 self.telescope.onThread(self.telescope.slew, ticket.ra, ticket.dec)
                 time.sleep(2)
                 self.telescope.slew_done.wait()
