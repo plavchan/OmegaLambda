@@ -97,6 +97,8 @@ class Telescope(Hardware):
             ha -= 24
         (az, alt) = conversion_utils.convert_radec_to_altaz(ra, dec, self.config_dict.site_latitude,
                                                             self.config_dict.site_longitude, time)
+        logging.info('Telescope Slew Coordinates: ' + str(ra) + ' ' + str(dec))
+        logging.info('Telescope Slew Alt/Az: ' + str(alt) + ' ' + str(az))
         if (alt <= 15) or (dec > 90) or (abs(ha) > 8.75):
             msg = "Altitude less than 15 degrees" if (alt <= 15) else "Declination above 90 degrees" if (dec > 90) else \
                 "Hour angle = {}h > 8h 45m".format(ha) if (abs(ha) > 8.75) else "None"
