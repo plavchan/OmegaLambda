@@ -33,7 +33,6 @@ def rounddown_300(x: Union[int, float]) -> int:
         Does not round up.  Needed for weather.com api.
 
     """
-    logging.debug('Called time_utils function')
     return int(x/300)*300
 
 
@@ -51,7 +50,6 @@ def convert_to_datetime_utc(date: str) -> datetime.datetime:
         Datetime object in UTC time, timezone-aware.
 
     """
-    logging.debug('Called time_utils function')
     d = dateutil.parser.parse(date)
     return d.replace(tzinfo=pytz.UTC) - d.utcoffset()
 
@@ -70,7 +68,6 @@ def convert_to_datetime(date: str) -> datetime.datetime:
         Datetime object in whatever timezone is passed in, timezone-aware.
 
     """
-    logging.debug('Called time_utils function')
     d = dateutil.parser.parse(date)
     return d
 
@@ -89,7 +86,6 @@ def datetime_to_epoch_milli_converter(date: Union[str, datetime.datetime]) -> Un
         Number of milliseconds since Jan. 1, 1970.  Common way of measuring time.
 
     """
-    logging.debug('Called time_utils function')
     if type(date) is not datetime.datetime:
         date = convert_to_datetime_utc(date)
     epoch = datetime.datetime.utcfromtimestamp(0)
@@ -110,7 +106,6 @@ def epoch_milli_to_datetime_converter(epochmilli: Union[int, float]) -> datetime
         Timezone-aware, UTC datetime.datetime object.
 
     """
-    logging.debug('Called time_utils function')
     return datetime.datetime.utcfromtimestamp(epochmilli / 1000).replace(tzinfo=pytz.UTC)
 
 
@@ -129,7 +124,6 @@ def days_since_j2000(date: Optional[Union[datetime.datetime, str]] = None) -> fl
         Timestamp in the form of days since Jan. 1, 2000.
 
     """
-    logging.debug('Called time_utils function')
     if date is None:
         date = datetime.datetime.now(datetime.timezone.utc)
     if type(date) is not datetime.datetime:
@@ -156,7 +150,6 @@ def days_of_year(date: Optional[Union[str, datetime.datetime]] = None) -> float:
         Timestamp in the form of days since Jan. 1, [current year].
 
     """
-    logging.debug('Called time_utils function')
     if date is None:
         date = datetime.datetime.now(datetime.timezone.utc)
     if type(date) is not datetime.datetime:
@@ -182,7 +175,6 @@ def fractional_hours_of_day(time: Optional[Union[str, datetime.datetime]] = None
         is halfway over, so this will return 0.5.
 
     """
-    logging.debug('Called time_utils function')
     if time is None:
         time = datetime.datetime.now(datetime.timezone.utc)
     if type(time) is not datetime.datetime:
@@ -204,7 +196,6 @@ def decimal_year(time=None) -> float:
         Needed for different epoch coordinate conversions.
 
     """
-    logging.debug('Called time_utils function')
     if time is None:
         time = datetime.datetime.now()
     mods = ((time.year % 400 == 0), (time.year % 100 == 0), (time.year % 4 == 0))
@@ -252,7 +243,6 @@ def get_local_sidereal_time(longitude: float, date: Optional[Union[str, datetime
                 urllib3.exceptions.InvalidHeader, requests.exceptions.ConnectionError, requests.exceptions.Timeout,
                 requests.exceptions.HTTPError):
             logging.warning('Could not get leap second data!')
-    logging.debug('Called time_utils function')
     if date is None:
         date = datetime.datetime.now(datetime.timezone.utc)
     if type(date) is not datetime.datetime:
