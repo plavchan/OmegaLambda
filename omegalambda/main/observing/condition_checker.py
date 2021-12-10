@@ -12,13 +12,19 @@ import logging
 import datetime
 import time
 import numpy as np
-from matplotlib import pyplot as plt
-from matplotlib import colors as mplc
+import matplotlib
 
 from PIL import Image
 
 from ..common.util import time_utils, conversion_utils
 from ..common.IO import config_reader
+
+# Use the non-interactive Agg backend, which does not have the memory leak problems associated with the deafult
+# TkAgg backend upon closing plots.  This is necessary for long runs where we expect to generate hundreds if not
+# thousands of diagnostic plots in the background.
+matplotlib.use('Agg', force=True)
+from matplotlib import pyplot as plt
+from matplotlib import colors as mplc
 
 
 class Conditions(threading.Thread):
@@ -392,7 +398,10 @@ class Conditions(threading.Thread):
         cbar = fig.colorbar(plot, cax=cbar_ax)
         ax.set_title('Percent Cover: {:.2f}%'.format(percent_cover))
         plt.savefig(os.path.abspath(os.path.join(self.weather_directory, r'cloud-img-small.png')))
-        plt.close()
+        # Be really careful about closing up everything so as not to cause any memory leaks
+        plt.clf()
+        plt.cla()
+        plt.close('all')
         if not isinstance(self.plot_lock, type(None)):
             self.plot_lock.release()
         img.close()

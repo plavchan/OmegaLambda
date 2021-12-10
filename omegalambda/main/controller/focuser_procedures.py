@@ -6,13 +6,16 @@ import threading
 import numpy as np
 import datetime
 from scipy.optimize import curve_fit
-import matplotlib.pyplot as plt
+import matplotlib
 
 from .hardware import Hardware
 from ..common.IO import config_reader
 from ..common.util import filereader_utils
 
 np.warnings.filterwarnings('ignore')
+# Use the non-interactive Agg backned.  See condition_checker.py for explanation.
+matplotlib.use('Agg', force=True)
+import matplotlib.pyplot as plt
 
 
 def standard_parabola(x, a, b, c):
@@ -235,6 +238,9 @@ class FocusProcedures(Hardware):
             target_path_2 = os.path.abspath(os.path.join(current_path, r'../../test/FocusData_{}.txt'.format(
                 datetime.datetime.now().strftime('%Y%m%d_%H%M%S'))))
             plt.savefig(target_path)
+            plt.clf()
+            plt.cla()
+            plt.close('all')
             if not isinstance(self.plot_lock, type(None)):
                 self.plot_lock.release()
             d = np.array([[xi, yi] for xi, yi in zip(x, y)])
