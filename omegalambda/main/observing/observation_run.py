@@ -274,9 +274,31 @@ class ObservationRun:
                 self.telescope.slew_done.wait()
                 slew = self.telescope.last_slew_status
         if slew == -100:
+
+            # Try to park, but that may also fail.  Delay coordinate checks by 1 second.
+            self.telescope.onThread(self.telescope.park, 1000)
+            time.sleep(2)
+            self.telescope.slew_done.wait()
+            # If it does fail, don't try to park again
+            park = self.telescope.last_slew_status
+            if park:
+                # If the park was successful, try the slew one more time
+                self.telescope.onThread(self.telescope.unpark)
+                time.sleep(2)
+                logging.warning('Attempting to slew to the target one more time: ra=' + str(ticket.ra) + ' and dec=' + str(ticket.dec))
+                self.telescope.onThread(self.telescope.slew, ticket.ra, ticket.dec)
+                time.sleep(2)
+                self.telescope.slew_done.wait()
+                slew = self.telescope.last_slew_status
+                if slew != -100:
+                    # If the second slew was successful, yay!  Observations can continue
+                    return True
+                # Otherwise, if the repark or second slew fail, just shut down
+
             self._critical_shutdown_procedure()
             self.stop_threads()
-            raise RuntimeError('Critical shutdown due to telescope slew path outside of physical limits.')
+            raise RuntimeError('Critical shutdown due to telescope slew path outside of physical limits.  Halting the '
+                               'code until the problem can be diagnosed by a human.')
         return True
 
     def _park_procedure(self):
@@ -287,7 +309,8 @@ class ObservationRun:
         if park == -100:
             self._critical_shutdown_procedure()
             self.stop_threads()
-            raise RuntimeError('Critical shutdown due to telescope slew path outside of physical limits.')
+            raise RuntimeError('Critical shutdown due to telescope slew path outside of physical limits.  Halting the '
+                               'code until the problem can be diagnosed by a human.')
         return park
 
     def check_start_time(self, ticket):
@@ -822,9 +845,11 @@ class ObservationRun:
         self.shutdown_event.set()
         time.sleep(5)
         self.dome.onThread(self.dome.slave_dome_to_scope, False)
+        self.dome.onThred(self.dome.park)
         self.dome.onThread(self.dome.move_shutter, 'close')
         time.sleep(2)
         self.dome.shutter_done.wait()
+        self.dome.move_done.wait()
         time.sleep(2)
         self.camera.onThread(self.camera.cooler_set, False)
 

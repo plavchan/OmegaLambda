@@ -131,7 +131,7 @@ class Telescope(Hardware):
         self.status = check
         return self.status
           
-    def park(self):
+    def park(self, coord_check_delay_ms=0):
         """
 
         Returns
@@ -148,7 +148,8 @@ class Telescope(Hardware):
         self._is_ready()
         try:
             # self.Telescope.Park()
-            park_status = self.slewaltaz(self.config_dict.telescope_park_az, self.config_dict.telescope_park_alt, tracking=False)
+            park_status = self.slewaltaz(self.config_dict.telescope_park_az, self.config_dict.telescope_park_alt, tracking=False,
+                                         coord_check_delay_ms=coord_check_delay_ms)
         except (AttributeError, pywintypes.com_error) as exc:
             logging.error("Could not park telescope.  Exception: {}".format(exc))
             return False
@@ -202,7 +203,7 @@ class Telescope(Hardware):
             logging.info("Telescope is unparked, tracking on")
             return True
     
-    def slew(self, ra, dec, tracking=True):
+    def slew(self, ra, dec, tracking=True, coord_check_delay_ms=0):
         """
 
         Parameters
@@ -213,6 +214,9 @@ class Telescope(Hardware):
             Declination of target in degrees.
         tracking : BOOL, optional
             Whether to turn tracking on or off. The default is True for RA/Dec slews.
+        coord_check_delay_ms : FLOAT, optional
+            Delay time in milliseconds after the slew starts before coordinates are checked
+            for validity.  This is necessary in case the starting position is out of bounds.
 
         Returns
         -------
@@ -232,16 +236,18 @@ class Telescope(Hardware):
                 with self.movement_lock:
                     logging.info('Slewing to RA/Dec')
                     self.Telescope.SlewToCoordinatesAsync(ra, dec)
+                    if coord_check_delay_ms > 0:
+                        time.sleep(coord_check_delay_ms/1000)
                     while self.Telescope.Slewing:
                         in_limits = self.__check_coordinate_limit(self.Telescope.RightAscension, self.Telescope.Declination)
                         if not in_limits:
                             self.abort()
                             logging.critical('Telescope has slewed past limits, despite the final destination being within limits!'
-                                             ' Stopping slew, disabling tracking, and halting observations until the problem can'
-                                             ' be diagnosed by a human.')
+                                             ' aborting slew!')
                             self.Telescope.Tracking = False
-                            time.sleep(2)
                             self.last_slew_status = -100
+                            time.sleep(2)
+                            self.slew_done.set()
                             return -100
                         time.sleep(.1)
                     self.Telescope.Tracking = tracking
@@ -348,7 +354,7 @@ class Telescope(Hardware):
                 self.slew(self.Telescope.RightAscension + distance/(15*3600), self.Telescope.Declination)
             logging.info('Telescope is jogging')
     
-    def slewaltaz(self, az, alt, time=None, tracking=False):
+    def slewaltaz(self, az, alt, time=None, tracking=False, coord_check_delay_ms=0):
         """
 
         Parameters
@@ -372,7 +378,7 @@ class Telescope(Hardware):
         (ra, dec) = conversion_utils.convert_altaz_to_radec(az, alt, self.config_dict.site_latitude,
                                                             self.config_dict.site_longitude, time)
         (ra, dec) = conversion_utils.convert_apparent_to_j2000(ra, dec)
-        slew = self.slew(ra, dec, tracking)
+        slew = self.slew(ra, dec, tracking, coord_check_delay_ms=coord_check_delay_ms)
         logging.info('Slewing to Alt/Az')
         return slew
     
