@@ -71,7 +71,7 @@ class Telescope(Hardware):
             logging.info('Telescope has successfully connected')
         return True
 
-    def __check_coordinate_limit(self, ra, dec, time=None):
+    def __check_coordinate_limit(self, ra, dec, time=None, verbose=0):
         """
 
         Parameters
@@ -83,6 +83,8 @@ class Telescope(Hardware):
         time : CLASS INSTANCE OBJECT of DATETIME.DATETIME, optional
             Time at which these coordinates will need to be converted to Altitude/Azimuth. The default is None,
             which will convert them for the current date/time.
+        verbose : INT
+            0 for no logging messages, 1 for logging messages
 
         Returns
         -------
@@ -97,8 +99,9 @@ class Telescope(Hardware):
             ha -= 24
         (az, alt) = conversion_utils.convert_radec_to_altaz(ra, dec, self.config_dict.site_latitude,
                                                             self.config_dict.site_longitude, time)
-        logging.debug('Telescope Coordinates: ' + str(ra) + ' ' + str(dec))
-        logging.debug('Telescope Alt/Az: ' + str(alt) + ' ' + str(az))
+        if verbose:
+            logging.debug('Telescope Coordinates: ' + str(ra) + ' ' + str(dec))
+            logging.debug('Telescope Alt/Az: ' + str(alt) + ' ' + str(az))
         if (alt <= 15) or (dec > 90) or (abs(ha) > 8.75):
             msg = "Altitude less than 15 degrees" if (alt <= 15) else "Declination above 90 degrees" if (dec > 90) else \
                 "Hour angle = {}h > 8h 45m".format(ha) if (abs(ha) > 8.75) else "None"
@@ -227,7 +230,7 @@ class Telescope(Hardware):
         self.slew_done.clear()
         (ra, dec) = conversion_utils.convert_j2000_to_apparent(ra, dec)
         # Telescope internally uses apparent epoch coordinates, but we input in J2000
-        if self.__check_coordinate_limit(ra, dec) is False:
+        if self.__check_coordinate_limit(ra, dec, verbose=1) is False:
             logging.error("Coordinates are outside of physical slew limits.")
             self.last_slew_status = False
         else:
@@ -239,7 +242,7 @@ class Telescope(Hardware):
                     if coord_check_delay_ms > 0:
                         time.sleep(coord_check_delay_ms/1000)
                     while self.Telescope.Slewing:
-                        in_limits = self.__check_coordinate_limit(self.Telescope.RightAscension, self.Telescope.Declination)
+                        in_limits = self.__check_coordinate_limit(self.Telescope.RightAscension, self.Telescope.Declination, verbose=0)
                         if not in_limits:
                             self.abort()
                             logging.critical('Telescope has slewed past limits, despite the final destination being within limits!'

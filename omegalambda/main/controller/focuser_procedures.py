@@ -282,7 +282,7 @@ class FocusProcedures(Hardware):
                 time.sleep(2)
                 self.position_previous = self.focuser.position
                 continue
-            if self.temp_previous is None or (temp_current - self.temp_previous > 10):
+            if self.temp_previous is None or ((temp_current - self.temp_previous) > 30):
                 self.temp_previous = temp_current
                 continue
             new_position = self.position_previous + \

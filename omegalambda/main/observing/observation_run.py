@@ -162,6 +162,7 @@ class ObservationRun:
                 if self.conditions.sun:
                     cooler = True
                     self.camera.onThread(self.camera.cooler_set, False)
+                    self.focus_procedures.stop_constant_focusing()
                     sunset_time = conversion_utils.get_sunset(datetime.datetime.now(self.tz),
                                                               self.config_dict.site_latitude,
                                                               self.config_dict.site_longitude)
@@ -467,15 +468,22 @@ class ObservationRun:
             focus_exposure = 0.001
         elif focus_exposure > 30:
             focus_exposure = 30
+        self.focus_procedures.stop_initial_focusing()
+        self.focus_procedures.stop_constant_focusing()
+        time.sleep(1)
         self.focus_procedures.onThread(self.focus_procedures.startup_focus_procedure, focus_exposure,
                                        self.filterwheel_dict[focus_filter], self.image_directories[ticket])
         time.sleep(1)
+        i = 0
         while not self.focus_procedures.focused.isSet():
             check = self.everything_ok()
             if not check:
                 self.focus_procedures.stop_initial_focusing()
                 break
             time.sleep(10)
+            i += 1
+            if i % 30 == 0:
+                logging.debug(f'Still waiting for coarse focus to finish...; t = {(i*10)//60} mins')
 
     def run_ticket(self, ticket):
         """
