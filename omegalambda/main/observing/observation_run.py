@@ -853,7 +853,7 @@ class ObservationRun:
         self.shutdown_event.set()
         time.sleep(5)
         self.dome.onThread(self.dome.slave_dome_to_scope, False)
-        self.dome.onThred(self.dome.park)
+        self.dome.onThread(self.dome.park)
         self.dome.onThread(self.dome.move_shutter, 'close')
         time.sleep(2)
         self.dome.shutter_done.wait()
