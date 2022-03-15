@@ -221,6 +221,7 @@ def radial_average(path: str, saturation: Union[int, float], plot_lock=None, ima
 
     if plot_lock:
         plot_lock.acquire()
+    fig = plt.figure()
     imdata = fits.getdata(path)
     plt.imshow(imdata, cmap='gray', norm=colors.Normalize(vmin=np.nanmedian(imdata), vmax=np.nanmedian(imdata) + 400))
     plt.gca().invert_yaxis()
