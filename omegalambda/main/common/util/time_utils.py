@@ -11,6 +11,7 @@ from typing import Union, Optional
 import requests
 import requests.exceptions
 import re
+import os
 import urllib3.exceptions
 from numba import jit, njit, prange
 
@@ -233,16 +234,32 @@ def get_local_sidereal_time(longitude: float, date: Optional[Union[str, datetime
 
     """
     if leap_seconds == 0:
-        s = requests.Session()
-        try:
-            req = s.get('https://hpiers.obspm.fr/eop-pc/webservice/CURL/leapSecond.php')
-            match = re.search('([0-9]+)|', req.text)
+        current_path = os.path.abspath(os.path.dirname(__file__))
+        leapsec_file = os.path.abspath(os.path.join(current_path, r"leap_second.txt"))
+        if os.path.exists(leapsec_file):
+            logging.debug('Leap Second information retrieved from text file!')
+            with open(leapsec_file, 'r') as file:
+                text = file.readlines()[0]
+        else:
+            logging.debug('Sending HTTP request to the Paris Observatory for current leap second information!')
+            s = requests.Session()
+            try:
+                req = s.get('https://hpiers.obspm.fr/eop-pc/webservice/CURL/leapSecond.php')
+                text = req.text
+                with open(leapsec_file, 'w') as file:
+                    file.write(req.text)
+            except (urllib3.exceptions.MaxRetryError, urllib3.exceptions.HTTPError, urllib3.exceptions.TimeoutError,
+                    urllib3.exceptions.InvalidHeader, requests.exceptions.ConnectionError, requests.exceptions.Timeout,
+                    requests.exceptions.HTTPError):
+                    text = None
+
+        if text is not None:
+            match = re.search('([0-9]+)|', text)
             if match:
                 leap_seconds = int(match.group(0))
-        except (urllib3.exceptions.MaxRetryError, urllib3.exceptions.HTTPError, urllib3.exceptions.TimeoutError,
-                urllib3.exceptions.InvalidHeader, requests.exceptions.ConnectionError, requests.exceptions.Timeout,
-                requests.exceptions.HTTPError):
+        else:
             logging.warning('Could not get leap second data!')
+
     if date is None:
         date = datetime.datetime.now(datetime.timezone.utc)
     if type(date) is not datetime.datetime:
