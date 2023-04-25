@@ -99,6 +99,7 @@ class Telescope(Hardware):
             ha -= 24
         (az, alt) = conversion_utils.convert_radec_to_altaz(ra, dec, self.config_dict.site_latitude,
                                                             self.config_dict.site_longitude, time)
+
         if verbose:
             logging.debug('Telescope Coordinates: ' + str(ra) + ' ' + str(dec))
             logging.debug('Telescope Alt/Az: ' + str(alt) + ' ' + str(az))
