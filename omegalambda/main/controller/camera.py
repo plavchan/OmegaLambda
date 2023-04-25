@@ -164,7 +164,7 @@ class Camera(Hardware):
         last_temp = 0
         while not (self.Camera.TemperatureSetpoint - 0.2 <= self.Camera.Temperature <= self.Camera.TemperatureSetpoint
                    + 0.2):
-            print("Waiting for cooler to settle...")
+            logging.info("Waiting for cooler to settle...")
             time.sleep(60)
             t += 1
             if t < self.config_dict.cooler_settle_time:

@@ -120,9 +120,12 @@ class Guider(Hardware):
 
         """
         images = os.listdir(image_path)
-        paths = [full_path for fname in images if os.path.isfile(full_path := os.path.join(image_path, fname))]
-        newest_image = max(paths, key=os.path.getctime)
-        return newest_image
+        paths = [os.path.join(image_path, fname) for fname in images if ('.fits' in fname) or ('.fit' in fname)]
+        if len(paths) > 0:
+            newest_image = max(paths, key=os.path.getctime)
+            return newest_image
+        else:
+            return None
     
     def guiding_procedure(self, image_path):
         """
@@ -147,6 +150,9 @@ class Guider(Hardware):
         while self.guiding.isSet():
             self.camera.image_done.wait()
             newest_image = self.find_newest_image(image_path)
+            if not newest_image:
+                logging.warning('Guider could not find a new FITS image to read.  Waiting for next exposure.')
+                continue
             star = self.find_guide_star(newest_image)
             if not star:
                 logging.warning('Guider could not find a suitable guide star...waiting for next image to try again.')
@@ -155,10 +161,20 @@ class Guider(Hardware):
                 y_initial = star[1]
                 break
         failures = 0
+        prev_image = ''
         while self.guiding.isSet():
-            self.camera.image_done.wait(timeout=30*60)
+            imgcheck = self.camera.image_done.wait(timeout=30*60)
+            if not imgcheck:
+                logging.error('Guider has not received a new image in the last 30 minutes!  Stopping guiding procedures.')
+                break
             self.loop_done.clear()
             newest_image = self.find_newest_image(image_path)
+            if newest_image == prev_image:
+                logging.error('Guider has read in the same image twice in a row.  Stopping guiding procedures.')
+                break
+            if not newest_image:
+                logging.warning('Guider could not find a new FITS image to read.  Waiting for next exposure.')
+                continue
             subframe = None if failures >= 3 else (x_initial, y_initial)
             star = self.find_guide_star(newest_image, subframe=subframe)
             if not star:
@@ -232,6 +248,7 @@ class Guider(Hardware):
                     self.telescope.slew_done.wait()
                     self.telescope.onThread(self.telescope.jog, ydirection, yjog_distance)
                     self.telescope.slew_done.wait()
+            prev_image = newest_image
             self.loop_done.set()
 
     def stop_guiding(self):
@@ -247,4 +264,5 @@ class Guider(Hardware):
         None.
 
         """
+        logging.debug("Stopping guiding procedures.")
         self.guiding.clear()

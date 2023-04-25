@@ -105,8 +105,12 @@ class Hardware(threading.Thread):
             #logging.debug("{0:s} thread is alive".format(self.label))
             try:
                 function, args, kwargs = self.q.get(timeout=self.timeout)
-                function(*args, **kwargs)
-                logging.debug('{} has been run on the {} thread'.format(function, self.label))
+                try:
+                    function(*args, **kwargs)
+                    logging.debug('{} has been run on the {} thread'.format(function, self.label))
+                except Exception as exc:
+                    logging.exception(exc)
+                    self.stop()
             except queue.Empty:
                 time.sleep(1)
         pythoncom.CoUninitialize()

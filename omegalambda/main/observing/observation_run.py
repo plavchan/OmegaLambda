@@ -83,16 +83,17 @@ class ObservationRun:
         self.config_dict = config_reader.get_config()
 
         # Starts the threads
+        self.gui.start()
         self.focuser.start()        # Must be started first so that it may check all available COM ports for robofocus
         self.conditions.start()
         self.camera.start()
         self.telescope.start()
+        self.telescope.live_connection.wait(timeout=5)
         self.dome.start()
         self.focus_procedures.start()
         self.flatlamp.start()
         self.calibration.start()
         self.guider.start()
-        self.gui.start()
 
 
         self.th_dict = {'camera': self.camera, 'telescope': self.telescope,
@@ -161,6 +162,7 @@ class ObservationRun:
                 if self.conditions.sun:
                     cooler = True
                     self.camera.onThread(self.camera.cooler_set, False)
+                    self.focus_procedures.stop_constant_focusing()
                     sunset_time = conversion_utils.get_sunset(datetime.datetime.now(self.tz),
                                                               self.config_dict.site_latitude,
                                                               self.config_dict.site_longitude)
@@ -253,6 +255,7 @@ class ObservationRun:
             True if slew was successful, otherwise False.
 
         """
+        logging.info('Slewing the telescope to the target\'s ra=' + str(ticket.ra) + ' and dec=' + str(ticket.dec))
         self.telescope.onThread(self.telescope.slew, ticket.ra, ticket.dec)
         time.sleep(2)
         self.telescope.slew_done.wait()
@@ -264,14 +267,39 @@ class ObservationRun:
                 time.sleep(self.config_dict.weather_freq*60)
                 if not self.everything_ok():
                     return False
+                self.telescope.onThread(self.telescope.unpark)
+                time.sleep(2)
+                logging.info('Slewing the telescope to the target\'s ra=' + str(ticket.ra) + ' and dec=' + str(ticket.dec))
                 self.telescope.onThread(self.telescope.slew, ticket.ra, ticket.dec)
                 time.sleep(2)
                 self.telescope.slew_done.wait()
                 slew = self.telescope.last_slew_status
         if slew == -100:
+
+            # Try to park, but that may also fail.  Delay coordinate checks by 1 second.
+            self.telescope.onThread(self.telescope.park, 1000)
+            time.sleep(2)
+            self.telescope.slew_done.wait()
+            # If it does fail, don't try to park again
+            park = self.telescope.last_slew_status
+            if park is True:
+                # If the park was successful, try the slew one more time
+                self.telescope.onThread(self.telescope.unpark)
+                time.sleep(2)
+                logging.warning('Attempting to slew to the target one more time: ra=' + str(ticket.ra) + ' and dec=' + str(ticket.dec))
+                self.telescope.onThread(self.telescope.slew, ticket.ra, ticket.dec)
+                time.sleep(2)
+                self.telescope.slew_done.wait()
+                slew = self.telescope.last_slew_status
+                if slew != -100:
+                    # If the second slew was successful, yay!  Observations can continue
+                    return True
+                # Otherwise, if the repark or second slew fail, just shut down
+
             self._critical_shutdown_procedure()
             self.stop_threads()
-            raise RuntimeError('Critical shutdown due to telescope slew path outside of physical limits.')
+            raise RuntimeError('Critical shutdown due to telescope slew path outside of physical limits.  Halting the '
+                               'code until the problem can be diagnosed by a human.')
         return True
 
     def _park_procedure(self):
@@ -282,7 +310,8 @@ class ObservationRun:
         if park == -100:
             self._critical_shutdown_procedure()
             self.stop_threads()
-            raise RuntimeError('Critical shutdown due to telescope slew path outside of physical limits.')
+            raise RuntimeError('Critical shutdown due to telescope slew path outside of physical limits.  Halting the '
+                               'code until the problem can be diagnosed by a human.')
         return park
 
     def check_start_time(self, ticket):
@@ -311,6 +340,9 @@ class ObservationRun:
                 cooler = True
                 calibration = (self.config_dict.calibration_time == "end") and (self.calibration_toggle is True)
                 self._shutdown_procedure(calibration=calibration, cooler=cooler)
+                # They should already be stopped, but just in case:
+                self.focus_procedures.stop_constant_focusing()
+                self.guider.stop_guiding()
                 shutdown = True
             elif ticket != self.observation_request_list[0] and \
                     ((ticket.start_time - current_time) > datetime.timedelta(minutes=5)):
@@ -318,6 +350,9 @@ class ObservationRun:
                              "observatory in the meantime.")
                 cooler = False
                 self._shutdown_procedure(calibration=False, cooler=cooler)
+                # They should already be stopped, but just in case:
+                self.focus_procedures.stop_constant_focusing()
+                self.guider.stop_guiding()
                 shutdown = True
             current_time = datetime.datetime.now(self.tz)
             current_epoch_milli = time_utils.datetime_to_epoch_milli_converter(current_time)
@@ -381,8 +416,10 @@ class ObservationRun:
                 return
             if initial_shutter in (1, 3, 4):
                 time.sleep(10)
-                self.dome.move_done.wait()
+                self.dome.has_homed.wait()
                 self.dome.shutter_done.wait()
+                time.sleep(10)
+                self.dome.move_done.wait()
             self.camera.cooler_settle.wait()
             if self.focus_toggle:
                 self.focus_target(ticket)
@@ -431,15 +468,22 @@ class ObservationRun:
             focus_exposure = 0.001
         elif focus_exposure > 30:
             focus_exposure = 30
+        self.focus_procedures.stop_initial_focusing()
+        self.focus_procedures.stop_constant_focusing()
+        time.sleep(1)
         self.focus_procedures.onThread(self.focus_procedures.startup_focus_procedure, focus_exposure,
                                        self.filterwheel_dict[focus_filter], self.image_directories[ticket])
         time.sleep(1)
+        i = 0
         while not self.focus_procedures.focused.isSet():
             check = self.everything_ok()
             if not check:
                 self.focus_procedures.stop_initial_focusing()
                 break
             time.sleep(10)
+            i += 1
+            if i % 30 == 0:
+                logging.debug(f'Still waiting for coarse focus to finish...; t = {(i*10)//60} mins')
 
     def run_ticket(self, ticket):
         """
@@ -746,7 +790,7 @@ class ObservationRun:
         self.focuser.onThread(self.focuser.disconnect)
         self.flatlamp.onThread(self.flatlamp.disconnect)
 
-        self.monitor.run_th_monitor = False                 #Have to stop this first otherwise it will restart everything
+        self.monitor.run_th_monitor.clear()                 #Have to stop this first otherwise it will restart everything
         self.conditions.stop.set()
         self.focus_procedures.stop_constant_focusing()      # Should already be stopped, but just in case
         self.guider.stop_guiding()                          # Should already be stopped, but just in case
@@ -758,6 +802,7 @@ class ObservationRun:
         self.guider.stop()
         self.flatlamp.onThread(self.flatlamp.stop)
         self.calibration.onThread(self.calibration.stop)
+        self.gui.close_window.set()
         logging.debug(' Shutting down thread monitor. Number of thread restarts: {}'.format(self.monitor.n_restarts))
         time.sleep(5)
 
@@ -808,9 +853,11 @@ class ObservationRun:
         self.shutdown_event.set()
         time.sleep(5)
         self.dome.onThread(self.dome.slave_dome_to_scope, False)
+        self.dome.onThread(self.dome.park)
         self.dome.onThread(self.dome.move_shutter, 'close')
         time.sleep(2)
         self.dome.shutter_done.wait()
+        self.dome.move_done.wait()
         time.sleep(2)
         self.camera.onThread(self.camera.cooler_set, False)
 

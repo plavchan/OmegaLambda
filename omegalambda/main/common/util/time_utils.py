@@ -11,6 +11,7 @@ from typing import Union, Optional
 import requests
 import requests.exceptions
 import re
+import os
 import urllib3.exceptions
 from numba import jit, njit, prange
 
@@ -33,7 +34,6 @@ def rounddown_300(x: Union[int, float]) -> int:
         Does not round up.  Needed for weather.com api.
 
     """
-    logging.debug('Called time_utils function')
     return int(x/300)*300
 
 
@@ -51,7 +51,6 @@ def convert_to_datetime_utc(date: str) -> datetime.datetime:
         Datetime object in UTC time, timezone-aware.
 
     """
-    logging.debug('Called time_utils function')
     d = dateutil.parser.parse(date)
     return d.replace(tzinfo=pytz.UTC) - d.utcoffset()
 
@@ -70,7 +69,6 @@ def convert_to_datetime(date: str) -> datetime.datetime:
         Datetime object in whatever timezone is passed in, timezone-aware.
 
     """
-    logging.debug('Called time_utils function')
     d = dateutil.parser.parse(date)
     return d
 
@@ -89,7 +87,6 @@ def datetime_to_epoch_milli_converter(date: Union[str, datetime.datetime]) -> Un
         Number of milliseconds since Jan. 1, 1970.  Common way of measuring time.
 
     """
-    logging.debug('Called time_utils function')
     if type(date) is not datetime.datetime:
         date = convert_to_datetime_utc(date)
     epoch = datetime.datetime.utcfromtimestamp(0)
@@ -110,7 +107,6 @@ def epoch_milli_to_datetime_converter(epochmilli: Union[int, float]) -> datetime
         Timezone-aware, UTC datetime.datetime object.
 
     """
-    logging.debug('Called time_utils function')
     return datetime.datetime.utcfromtimestamp(epochmilli / 1000).replace(tzinfo=pytz.UTC)
 
 
@@ -129,7 +125,6 @@ def days_since_j2000(date: Optional[Union[datetime.datetime, str]] = None) -> fl
         Timestamp in the form of days since Jan. 1, 2000.
 
     """
-    logging.debug('Called time_utils function')
     if date is None:
         date = datetime.datetime.now(datetime.timezone.utc)
     if type(date) is not datetime.datetime:
@@ -156,7 +151,6 @@ def days_of_year(date: Optional[Union[str, datetime.datetime]] = None) -> float:
         Timestamp in the form of days since Jan. 1, [current year].
 
     """
-    logging.debug('Called time_utils function')
     if date is None:
         date = datetime.datetime.now(datetime.timezone.utc)
     if type(date) is not datetime.datetime:
@@ -182,7 +176,6 @@ def fractional_hours_of_day(time: Optional[Union[str, datetime.datetime]] = None
         is halfway over, so this will return 0.5.
 
     """
-    logging.debug('Called time_utils function')
     if time is None:
         time = datetime.datetime.now(datetime.timezone.utc)
     if type(time) is not datetime.datetime:
@@ -204,7 +197,6 @@ def decimal_year(time=None) -> float:
         Needed for different epoch coordinate conversions.
 
     """
-    logging.debug('Called time_utils function')
     if time is None:
         time = datetime.datetime.now()
     mods = ((time.year % 400 == 0), (time.year % 100 == 0), (time.year % 4 == 0))
@@ -242,17 +234,32 @@ def get_local_sidereal_time(longitude: float, date: Optional[Union[str, datetime
 
     """
     if leap_seconds == 0:
-        s = requests.Session()
-        try:
-            req = s.get('https://hpiers.obspm.fr/eop-pc/webservice/CURL/leapSecond.php')
-            match = re.search('([0-9]+)|', req.text)
+        current_path = os.path.abspath(os.path.dirname(__file__))
+        leapsec_file = os.path.abspath(os.path.join(current_path, r"leap_second.txt"))
+        if os.path.exists(leapsec_file):
+            logging.debug('Leap Second information retrieved from text file!')
+            with open(leapsec_file, 'r') as file:
+                text = file.readlines()[0]
+        else:
+            logging.debug('Sending HTTP request to the Paris Observatory for current leap second information!')
+            s = requests.Session()
+            try:
+                req = s.get('https://hpiers.obspm.fr/eop-pc/webservice/CURL/leapSecond.php')
+                text = req.text
+                with open(leapsec_file, 'w') as file:
+                    file.write(req.text)
+            except (urllib3.exceptions.MaxRetryError, urllib3.exceptions.HTTPError, urllib3.exceptions.TimeoutError,
+                    urllib3.exceptions.InvalidHeader, requests.exceptions.ConnectionError, requests.exceptions.Timeout,
+                    requests.exceptions.HTTPError):
+                    text = None
+
+        if text is not None:
+            match = re.search('([0-9]+)|', text)
             if match:
                 leap_seconds = int(match.group(0))
-        except (urllib3.exceptions.MaxRetryError, urllib3.exceptions.HTTPError, urllib3.exceptions.TimeoutError,
-                urllib3.exceptions.InvalidHeader, requests.exceptions.ConnectionError, requests.exceptions.Timeout,
-                requests.exceptions.HTTPError):
+        else:
             logging.warning('Could not get leap second data!')
-    logging.debug('Called time_utils function')
+
     if date is None:
         date = datetime.datetime.now(datetime.timezone.utc)
     if type(date) is not datetime.datetime:
@@ -426,14 +433,15 @@ def convert_to_bjd_tdb(jd, name, lat, lon, height, ra=None, dec=None):
         simbad.add_votable_fields('ra(2;A;ICRS;J2000)', 'dec(2;D;ICRS;J2000)','pm', 'plx','parallax','rv_value')
         simbad.remove_votable_fields('coordinates')
         table = simbad.query_object(name)
-    except (urllib3.exceptions.MaxRetryError, urllib3.exceptions.HTTPError, urllib3.exceptions.TimeoutError,
-            urllib3.exceptions.InvalidHeader, requests.exceptions.ConnectionError, requests.exceptions.Timeout,
-            requests.exceptions.HTTPError, TimeoutError):
+    except:
         return None
     if not table:
         if not ra or not dec:
             return None
-        table = simbad.query_region(SkyCoord(ra*u.degree, dec*u.degree, frame='icrs'), radius='5m')
+        try:
+            table = simbad.query_region(SkyCoord(ra*u.degree, dec*u.degree, frame='icrs'), radius='5m')
+        except:
+            return None
     if table:
         if not ra:
             ra = decimal(table['RA_2_A_ICRS_J2000'][0]) * 15
@@ -455,20 +463,35 @@ def convert_to_bjd_tdb(jd, name, lat, lon, height, ra=None, dec=None):
                            rv=radial_velocity, lat=lat, longi=lon, alt=height, leap_update=False)[0][0]
 
 
-def sexagesimal(decimal: float) -> str:
+@njit
+def truncate(number, digits) -> float:
+    stepper = np.power(10, digits)
+    return int(stepper * number) / stepper
+
+
+def sexagesimal(decimal: float, precision=2) -> str:
     hh = int(decimal)
     f1 = hh if hh != 0 else 1
 
     extra = decimal % f1
+    if f1 == 1 and decimal < 0:
+        extra -= 1
     mm = int(extra * 60)
     f2 = mm if mm != 0 else 1
 
     extra2 = (extra * 60) % f2
+    if f2 == 1 and (extra * 60) < 0:
+        extra2 -= 1
     ss = extra2 * 60
 
+    hh = abs(hh)
     mm = abs(mm)
     ss = abs(ss)
-    return '{:02d} {:02d} {:08.5f}'.format(hh, mm, ss)
+
+    ss = truncate(ss, precision)
+    fmt = '{:02d}:{:02d}:{:0%d.%df}' % (precision+3, precision)
+    sign = '-' if decimal < 0 else ''
+    return sign + fmt.format(hh, mm, ss)
 
 
 def decimal(sexagesimal: str) -> float:
