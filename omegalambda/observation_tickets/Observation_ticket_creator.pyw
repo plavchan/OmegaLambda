@@ -308,6 +308,8 @@ box_labels()
 exampletxt()
 check_toi()
 toi_list = create_list()
+if not toi_list:
+    toi_list = ['No targets found!']
 
 # Creates and places dropdown menu
 selection = tk.StringVar()

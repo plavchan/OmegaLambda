@@ -7,14 +7,15 @@ class Monitor(threading.Thread):
 
     def __init__(self, th_dict):
         self.threadlist = th_dict
-        self.run_th_monitor = True
+        self.run_th_monitor = threading.Event()
+        self.run_th_monitor.set()
         self.crashed = []
         self.n_restarts = {'camera': 0, 'telescope': 0,'dome': 0, 'focuser': 0,
                            'flatlamp': 0,'conditions': 0, 'guider': 0,
                            'focus_procedures': 0, 'gui': 0
                            }
         self.telescope_coords_check = True
-        super(Monitor, self).__init__(name='Monitor')
+        super(Monitor, self).__init__(name='Monitor', daemon=True)
 
     def run(self):
         '''
@@ -28,10 +29,10 @@ class Monitor(threading.Thread):
         None.
         '''
         logging.debug('Beginning thread monitoring')
-        while self.run_th_monitor:
+        while self.run_th_monitor.isSet():
             for th_name in self.threadlist.keys():
                 if not self.threadlist[th_name].is_alive():
-                    if not th_name in self.crashed:
+                    if th_name not in self.crashed:
                         self.crashed.append(th_name)
                         logging.error('{} thread has raised an exception'.format(self.threadlist[th_name].name))
                         logging.debug('List of crashed threads: {}'.format(self.crashed))

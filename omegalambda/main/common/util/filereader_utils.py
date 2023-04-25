@@ -3,8 +3,7 @@ import logging
 import os
 import datetime
 import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.colors as colors
+import matplotlib
 from typing import Union, Optional, Tuple
 
 import photutils
@@ -18,6 +17,10 @@ from numba import jit, njit, prange
 from ..IO import config_reader
 
 np.warnings.filterwarnings('ignore')
+# See condition_checker.py for explanation
+matplotlib.use('Agg', force=True)
+import matplotlib.pyplot as plt
+import matplotlib.colors as colors
 
 
 def mediancounts(image_path: str) -> float:
@@ -218,6 +221,7 @@ def radial_average(path: str, saturation: Union[int, float], plot_lock=None, ima
 
     if plot_lock:
         plot_lock.acquire()
+    fig = plt.figure()
     imdata = fits.getdata(path)
     plt.imshow(imdata, cmap='gray', norm=colors.Normalize(vmin=np.nanmedian(imdata), vmax=np.nanmedian(imdata) + 400))
     plt.gca().invert_yaxis()
@@ -233,7 +237,9 @@ def radial_average(path: str, saturation: Union[int, float], plot_lock=None, ima
         plt.savefig(target_path, dpi=300)
     else:
         plt.savefig(os.path.join(image_save_path, 'FocusApertures_{}.png'.format(datetime.datetime.now().strftime('%Y%m%d-%H%M%S'))), dpi=300)
-    plt.close()
+    plt.clf()
+    plt.cla()
+    plt.close('all')
 
     fig, ax = plt.subplots(ncols=2, nrows=2)
     highest_snr = np.argsort(snrs)[::-1][:4]
@@ -258,7 +264,9 @@ def radial_average(path: str, saturation: Union[int, float], plot_lock=None, ima
         plt.savefig(target_path, dpi=300)
     else:
         plt.savefig(os.path.join(image_save_path, 'FocusProfiles_{}.png'.format(datetime.datetime.now().strftime('%Y%m%d-%H%M%S'))), dpi=300)
-    plt.close()
+    plt.clf()
+    plt.cla()
+    plt.close('all')
     if plot_lock:
         plot_lock.release()
 
