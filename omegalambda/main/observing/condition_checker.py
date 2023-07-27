@@ -10,6 +10,7 @@ import re
 import threading
 import logging
 import datetime
+import json
 import time
 import numpy as np
 import matplotlib
@@ -54,13 +55,13 @@ class Conditions(threading.Thread):
         self.plot_lock = plot_lock
         # Threading events to set flags and interact between threads
         self.config_dict = config_reader.get_config()  # Global config dictionary
+        # GMU COS Website for temperature, humidity and wind
         self.weather_url = 'http://weather.cos.gmu.edu/Current_Monitor.htm'
-        self.backup_weather_url = 'https://weather.com/weather/hourbyhour/' + \
-                                  'l/e8321c2fb1f8234f40bf92ce494921d94e657d54cc2c01f1882755e04b761dee'
-        # GMU COS Website for humitiy and wind
+        # weather.gov API for backup temperature, humidity and wind
+        self.backup_weather_url = "https://api.weather.gov/points/38.8286,-77.3062"
+        # Weather.com radar for rain
         self.rain_url = 'https://weather.com/weather/radar/interactive/' + \
                         'l/b63f24c17cc4e2d086c987ce32b2927ba388be79872113643d2ef82b2b13e813'
-        # Weather.com radar for rain
         self.sun = False
         self.temperature = None
         current_directory = os.path.abspath(os.path.dirname(__file__))
@@ -155,7 +156,8 @@ class Conditions(threading.Thread):
         Temperature : FLOAT
             Current temperature in degrees F at Research Hall, from GMU COS weather station.
 
-        For all values, uses weather.com as a backup if the weather station is down.
+        For temperature, humidity and wind weather.gov is used as a backup.
+        For rain, weather.com radar is used as a backup.
 
         """
         s = requests.Session()
@@ -175,7 +177,7 @@ class Conditions(threading.Thread):
                 if diff > datetime.timedelta(minutes=30):
                     # Checking when the web page was last modified (may be outdated)
                     logging.warning("GMU COS Weather Station Web site has not updated in the last 30 minutes! "
-                                    "Using backup weather.com to find humidity/wind/rain instead.")
+                                    "Using backup weather.gov and weather.com to find temperature/humidity/wind/rain instead.")
                     backup = True
             else:
                 logging.warning("GMU COS Weather Station Web site did not return a last modified timestamp, "
@@ -203,32 +205,49 @@ class Conditions(threading.Thread):
 
         if backup or (None in (humidity, wind, rain)):
             try:
-                self.weather = s.get(self.backup_weather_url, headers={'User-Agent': self.config_dict.user_agent})
+                # weather.gov API process:
+                # 1. Get metadata for location from latitude and longitude
+                # 2. Lookup hourly forecast for location from metadata
+                # The zone for step 2 might occasionally change, which is why the 2-step process is needed.
+                
+                weather_metadata = s.get(self.backup_weather_url, headers={'User-Agent': self.config_dict.user_agent})
+                res = json.loads(weather_metadata.text)
+                self.weather = s.get(res["properties"]["forecastHourly"], headers={'User-Agent': self.config_dict.user_agent})
+                
             except (urllib3.exceptions.MaxRetryError, urllib3.exceptions.HTTPError, urllib3.exceptions.TimeoutError,
                     urllib3.exceptions.InvalidHeader, requests.exceptions.ConnectionError, requests.exceptions.Timeout,
-                    requests.exceptions.HTTPError):
+                    requests.exceptions.HTTPError, json.decoder.JSONDecodeError, KeyError):
                 self.connection_alert.set()
                 return None, None, None, None
 
-            weather_ids = {'PercentageValue': humidity, 'Wind': wind, 'TemperatureValue': temperature}
-            for key, value in weather_ids.items():
-                if weather_ids[key] is not None:
-                    continue
-                condition_data = re.search(r'<span data-testid="' + key + '" class="(.+?)' +
-                                           r'>(.+?)</span>', self.weather.text)
-                if condition_data:
-                    if test_condition := re.search(r'[+-]?\d+\.\d+', condition_data.group(2)):
-                        condition = float(test_condition.group())
-                    else:
-                        condition = int(re.search(r'[+-]?\d+', condition_data.group(2)).group())
-                else:
-                    logging.warning('Could not find wind from weather.com...their html may have changed.')
-                    continue
-                weather_ids[key] = condition
-            humidity = weather_ids['PercentageValue']
-            wind = weather_ids['Wind']
-            temperature = weather_ids['TemperatureValue']
-            rain = None
+            try:
+                res = json.loads(self.weather.text)
+                temperature = float(res['properties']['periods'][0]['temperature'])
+                humidity = float(res['properties']['periods'][0]['relativeHumidity']["value"])
+                wind = res['properties']['periods'][0]['windSpeed']
+                
+                # Wind returns two formats: (1) # mph and (2) # to # mph. Remove "mph" for (1). Remove "mph" and take the max for (2).
+                wind = wind.split()
+                max_wind = -1
+                for word in wind:
+                    if word in ("mph", "to"):
+                        continue
+                    try:
+                        word = float(word)
+                        max_wind = max(max_wind, word)
+                    except ValueError:
+                        logging.warning("Failed to read weather.gov wind API. The API may have changed.")
+                        self.connection_alert.set()
+                        
+                wind = max_wind
+                if wind == -1:
+                    logging.warning("Failed to read weather.gov wind API. The API may have changed.")
+                    self.connection_alert.set()
+                    wind = None
+                
+            except (json.decoder.JSONDecodeError, KeyError):
+                logging.warning("Failed to read weather.gov API. The weather.gov API may have changed.")
+                self.connection_alert.set()
 
         with open(target_path, 'w') as file:
             # Writes the html code to a text file

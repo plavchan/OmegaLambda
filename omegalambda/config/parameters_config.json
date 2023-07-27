@@ -15,7 +15,7 @@
 	"cloud_cover_limit": 75,
 	"cloud_saturation_limit": 120,
 	"rain_percent_limit": 5,
-	"user_agent": "Mozilla/5.0",
+	"user_agent": "(George Mason University Observatory, gmuobservatory@gmail.com)",
 	"cloud_satellite": "goes-16",
 	"weather_api_key": "\"SUN_V3_API_KEY(.+?)\":\"(.+?)\",",
 	"min_reopen_time": 30,
