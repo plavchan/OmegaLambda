@@ -73,7 +73,7 @@ def findstars(path: str, saturation: Union[int, float], subframe: Optional[Tuple
     data = (image - median) ** 2
     threshold = photutils.detect_threshold(image, nsigma=5)
     if not subframe:
-        starfound = photutils.find_peaks(data, threshold=threshold, box_size=50, border_width=500,
+        starfound = photutils.find_peaks(data, threshold=threshold, box_size=49, border_width=500,
                                          centroid_func=photutils.centroids.centroid_com)
     else:
         config_dict = config_reader.get_config()
@@ -83,7 +83,7 @@ def findstars(path: str, saturation: Union[int, float], subframe: Optional[Tuple
         data_subframe = data[int(y_cent - r):int(y_cent + r), int(x_cent - r):int(x_cent + r)]
         image = image[int(y_cent - r):int(y_cent + r), int(x_cent - r):int(x_cent + r)]
         threshold = threshold[int(y_cent - r):int(y_cent + r), int(x_cent - r):int(x_cent + r)]
-        starfound = photutils.find_peaks(data_subframe, threshold=threshold, box_size=50, border_width=10,
+        starfound = photutils.find_peaks(data_subframe, threshold=threshold, box_size=49, border_width=10,
                                          centroid_func=photutils.centroids.centroid_com)
 
     n = 0
@@ -152,7 +152,7 @@ def _get_all_fwhm(stars, peaks, data, ri, sky, binsize):
         x_cent = stars[ii][0]
         y_cent = stars[ii][1]
         star = data[int(y_cent - ri):int(y_cent + ri), int(x_cent - ri):int(x_cent + ri)] + sky
-        centroidx, centroidy = photutils.centroids.centroid_com(star, oversampling=1)
+        centroidx, centroidy = photutils.centroids.centroid_com(star)
         stary, starx = np.indices(star.shape)
         r = np.hypot(starx - centroidx, stary - centroidy).astype(np.float64)
 
