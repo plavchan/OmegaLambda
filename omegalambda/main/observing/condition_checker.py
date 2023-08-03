@@ -161,29 +161,30 @@ class Conditions(threading.Thread):
 
         """
         s = requests.Session()
-        backup = False
         humidity = wind = rain = temperature = None
-        try:
-            header = requests.head(self.weather_url).headers
-        except (urllib3.exceptions.MaxRetryError, urllib3.exceptions.HTTPError, urllib3.exceptions.TimeoutError,
-                urllib3.exceptions.InvalidHeader, requests.exceptions.ConnectionError, requests.exceptions.Timeout,
-                requests.exceptions.HTTPError):
-            logging.warning('Failed to read GMU website header')
-            backup = True
-        else:
-            if 'Last-Modified' in header:
-                update_time = time_utils.convert_to_datetime_utc(header['Last-Modified'])
-                diff = datetime.datetime.now(datetime.timezone.utc) - update_time
-                if diff > datetime.timedelta(minutes=30):
-                    # Checking when the web page was last modified (may be outdated)
-                    logging.warning("GMU COS Weather Station Web site has not updated in the last 30 minutes! "
-                                    "Using backup weather.gov and weather.com to find temperature/humidity/wind/rain instead.")
-                    backup = True
-            else:
-                logging.warning("GMU COS Weather Station Web site did not return a last modified timestamp, "
-                                "it may be outdated!")
-                backup = True
-
+            
+        ## GMU COS Weather Station Website is no longer functional. 
+        ## Commenting out this section until new website comes online.
+        # try:
+        #     header = requests.head(self.weather_url).headers
+        # except (urllib3.exceptions.MaxRetryError, urllib3.exceptions.HTTPError, urllib3.exceptions.TimeoutError,
+        #         urllib3.exceptions.InvalidHeader, requests.exceptions.ConnectionError, requests.exceptions.Timeout,
+        #         requests.exceptions.HTTPError):
+        #     logging.warning('Failed to read GMU website header')
+        #     backup = True
+        # else:
+        #     if 'Last-Modified' in header:
+        #         if True:
+        #             # Checking when the web page was last modified (may be outdated)
+        #             logging.warning("GMU COS Weather Station Web site has not updated in the last 30 minutes! "
+        #                             "Using backup weather.com to find humidity/wind/rain instead.")
+        #             backup = True
+        #     else:
+        #         logging.warning("GMU COS Weather Station Web site did not return a last modified timestamp, "
+        #                         "it may be outdated!")
+        #         backup = True
+            
+        backup = True
         target_path = os.path.abspath(os.path.join(self.weather_directory, r'weather.txt'))
         if not backup:
             try:
@@ -253,6 +254,7 @@ class Conditions(threading.Thread):
             # Writes the html code to a text file
             file.write(str(self.weather.content))
 
+        logging.debug(f"Humidity: {humidity}, Wind: {wind}, Temperature: {temperature}")
         return humidity, wind, rain, temperature
 
     def rain_check(self):
@@ -352,6 +354,7 @@ class Conditions(threading.Thread):
             True if cloud cover reaches or exceeds the maximum percenage
             defined in the config file, otherwise False.
 
+        TODO: Use weather.com or another source to get cloud cover and take the max of that and satellite data?
         """
         satellite = self.config_dict.cloud_satellite
         day = int(time_utils.days_of_year())
