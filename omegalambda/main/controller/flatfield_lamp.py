@@ -4,11 +4,14 @@ import serial
 import serial.tools.list_ports
 from serial.serialutil import SerialException
 import threading
+import time
 
 from .hardware import Hardware
 
-
 class FlatLamp(Hardware):
+    startMarker = '<'
+    endMarker = '>'
+    idn_code = 2
     
     def __init__(self):
         """
@@ -23,14 +26,89 @@ class FlatLamp(Hardware):
         self.ser = serial.Serial()
         self.ser.baudrate = 9600
         self.status = None
-        ports = list(serial.tools.list_ports.comports())
-        arduino_ports = [port for port in ports if "Arduino" in port.description]
-        if len(arduino_ports) >= 1:
-            self.ser.port = arduino_ports[0].device
-        else:
-            logging.critical('Cannot find flatfield lamp port')
-            return
+        self.dataStarted = False
+        self.dataBuf = ""
+        self.flatfieldlamp_arduino = ""
+        self.coolingsystem_arduino = ""
+        self.messageComplete = False
+        self.timeout = time.time() + 5
         self.lamp_done = threading.Event()
+        
+        ports = serial.tools.list_ports.comports()
+        self.arduino_ports = []
+        for p in ports:
+            if p.manufacturer is not None and "Arduino" in p.manufacturer:
+                self.arduino_ports.append(p.device)
+        if len(self.arduino_ports) == 0:
+            logging.critical('No Arduinos detected. Check and ensure they are plugged in!')
+    
+    
+    '''
+    Some of the functions are inspired by:
+    https://forum.arduino.cc/t/pc-arduino-comms-using-python-updated/574496
+    https://be189.github.io/lessons/10/control_of_arduino_with_python.html
+    '''
+    def receive_function(self):
+        if self.ser.inWaiting() > 0 and not self.messageComplete:
+            x = self.ser.read().decode()  # decode needed for Python3
+
+            if self.dataStarted:
+                if x != FlatLamp.endMarker:
+                    self.dataBuf += x
+                else:
+                    self.dataStarted = False
+                    self.messageComplete = True
+            elif x == FlatLamp.startMarker:
+                self.dataBuf = ''
+                self.dataStarted = True
+
+        if self.messageComplete:
+            self.messageComplete = False
+            return self.dataBuf
+        else:
+            return "XXX"
+    
+    def recv_arduino(self, **kwargs):
+        port = kwargs.get('port', None)  # Check for overloaded variables
+        
+        recv = 'XXX'  # Reset recv
+        while time.time() < self.timeout and (recv == 'XXX'):
+            recv = self.receive_function()
+        if not (recv == 'XXX'):
+            return recv
+        elif port is not None:
+            logging.critical('Arduino @', port, 'timed out')
+        else:
+            logging.critical('An Arduino timed out')
+    
+    def arduino_identifier(self, port_arduino):
+        try:
+            self.ser.port = port_arduino
+            self.ser.close()
+            self.ser.open()
+            _ = self.ser.read_all()
+
+            check_ready = self.recv_arduino(port=port_arduino)
+
+            if check_ready == 'Arduino is ready':
+                self.ser.write(bytes([FlatLamp.idn_code]))
+                id_reply = self.recv_arduino(port=port_arduino)
+
+                if id_reply == 'LAMP':
+                    self.flatfieldlamp_arduino = port_arduino
+                if id_reply == 'COOLING':
+                    self.coolingsystem_arduino = port_arduino
+        finally:
+            self.ser.close()  # Close serial port
+    
+    def get_port(self):
+        for p in self.arduino_ports:
+            self.arduino_identifier(p)
+        
+        if len(self.flatfieldlamp_arduino) == 0:
+            logging.critical('Could not find flatfield lamp Arduino port')
+        else:
+            self.ser.port = self.flatfieldlamp_arduino
 
     def check_connection(self):
         """
