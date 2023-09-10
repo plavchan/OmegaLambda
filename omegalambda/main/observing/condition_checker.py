@@ -94,7 +94,7 @@ class Conditions(threading.Thread):
             cloud_cover = self.cloud_check()
             if self.connection_alert.isSet():
                 connection_failures += 1
-                if connection_failures >= 1:
+                if connection_failures >= 2:
                     self.weather_alert.set()
                     logging.critical("A connection error was encountered and the weather can no longer be monitored"
                                      "Shutting down for safety.")
