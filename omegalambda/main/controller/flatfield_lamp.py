@@ -11,7 +11,7 @@ from .hardware import Hardware
 class FlatLamp(Hardware):
     startMarker = '<'
     endMarker = '>'
-    idn_code = 2
+    idn_code = '2'
     
     def __init__(self):
         """
@@ -28,19 +28,25 @@ class FlatLamp(Hardware):
         self.status = None
         self.dataStarted = False
         self.dataBuf = ""
-        self.flatfieldlamp_arduino = ""
-        self.coolingsystem_arduino = ""
+        self.flatfieldlamp_arduino = None
         self.messageComplete = False
         self.timeout = time.time() + 5
         self.lamp_done = threading.Event()
         
         ports = serial.tools.list_ports.comports()
+        
         self.arduino_ports = []
         for p in ports:
-            if p.manufacturer is not None and "Arduino" in p.manufacturer:
+            if p.manufacturer is not None and "Arduino" in p.manufacturer or "Arduino" in p.description:
                 self.arduino_ports.append(p.device)
-        if len(self.arduino_ports) == 0:
-            logging.critical('No Arduinos detected. Check and ensure they are plugged in!')
+
+        for p in self.arduino_ports:
+            self.arduino_identifier(p)
+        
+        if self.flatfieldlamp_arduino is not None:
+            self.ser.port = self.flatfieldlamp_arduino.device
+        else:
+            logging.critical('FlatField Lamp Arduino not found. Check and ensure it is plugged in!')
     
     
     '''
@@ -91,13 +97,11 @@ class FlatLamp(Hardware):
             check_ready = self.recv_arduino(port=port_arduino)
 
             if check_ready == 'Arduino is ready':
-                self.ser.write(bytes([FlatLamp.idn_code]))
+                self.ser.write(FlatLamp.idn_code.encode())
                 id_reply = self.recv_arduino(port=port_arduino)
 
                 if id_reply == 'LAMP':
                     self.flatfieldlamp_arduino = port_arduino
-                if id_reply == 'COOLING':
-                    self.coolingsystem_arduino = port_arduino
         finally:
             self.ser.close()  # Close serial port
     
