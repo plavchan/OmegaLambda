@@ -30,7 +30,7 @@ class FlatLamp(Hardware):
         self.dataBuf = ""
         self.flatfieldlamp_arduino = None
         self.messageComplete = False
-        self.timeout = time.time() + 5
+        self.timeout_time = time.time() + 5
         self.lamp_done = threading.Event()
         
         ports = serial.tools.list_ports.comports()
@@ -44,7 +44,7 @@ class FlatLamp(Hardware):
             self.arduino_identifier(p)
         
         if self.flatfieldlamp_arduino is not None:
-            self.ser.port = self.flatfieldlamp_arduino.device
+            self.ser.port = self.flatfieldlamp_arduino
         else:
             logging.critical('FlatField Lamp Arduino not found. Check and ensure it is plugged in!')
     
@@ -78,7 +78,7 @@ class FlatLamp(Hardware):
         port = kwargs.get('port', None)  # Check for overloaded variables
         
         recv = 'XXX'  # Reset recv
-        while time.time() < self.timeout and (recv == 'XXX'):
+        while time.time() < self.timeout_time and (recv == 'XXX'):
             recv = self.receive_function()
         if not (recv == 'XXX'):
             return recv
