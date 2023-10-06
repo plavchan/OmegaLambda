@@ -83,7 +83,7 @@ class FlatLamp(Hardware):
         if not (recv == 'XXX'):
             return recv
         elif port is not None:
-            logging.critical('Arduino @', port, 'timed out')
+            logging.critical(f"Arduino at {port} timed out")
         else:
             logging.critical('An Arduino timed out')
     
