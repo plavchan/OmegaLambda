@@ -124,6 +124,7 @@ class Telescope(Hardware):
 
         """
         while self.Telescope.Slewing:
+            logging.debug("In _is_ready slew loop")
             time.sleep(1)
         if not self.Telescope.Slewing:
             return
@@ -144,12 +145,12 @@ class Telescope(Hardware):
             True if the park was successful, False otherwise.
 
         """
+        self._is_ready()
         self.slew_done.clear()
         if self.Telescope.AtPark:
             self.slew_done.set()
             logging.info("Telescope is at park")
             return True
-        self._is_ready()
         try:
             # self.Telescope.Park()
             park_status = self.slewaltaz(self.config_dict.telescope_park_az, self.config_dict.telescope_park_alt, tracking=False,
@@ -199,8 +200,9 @@ class Telescope(Hardware):
             with self.movement_lock:
                 self.Telescope.Unpark()
                 self.Telescope.Tracking = True
-        except (AttributeError, pywintypes.com_error):
+        except (AttributeError, pywintypes.com_error) as e:
             logging.error("Error unparking telescope or tracking")
+            logging.exception(e)
             return False
         else: 
             logging.info("Telescope is unparked; tracking at sidereal rate")
@@ -242,8 +244,10 @@ class Telescope(Hardware):
                     self.Telescope.SlewToCoordinatesAsync(ra, dec)
                     if coord_check_delay_ms > 0:
                         time.sleep(coord_check_delay_ms/1000)
+                    time.sleep(1)
                     while self.Telescope.Slewing:
-                        in_limits = self.__check_coordinate_limit(self.Telescope.RightAscension, self.Telescope.Declination, verbose=0)
+                        logging.debug("In slew loop")
+                        in_limits = self.__check_coordinate_limit(self.Telescope.RightAscension, self.Telescope.Declination, verbose=1)
                         if not in_limits:
                             self.abort()
                             logging.critical('Telescope has slewed past limits, despite the final destination being within limits!'
@@ -256,8 +260,9 @@ class Telescope(Hardware):
                         time.sleep(.1)
                     self.Telescope.Tracking = tracking
                     time.sleep(2)
-            except (AttributeError, pywintypes.com_error):
-                logging.debug("ASCOM Error slewing to target.  You may safely ignore this warning.")
+            except (AttributeError, pywintypes.com_error) as e:
+                logging.error("ASCOM Error slewing to target.  You may safely ignore this warning.")
+                logging.exception(e)
             self._is_ready()
             if abs(self.Telescope.RightAscension - ra) <= 0.05 and abs(self.Telescope.Declination - dec) <= 0.05:
                 self.last_slew_status = True
@@ -422,6 +427,7 @@ class Telescope(Hardware):
                 # This is the only way it will actually disconnect from TheSkyX so far
             except (AttributeError, pywintypes.com_error):
                 logging.error("Could not disconnect from telescope")
+                return False
             else:
                 logging.info('Telescope disconnected')
                 return True
