@@ -88,7 +88,7 @@ class ObservationRun:
         self.conditions.start()
         self.camera.start()
         self.telescope.start()
-        self.telescope.live_connection.wait(timeout=5)
+        self.telescope.live_connection.wait(timeout=15)
         self.dome.start()
         self.focus_procedures.start()
         self.flatlamp.start()
@@ -154,15 +154,25 @@ class ObservationRun:
                     sleep_time = 0
             else:
                 sleep_time = self.config_dict.min_reopen_time * 60
+                
+            self.monitor.skip_telescope_check = True
+            time.sleep(5)
+            logging.info("Disconnecting telescope.")
+            self.telescope.onThread(self.telescope.disconnect)
+            logging.info("Stopping telescope.")
+            self.telescope.onThread(self.telescope.stop)
+            logging.info("Telescope disconnect complete.")
+                
             logging.info("Sleeping for {} minutes, then weather checks will resume to attempt "
                          "a possible re-open.".format(sleep_time // 60))
+            
             time.sleep(sleep_time)
 
             while self.conditions.weather_alert.isSet():
                 if self.conditions.sun:
                     cooler = True
                     self.camera.onThread(self.camera.cooler_set, False)
-                    self.focus_procedures.stop_constant_focusing()
+                    self.focus_procedures.stop_constant_focusing()                    
                     sunset_time = conversion_utils.get_sunset(datetime.datetime.now(self.tz),
                                                               self.config_dict.site_latitude,
                                                               self.config_dict.site_longitude)
@@ -190,6 +200,16 @@ class ObservationRun:
                 if current_time + datetime.timedelta(minutes=15) > self.observation_request_list[-1].end_time:
                     return False
                 check = True
+                
+                logging.info("Reconnecting telescope.")
+                self.restart('telescope')
+                time.sleep(5)
+                logging.info("Restarting dome thread.")
+                self.restart('dome')
+                time.sleep(15)
+                self.monitor.skip_telescope_check = False
+                time.sleep(10)
+                    
                 self._startup_procedure(cooler=cooler)
 
                 if self.current_ticket.end_time > datetime.datetime.now(self.tz):
@@ -304,7 +324,7 @@ class ObservationRun:
 
     def _park_procedure(self):
         self.telescope.onThread(self.telescope.park)
-        time.sleep(2)
+        time.sleep(5)
         self.telescope.slew_done.wait()
         park = self.telescope.last_slew_status
         if park == -100:
@@ -902,26 +922,33 @@ class ObservationRun:
             self.camera = Camera()
             self.camera.start()
             self.monitor.n_restarts['camera'] += 1
+            self.monitor.threadlist['camera'] = self.camera
         elif thname == 'telescope':
             self.telescope = Telescope()
             self.telescope.start()
             self.monitor.n_restarts['telescope'] += 1
+            self.monitor.threadlist['telescope'] = self.telescope
+            self.telescope.live_connection.wait(timeout=15)
         elif thname == 'dome':
             self.dome = Dome()
             self.dome.start()
             self.monitor.n_restarts['dome'] += 1
+            self.monitor.threadlist['dome'] = self.dome
         elif thname == 'flatlamp':
             self.flatlamp = FlatLamp()
             self.flatlamp.start()
             self.monitor.n_restarts['flatlamp'] += 1
+            self.monitor.threadlist['flatlamp'] = self.flatlamp
         elif thname == 'conditions':
             self.conditions = Conditions(self.plot_lock)
             self.conditions.start()
             self.monitor.n_restarts['conditions'] += 1
+            self.monitor.threadlist['conditions'] = self.conditions
         elif thname == 'guider':
             self.guider = Guider(self.camera, self.telescope)
             self.guider.start()
             self.monitor.n_restarts['guider'] += 1
+            self.monitor.threadlist['guider'] = self.guider
             if self.current_ticket:
                 if self.current_ticket.self_guide:
                     self.guider.onThread(self.guider.guiding_procedure, self.image_directories[self.current_ticket])
@@ -929,6 +956,7 @@ class ObservationRun:
             self.focus_procedures = FocusProcedures(self.focuser, self.camera, self.conditions, self.shutdown_event, self.plot_lock)
             self.focus_procedures.start()
             self.monitor.n_restarts['focus_procedures'] += 1
+            self.monitor.threadlist['focus_procedures'] = self.focus_procedures
             if self.current_ticket:
                 if self.focus_toggle and not self.focus_procedures.focused:
                     self.focus_target(self.current_ticket)
@@ -938,5 +966,9 @@ class ObservationRun:
             self.gui = Gui(self.focuser, self.focus_procedures, self.focus_toggle)
             self.gui.start()
             self.monitor.n_restarts['gui'] += 1
-        self.monitor.crashed.remove(thname)
+            self.monitor.threadlist['gui'] = self.gui
+        
+        if thname in self.monitor.crashed:
+            self.monitor.crashed.remove(thname)
+        
         logging.error('crashed list {}'.format(self.monitor.crashed))
