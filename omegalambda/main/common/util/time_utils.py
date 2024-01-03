@@ -237,7 +237,7 @@ def get_local_sidereal_time(longitude: float, date: Optional[Union[str, datetime
         current_path = os.path.abspath(os.path.dirname(__file__))
         leapsec_file = os.path.abspath(os.path.join(current_path, r"leap_second.txt"))
         if os.path.exists(leapsec_file):
-            logging.debug('Leap Second information retrieved from text file!')
+            # logging.debug('Leap Second information retrieved from text file!')
             with open(leapsec_file, 'r') as file:
                 text = file.readlines()[0]
         else:

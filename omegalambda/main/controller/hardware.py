@@ -67,7 +67,7 @@ class Hardware(threading.Thread):
 
         """
         self.q.put((function, args, kwargs))
-        logging.debug('A class method has been put on the {} queue'.format(self.label))
+        logging.debug('{} has been put on the {} queue'.format(function, self.label))
 
     def _class_connect(self):
         """
