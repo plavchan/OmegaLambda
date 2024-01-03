@@ -58,7 +58,8 @@ class Conditions(threading.Thread):
         # GMU COS Website for temperature, humidity and wind
         self.weather_url = 'http://weather.cos.gmu.edu/Current_Monitor.htm'
         # weather.gov API for backup temperature, humidity and wind
-        self.backup_weather_url = "https://api.weather.gov/points/38.8286,-77.3062"
+        # self.backup_weather_url = "https://api.weather.gov/points/38.8286,-77.3062"
+        self.backup_weather_url = "https://api.weatherapi.com/v1/current.json?key=fe686757107d46519c010740232712&q=22030"
         # Weather.com radar for rain
         self.rain_url = 'https://weather.com/weather/radar/interactive/' + \
                         'l/b63f24c17cc4e2d086c987ce32b2927ba388be79872113643d2ef82b2b13e813'
@@ -96,7 +97,7 @@ class Conditions(threading.Thread):
                 connection_failures += 1
                 if connection_failures >= 2:
                     self.weather_alert.set()
-                    logging.critical("A connection error was encountered and the weather can no longer be monitored"
+                    logging.critical("A connection error was encountered and the weather can no longer be monitored. "
                                      "Shutting down for safety.")
                     connection_failures = 0
                     self.stop.wait(timeout=self.config_dict.weather_freq * 60)
@@ -205,50 +206,116 @@ class Conditions(threading.Thread):
                 rain = float(test_rain.group())
 
         if backup or (None in (humidity, wind, rain)):
-            try:
-                # weather.gov API process:
-                # 1. Get metadata for location from latitude and longitude
-                # 2. Lookup hourly forecast for location from metadata
-                # The zone for step 2 might occasionally change, which is why the 2-step process is needed.
+            success = False
+            encountered_error = False
+            
+            for i in range(1, 9):
+                if i != 1:
+                    time.sleep(6 * i)
+
+                try:
+                    self.weather = s.get(self.backup_weather_url, headers={'User-Agent': self.config_dict.user_agent})
+                    
+                except (urllib3.exceptions.MaxRetryError, urllib3.exceptions.HTTPError, urllib3.exceptions.TimeoutError,
+                        urllib3.exceptions.InvalidHeader, requests.exceptions.ConnectionError, requests.exceptions.Timeout,
+                        requests.exceptions.HTTPError, json.decoder.JSONDecodeError, KeyError) as e:
+                    logging.warning(f"Could not connect to weatherapi.com API: try {i}")
+                    logging.exception(e)
+                    encountered_error = True
+                    continue
                 
-                weather_metadata = s.get(self.backup_weather_url, headers={'User-Agent': self.config_dict.user_agent})
-                res = json.loads(weather_metadata.text)
-                self.weather = s.get(res["properties"]["forecastHourly"], headers={'User-Agent': self.config_dict.user_agent})
-                
-            except (urllib3.exceptions.MaxRetryError, urllib3.exceptions.HTTPError, urllib3.exceptions.TimeoutError,
-                    urllib3.exceptions.InvalidHeader, requests.exceptions.ConnectionError, requests.exceptions.Timeout,
-                    requests.exceptions.HTTPError, json.decoder.JSONDecodeError, KeyError):
+                try:
+                    res = json.loads(self.weather.text)
+                    temperature = float(res['current']['temp_f'])
+                    humidity = float(res['current']['humidity'])
+                    wind = float(res['current']['wind_mph'])
+                    
+                    success = True
+                    break
+                    
+                except (json.decoder.JSONDecodeError, KeyError) as e:
+                    logging.warning(f"Failed to read weatherapi.com API: try {i}")
+                    # logging.exception(e)
+                    logging.info(self.weather.text)
+                    encountered_error = True
+                                
+            if not success:
+                logging.warning(f"Could not read weatherapi.com  after {i} tries. Setting connection alert.")
                 self.connection_alert.set()
                 return None, None, None, None
+            
+            if success and encountered_error:
+                logging.info(f"Successfully read weatherapi.com after {i} tries.")
+                
+        # weather.gov
+        # if backup or (None in (humidity, wind, rain)):
+        #     success = False
+        #     encountered_error = False
+            
+        #     for i in range(1, 9):
+        #         if i != 1:
+        #             time.sleep(6 * i)
 
-            try:
-                res = json.loads(self.weather.text)
-                temperature = float(res['properties']['periods'][0]['temperature'])
-                humidity = float(res['properties']['periods'][0]['relativeHumidity']["value"])
-                wind = res['properties']['periods'][0]['windSpeed']
+        #         try:
+        #             # weather.gov API process:
+        #             # 1. Get metadata for location from latitude and longitude
+        #             # 2. Lookup hourly forecast for location from metadata
+        #             # The zone for step 2 might occasionally change, which is why the 2-step process is needed.
+                    
+        #             weather_metadata = s.get(self.backup_weather_url, headers={'User-Agent': self.config_dict.user_agent})
+        #             res = json.loads(weather_metadata.text)
+        #             self.weather = s.get(res["properties"]["forecastHourly"], headers={'User-Agent': self.config_dict.user_agent})
+                    
+        #         except (urllib3.exceptions.MaxRetryError, urllib3.exceptions.HTTPError, urllib3.exceptions.TimeoutError,
+        #                 urllib3.exceptions.InvalidHeader, requests.exceptions.ConnectionError, requests.exceptions.Timeout,
+        #                 requests.exceptions.HTTPError, json.decoder.JSONDecodeError, KeyError) as e:
+        #             logging.warning(f"Could not connect to weather.gov API: try {i}")
+        #             # logging.exception(e)
+        #             encountered_error = True
+        #             continue
                 
-                # Wind returns two formats: (1) # mph and (2) # to # mph. Remove "mph" for (1). Remove "mph" and take the max for (2).
-                wind = wind.split()
-                max_wind = -1
-                for word in wind:
-                    if word in ("mph", "to"):
-                        continue
-                    try:
-                        word = float(word)
-                        max_wind = max(max_wind, word)
-                    except ValueError:
-                        logging.warning("Failed to read weather.gov wind API. The API may have changed.")
-                        self.connection_alert.set()
-                        
-                wind = max_wind
-                if wind == -1:
-                    logging.warning("Failed to read weather.gov wind API. The API may have changed.")
-                    self.connection_alert.set()
-                    wind = None
-                
-            except (json.decoder.JSONDecodeError, KeyError):
-                logging.warning("Failed to read weather.gov API. The weather.gov API may have changed.")
-                self.connection_alert.set()
+        #         try:
+        #             res = json.loads(self.weather.text)
+        #             temperature = float(res['properties']['periods'][0]['temperature'])
+        #             humidity = float(res['properties']['periods'][0]['relativeHumidity']["value"])
+        #             wind = res['properties']['periods'][0]['windSpeed']
+                    
+        #             # Wind returns two formats: (1) # mph and (2) # to # mph. Remove "mph" for (1). Remove "mph" and take the max for (2).
+        #             wind = wind.split()
+        #             max_wind = -1
+        #             for word in wind:
+        #                 if word in ("mph", "to"):
+        #                     continue
+        #                 try:
+        #                     word = float(word)
+        #                     max_wind = max(max_wind, word)
+        #                 except ValueError as e:
+        #                     logging.warning(f"Failed to read weather.gov wind API: try {i}")
+        #                     # logging.exception(e)
+                            
+        #             wind = max_wind
+        #             if wind == -1:
+        #                 logging.warning(f"Failed to read weather.gov wind API - max_wind not found: try {i}")
+        #                 wind = None
+        #                 encountered_error = True
+        #                 continue
+                    
+        #             success = True
+        #             break
+                    
+        #         except (json.decoder.JSONDecodeError, KeyError) as e:
+        #             logging.warning(f"Failed to read weather.gov API: try {i}")
+        #             # logging.exception(e)
+        #             logging.info(self.weather.text)
+        #             encountered_error = True
+                                
+        #     if not success:
+        #         logging.warning(f"Could not read weather.gov API after {i} tries. Setting connection alert.")
+        #         self.connection_alert.set()
+        #         return None, None, None, None
+            
+        #     if success and encountered_error:
+        #         logging.info(f"Successfully read weather.gov API after {i} tries.")
 
         with open(target_path, 'w') as file:
             # Writes the html code to a text file
