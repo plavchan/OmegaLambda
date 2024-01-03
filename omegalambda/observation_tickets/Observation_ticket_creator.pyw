@@ -1,5 +1,7 @@
 # 1 C:\Users\GMU Observtory1\anaconda3\envs\omegalambda_env\pythonw.exe
 import tkinter as tk
+import gc
+from threading import Thread
 import time
 import json
 import os
@@ -13,7 +15,6 @@ current_directory = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(current_directory, 'url_config.json')) as f:
     url_dict = json.load(f)
     exofop_page = url_dict['Transit_Site']
-
 
 def box_labels():
     """
@@ -83,26 +84,58 @@ def check_toi():
     displays it on the widget
 
     '''
-    global info_directory
-    savefile = requests.get(url=url_dict['Google-Sheet'])
+    global info_directory, google_path
     current_directory = os.path.abspath(os.path.dirname(__file__))
     info_directory = os.path.join(current_directory, r'toi_info')
     if not os.path.exists(info_directory):
         os.mkdir(info_directory)
 
-    open(os.path.abspath(os.path.join(info_directory, 'google.csv')), 'wb').write(savefile.content)
+    google_path = os.path.abspath(os.path.join(info_directory, 'google.csv'))
+    savefile = requests.get(url=url_dict['Google-Sheet'], timeout=30)
+    open(google_path, 'wb').write(savefile.content)
     start_date = datetime.date.today()
     toi_tonight = None
-    with open(os.path.abspath(os.path.join(info_directory, 'google.csv')), 'r') as f:
+    with open(google_path, 'r') as f:
         reader = csv.reader(f)
         for row in reader:
             if row[0] == str(start_date):
                 toi_tonight = row[2]
     if toi_tonight:
-        tk.Label(master, text='Tonights TOI is {}'.format(toi_tonight), font=('Courier', 12)).grid(row=0, column=1)
+        tk.Label(master, text="Tonight's TOI is {}".format(toi_tonight), font=('Courier', 12)).grid(row=0, column=1)
     else:
         tk.Label(master, text='No target specified for tonight', font=('Courier', 12)).grid(row=0, column=1)
 
+
+
+
+class DialogThread(Thread):
+    def __init__(self, title, message):
+        self.title = title
+        self.message = message
+        self.stop = False
+        super().__init__()
+        self.start()
+
+    def run(self):
+        self.dialog = tk.Tk()
+        self.dialog.title(self.title)
+        self.dialog.overrideredirect(True)
+        self.dialog.geometry('+%d+%d' % (self.dialog.winfo_screenwidth() / 5 - 200, self.dialog.winfo_screenheight() / 5 - 100))
+
+        label = tk.Label(self.dialog, text=self.message)
+        label.pack(padx=20, pady=20)
+        
+        while not self.stop:
+            self.dialog.update()
+            time.sleep(0.1)
+            
+        self.dialog.destroy()
+        self.dialog = None
+        gc.collect()
+    
+    def join(self):
+        self.stop = True
+        super().join()
 
 def target_grab():
     '''
@@ -119,7 +152,7 @@ def target_grab():
         clear_box()
         start_date = datetime.datetime.strptime(input_info[0], '%Y-%m-%d').date()
         target_toi = input_info[1]
-        google_sheet = pandas.read_csv(os.path.abspath(os.path.join(info_directory, 'google.csv')))
+        google_sheet = pandas.read_csv(google_path)
 
         for x in range(0, len(google_sheet['NoD'])):
             if str(start_date) == str(google_sheet['NoD'][x]) and str(google_sheet['Target'][x]) == target_toi:
@@ -129,12 +162,14 @@ def target_grab():
                 exposure = str(google_sheet['Exp'][x])
 
         toi = target_toi.split(' ')[1]
-        if os.path.exists(os.path.abspath(os.path.join(info_directory, 'info_chart.csv'))):
-            tbl_page = requests.get(exofop_page)
-            with open(os.path.abspath(os.path.join(info_directory, 'info_chart.csv')), 'wb+') as f:
+        info_chart_path = os.path.abspath(os.path.join(info_directory, 'info_chart.csv'))
+        if not os.path.exists(info_chart_path) or datetime.datetime.now() - datetime.datetime.fromtimestamp(os.path.getmtime(info_chart_path)) > datetime.timedelta(hours=12):
+            dialog = DialogThread('Downloading TOI info', 'Please wait...retrieving TOI information.\nThis may take up to 30 seconds.')
+            tbl_page = requests.get(exofop_page, timeout=90)
+            with open(info_chart_path, 'wb+') as f:
                 f.write(tbl_page.content)
-
-        info_csv = pandas.read_csv(os.path.abspath(os.path.join(info_directory, 'info_chart.csv')))
+            dialog.join()
+        info_csv = pandas.read_csv(info_chart_path)
         ra_coord = None
         dec_coord = None
         for y in range(len(info_csv['TOI'])):
@@ -159,7 +194,7 @@ def target_grab():
         # all the information for the target
         begin = '{} {}'.format(day_start, time_s)
         end = '{} {}'.format(day_end, time_e)
-        tonight_toi = target_toi.replace(r' ', r'_')
+        tonight_toi = target_toi.replace(r' ', '').replace(r'.', '-')
         exposure = exposure.replace('s', '')
         filter_input = str(filter_input)
         num_exposures = 9999
@@ -172,8 +207,7 @@ def target_grab():
         end_time.insert(10, str(end))
         filter_.insert(10, str(filter_input))
         n_exposures.insert(10, str(num_exposures))
-        exposure_time.insert(10, str(exposure))
-
+        exposure_time.insert(10, str(exposure))        
 
 def create_list():
     '''
@@ -190,7 +224,7 @@ def create_list():
     current_date = datetime.date.today()
     num = 0
     future_toi_list = []
-    sheet = pandas.read_csv(os.path.abspath(os.path.join(info_directory, 'google.csv')))
+    sheet = pandas.read_csv(google_path)
 
     for x in range(0, len(sheet)):
         if num < 11 and str(sheet['Target'][x]) != 'nan' and str(
@@ -308,12 +342,9 @@ box_labels()
 exampletxt()
 check_toi()
 toi_list = create_list()
-if not toi_list:
-    toi_list = ['No targets found!']
 
 # Creates and places dropdown menu
 selection = tk.StringVar()
-selection.set('Observation List')
 obs_list = tk.OptionMenu(master, selection, *toi_list).grid(row=1, column=1)
 
 # Creates the input text boxes
@@ -325,6 +356,15 @@ end_time = tk.Entry(master)
 filter_ = tk.Entry(master)
 n_exposures = tk.Entry(master)
 exposure_time = tk.Entry(master)
+
+
+if not toi_list:
+    toi_list = ['No targets found!']   
+    selection.set('Observation List')
+else:
+    selection.set(toi_list[0])
+    toi_list.insert(0, 'Observation List')
+    target_grab()
 
 # Creates variables for check buttons
 self_guide = tk.IntVar()
