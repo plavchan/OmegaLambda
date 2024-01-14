@@ -203,7 +203,7 @@ class ObservationRun:
                 
                 logging.info("Reconnecting telescope.")
                 self.restart('telescope')
-                time.sleep(5)
+                time.sleep(30)
                 logging.info("Restarting dome thread.")
                 self.restart('dome')
                 time.sleep(15)
