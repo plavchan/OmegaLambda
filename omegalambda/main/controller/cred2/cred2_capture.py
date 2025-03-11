@@ -51,7 +51,7 @@ CONFIG_FILE: str = os.path.join(os.path.dirname(__file__), "cred2_capture_config
 """
 TOTAL_RUN_TIME: float = 0.0 * TIME_SCALE_FACTOR  # Seconds. Total time to capture images for. 0 for continuous capture.
 IMAGE_STACK_TIME: float = 1.0 * TIME_SCALE_FACTOR  # Seconds. Stacked exposure time for the stacked images.
-IMAGE_CHUNK_TIME: float = 5.0 * TIME_SCALE_FACTOR  # Seconds. To conserve memory, continuously stack images in chunks of this size while capturing images until it reaches the final exposure time.
+IMAGE_CHUNK_TIME: float = 3.0 * TIME_SCALE_FACTOR  # Seconds. To conserve memory, continuously stack images in chunks of this size while capturing images until it reaches the final exposure time.
 TAKE_CALIBRATION_IMAGES: bool = False  # Take biases, darks, flats
 DATA_DIRECTORY: str = "data"
 FILENAME_PREFIX: str = "image-"
@@ -74,6 +74,9 @@ if os.path.exists(CONFIG_FILE):
 
 if not os.path.isabs(DATA_DIRECTORY):
     DATA_DIRECTORY = os.path.join(os.path.dirname(__file__), DATA_DIRECTORY)
+
+# replace DATA_DIRECTORY with Python formatted path
+DATA_DIRECTORY = os.path.realpath(DATA_DIRECTORY)
 
 ########## Calculated parameters ##########
 COMPRESS_GROUP_SIZE: int = max(1, 60 // (IMAGE_STACK_TIME / TIME_SCALE_FACTOR))  # Number of images to compress at once
