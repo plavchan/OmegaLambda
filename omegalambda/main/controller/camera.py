@@ -344,7 +344,7 @@ class NIRCamera(Camera):
         if self.proc is not None:
             logging.info("Terminating previous CRED2 capture code process...")
             self.disconnect()
-        self.proc = subprocess.Popen([sys.executable, join(self.current_dir, "cred2", "cred2_capture.py"), *cmd_args])
+        self.proc = subprocess.Popen([sys.executable, "-u", join(self.current_dir, "cred2", "cred2_capture.py"), *cmd_args])
         logging.info("NIR Camera connected. CRED2 capture code process started.")
 
     def start_exposing(self, exposure_time, save_dir, name, calibration=None, num_exposures=None, wait_for_cooler=True):
