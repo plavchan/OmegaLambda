@@ -33,7 +33,7 @@ PASSWORD: ctypes.c_char_p = ctypes.c_char_p(b"flicred1")
 CONTEXT: ctypes.c_void_p = None
 TEMPERATURE: float = -40.0  # Celsius
 TEMP_THRESHOLD: float = 0.5  # Celsius. Temperature threshold for cooler to reach setpoint.
-FRAME_TIME: float = 0.04  # Seconds. Optimal individual frame exposure time for CRED2 camera.
+FRAME_TIME: float = 1 / 20  # Seconds. Optimal individual frame exposure time for CRED2 camera.
 TIME_SCALE_FACTOR: float = 36.0  # Because we don't get accurate frame rates (much higher than expected), compensate for it by increasing the stack time (empirically determined).
 
 CONFIG_FILE: str = os.path.join(os.path.dirname(__file__), "cred2_capture_config.json")
