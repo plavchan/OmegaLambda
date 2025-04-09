@@ -150,7 +150,7 @@ def setup() -> None:
     print("CRED2 camera setup complete.")
 
 
-def connect() -> None:
+def connect(exit_on_fail=True) -> None:
     global CONTEXT
     CONTEXT = FliSdk.Init()
 
@@ -160,7 +160,9 @@ def connect() -> None:
     if not camera:
         print("Could not connect to CRED2 camera via Ethernet.")
         disconnect()
-        exit()
+        if exit_on_fail:
+            print("Exiting...")
+            exit(1)
 
     FliSdk.SetCamera(CONTEXT, camera)
     print("Connected to CRED2 camera via Ethernet.")
@@ -249,6 +251,8 @@ def take_calibration_image(calibration_type, num_images, stack_time) -> None:
     stack_size = int(stack_time / FRAME_TIME)
     annotation = f"{calibration_type}_{stack_time / TIME_SCALE_FACTOR:.2f}s"
     paths = []
+    prev_image = np.array()
+
     for _ in tqdm(range(num_images), unit="images"):
         continue_taking_images.wait()
         if stack_size > IMAGE_CHUNK_SIZE:
@@ -268,6 +272,10 @@ def take_calibration_image(calibration_type, num_images, stack_time) -> None:
         path = write_to_fits(image, annotation=annotation)
         MAXIM_DOCUMENT.OpenFile(path)
         paths.append(path)
+
+        check_identical_images(image, prev_image)
+        prev_image = image
+
         if stop_event.is_set():
             break
 
@@ -322,6 +330,40 @@ def show_image(image: np.ndarray[np.uint16] | np.ndarray[np.uint32]) -> None:
     cv2.imshow("CRED2 Camera", display_image)
     cv2.waitKey(1)
 
+
+def check_identical_images(image1: np.ndarray[np.uint16], image2: np.ndarray[np.uint16]) -> bool:
+    # If the two images are identical, restart the camera
+    if image1.shape != image2.shape or not np.all(np.isclose(image1, image2)):
+        return False
+
+    print("Two consecutive identical images detected. Pausing captures...")
+    pause_captures()
+    sleep(10)
+    print("Restarting camera...")
+    FliSdk.FliSerialCamera.SendCommand(CONTEXT, "restart")
+    disconnect()
+    print("Camera shut down. Waiting for 60 seconds for camera to start up again...")
+    sleep(60)
+
+    print("Reconnecting to camera...")
+    tries = 5
+    while tries > 0:
+        try:
+            connect(exit_on_fail=False)
+            setup()
+            break
+        except Exception as e:
+            print(f"Error connecting to camera: {e}. Sleeping for {10 + tries * 4} seconds, then trying again...")
+            sleep(10 + tries * 4)
+            tries -= 1
+    if tries == 0:
+        print("Failed to connect to camera after 5 tries. Exiting...")
+        stop_threads()
+        exit(1)
+    
+    print("Camera restarted successfully.")
+    resume_captures()
+    
 
 ########## Threads ##########
 write_queue = queue.Queue()
@@ -475,6 +517,7 @@ def read_thread() -> None:
 
 
 def write_thread() -> None:
+    prev_image = np.array()
     while not stop_event.is_set():
         image = write_queue.get()
         if isinstance(image, str) and image == STOP:
@@ -484,6 +527,8 @@ def write_thread() -> None:
         display_queue.put(path)
         if ENABLE_COMPRESSION:
             compress_queue.put(path)
+        check_identical_images(prev_image, image)
+        prev_image = image
 
 
 def compress_thread() -> None:
