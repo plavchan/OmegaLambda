@@ -465,10 +465,9 @@ def read_thread() -> None:
                     images.clear()
                     chunked_images.append(image)
                 if len(chunked_images) * IMAGE_CHUNK_SIZE >= IMAGE_STACK_SIZE:
-                    image = stack_images(images)
-                    images.clear()
-                    write_queue.put(image)
-                    # display_queue.put(image)
+                    chunked_image = stack_images(chunked_images)
+                    chunked_images.clear()
+                    write_queue.put(chunked_image)
         else:
             for _ in tqdm(range(NUM_IMAGES), unit="images"):
                 continue_taking_images.wait()
