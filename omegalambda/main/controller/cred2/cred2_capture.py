@@ -340,7 +340,7 @@ def check_identical_images(image1: np.ndarray[np.uint16], image2: np.ndarray[np.
     pause_captures()
     sleep(10)
     print("Restarting camera...")
-    FliSdk.FliSerialCamera.SendCommand(CONTEXT, "restart")
+    FliSdk.FliSerialCamera.SendCommand(CONTEXT, "reboot")
     disconnect()
     print("Camera shut down. Waiting for 60 seconds for camera to start up again...")
     sleep(60)
