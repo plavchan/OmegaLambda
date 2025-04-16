@@ -194,7 +194,7 @@ def set_temp(temp: float) -> float:
 
 
 ########## Calibration images ##########
-NUM_DARK_IMAGES: int = max(int(5 * 60 / (IMAGE_STACK_TIME / TIME_SCALE_FACTOR)), 25)  # 5 min of images or 25 frames, whichever is greater
+NUM_DARK_IMAGES: int = max(int(5 * 60 / (IMAGE_STACK_TIME / TIME_SCALE_FACTOR)), 10)  # 5 min of images or 10 frames, whichever is greater
 NUM_FLAT_IMAGES: int = NUM_DARK_IMAGES
 FLAT_STACK_TIME: float = 10.0 * TIME_SCALE_FACTOR  # Seconds. Stacked exposure time for the flat images.
 
