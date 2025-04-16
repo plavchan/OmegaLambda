@@ -251,7 +251,7 @@ def take_calibration_image(calibration_type, num_images, stack_time) -> None:
     stack_size = int(stack_time / FRAME_TIME)
     annotation = f"{calibration_type}_{stack_time / TIME_SCALE_FACTOR:.2f}s"
     paths = []
-    prev_image = np.array()
+    prev_image = np.array([])
 
     for _ in tqdm(range(num_images), unit="images"):
         continue_taking_images.wait()
@@ -517,7 +517,7 @@ def read_thread() -> None:
 
 
 def write_thread() -> None:
-    prev_image = np.array()
+    prev_image = np.array([])
     while not stop_event.is_set():
         image = write_queue.get()
         if isinstance(image, str) and image == STOP:
