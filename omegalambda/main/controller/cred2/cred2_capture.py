@@ -14,7 +14,7 @@ import sys
 import threading
 from tqdm import tqdm
 from time import sleep
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from win32com.client import Dispatch
 
 # from PIL import Image
@@ -331,13 +331,30 @@ def show_image(image: np.ndarray[np.uint16] | np.ndarray[np.uint32]) -> None:
     cv2.waitKey(1)
 
 
+NUM_RESTARTS: int = 0
+LAST_RESTART: datetime = datetime.now() - timedelta(days=1)
 def check_identical_images(image1: np.ndarray[np.uint16], image2: np.ndarray[np.uint16]) -> bool:
     # If the two images are identical, restart the camera
     if image1.shape != image2.shape or not np.all(np.isclose(image1, image2)):
         return False
+    
+    # Prevent too many restarts
+    if (datetime.now() - LAST_RESTART).total_seconds() < max(120, 2 * IMAGE_STACK_TIME / TIME_SCALE_FACTOR) and NUM_RESTARTS > 5:
+        print("Two consecutive identical images detected.")
+        print("However, camera has restarted too many times in a short period of time. Continuing without restarting for now...")
+        return False
+    if (datetime.now() - LAST_RESTART).total_seconds() < 60 * 60 and NUM_RESTARTS > 10:
+        print("Two consecutive identical images detected.")
+        print("However, camera has restarted too many times in the last hour. Continuing without restarting for now...")
+        return False
+    if NUM_RESTARTS > 20:
+        print("Two consecutive identical images detected.")
+        print("However, camera has restarted too many times. Continuing without restarting...")
+        return False
 
     print("Two consecutive identical images detected. Pausing captures...")
     pause_captures()
+    print(f"Camera restarted {NUM_RESTARTS} times. Last restart: {LAST_RESTART.strftime('%Y-%m-%d %H:%M:%S')}")
     sleep(10)
     print("Restarting camera...")
     FliSdk.FliSerialCamera.SendCommand(CONTEXT, "reboot")
@@ -361,6 +378,9 @@ def check_identical_images(image1: np.ndarray[np.uint16], image2: np.ndarray[np.
         stop_threads()
         exit(1)
     
+    global NUM_RESTARTS, LAST_RESTART
+    NUM_RESTARTS += 1
+    LAST_RESTART = datetime.now()
     print("Camera restarted successfully.")
     resume_captures()
     
