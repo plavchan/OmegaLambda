@@ -456,14 +456,15 @@ def read_thread() -> None:
     if IMAGE_STACK_SIZE > 1:
         if CONTINUOUS_CAPTURE:
             images: list[np.ndarray[np.uint16]] = []
+            chunked_images: list[np.ndarray[np.uint16]] = []
             while not stop_read_event.is_set():
                 continue_taking_images.wait()
                 images.append(get_image())
                 if len(images) >= IMAGE_CHUNK_SIZE:
                     image = stack_images(images)
                     images.clear()
-                    images.append(image)
-                if len(images) >= IMAGE_STACK_SIZE:
+                    chunked_images.append(image)
+                if len(chunked_images) * IMAGE_CHUNK_SIZE >= IMAGE_STACK_SIZE:
                     image = stack_images(images)
                     images.clear()
                     write_queue.put(image)
