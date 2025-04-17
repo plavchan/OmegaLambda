@@ -335,6 +335,8 @@ NUM_RESTARTS: int = 0
 LAST_RESTART: datetime = datetime.now() - timedelta(days=1)
 def check_identical_images(image1: np.ndarray[np.uint16], image2: np.ndarray[np.uint16]) -> bool:
     # If the two images are identical, restart the camera
+    global NUM_RESTARTS, LAST_RESTART
+
     if image1.shape != image2.shape or not np.all(np.isclose(image1, image2)):
         return False
     
@@ -378,7 +380,6 @@ def check_identical_images(image1: np.ndarray[np.uint16], image2: np.ndarray[np.
         stop_threads()
         exit(1)
     
-    global NUM_RESTARTS, LAST_RESTART
     NUM_RESTARTS += 1
     LAST_RESTART = datetime.now()
     print("Camera restarted successfully.")
