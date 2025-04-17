@@ -408,10 +408,9 @@ MAXIM_DOCUMENT = Dispatch("MaxIm.Document")
 
 def stop_threads(*args, script_done=False) -> None:
     print("Stopping threads...")
-    if ENABLE_COMPRESSION and compress_th:
-        compress_th.put(STOP)
-    if write_th:
-        write_th.put(STOP)
+    if ENABLE_COMPRESSION:
+        compress_queue.put(STOP)
+    write_queue.put(STOP)
     sleep(2)
     stop_event.set()
 
