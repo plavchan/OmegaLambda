@@ -196,7 +196,8 @@ def set_temp(temp: float) -> float:
 ########## Calibration images ##########
 NUM_DARK_IMAGES: int = max(int(5 * 60 / (IMAGE_STACK_TIME / TIME_SCALE_FACTOR)), 10)  # 5 min of images or 10 frames, whichever is greater
 NUM_FLAT_IMAGES: int = NUM_DARK_IMAGES
-FLAT_STACK_TIME: float = 10.0 * TIME_SCALE_FACTOR  # Seconds. Stacked exposure time for the flat images.
+# FLAT_STACK_TIME: float = 10.0 * TIME_SCALE_FACTOR  # Seconds. Stacked exposure time for the flat images.
+FLAT_STACK_TIME: float = IMAGE_STACK_TIME  # setting this to the same as IMAGE_STACK_TIME for now
 
 def take_darks() -> None:
     set_fps(FPS)
@@ -331,38 +332,40 @@ def show_image(image: np.ndarray[np.uint16] | np.ndarray[np.uint32]) -> None:
     cv2.waitKey(1)
 
 
+def check_identical_images(image1: np.ndarray[np.uint16], image2: np.ndarray[np.uint16]) -> None:
+    # If the two images are identical, restart the camera
+    if image1.shape != image2.shape or not np.all(np.isclose(image1, image2)):
+        return
+    print("Two consecutive identical images detected.")
+    restart_camera()
+
+
 NUM_RESTARTS: int = 0
 LAST_RESTART: datetime = datetime.now() - timedelta(days=1)
-def check_identical_images(image1: np.ndarray[np.uint16], image2: np.ndarray[np.uint16]) -> bool:
-    # If the two images are identical, restart the camera
+def restart_camera() -> None:
     global NUM_RESTARTS, LAST_RESTART
+    print("Restarting camera...")
 
-    if image1.shape != image2.shape or not np.all(np.isclose(image1, image2)):
-        return False
-    
     # Prevent too many restarts
     if (datetime.now() - LAST_RESTART).total_seconds() < max(120, 2 * IMAGE_STACK_TIME / TIME_SCALE_FACTOR) and NUM_RESTARTS > 5:
-        print("Two consecutive identical images detected.")
-        print("However, camera has restarted too many times in a short period of time. Continuing without restarting for now...")
-        return False
+        print("Camera has restarted too many times in a short period of time. Continuing without restarting for now...")
+        return
     if (datetime.now() - LAST_RESTART).total_seconds() < 60 * 60 and NUM_RESTARTS > 10:
-        print("Two consecutive identical images detected.")
-        print("However, camera has restarted too many times in the last hour. Continuing without restarting for now...")
-        return False
+        print("Camera has restarted too many times in the last hour. Continuing without restarting for now...")
+        return
     if NUM_RESTARTS > 20:
-        print("Two consecutive identical images detected.")
-        print("However, camera has restarted too many times. Continuing without restarting...")
-        return False
-
-    print("Two consecutive identical images detected. Pausing captures...")
+        print("Camera has restarted too many times. Continuing without restarting...")
+        return
+    
+    print("Pausing image captures...")
     pause_captures()
-    print(f"Camera restarted {NUM_RESTARTS} times. Last restart: {LAST_RESTART.strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"Camera restarted {NUM_RESTARTS} times. Last restart: {LAST_RESTART.strftime('%Y-%m-%d %H:%M:%S')}, Current restart: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     sleep(10)
-    print("Restarting camera...")
+    print("Sending reboot command...")
     FliSdk.FliSerialCamera.SendCommand(CONTEXT, "reboot")
     disconnect()
-    print("Camera shut down. Waiting for 60 seconds for camera to start up again...")
-    sleep(60)
+    print("Camera rebooting. Waiting for 90 seconds for camera to start up again...")
+    sleep(90)
 
     print("Reconnecting to camera...")
     tries = 5
@@ -382,6 +385,13 @@ def check_identical_images(image1: np.ndarray[np.uint16], image2: np.ndarray[np.
     
     NUM_RESTARTS += 1
     LAST_RESTART = datetime.now()
+
+    fps = get_fps()
+    if fps == 0.0:
+        print("FPS is 0.0 after restarting camera. Restarting camera again...")
+        restart_camera()
+        return
+
     print("Camera restarted successfully.")
     resume_captures()
     
