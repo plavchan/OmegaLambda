@@ -210,12 +210,12 @@ def restart_camera() -> None:
         print("Camera has restarted too many times. Continuing without restarting...")
         return
     
-    print("Pausing image captures...")
     pause_captures()
     print(f"Camera restarted {NUM_RESTARTS} times. Last restart: {LAST_RESTART.strftime('%Y-%m-%d %H:%M:%S')}, Current restart: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     sleep(10)
-    print("Sending reboot command...")
-    FliSdk.FliSerialCamera.SendCommand(CONTEXT, "reboot")
+    print("Rebooting camera...")
+    FliSdk.FliCredTwo.Reboot(CONTEXT)
+    # FliSdk.FliSerialCamera.SendCommand(CONTEXT, "reboot")
     disconnect()
     print("Camera rebooting. Waiting for 90 seconds for camera to start up again...")
     sleep(90)
