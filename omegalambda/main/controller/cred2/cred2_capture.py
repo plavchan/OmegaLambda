@@ -353,6 +353,7 @@ def get_image() -> np.ndarray[np.uint16]:
         return get_image()
 
     width, height = FliSdk.GetCurrentImageDimension(CONTEXT)
+    print(width, height)
     ArrayType = ctypes.c_uint16 * width * height
     pa = ctypes.cast(image, ctypes.POINTER(ArrayType))
     image = np.ndarray((height, width), dtype=np.uint16, buffer=pa.contents)
