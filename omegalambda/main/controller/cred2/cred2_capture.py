@@ -435,7 +435,7 @@ MAXIM.LockApp = True
 MAXIM_DOCUMENT = Dispatch("MaxIm.Document")
 
 def stop_threads(*args, script_done=False) -> None:
-    print("Stopping threads...")
+    print("Stopping threads...", flush=True)
     if ENABLE_COMPRESSION:
         compress_queue.put(STOP)
     write_queue.put(STOP)
@@ -443,24 +443,24 @@ def stop_threads(*args, script_done=False) -> None:
     stop_event.set()
 
     if ENABLE_COMPRESSION and compress_th:
-        print("Stopping compress thread...")
+        print("Stopping compress thread...", flush=True)
         compress_th.join(timeout=5)
         if compress_th.is_alive():
-            print("Compress thread failed to stop.")
+            print("Compress thread failed to stop.", flush=True)
     if write_th:
-        print("Stopping write thread...")
+        print("Stopping write thread...", flush=True)
         write_th.join(timeout=5)
         if write_th.is_alive():
-            print("Write thread failed to stop.")
+            print("Write thread failed to stop.", flush=True)
 
     stop_read_event.set()
     if read_th and not script_done:
-        print("Stopping read thread...")
+        print("Stopping read thread...", flush=True)
         read_th.join(timeout=5)
         if read_th.is_alive():
-            print("Read thread failed to stop.")
+            print("Read thread failed to stop.", flush=True)
     if CONTEXT:
-        print("Disconnecting from camera...")
+        print("Disconnecting from camera...", flush=True)
         disconnect()
 
     display_queue.put(STOP)
