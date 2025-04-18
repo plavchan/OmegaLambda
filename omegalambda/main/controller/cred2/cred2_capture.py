@@ -344,6 +344,9 @@ def take_calibration_image(calibration_type, num_images, stack_time) -> None:
 
 
 ########## Image processing ##########
+WIDTH = 640
+HEIGHT = 512
+ArrayType = ctypes.c_uint16 * WIDTH * HEIGHT
 def get_image() -> np.ndarray[np.uint16]:
     try:
         image = read_queue.get(timeout=5)
@@ -352,11 +355,9 @@ def get_image() -> np.ndarray[np.uint16]:
         restart_camera()
         return get_image()
 
-    width, height = FliSdk.GetCurrentImageDimension(CONTEXT)
-    print(width, height)
-    ArrayType = ctypes.c_uint16 * width * height
+    # width, height = FliSdk.GetCurrentImageDimension(CONTEXT)
     pa = ctypes.cast(image, ctypes.POINTER(ArrayType))
-    image = np.ndarray((height, width), dtype=np.uint16, buffer=pa.contents)
+    image = np.ndarray((HEIGHT, WIDTH), dtype=np.uint16, buffer=pa.contents)
     read_queue.task_done()
 
     return image
