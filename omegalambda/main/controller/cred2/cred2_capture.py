@@ -84,7 +84,7 @@ IMAGE_STACK_SIZE: int = int(IMAGE_STACK_TIME / FRAME_TIME)  # Number of images t
 IMAGE_CHUNK_SIZE: int = int(IMAGE_CHUNK_TIME / FRAME_TIME)  # Number of images to stack for each chunk. 
 NUM_IMAGES = max(int(TOTAL_RUN_TIME / IMAGE_STACK_TIME), 1)  # Number of images to capture.
 CONTINUOUS_CAPTURE: bool = TOTAL_RUN_TIME == 0.0  # If True, will capture images continuously until stopped
-FPS: float = 1 / FRAME_TIME
+FPS: float = round(1 / FRAME_TIME)
 FITS_HEADER: dict[str, str | float] = {  # For FITS headers
     "ORIGIN": "George Mason University Observatory",
     "INSTRUME": "CRED2 Near-Infrared Camera",
