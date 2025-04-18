@@ -125,8 +125,6 @@ def create_save_directory() -> None:
 ########## Camera control ##########
 def setup() -> None:
     print("Setting up CRED2 camera.")
-    
-    FliSdk.Update(CONTEXT)
     FliSdk.Start(CONTEXT)
     set_temp(TEMPERATURE)
 
@@ -171,6 +169,7 @@ def connect(exit_on_fail=True) -> None:
             exit(1)
 
     FliSdk.SetCamera(CONTEXT, camera)
+    FliSdk.Update(CONTEXT)
     print("Connected to CRED2 camera via Ethernet.")
 
 
@@ -523,19 +522,23 @@ def read_thread() -> None:
 
     if IMAGE_STACK_SIZE > 1:
         if CONTINUOUS_CAPTURE:
-            images: list[np.ndarray[np.uint16]] = []
-            chunked_images: list[np.ndarray[np.uint16]] = []
             while not stop_read_event.is_set():
                 continue_taking_images.wait()
-                images.append(get_image())
-                if len(images) >= IMAGE_CHUNK_SIZE:
+                if IMAGE_STACK_SIZE > IMAGE_CHUNK_SIZE:
+                    images = []
+                    for _ in range(IMAGE_STACK_SIZE // IMAGE_CHUNK_SIZE):
+                        images.extend(get_image() for _ in range(IMAGE_CHUNK_SIZE))
+                        image = stack_images(images)
+                        images.clear()
+                        images.append(image)
+                    remaining_images = IMAGE_STACK_SIZE % IMAGE_CHUNK_SIZE
+                    if remaining_images:
+                        images.extend(get_image() for _ in range(remaining_images))
+                        image = stack_images(images)
+                else: 
+                    images = [get_image() for _ in range(IMAGE_STACK_SIZE)]
                     image = stack_images(images)
-                    images.clear()
-                    chunked_images.append(image)
-                if len(chunked_images) * IMAGE_CHUNK_SIZE >= IMAGE_STACK_SIZE:
-                    chunked_image = stack_images(chunked_images)
-                    chunked_images.clear()
-                    write_queue.put(chunked_image)
+                write_queue.put(image)
         else:
             for _ in tqdm(range(NUM_IMAGES), unit="images"):
                 continue_taking_images.wait()
