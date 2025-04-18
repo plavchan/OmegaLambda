@@ -320,21 +320,7 @@ def take_calibration_image(calibration_type, num_images, stack_time) -> None:
     prev_image = np.array([])
 
     for _ in tqdm(range(num_images), unit="images"):
-        continue_taking_images.wait()
-        if stack_size > IMAGE_CHUNK_SIZE:
-            images = []
-            for _ in range(stack_size // IMAGE_CHUNK_SIZE):
-                images.extend(get_image() for _ in range(IMAGE_CHUNK_SIZE))
-                image = stack_images(images)
-                images.clear()
-                images.append(image)
-            remaining_images = IMAGE_STACK_SIZE % IMAGE_CHUNK_SIZE
-            if remaining_images:
-                images.extend(get_image() for _ in range(remaining_images))
-                image = stack_images(images)
-        else: 
-            images = [get_image() for _ in range(stack_size)]
-            image = stack_images(images)
+        image = take_stacked_exposure(stack_size=stack_size, write=False)
         path = write_to_fits(image, annotation=annotation)
         MAXIM_DOCUMENT.OpenFile(path)
         paths.append(path)
@@ -355,6 +341,7 @@ WIDTH = 640
 HEIGHT = 512
 ArrayType = ctypes.c_uint16 * WIDTH * HEIGHT
 def get_image() -> np.ndarray[np.uint16]:
+    continue_taking_images.wait()
     try:
         image = read_queue.get(timeout=5)
     except queue.Empty:
@@ -490,22 +477,28 @@ def take_one_capture() -> None:
     if continue_taking_images.is_set():
         pause_captures()
     print("Taking one exposure.")
+    take_stacked_exposure()
 
-    if IMAGE_STACK_SIZE > IMAGE_CHUNK_SIZE:
+
+def take_stacked_exposure(stack_size=IMAGE_STACK_SIZE, write=True) -> np.ndarray[np.uint32]:
+    if stack_size > IMAGE_CHUNK_SIZE:
         images = []
-        for _ in range(IMAGE_STACK_SIZE // IMAGE_CHUNK_SIZE):
+        for _ in range(stack_size // IMAGE_CHUNK_SIZE):
             images.extend(get_image() for _ in range(IMAGE_CHUNK_SIZE))
             image = stack_images(images)
             images.clear()
             images.append(image)
-        remaining_images = IMAGE_STACK_SIZE % IMAGE_CHUNK_SIZE
+        remaining_images = stack_size % IMAGE_CHUNK_SIZE
         if remaining_images:
             images.extend(get_image() for _ in range(remaining_images))
             image = stack_images(images)
     else: 
-        images = [get_image() for _ in range(IMAGE_STACK_SIZE)]
+        images = [get_image() for _ in range(stack_size)]
         image = stack_images(images)
-    write_queue.put(image)
+
+    if write:
+        write_queue.put(image)
+    return image
 
 
 def image_callback(image, context=None):
@@ -523,52 +516,20 @@ def read_thread() -> None:
     if IMAGE_STACK_SIZE > 1:
         if CONTINUOUS_CAPTURE:
             while not stop_read_event.is_set():
-                continue_taking_images.wait()
-                if IMAGE_STACK_SIZE > IMAGE_CHUNK_SIZE:
-                    images = []
-                    for _ in range(IMAGE_STACK_SIZE // IMAGE_CHUNK_SIZE):
-                        images.extend(get_image() for _ in range(IMAGE_CHUNK_SIZE))
-                        image = stack_images(images)
-                        images.clear()
-                        images.append(image)
-                    remaining_images = IMAGE_STACK_SIZE % IMAGE_CHUNK_SIZE
-                    if remaining_images:
-                        images.extend(get_image() for _ in range(remaining_images))
-                        image = stack_images(images)
-                else: 
-                    images = [get_image() for _ in range(IMAGE_STACK_SIZE)]
-                    image = stack_images(images)
-                write_queue.put(image)
+                take_stacked_exposure()
         else:
             for _ in tqdm(range(NUM_IMAGES), unit="images"):
-                continue_taking_images.wait()
-                if IMAGE_STACK_SIZE > IMAGE_CHUNK_SIZE:
-                    images = []
-                    for _ in range(IMAGE_STACK_SIZE // IMAGE_CHUNK_SIZE):
-                        images.extend(get_image() for _ in range(IMAGE_CHUNK_SIZE))
-                        image = stack_images(images)
-                        images.clear()
-                        images.append(image)
-                    remaining_images = IMAGE_STACK_SIZE % IMAGE_CHUNK_SIZE
-                    if remaining_images:
-                        images.extend(get_image() for _ in range(remaining_images))
-                        image = stack_images(images)
-                else: 
-                    images = [get_image() for _ in range(IMAGE_STACK_SIZE)]
-                    image = stack_images(images)
-                write_queue.put(image)
+                take_stacked_exposure()
                 read_images += 1
                 if stop_event.is_set():
                     break
     else:
         if CONTINUOUS_CAPTURE:
             while not stop_read_event.is_set():
-                continue_taking_images.wait()
                 image = get_image()
                 write_queue.put(image)
         else:
             for _ in tqdm(range(NUM_IMAGES), unit="images"):
-                continue_taking_images.wait()
                 image = get_image()
                 write_queue.put(image)
                 read_images += 1
