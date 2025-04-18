@@ -155,9 +155,10 @@ def setup() -> None:
     print("CRED2 camera setup complete.")
 
 
+CONTEXT = FliSdk.Init()
 def connect(exit_on_fail=True) -> None:
-    global CONTEXT
-    CONTEXT = FliSdk.Init()
+    # global CONTEXT
+    # CONTEXT = FliSdk.Init()
 
     print("Attempting to connect to CRED2 camera via Ethernet...")
     camera: str = FliSdk.AddEthernetCamera(CONTEXT, IP_ADDRESS, USERNAME, PASSWORD)[1]
@@ -205,13 +206,13 @@ def restart_camera() -> None:
     print("Restarting camera...")
 
     # Prevent too many restarts
-    if (datetime.now() - LAST_RESTART).total_seconds() < max(120, 2 * IMAGE_STACK_TIME / TIME_SCALE_FACTOR) and NUM_RESTARTS > 5:
+    if (datetime.now() - LAST_RESTART).total_seconds() < max(120, 2 * IMAGE_STACK_TIME / TIME_SCALE_FACTOR) and NUM_RESTARTS > 4:
         print("Camera has restarted too many times in a short period of time. Continuing without restarting for now...")
         return
-    if (datetime.now() - LAST_RESTART).total_seconds() < 60 * 60 and NUM_RESTARTS > 10:
+    if (datetime.now() - LAST_RESTART).total_seconds() < 60 * 60 and NUM_RESTARTS > 7:
         print("Camera has restarted too many times in the last hour. Continuing without restarting for now...")
         return
-    if NUM_RESTARTS > 20:
+    if NUM_RESTARTS > 10:
         print("Camera has restarted too many times. Continuing without restarting...")
         return
     
@@ -221,7 +222,8 @@ def restart_camera() -> None:
     print("Rebooting camera...")
     FliSdk.FliCredTwo.Reboot(CONTEXT)
     # FliSdk.FliSerialCamera.SendCommand(CONTEXT, "reboot")
-    disconnect()
+    # disconnect()
+    FliSdk.Stop(CONTEXT)
     print("Camera rebooting. Waiting for 90 seconds for camera to start up again...")
     sleep(90)
 
@@ -254,6 +256,7 @@ def restart_camera() -> None:
 
     print("Camera restarted successfully.")
     resume_captures()
+
 
 ########## Calibration images ##########
 NUM_DARK_IMAGES: int = max(int(5 * 60 / (IMAGE_STACK_TIME / TIME_SCALE_FACTOR)), 10)  # 5 min of images or 10 frames, whichever is greater
