@@ -350,7 +350,12 @@ def get_image() -> np.ndarray[np.uint16]:
         restart_camera()
         return get_image()
 
+    width, height = FliSdk.GetCurrentImageDimension(CONTEXT)
+    ArrayType = ctypes.c_uint16 * width * height
+    pa = ctypes.cast(image, ctypes.POINTER(ArrayType))
+    image = np.ndarray((height, width), dtype=np.uint16, buffer=pa.contents)
     read_queue.task_done()
+
     return image
     # return FliSdk.GetRawImageAsNumpyArray(CONTEXT, -1)
     # return FliSdk.GetProcessedImageGrayscale16bNumpyArray(CONTEXT, -1)
@@ -495,8 +500,7 @@ def take_one_capture() -> None:
 def image_callback(image, context=None):
     read_queue.put(image)
 
-CALLBACK_FUNC = ctypes.CFUNCTYPE(ctypes.c_void_p, ctypes.POINTER(ctypes.c_byte), ctypes.c_void_p)
-image_callback_func = CALLBACK_FUNC(image_callback)
+image_callback_func = FliSdk.CWRAPPER(image_callback)
 
 
 def read_thread() -> None:
