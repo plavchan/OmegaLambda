@@ -34,7 +34,7 @@ CONTEXT: ctypes.c_void_p = None
 TEMPERATURE: float = -40.0  # Celsius
 TEMP_THRESHOLD: float = 0.5  # Celsius. Temperature threshold for cooler to reach setpoint.
 FRAME_TIME: float = 1 / 20  # Seconds. Optimal individual frame exposure time for CRED2 camera.
-TIME_SCALE_FACTOR: float = 36.0  # Because we don't get accurate frame rates (much higher than expected), compensate for it by increasing the stack time (empirically determined).
+TIME_SCALE_FACTOR: float = 1.0  # 36.0  # Because we don't get accurate frame rates (much higher than expected), compensate for it by increasing the stack time (empirically determined).
 
 CONFIG_FILE: str = os.path.join(os.path.dirname(__file__), "cred2_capture_config.json")
 """Example config file:
@@ -193,11 +193,67 @@ def set_temp(temp: float) -> float:
     print(f"Current temperature: {get_temp()} C.")
 
 
+NUM_RESTARTS: int = 0
+LAST_RESTART: datetime = datetime.now() - timedelta(days=1)
+def restart_camera() -> None:
+    global NUM_RESTARTS, LAST_RESTART
+    print("Restarting camera...")
+
+    # Prevent too many restarts
+    if (datetime.now() - LAST_RESTART).total_seconds() < max(120, 2 * IMAGE_STACK_TIME / TIME_SCALE_FACTOR) and NUM_RESTARTS > 5:
+        print("Camera has restarted too many times in a short period of time. Continuing without restarting for now...")
+        return
+    if (datetime.now() - LAST_RESTART).total_seconds() < 60 * 60 and NUM_RESTARTS > 10:
+        print("Camera has restarted too many times in the last hour. Continuing without restarting for now...")
+        return
+    if NUM_RESTARTS > 20:
+        print("Camera has restarted too many times. Continuing without restarting...")
+        return
+    
+    print("Pausing image captures...")
+    pause_captures()
+    print(f"Camera restarted {NUM_RESTARTS} times. Last restart: {LAST_RESTART.strftime('%Y-%m-%d %H:%M:%S')}, Current restart: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    sleep(10)
+    print("Sending reboot command...")
+    FliSdk.FliSerialCamera.SendCommand(CONTEXT, "reboot")
+    disconnect()
+    print("Camera rebooting. Waiting for 90 seconds for camera to start up again...")
+    sleep(90)
+
+    print("Reconnecting to camera...")
+    tries = 5
+    while tries > 0:
+        try:
+            connect(exit_on_fail=False)
+            setup()
+            break
+        except Exception as e:
+            print(f"Error connecting to camera: {e}. Sleeping for {10 + tries * 4} seconds, then trying again...")
+            sleep(10 + tries * 4)
+            tries -= 1
+    if tries == 0:
+        print("Failed to connect to camera after 5 tries. Exiting...")
+        stop_threads()
+        exit(1)
+    
+    NUM_RESTARTS += 1
+    LAST_RESTART = datetime.now()
+
+    fps = get_fps()
+    if fps == 0.0:
+        print("FPS is 0.0 after restarting camera. Restarting camera again...")
+        restart_camera()
+        return
+
+    print("Camera restarted successfully.")
+    resume_captures()
+
 ########## Calibration images ##########
 NUM_DARK_IMAGES: int = max(int(5 * 60 / (IMAGE_STACK_TIME / TIME_SCALE_FACTOR)), 10)  # 5 min of images or 10 frames, whichever is greater
 NUM_FLAT_IMAGES: int = NUM_DARK_IMAGES
 # FLAT_STACK_TIME: float = 10.0 * TIME_SCALE_FACTOR  # Seconds. Stacked exposure time for the flat images.
 FLAT_STACK_TIME: float = IMAGE_STACK_TIME  # setting this to the same as IMAGE_STACK_TIME for now
+
 
 def take_darks() -> None:
     set_fps(FPS)
@@ -287,7 +343,10 @@ def take_calibration_image(calibration_type, num_images, stack_time) -> None:
 
 ########## Image processing ##########
 def get_image() -> np.ndarray[np.uint16]:
-    return FliSdk.GetRawImageAsNumpyArray(CONTEXT, -1)
+    image = read_queue.get()
+    read_queue.task_done()
+    return image
+    # return FliSdk.GetRawImageAsNumpyArray(CONTEXT, -1)
     # return FliSdk.GetProcessedImageGrayscale16bNumpyArray(CONTEXT, -1)
 
 
@@ -340,63 +399,8 @@ def check_identical_images(image1: np.ndarray[np.uint16], image2: np.ndarray[np.
     restart_camera()
 
 
-NUM_RESTARTS: int = 0
-LAST_RESTART: datetime = datetime.now() - timedelta(days=1)
-def restart_camera() -> None:
-    global NUM_RESTARTS, LAST_RESTART
-    print("Restarting camera...")
-
-    # Prevent too many restarts
-    if (datetime.now() - LAST_RESTART).total_seconds() < max(120, 2 * IMAGE_STACK_TIME / TIME_SCALE_FACTOR) and NUM_RESTARTS > 5:
-        print("Camera has restarted too many times in a short period of time. Continuing without restarting for now...")
-        return
-    if (datetime.now() - LAST_RESTART).total_seconds() < 60 * 60 and NUM_RESTARTS > 10:
-        print("Camera has restarted too many times in the last hour. Continuing without restarting for now...")
-        return
-    if NUM_RESTARTS > 20:
-        print("Camera has restarted too many times. Continuing without restarting...")
-        return
-    
-    print("Pausing image captures...")
-    pause_captures()
-    print(f"Camera restarted {NUM_RESTARTS} times. Last restart: {LAST_RESTART.strftime('%Y-%m-%d %H:%M:%S')}, Current restart: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    sleep(10)
-    print("Sending reboot command...")
-    FliSdk.FliSerialCamera.SendCommand(CONTEXT, "reboot")
-    disconnect()
-    print("Camera rebooting. Waiting for 90 seconds for camera to start up again...")
-    sleep(90)
-
-    print("Reconnecting to camera...")
-    tries = 5
-    while tries > 0:
-        try:
-            connect(exit_on_fail=False)
-            setup()
-            break
-        except Exception as e:
-            print(f"Error connecting to camera: {e}. Sleeping for {10 + tries * 4} seconds, then trying again...")
-            sleep(10 + tries * 4)
-            tries -= 1
-    if tries == 0:
-        print("Failed to connect to camera after 5 tries. Exiting...")
-        stop_threads()
-        exit(1)
-    
-    NUM_RESTARTS += 1
-    LAST_RESTART = datetime.now()
-
-    fps = get_fps()
-    if fps == 0.0:
-        print("FPS is 0.0 after restarting camera. Restarting camera again...")
-        restart_camera()
-        return
-
-    print("Camera restarted successfully.")
-    resume_captures()
-    
-
 ########## Threads ##########
+read_queue = queue.Queue()
 write_queue = queue.Queue()
 display_queue = queue.Queue()
 compress_queue = queue.Queue()
@@ -482,7 +486,17 @@ def take_one_capture() -> None:
     write_queue.put(image)
 
 
+def image_callback(image, context=None):
+    read_queue.put(image)
+
+CALLBACK_FUNC = ctypes.CFUNCTYPE(ctypes.c_void_p, ctypes.POINTER(ctypes.c_byte), ctypes.c_void_p)
+image_callback_func = CALLBACK_FUNC(image_callback)
+
+
 def read_thread() -> None:
+    FliSdk.EnableRingBuffer(CONTEXT, True)
+    user_context = None
+    callback_context = FliSdk.AddCallBackNewImage(CONTEXT, image_callback_func, FPS, False, user_context)
     read_images = 0
 
     if IMAGE_STACK_SIZE > 1:
@@ -527,7 +541,6 @@ def read_thread() -> None:
                 continue_taking_images.wait()
                 image = get_image()
                 write_queue.put(image)
-                # display_queue.put(image)
         else:
             for _ in tqdm(range(NUM_IMAGES), unit="images"):
                 continue_taking_images.wait()
