@@ -135,11 +135,16 @@ def setup() -> None:
     if WAIT_FOR_COOLER_SETTLE:
         print("Waiting for cooler to reach setpoint...")
         temp = get_temp()
-        while abs(temp - TEMPERATURE) > TEMP_THRESHOLD:
+        timeout = datetime.now() + timedelta(minutes=5)
+        while abs(temp - TEMPERATURE) > TEMP_THRESHOLD and datetime.now() < timeout:
             sleep(2)
             temp = get_temp()
             print(temp, end=" ", flush=True)
-        print("\nCooler has reached setpoint.")
+        if abs(temp - TEMPERATURE) > TEMP_THRESHOLD:
+            print(f"\nCooler did not reach setpoint after 5 minutes. Current temperature: {temp} C.")
+            print("Continuing without waiting for cooler to reach setpoint.")
+        else:
+            print("\nCooler has reached setpoint.")
 
     if TAKE_CALIBRATION_IMAGES:
         take_calibration_images()
