@@ -235,6 +235,8 @@ def restart_camera() -> None:
         print("Failed to connect to camera after 5 tries. Exiting...")
         stop_threads()
         exit(1)
+
+    sleep(2)
        
     NUM_RESTARTS += 1
     LAST_RESTART = datetime.now()
