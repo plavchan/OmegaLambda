@@ -235,7 +235,7 @@ def restart_camera() -> None:
         print("Failed to connect to camera after 5 tries. Exiting...")
         stop_threads()
         exit(1)
-    
+       
     NUM_RESTARTS += 1
     LAST_RESTART = datetime.now()
 
@@ -343,7 +343,13 @@ def take_calibration_image(calibration_type, num_images, stack_time) -> None:
 
 ########## Image processing ##########
 def get_image() -> np.ndarray[np.uint16]:
-    image = read_queue.get()
+    try:
+        image = read_queue.get(timeout=5)
+    except queue.Empty:
+        print("No image received from camera. Restarting camera...")
+        restart_camera()
+        return get_image()
+
     read_queue.task_done()
     return image
     # return FliSdk.GetRawImageAsNumpyArray(CONTEXT, -1)
@@ -425,7 +431,7 @@ def stop_threads(*args, script_done=False) -> None:
     if ENABLE_COMPRESSION:
         compress_queue.put(STOP)
     write_queue.put(STOP)
-    sleep(2)
+    sleep(0.1)
     stop_event.set()
 
     if ENABLE_COMPRESSION and compress_th:
