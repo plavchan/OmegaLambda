@@ -153,10 +153,10 @@ def setup() -> None:
     print("CRED2 camera setup complete.")
 
 
-CONTEXT = FliSdk.Init()
+# CONTEXT = FliSdk.Init()
 def connect(exit_on_fail=True) -> None:
-    # global CONTEXT
-    # CONTEXT = FliSdk.Init()
+    global CONTEXT
+    CONTEXT = FliSdk.Init()
 
     print("Attempting to connect to CRED2 camera via Ethernet...")
     camera: str = FliSdk.AddEthernetCamera(CONTEXT, IP_ADDRESS, USERNAME, PASSWORD)[1]
@@ -221,8 +221,8 @@ def restart_camera() -> None:
     print("Rebooting camera...")
     FliSdk.FliCredTwo.Reboot(CONTEXT)
     # FliSdk.FliSerialCamera.SendCommand(CONTEXT, "reboot")
-    # disconnect()
-    FliSdk.Stop(CONTEXT)
+    disconnect()
+    # FliSdk.Stop(CONTEXT)
     print("Camera rebooting. Waiting for 90 seconds for camera to start up again...")
     sleep(90)
 
@@ -477,8 +477,6 @@ def resume_captures() -> None:
 
 
 def take_one_capture() -> None:
-    if continue_taking_images.is_set():
-        pause_captures()
     print("Taking one exposure.")
     take_stacked_exposure()
 
