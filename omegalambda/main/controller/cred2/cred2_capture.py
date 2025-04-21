@@ -346,7 +346,7 @@ ArrayType = ctypes.c_uint16 * WIDTH * HEIGHT
 def get_image() -> np.ndarray[np.uint16]:
     continue_taking_images.wait()
     try:
-        image = read_queue.get(timeout=5)
+        image = read_queue.get(timeout=10)
     except queue.Empty:
         print("No image received from camera. Restarting camera...")
         restart_camera()
@@ -521,7 +521,8 @@ def initialize_image_callback() -> None:
 
 def read_thread() -> None:
     global read_images
-    read_images = 0
+    initialize_image_callback()
+
     if IMAGE_STACK_SIZE > 1:
         if CONTINUOUS_CAPTURE:
             while not stop_read_event.is_set():
