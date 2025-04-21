@@ -253,6 +253,9 @@ def restart_camera() -> None:
         restart_camera()
         return
 
+    initialize_image_callback()
+    sleep(2)
+
     print("Camera restarted successfully.")
     resume_captures()
 
@@ -505,14 +508,20 @@ def image_callback(image, context=None):
     read_queue.put(image)
 
 image_callback_func = FliSdk.CWRAPPER(image_callback)
+read_images = 0
 
 
-def read_thread() -> None:
+def initialize_image_callback() -> None:
+    global read_images
     FliSdk.EnableRingBuffer(CONTEXT, True)
     user_context = None
     callback_context = FliSdk.AddCallBackNewImage(CONTEXT, image_callback_func, FPS, False, user_context)
     read_images = 0
 
+
+def read_thread() -> None:
+    global read_images
+    read_images = 0
     if IMAGE_STACK_SIZE > 1:
         if CONTINUOUS_CAPTURE:
             while not stop_read_event.is_set():
