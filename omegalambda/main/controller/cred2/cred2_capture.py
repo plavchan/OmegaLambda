@@ -346,9 +346,9 @@ HEIGHT = 512
 ArrayType = ctypes.c_uint16 * WIDTH * HEIGHT
 def get_image() -> np.ndarray[np.uint16]:
     continue_taking_images.wait()
-
-    if read_queue.qsize() > 10:
-        print("Read queue size over 10. Clearing queue to get latest exposure.")
+    size = read_queue.qsize()
+    if size > 5 * FPS:
+        print(f"Read queue size is {size}. Clearing queue to get latest exposure.")
         with read_queue.mutex:
             read_queue.queue.clear()
 
