@@ -205,10 +205,10 @@ def restart_camera() -> None:
     print("Restarting camera...")
 
     # Prevent too many restarts
-    if (datetime.now() - LAST_RESTART).total_seconds() < max(120, 2 * IMAGE_STACK_TIME / TIME_SCALE_FACTOR) and NUM_RESTARTS > 4:
+    if (datetime.now() - LAST_RESTART).total_seconds() < max(60 * 3, 3 * IMAGE_STACK_TIME / TIME_SCALE_FACTOR) and NUM_RESTARTS > 2:
         print("Camera has restarted too many times in a short period of time. Continuing without restarting for now...")
         return
-    if (datetime.now() - LAST_RESTART).total_seconds() < 60 * 60 and NUM_RESTARTS > 7:
+    if (datetime.now() - LAST_RESTART).total_seconds() < 60 * 60 and NUM_RESTARTS > 4:
         print("Camera has restarted too many times in the last hour. Continuing without restarting for now...")
         return
     if NUM_RESTARTS > 10:
@@ -346,7 +346,6 @@ HEIGHT = 512
 ArrayType = ctypes.c_uint16 * WIDTH * HEIGHT
 def get_image() -> np.ndarray[np.uint16]:
     if stop_read_event.is_set():
-        print("Called get_image but read thread is stopped.")
         return np.array([])
 
     continue_taking_images.wait()
