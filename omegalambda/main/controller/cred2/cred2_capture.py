@@ -345,8 +345,13 @@ WIDTH = 640
 HEIGHT = 512
 ArrayType = ctypes.c_uint16 * WIDTH * HEIGHT
 def get_image() -> np.ndarray[np.uint16]:
+    if stop_read_event.is_set():
+        print("Called get_image but read thread is stopped.")
+        return np.array([])
+
     continue_taking_images.wait()
     size = read_queue.qsize()
+
     if size > 5 * FPS:
         print(f"Read queue size is {size}. Clearing queue to get latest exposure.")
         with read_queue.mutex:
@@ -462,7 +467,7 @@ def stop_threads(*args, script_done=False) -> None:
     stop_read_event.set()
     if read_th and not script_done:
         print("Stopping read thread...", flush=True)
-        read_th.join(timeout=5)
+        read_th.join(timeout=IMAGE_CHUNK_TIME * 5)
         if read_th.is_alive():
             print("Read thread failed to stop.", flush=True)
     if CONTEXT:
@@ -492,7 +497,9 @@ def start_captures() -> None:
 
 def take_one_capture() -> None:
     print("Taking one exposure.")
+    resume_captures()
     take_stacked_exposure()
+    pause_captures()
 
 
 def take_stacked_exposure(stack_size=IMAGE_STACK_SIZE, write=True) -> np.ndarray[np.uint32]:
@@ -503,20 +510,24 @@ def take_stacked_exposure(stack_size=IMAGE_STACK_SIZE, write=True) -> np.ndarray
             image = stack_images(images)
             images.clear()
             images.append(image)
-
             if stop_read_event.is_set():
                 return
 
         remaining_images = stack_size % IMAGE_CHUNK_SIZE
         if remaining_images:
             images.extend(get_image() for _ in range(remaining_images))
+            if stop_read_event.is_set():
+                return
             image = stack_images(images)
     else: 
         images = [get_image() for _ in range(stack_size)]
+        if stop_read_event.is_set():
+            return
         image = stack_images(images)
 
     if write:
         write_queue.put(image)
+
     return image
 
 
