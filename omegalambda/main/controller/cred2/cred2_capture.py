@@ -491,6 +491,9 @@ def resume_captures() -> None:
 
 
 def start_captures() -> None:
+    if FliSdk.IsStarted(CONTEXT):
+        return
+    print("Starting image captures.")
     FliSdk.Start(CONTEXT)
     sleep(2)
 
