@@ -510,11 +510,11 @@ def take_stacked_exposure(stack_size=IMAGE_STACK_SIZE, write=True) -> np.ndarray
         images = []
         for _ in range(stack_size // IMAGE_CHUNK_SIZE):
             images.extend(get_image() for _ in range(IMAGE_CHUNK_SIZE))
+            if stop_read_event.is_set():
+                return
             image = stack_images(images)
             images.clear()
             images.append(image)
-            if stop_read_event.is_set():
-                return
 
         remaining_images = stack_size % IMAGE_CHUNK_SIZE
         if remaining_images:
