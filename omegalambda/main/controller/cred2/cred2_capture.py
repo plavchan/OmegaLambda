@@ -470,7 +470,6 @@ def stop_threads(*args, script_done=False) -> None:
         disconnect()
 
     display_queue.put(STOP)
-
     exit()
 
 
@@ -504,6 +503,10 @@ def take_stacked_exposure(stack_size=IMAGE_STACK_SIZE, write=True) -> np.ndarray
             image = stack_images(images)
             images.clear()
             images.append(image)
+
+            if stop_read_event.is_set():
+                return
+
         remaining_images = stack_size % IMAGE_CHUNK_SIZE
         if remaining_images:
             images.extend(get_image() for _ in range(remaining_images))
