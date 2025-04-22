@@ -125,7 +125,6 @@ def create_save_directory() -> None:
 ########## Camera control ##########
 def setup() -> None:
     print("Setting up CRED2 camera.")
-    FliSdk.Start(CONTEXT)
     set_temp(TEMPERATURE)
 
     create_save_directory()
@@ -174,7 +173,8 @@ def connect(exit_on_fail=True) -> None:
 
 
 def disconnect() -> None:
-    FliSdk.Stop(CONTEXT)
+    if FliSdk.IsStarted(CONTEXT):
+        FliSdk.Stop(CONTEXT)
     FliSdk.Exit(CONTEXT)
     print("Disconnected from CRED2 camera.")
 
@@ -221,6 +221,7 @@ def restart_camera() -> None:
     print("Rebooting camera...")
     FliSdk.FliCredTwo.Reboot(CONTEXT)
     # FliSdk.FliSerialCamera.SendCommand(CONTEXT, "reboot")
+    sleep(2)
     disconnect()
     # FliSdk.Stop(CONTEXT)
     print("Camera rebooting. Waiting for 90 seconds for camera to start up again...")
@@ -345,11 +346,18 @@ HEIGHT = 512
 ArrayType = ctypes.c_uint16 * WIDTH * HEIGHT
 def get_image() -> np.ndarray[np.uint16]:
     continue_taking_images.wait()
+
+    if read_queue.qsize() > 10:
+        print("Read queue size over 10. Clearing queue to get latest exposure.")
+        with read_queue.mutex:
+            read_queue.queue.clear()
+
     try:
         image = read_queue.get(timeout=10)
     except queue.Empty:
-        print("No image received from camera. Restarting camera...")
-        restart_camera()
+        if continue_taking_images.is_set():
+            print("No image received from camera. Restarting camera...")
+            restart_camera()
         return get_image()
 
     # width, height = FliSdk.GetCurrentImageDimension(CONTEXT)
@@ -468,12 +476,19 @@ def stop_threads(*args, script_done=False) -> None:
 
 def pause_captures() -> None:
     print("Pausing image captures.")
+    FliSdk.Stop(CONTEXT)
     continue_taking_images.clear()
 
 
 def resume_captures() -> None:
     print("Resuming image captures.")
+    start_captures()
     continue_taking_images.set()
+
+
+def start_captures() -> None:
+    FliSdk.Start(CONTEXT)
+    sleep(2)
 
 
 def take_one_capture() -> None:
@@ -503,6 +518,8 @@ def take_stacked_exposure(stack_size=IMAGE_STACK_SIZE, write=True) -> np.ndarray
 
 
 def image_callback(image, context=None):
+    if not continue_taking_images.is_set():
+        return
     read_queue.put(image)
 
 image_callback_func = FliSdk.CWRAPPER(image_callback)
@@ -514,6 +531,7 @@ def initialize_image_callback() -> None:
     FliSdk.EnableRingBuffer(CONTEXT, True)
     user_context = None
     callback_context = FliSdk.AddCallBackNewImage(CONTEXT, image_callback_func, FPS, False, user_context)
+    start_captures()
     read_images = 0
 
 
