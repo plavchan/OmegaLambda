@@ -96,8 +96,8 @@ FITS_HEADER: dict[str, str | float] = {  # For FITS headers
     "DATE-OBS": None,
 }
 
-CAMERA_START_TIME: datetime = datetime.now()  # Time when the camera started exposing
-CAMERA_BUFFER_RESET_TIME: float = 45 * 60  # How often to start and stop the camera to reset the buffer, seconds
+CAMERA_BUFFER_RESET_TIME: datetime = datetime.now()  # Time when the camera started exposing
+CAMERA_BUFFER_RESET_INTERVAL: float = 45 * 60  # How often to start and stop the camera to reset the buffer, seconds
 
 ########## Helpers ##########
 def create_save_directory() -> None:
@@ -542,7 +542,7 @@ def take_stacked_exposure(stack_size=IMAGE_STACK_SIZE, write=True) -> np.ndarray
     if write:
         write_queue.put(image)
 
-    if datetime.now() - CAMERA_START_TIME > timedelta(seconds=CAMERA_BUFFER_RESET_TIME):
+    if datetime.now() - CAMERA_BUFFER_RESET_TIME > timedelta(seconds=CAMERA_BUFFER_RESET_INTERVAL):
         print("Briefly stopping and resuming exposures to reset buffer...")
         reset_buffer()
 
