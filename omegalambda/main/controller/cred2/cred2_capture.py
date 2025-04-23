@@ -96,6 +96,9 @@ FITS_HEADER: dict[str, str | float] = {  # For FITS headers
     "DATE-OBS": None,
 }
 
+CAMERA_START_TIME: datetime = datetime.now()  # Time when the camera started exposing
+CAMERA_BUFFER_RESET_TIME: float = 45 * 60  # How often to start and stop the camera to reset the buffer, seconds
+
 ########## Helpers ##########
 def create_save_directory() -> None:
     if not os.path.exists(DATA_DIRECTORY):
@@ -497,6 +500,15 @@ def start_captures() -> None:
     sleep(2)
 
 
+def reset_buffer() -> None:
+    print("Resetting camera buffer...")
+    pause_captures()
+    sleep(4)
+    FliSdk.ResetBuffer(CONTEXT)
+    sleep(4)
+    resume_captures()
+
+
 def take_one_capture() -> None:
     print("Taking one exposure.")
     resume_captures()
@@ -530,6 +542,10 @@ def take_stacked_exposure(stack_size=IMAGE_STACK_SIZE, write=True) -> np.ndarray
     if write:
         write_queue.put(image)
 
+    if datetime.now() - CAMERA_START_TIME > timedelta(seconds=CAMERA_BUFFER_RESET_TIME):
+        print("Briefly stopping and resuming exposures to reset buffer...")
+        reset_buffer()
+
     return image
 
 
@@ -552,7 +568,8 @@ def initialize_image_callback() -> None:
 
 
 def read_thread() -> None:
-    global read_images
+    global read_images, CAMERA_START_TIME
+    CAMERA_START_TIME = datetime.now()
     initialize_image_callback()
 
     if IMAGE_STACK_SIZE > 1:
