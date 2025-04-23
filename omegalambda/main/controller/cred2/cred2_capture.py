@@ -96,7 +96,7 @@ FITS_HEADER: dict[str, str | float] = {  # For FITS headers
     "DATE-OBS": None,
 }
 
-CAMERA_BUFFER_RESET_TIME: datetime = datetime.now()  # Time when the camera started exposing
+CAMERA_BUFFER_RESET_TIME: datetime = datetime.now()  # Time of last camera buffer reset
 CAMERA_BUFFER_RESET_INTERVAL: float = 45 * 60  # How often to start and stop the camera to reset the buffer, seconds
 
 ########## Helpers ##########
@@ -501,12 +501,14 @@ def start_captures() -> None:
 
 
 def reset_buffer() -> None:
+    global CAMERA_BUFFER_RESET_TIME
     print("Resetting camera buffer...")
     pause_captures()
     sleep(4)
     FliSdk.ResetBuffer(CONTEXT)
     sleep(4)
     resume_captures()
+    CAMERA_BUFFER_RESET_TIME = datetime.now()
 
 
 def take_one_capture() -> None:
