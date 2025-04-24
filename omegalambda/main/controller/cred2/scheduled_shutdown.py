@@ -12,6 +12,7 @@ shutdown_time = datetime.strptime(shutdown_time, "%H:%M").time()
 shutdown_date = datetime.now().date() if datetime.now().time() < shutdown_time else datetime.now().date() + timedelta(days=1)
 SHUTDOWN_DATETIME = datetime.combine(shutdown_date, shutdown_time)
 
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logging.info(f"Shutdown scheduled for {SHUTDOWN_DATETIME}.")
 
 DOME = win32com.client.Dispatch("ASCOMDome.Dome")
