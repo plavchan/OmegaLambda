@@ -8,16 +8,6 @@ from time import sleep
 import logging
 
 
-shutdown_time = datetime.strptime(shutdown_time, "%H:%M").time()
-shutdown_date = datetime.now().date() if datetime.now().time() < shutdown_time else datetime.now().date() + timedelta(days=1)
-SHUTDOWN_DATETIME = datetime.combine(shutdown_date, shutdown_time)
-
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-logging.info(f"Shutdown scheduled for {SHUTDOWN_DATETIME}.")
-
-DOME = win32com.client.Dispatch("ASCOMDome.Dome")
-TELESCOPE = win32com.client.Dispatch("ASCOM.SoftwareBisque.Telescope")
-
 DOME_OPEN = 0
 DOME_CLOSED = 1
 DOME_OPENING = 2
@@ -25,6 +15,10 @@ DOME_CLOSING = 3
 DOME_ERROR = 4
 ERROR = 5
 
+
+def dome_connect():
+    DOME.Connected = True
+    logging.info("Dome connected.")
 
 def dome_status():
     try:
@@ -60,6 +54,11 @@ def dome_park():
         logging.error(f"Error parking dome: {e}")
     logging.info("Dome is parking.")
 
+def telescope_connect():
+    TELESCOPE.SlewSettleTime = 1
+    TELESCOPE.Connected = True
+    logging.info("Telescope connected.")
+
 def telescope_park():
     try:
         if not TELESCOPE.AtPark:
@@ -75,7 +74,8 @@ def shutdown():
     telescope_park()
     sleep(2)
     dome_park()
-    sleep(2)
+
+    sleep(2 * 60)
 
     tries = 0
     while not await_dome_closed() and tries <= 5:
@@ -84,7 +84,21 @@ def shutdown():
 
     logging.info("Shutdown complete.")
 
+
+shutdown_time = datetime.strptime(shutdown_time, "%H:%M").time()
+shutdown_date = datetime.now().date() if datetime.now().time() < shutdown_time else datetime.now().date() + timedelta(days=1)
+SHUTDOWN_DATETIME = datetime.combine(shutdown_date, shutdown_time)
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.info(f"Shutdown scheduled for {SHUTDOWN_DATETIME}.")
+
+DOME = win32com.client.Dispatch("ASCOMDome.Dome")
+dome_connect()
+
+TELESCOPE = win32com.client.Dispatch("ASCOM.SoftwareBisque.Telescope")
+telescope_connect()
+
 sleep_seconds = SHUTDOWN_DATETIME.timestamp() - datetime.now().timestamp()
-logging.info("Sleeping for {sleep_seconds} seconds before shutdown.")
+logging.info(f"Sleeping for {sleep_seconds} seconds before shutdown.")
 sleep(sleep_seconds)
 shutdown()
