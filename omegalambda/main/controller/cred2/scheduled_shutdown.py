@@ -11,7 +11,7 @@ import logging
 shutdown_time = datetime.strptime(shutdown_time, "%H:%M").time()
 shutdown_date = datetime.now().date() if datetime.now().time() < shutdown_time else datetime.now().date() + timedelta(days=1)
 SHUTDOWN_DATETIME = datetime.combine(shutdown_date, shutdown_time)
-LOGGER = logging.getLogger(__name__)
+LOGGER = logging.getLogger()
 
 LOGGER.info(f"Shutdown scheduled for {SHUTDOWN_DATETIME}.")
 
