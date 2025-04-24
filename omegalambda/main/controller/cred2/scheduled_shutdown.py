@@ -16,7 +16,7 @@ LOGGER = logging.getLogger()
 LOGGER.info(f"Shutdown scheduled for {SHUTDOWN_DATETIME}.")
 
 DOME = win32com.client.Dispatch("ASCOMDome.Dome")
-TELESCOPE = win32com.client.Dispatch("ASCOMTelescope.Telescope")
+TELESCOPE = win32com.client.Dispatch("ASCOM.SoftwareBisque.Telescope")
 
 DOME_OPEN = 0
 DOME_CLOSED = 1
