@@ -49,6 +49,7 @@ def await_dome_closed():
 
 def dome_park():
     try:
+        DOME.Slaved = False
         DOME.Park()
     except Exception as e:
         logging.error(f"Error parking dome: {e}")
@@ -70,10 +71,10 @@ def telescope_park():
 def shutdown():
     logging.info("Shutting down observatory.")
     dome_close()
-    sleep(2)
-    telescope_park()
-    sleep(2)
+    sleep(5)
     dome_park()
+    sleep(5)
+    telescope_park()
 
     sleep(2 * 60)
 
@@ -99,6 +100,6 @@ TELESCOPE = win32com.client.Dispatch("ASCOM.SoftwareBisque.Telescope")
 telescope_connect()
 
 sleep_seconds = SHUTDOWN_DATETIME.timestamp() - datetime.now().timestamp()
-logging.info(f"Sleeping for {sleep_seconds} seconds before shutdown.")
+logging.info(f"Sleeping for {int(sleep_seconds)} seconds before shutdown.")
 sleep(sleep_seconds)
 shutdown()
