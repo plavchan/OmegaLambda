@@ -6,6 +6,7 @@ import win32com.client
 from datetime import datetime, timedelta
 from time import sleep
 import logging
+import pywintypes
 
 
 DOME_OPEN = 0
@@ -61,7 +62,17 @@ def telescope_connect():
     logging.info("Telescope connected.")
 
 def telescope_park():
+    tries = 0
     try:
+        while TELESCOPE.Tracking and tries < 5:
+            try:
+                TELESCOPE.Tracking = False
+            except (AttributeError, pywintypes.com_error) as e:
+                logging.error(f"Error disabling telescope tracking: {e}")
+            sleep(5)
+            tries += 1
+        if tries >= 5:
+            logging.error("Failed to disable telescope tracking after 5 attempts.")
         if not TELESCOPE.AtPark:
             TELESCOPE.Park()
     except Exception as e:
@@ -81,6 +92,7 @@ def shutdown():
     tries = 0
     while not await_dome_closed() and tries <= 5:
         logging.error("Dome did not close properly. Retrying in 60 seconds.")
+        tries += 1
         sleep(60)
 
     logging.info("Shutdown complete.")
