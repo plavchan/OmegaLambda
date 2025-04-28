@@ -336,7 +336,7 @@ def take_calibration_image(calibration_type, num_images, stack_time) -> None:
     paths = []
     prev_image = np.array([])
 
-    start_captures()
+    resume_captures()
     for _ in tqdm(range(num_images), unit="images"):
         image = take_stacked_exposure(stack_size=stack_size, write=False)
         path = write_to_fits(image, annotation=annotation)
