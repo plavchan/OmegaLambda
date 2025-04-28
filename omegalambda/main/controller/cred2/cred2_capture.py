@@ -135,13 +135,13 @@ def setup() -> None:
     if WAIT_FOR_COOLER_SETTLE:
         print("Waiting for cooler to reach setpoint...")
         temp = get_temp()
-        timeout = datetime.now() + timedelta(minutes=5)
+        timeout = datetime.now() + timedelta(minutes=10)
         while abs(temp - TEMPERATURE) > TEMP_THRESHOLD and datetime.now() < timeout:
-            sleep(2)
+            sleep(5)
             temp = get_temp()
             print(temp, end=" ", flush=True)
         if abs(temp - TEMPERATURE) > TEMP_THRESHOLD:
-            print(f"\nCooler did not reach setpoint after 5 minutes. Current temperature: {temp} C.")
+            print(f"\nCooler did not reach setpoint after 10 minutes. Current temperature: {temp} C.")
             print("Continuing without waiting for cooler to reach setpoint.")
         else:
             print("\nCooler has reached setpoint.")
@@ -295,6 +295,7 @@ def take_flats() -> None:
 
 def take_calibration_images() -> None:
     global NUM_DARK_IMAGES, NUM_FLAT_IMAGES
+    initialize_image_callback(start=False)
     print("-" * 40)
     print("Beginning calibration images procedure.")
     print("Preparing to take dark frames. Ensure the dome is darkened, and turn away the tertiary mirror to ensure no light enters the sensor.")
@@ -335,6 +336,7 @@ def take_calibration_image(calibration_type, num_images, stack_time) -> None:
     paths = []
     prev_image = np.array([])
 
+    start_captures()
     for _ in tqdm(range(num_images), unit="images"):
         image = take_stacked_exposure(stack_size=stack_size, write=False)
         path = write_to_fits(image, annotation=annotation)
@@ -346,6 +348,7 @@ def take_calibration_image(calibration_type, num_images, stack_time) -> None:
 
         if stop_event.is_set():
             break
+    pause_captures()
 
     if ENABLE_COMPRESSION:
         print("Compressing calibration images...")
@@ -569,12 +572,13 @@ image_callback_func = FliSdk.CWRAPPER(image_callback)
 read_images = 0
 
 
-def initialize_image_callback() -> None:
+def initialize_image_callback(start=True) -> None:
     global read_images
     FliSdk.EnableRingBuffer(CONTEXT, True)
     user_context = None
     callback_context = FliSdk.AddCallBackNewImage(CONTEXT, image_callback_func, FPS, False, user_context)
-    start_captures()
+    if start:
+        start_captures()
     read_images = 0
 
 
