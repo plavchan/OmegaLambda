@@ -294,13 +294,18 @@ def take_flats() -> None:
 
 
 def take_calibration_images() -> None:
+    global NUM_DARK_IMAGES, NUM_FLAT_IMAGES
     print("-" * 40)
     print("Beginning calibration images procedure.")
     print("Preparing to take dark frames. Ensure the dome is darkened, and turn away the tertiary mirror to ensure no light enters the sensor.")
-    response = input("Press any key to continue, or type SKIP to skip taking darks... ")
-    if response.lower() == "skip":
+    
+    num_darks = ""
+    while not (num_darks.strip().isdigit() or num_darks.strip().lower() == "skip"):
+        num_darks = input(f"Enter the number of dark frames to take (default is {NUM_DARK_IMAGES}, type ENTER to use this value), or type SKIP to skip taking darks: ")
+    if num_darks.strip().lower() == "skip":
         print("Skipping taking dark frames.")
     else:
+        NUM_DARK_IMAGES = int(num_darks) if num_darks.strip() else NUM_DARK_IMAGES
         take_darks()
         print()
 
@@ -310,11 +315,15 @@ def take_calibration_images() -> None:
     # print()
 
     print("Preparing to take flat frames. Turn the tertiary mirror to the CRED2 camera and turn on the flat lamp.")
-    response = input("Press any key to continue, or type SKIP to skip taking flats... ")
-    if response.lower() == "skip":
+    num_flats = ""
+    while not (num_flats.strip().isdigit() or num_flats.strip().lower() == "skip"):
+        num_flats = input(f"Enter the number of flat frames to take (default is {NUM_FLAT_IMAGES}, type ENTER to use this value), or type SKIP to skip taking flats: ")
+    if num_flats.strip().lower() == "skip":
         print("Skipping taking flat frames.")
     else:
+        NUM_FLAT_IMAGES = int(num_flats) if num_flats.strip() else NUM_FLAT_IMAGES
         take_flats()
+        print()
 
     print("Done taking calibration images.")
     print("-" * 40)
