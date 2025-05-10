@@ -467,6 +467,8 @@ def stop_threads(*args, script_done=False) -> None:
     sleep(0.1)
     stop_event.set()
 
+    set_temp(20.0)
+
     if ENABLE_COMPRESSION and compress_th:
         print("Stopping compress thread...", flush=True)
         compress_th.join(timeout=5)
@@ -585,7 +587,11 @@ def initialize_image_callback(start=True) -> None:
 def read_thread() -> None:
     global read_images, CAMERA_START_TIME
     CAMERA_START_TIME = datetime.now()
-    initialize_image_callback()
+
+    if not TAKE_CALIBRATION_IMAGES:
+        initialize_image_callback()
+    else:
+        resume_captures()
 
     if IMAGE_STACK_SIZE > 1:
         if CONTINUOUS_CAPTURE:
