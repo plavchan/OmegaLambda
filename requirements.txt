@@ -6,6 +6,7 @@ barycorrpy>=0.4.1
 colorama>=0.4.3
 future>=0.18.2
 isort>=4.3.21
+inputimeout>=1.0.4
 lazy-object-proxy>=1.4.3
 macholib>=1.11
 matplotlib>=3.2.2

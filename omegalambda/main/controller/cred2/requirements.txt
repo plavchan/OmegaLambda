@@ -1,5 +1,6 @@
 astropy==6.1.1
 astropy-iers-data==0.2024.6.24.0.31.11
+inputimeout==1.0.4
 numpy==1.26.4
 opencv-python==4.10.0.84
 packaging==24.1
