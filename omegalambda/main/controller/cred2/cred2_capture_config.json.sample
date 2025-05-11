@@ -6,5 +6,6 @@
     "filename_prefix": "image-",
     "enable_compression": true,
     "wait_for_cooler_settle": true,
-    "startup_only": false
+    "startup_only": false,
+    "stop_cooler_at_end": false
 }

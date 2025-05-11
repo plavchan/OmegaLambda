@@ -45,8 +45,9 @@ CONFIG_FILE: str = os.path.join(os.path.dirname(__file__), "cred2_capture_config
     "data_directory": "data",
     "filename_prefix": "image-",
     "enable_compression": true,
-    "wait_for_cooler_settle": true
-    "startup_only": false
+    "wait_for_cooler_settle": true,
+    "startup_only": false,
+    "stop_cooler_at_end": false
 }
 """
 TOTAL_RUN_TIME: float = 0.0 * TIME_SCALE_FACTOR  # Seconds. Total time to capture images for. 0 for continuous capture.
@@ -58,6 +59,7 @@ FILENAME_PREFIX: str = "image-"
 ENABLE_COMPRESSION: bool = True  # Compress images after saving using fpack
 WAIT_FOR_COOLER_SETTLE: bool = True  # Wait for cooler to reach setpoint before capturing images
 STARTUP_ONLY: bool = False  # If True, will just startup the control code but not start capturing images
+STOP_COOLER_AT_END: bool = False  # If True, will set the temp to 20C at the end of the run
 
 # Load config
 if os.path.exists(CONFIG_FILE):
@@ -71,6 +73,7 @@ if os.path.exists(CONFIG_FILE):
         ENABLE_COMPRESSION = config.get("enable_compression", ENABLE_COMPRESSION)
         WAIT_FOR_COOLER_SETTLE = config.get("wait_for_cooler_settle", WAIT_FOR_COOLER_SETTLE)
         STARTUP_ONLY = config.get("startup_only", STARTUP_ONLY)
+        STOP_COOLER_AT_END = config.get("stop_cooler_at_end", STOP_COOLER_AT_END)
 
 if not os.path.isabs(DATA_DIRECTORY):
     DATA_DIRECTORY = os.path.join(os.path.dirname(__file__), DATA_DIRECTORY)
@@ -467,7 +470,8 @@ def stop_threads(*args, script_done=False) -> None:
     sleep(0.1)
     stop_event.set()
 
-    set_temp(20.0)
+    if STOP_COOLER_AT_END:
+        set_temp(20.0)
 
     if ENABLE_COMPRESSION and compress_th:
         print("Stopping compress thread...", flush=True)
