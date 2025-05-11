@@ -16,8 +16,6 @@ from tqdm import tqdm
 from time import sleep
 from datetime import datetime, timezone, timedelta
 from win32com.client import Dispatch
-from inputimeout import inputimeout, TimeoutOccurred
-
 
 # from PIL import Image
 
@@ -304,10 +302,7 @@ def take_calibration_images() -> None:
     
     num_darks = ""
     while not (num_darks.strip().isdigit() or num_darks.strip().lower() == "skip"):
-        try:
-            num_darks = inputimeout(f"Enter the number of dark frames to take (default is {NUM_DARK_IMAGES}), or type SKIP to skip taking darks. Answer within 90 seconds: ", timeout=90)
-        except TimeoutOccurred:
-            pass
+        num_darks = input(f"Enter the number of dark frames to take (default is {NUM_DARK_IMAGES}), or type SKIP to skip taking darks: ")
     if num_darks.strip().lower() == "skip":
         print("Skipping taking dark frames.")
     else:
@@ -323,10 +318,7 @@ def take_calibration_images() -> None:
     print("Preparing to take flat frames. Turn the tertiary mirror to the CRED2 camera and turn on the flat lamp.")
     num_flats = ""
     while not (num_flats.strip().isdigit() or num_flats.strip().lower() == "skip"):
-        try:
-            num_flats = inputimeout(f"Enter the number of flat frames to take (default is {NUM_FLAT_IMAGES}), or type SKIP to skip taking flats. Answer within 90 seconds: ", timeout=90)
-        except TimeoutOccurred:
-            pass
+        num_flats = input(f"Enter the number of flat frames to take (default is {NUM_FLAT_IMAGES}), or type SKIP to skip taking flats: ")
     if num_flats.strip().lower() == "skip":
         print("Skipping taking flat frames.")
     else:
@@ -475,6 +467,8 @@ def stop_threads(*args, script_done=False) -> None:
     sleep(0.1)
     stop_event.set()
 
+    set_temp(20.0)
+
     if ENABLE_COMPRESSION and compress_th:
         print("Stopping compress thread...", flush=True)
         compress_th.join(timeout=5)
@@ -492,14 +486,6 @@ def stop_threads(*args, script_done=False) -> None:
         read_th.join(timeout=IMAGE_CHUNK_TIME * 5)
         if read_th.is_alive():
             print("Read thread failed to stop.", flush=True)
-
-    try:
-        stop_cooler = inputimeout("Set temp to 20C? Answer within 30 seconds. (Y/n): ", timeout=30).strip().lower()
-    except TimeoutOccurred:
-        stop_cooler = "y"
-    if stop_cooler == "y" or not stop_cooler:
-        set_temp(20.0)
-    
     if CONTEXT:
         print("Disconnecting from camera...", flush=True)
         disconnect()
