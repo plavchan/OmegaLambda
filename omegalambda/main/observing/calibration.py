@@ -202,7 +202,7 @@ class Calibration(Hardware):
                     if match:
                         continue
                     self.camera.onThread(self.camera.expose, self.filter_exp_times[f], 4, save_path=os.path.join(darks_path, image_name), type="dark")
-                    self.camera.image_done.wait()
+                    self.camera.image_done.wait(timeout=int(self.filter_exp_times[f]) * 2 + 10)
 
             for exp_time in exp_times:
                 for k in range(self.config_dict.calibration_num):
@@ -214,6 +214,6 @@ class Calibration(Hardware):
                     if match:
                         continue
                     self.camera.onThread(self.camera.expose, exp_time, 4, save_path=os.path.join(darks_path, image_name), type="dark")
-                    self.camera.image_done.wait()
+                    self.camera.image_done.wait(timeout=int(exp_time) * 2 + 10)
         self.darks_done.set()
         return True
