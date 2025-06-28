@@ -133,6 +133,11 @@ def setup() -> None:
     print("Setting up CRED2 camera.")
     set_temp(TEMPERATURE)
 
+    # Set options
+    # FliSdk.FliCredTwo.EnableAntiBlooming(CONTEXT, True)
+    # FliSdk.FliCredTwo.SetConversionGain(CONTEXT, "high")
+    # FliSdk.FliSerialCamera.SendCommand(CONTEXT, "set tuning short_exposure")
+
     create_save_directory()
 
     if WAIT_FOR_COOLER_SETTLE:
@@ -208,7 +213,7 @@ NUM_RESTARTS: int = 0
 LAST_RESTART: datetime = datetime.now() - timedelta(days=1)
 def restart_camera() -> None:
     global NUM_RESTARTS, LAST_RESTART
-    print("Restarting camera...")
+    print("Preparing to restart camera...")
 
     # Prevent too many restarts
     if (datetime.now() - LAST_RESTART).total_seconds() < max(60 * 3, 3 * IMAGE_STACK_TIME / TIME_SCALE_FACTOR) and NUM_RESTARTS > 2:
@@ -223,7 +228,8 @@ def restart_camera() -> None:
     
     pause_captures()
     print(f"Camera restarted {NUM_RESTARTS} times. Last restart: {LAST_RESTART.strftime('%Y-%m-%d %H:%M:%S')}, Current restart: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    sleep(10)
+    print("Restarting camera in 15 seconds...")
+    sleep(15)
     print("Rebooting camera...")
     FliSdk.FliCredTwo.Reboot(CONTEXT)
     # FliSdk.FliSerialCamera.SendCommand(CONTEXT, "reboot")
@@ -375,7 +381,7 @@ def get_image() -> np.ndarray[np.uint16]:
             read_queue.queue.clear()
 
     try:
-        image = read_queue.get(timeout=10)
+        image = read_queue.get(timeout=30)
     except queue.Empty:
         if continue_taking_images.is_set():
             print("No image received from camera. Restarting camera...")
