@@ -344,6 +344,10 @@ def take_calibration_images() -> None:
 
 
 def take_calibration_image(calibration_type, num_images, stack_time) -> None:
+    maxim = Dispatch("MaxIm.Application")
+    maxim.LockApp = True
+    maxim_document = Dispatch("MaxIm.Document")
+
     stack_size = int(stack_time / FRAME_TIME)
     annotation = f"{calibration_type}_{stack_time / TIME_SCALE_FACTOR:.2f}s"
     paths = []
@@ -353,7 +357,7 @@ def take_calibration_image(calibration_type, num_images, stack_time) -> None:
     for _ in tqdm(range(num_images), unit="images"):
         image = take_stacked_exposure(stack_size=stack_size, write=False)
         path = write_to_fits(image, annotation=annotation)
-        MAXIM_DOCUMENT.OpenFile(path)
+        maxim_document.OpenFile(path)
         paths.append(path)
 
         check_identical_images(image, prev_image)
@@ -469,9 +473,6 @@ continue_taking_images.set()
 
 STOP = "STOP"
 
-MAXIM = Dispatch("MaxIm.Application")
-MAXIM.LockApp = True
-MAXIM_DOCUMENT = Dispatch("MaxIm.Document")
 
 def stop_threads(*args, script_done=False) -> None:
     print("Stopping threads...", flush=True)
@@ -689,13 +690,16 @@ def compress_thread() -> None:
 
 
 def display_thread() -> None:
+    maxim = Dispatch("MaxIm.Application")
+    maxim.LockApp = True
+    maxim_document = Dispatch("MaxIm.Document")
     while not stop_event.is_set():
         # image = display_queue.get()
         # show_image(image)
         path = display_queue.get()
         if isinstance(path, str) and path == STOP:
             break
-        MAXIM_DOCUMENT.OpenFile(path)
+        maxim_document.OpenFile(path)
         with display_queue.mutex:
             display_queue.queue.clear()  # Always show the latest image
         display_queue.task_done()
