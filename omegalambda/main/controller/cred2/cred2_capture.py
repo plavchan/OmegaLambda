@@ -16,6 +16,7 @@ from tqdm import tqdm
 from time import sleep
 from datetime import datetime, timezone, timedelta
 from win32com.client import Dispatch
+import pythoncom
 
 # from PIL import Image
 
@@ -690,6 +691,7 @@ def compress_thread() -> None:
 
 
 def display_thread() -> None:
+    pythoncom.CoInitialize()  # Initialize COM for MaxIm - needed for thread
     maxim = Dispatch("MaxIm.Application")
     maxim.LockApp = True
     maxim_document = Dispatch("MaxIm.Document")
