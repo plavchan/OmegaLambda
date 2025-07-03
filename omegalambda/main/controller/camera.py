@@ -356,7 +356,7 @@ class NIRCamera(Camera):
 
         if num_exposures == 1 and self.proc is not None:
             self.send_signal(self.SINGLE_EXPOSURE_SIG)  # take one exposure
-            time.sleep(1 + exposure_time)
+            time.sleep(exposure_time + 5)
             self.exp_done.set()
             return
 
@@ -384,12 +384,12 @@ class NIRCamera(Camera):
             self._run_capture_code()
 
         if num_exposures:
-            time.sleep(5 + config["total_run_time_seconds"])
             if num_exposures == 1:
                 self.send_signal(self.SINGLE_EXPOSURE_SIG)  # take one exposure
-                time.sleep(1 + exposure_time)
+                time.sleep(exposure_time + 5)
                 self.exp_done.set()
                 return
+            time.sleep(config["total_run_time_seconds"] + 5)
             self.disconnect(timeout=60, terminate=False)
             self.exp_done.set()
 

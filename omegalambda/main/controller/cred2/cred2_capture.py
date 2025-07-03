@@ -34,6 +34,7 @@ CONTEXT: ctypes.c_void_p = None
 TEMPERATURE: float = -40.0  # Celsius
 TEMP_THRESHOLD: float = 0.5  # Celsius. Temperature threshold for cooler to reach setpoint.
 FRAME_TIME: float = 1 / 20  # Seconds. Optimal individual frame exposure time for CRED2 camera.
+FRAME_TIME = 1 / 600
 TIME_SCALE_FACTOR: float = 1.0  # 36.0  # Because we don't get accurate frame rates (much higher than expected), compensate for it by increasing the stack time (empirically determined).
 
 CONFIG_FILE: str = os.path.join(os.path.dirname(__file__), "cred2_capture_config.json")
@@ -82,6 +83,10 @@ if not os.path.isabs(DATA_DIRECTORY):
 DATA_DIRECTORY = os.path.realpath(DATA_DIRECTORY)
 
 ########## Calculated parameters ##########
+
+# added 20250702
+IMAGE_STACK_TIME = IMAGE_STACK_TIME / (256 * FRAME_TIME) * FRAME_TIME
+
 COMPRESS_GROUP_SIZE: int = max(1, 60 // (IMAGE_STACK_TIME / TIME_SCALE_FACTOR))  # Number of images to compress at once
 IMAGE_STACK_SIZE: int = int(IMAGE_STACK_TIME / FRAME_TIME)  # Number of images to stack for each stacked image. 1 for no stacking.
 IMAGE_CHUNK_SIZE: int = int(IMAGE_CHUNK_TIME / FRAME_TIME)  # Number of images to stack for each chunk. 
@@ -213,7 +218,7 @@ NUM_RESTARTS: int = 0
 LAST_RESTART: datetime = datetime.now() - timedelta(days=1)
 def restart_camera() -> None:
     global NUM_RESTARTS, LAST_RESTART
-    print("Preparing to restart camera...")
+    print("Restarting camera...")
 
     # Prevent too many restarts
     if (datetime.now() - LAST_RESTART).total_seconds() < max(60 * 3, 3 * IMAGE_STACK_TIME / TIME_SCALE_FACTOR) and NUM_RESTARTS > 2:
@@ -228,8 +233,7 @@ def restart_camera() -> None:
     
     pause_captures()
     print(f"Camera restarted {NUM_RESTARTS} times. Last restart: {LAST_RESTART.strftime('%Y-%m-%d %H:%M:%S')}, Current restart: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    print("Restarting camera in 15 seconds...")
-    sleep(15)
+    sleep(10)
     print("Rebooting camera...")
     FliSdk.FliCredTwo.Reboot(CONTEXT)
     # FliSdk.FliSerialCamera.SendCommand(CONTEXT, "reboot")
