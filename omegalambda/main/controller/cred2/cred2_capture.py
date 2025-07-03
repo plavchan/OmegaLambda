@@ -373,10 +373,10 @@ WIDTH = 640
 HEIGHT = 512
 ArrayType = ctypes.c_uint16 * WIDTH * HEIGHT
 def get_image() -> np.ndarray[np.uint16]:
+    continue_taking_images.wait()
     if stop_read_event.is_set():
         return np.array([])
 
-    continue_taking_images.wait()
     size = read_queue.qsize()
 
     if size > 5 * FPS:
@@ -504,6 +504,11 @@ def stop_threads(*args, script_done=False) -> None:
     stop_read_event.set()
     if read_th and not script_done:
         print("Stopping read thread...", flush=True)
+        if not continue_taking_images.is_set():
+            continue_taking_images.set()  # To make read thread stop
+        sleep(0.1)
+        pause_captures()
+        sleep(0.5)
         read_th.join(timeout=IMAGE_CHUNK_TIME * 5)
         if read_th.is_alive():
             print("Read thread failed to stop.", flush=True)
@@ -511,7 +516,6 @@ def stop_threads(*args, script_done=False) -> None:
         print("Disconnecting from camera...", flush=True)
         disconnect()
 
-    # display_queue.put(STOP)
     exit()
 
 
@@ -608,6 +612,10 @@ def initialize_image_callback(start=True) -> None:
 def read_thread() -> None:
     global read_images, CAMERA_START_TIME
     CAMERA_START_TIME = datetime.now()
+
+    continue_taking_images.wait()  # for STARTUP_ONLY mode
+    if stop_read_event.is_set():
+        return
 
     if not TAKE_CALIBRATION_IMAGES:
         initialize_image_callback()
@@ -750,7 +758,6 @@ def main() -> None:
     # Keep the main thread alive so that it can catch signals
     while True:
         sleep(0.01)
-
 
 
 if __name__ == "__main__":
