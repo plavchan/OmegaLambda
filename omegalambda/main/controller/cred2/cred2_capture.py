@@ -719,11 +719,13 @@ def main() -> None:
         pause_captures()
     
     print("Starting threads...")
-    global read_th, write_th
+    global read_th, write_th, compress_th, display_th
     read_th = threading.Thread(target=read_thread)
     read_th.start()
     write_th = threading.Thread(target=write_thread)
     write_th.start()
+    display_th = threading.Thread(target=display_thread)
+    display_th.start()
     
     if ENABLE_COMPRESSION:
         compress_th = threading.Thread(target=compress_thread)
@@ -744,8 +746,11 @@ def main() -> None:
         print()
 
     # display_thread()
-    display_th = threading.Thread(target=display_thread)
-    display_th.start()
+    # TODO: Maybe monitor threads?
+    # Keep the main thread alive so that it can catch signals
+    while True:
+        sleep(0.01)
+
 
 
 if __name__ == "__main__":
