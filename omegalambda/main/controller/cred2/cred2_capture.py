@@ -454,12 +454,13 @@ def check_identical_images(image1: np.ndarray[np.uint16], image2: np.ndarray[np.
 ########## Threads ##########
 read_queue = queue.Queue()
 write_queue = queue.Queue()
-display_queue = queue.Queue()
 compress_queue = queue.Queue()
+display_queue = queue.Queue()
 
 read_th: threading.Thread = None
 write_th: threading.Thread = None
 compress_th: threading.Thread = None
+display_th: threading.Thread = None
 
 stop_event = threading.Event()
 stop_read_event = threading.Event()
@@ -476,6 +477,7 @@ def stop_threads(*args, script_done=False) -> None:
     print("Stopping threads...", flush=True)
     if ENABLE_COMPRESSION:
         compress_queue.put(STOP)
+    display_queue.put(STOP)
     write_queue.put(STOP)
     sleep(0.1)
     stop_event.set()
@@ -493,6 +495,11 @@ def stop_threads(*args, script_done=False) -> None:
         write_th.join(timeout=5)
         if write_th.is_alive():
             print("Write thread failed to stop.", flush=True)
+    if display_th:
+        print("Stopping display thread...", flush=True)
+        display_th.join(timeout=5)
+        if display_th.is_alive():
+            print("Display thread failed to stop.", flush=True)
 
     stop_read_event.set()
     if read_th and not script_done:
@@ -504,7 +511,7 @@ def stop_threads(*args, script_done=False) -> None:
         print("Disconnecting from camera...", flush=True)
         disconnect()
 
-    display_queue.put(STOP)
+    # display_queue.put(STOP)
     exit()
 
 
@@ -736,7 +743,9 @@ def main() -> None:
         print("Press CTRL+C to stop capturing images prematurely.")
         print()
 
-    display_thread()
+    # display_thread()
+    display_th = threading.Thread(target=display_thread)
+    display_th.start()
 
 
 if __name__ == "__main__":
