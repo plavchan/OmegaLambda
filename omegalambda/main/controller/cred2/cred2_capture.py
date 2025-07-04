@@ -730,7 +730,7 @@ def progress_thread() -> None:
         progress_time = progress_queue.get()
         if isinstance(progress_time, str) and progress_time == STOP:
             break
-        for _ in tqdm(range(progress_time), desc="Exposing", unit="s"):
+        for _ in tqdm(range(int(progress_time)), desc="Exposing", unit="s"):
             sleep(1)
             if stop_event.is_set():
                 break
