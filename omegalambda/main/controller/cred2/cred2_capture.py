@@ -781,7 +781,7 @@ def main() -> None:
         print("Control code started. Not capturing images yet.")
     elif MANUAL_MODE:
         print("In MANUAL CAPTURE mode.")
-        print("Press ENTER to manually take an exposure.")
+        print("Input the number of images to take, followed by ENTER, to manually take exposures. The default number to take is 1.")
         print("Press CTRL+C followed by ENTER to stop the control code.")
 
         global progress_th
@@ -791,9 +791,16 @@ def main() -> None:
 
         while True:
             try:
-                input()
-                progress_queue.put(0)  # Start progress bar
-                take_one_capture(quiet=True)
+                num_images = input()
+                if num_images.strip() == "":
+                    num_images = "1"
+                if not num_images.strip().isdigit() or int(num_images) <= 0:
+                    print("Invalid input.")
+                    continue
+                num_images = int(num_images)
+                for _ in range(num_images):
+                    progress_queue.put(0)  # Start progress bar
+                    take_one_capture(quiet=True)
             except (KeyboardInterrupt, EOFError):
                 stop_threads()
                 break
