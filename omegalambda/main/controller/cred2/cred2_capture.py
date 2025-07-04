@@ -49,6 +49,7 @@ CONFIG_FILE: str = os.path.join(os.path.dirname(__file__), "cred2_capture_config
     "enable_compression": true,
     "wait_for_cooler_settle": true,
     "startup_only": false,
+    "manual_mode": false,
     "stop_cooler_at_end": false
 }
 """
@@ -61,6 +62,7 @@ FILENAME_PREFIX: str = "image-"
 ENABLE_COMPRESSION: bool = True  # Compress images after saving using fpack
 WAIT_FOR_COOLER_SETTLE: bool = True  # Wait for cooler to reach setpoint before capturing images
 STARTUP_ONLY: bool = False  # If True, will just startup the control code but not start capturing images
+MANUAL_MODE: bool = False  # If True, will not capture images automatically, but will allow manual captures via input
 STOP_COOLER_AT_END: bool = False  # If True, will set the temp to 20C at the end of the run
 
 # Load config
@@ -75,6 +77,7 @@ if os.path.exists(CONFIG_FILE):
         ENABLE_COMPRESSION = config.get("enable_compression", ENABLE_COMPRESSION)
         WAIT_FOR_COOLER_SETTLE = config.get("wait_for_cooler_settle", WAIT_FOR_COOLER_SETTLE)
         STARTUP_ONLY = config.get("startup_only", STARTUP_ONLY)
+        MANUAL_MODE = config.get("manual_mode", MANUAL_MODE)
         STOP_COOLER_AT_END = config.get("stop_cooler_at_end", STOP_COOLER_AT_END)
 
 if not os.path.isabs(DATA_DIRECTORY):
@@ -467,6 +470,7 @@ write_th: threading.Thread = None
 compress_th: threading.Thread = None
 display_th: threading.Thread = None
 
+stopping_event = threading.Event()
 stop_event = threading.Event()
 stop_read_event = threading.Event()
 continue_taking_images = threading.Event()  # If False, will pause taking images
@@ -476,6 +480,10 @@ STOP = "STOP"
 
 
 def stop_threads(*args, script_done=False) -> None:
+    if stopping_event.is_set():
+        print("A stop threads command was already issued. Ignoring this command.", flush=True)
+        return
+    stopping_event.set()
     print("Stopping threads...", flush=True)
     if ENABLE_COMPRESSION:
         compress_queue.put(STOP)
@@ -552,8 +560,9 @@ def reset_buffer() -> None:
     CAMERA_BUFFER_RESET_TIME = datetime.now()
 
 
-def take_one_capture() -> None:
-    print("Taking one exposure.")
+def take_one_capture(quiet=False) -> None:
+    if not quiet:
+        print("Taking one exposure.")
     resume_captures()
     take_stacked_exposure()
     pause_captures()
@@ -733,9 +742,7 @@ def main() -> None:
         pause_captures()
     
     print("Starting threads...")
-    global read_th, write_th, compress_th, display_th
-    read_th = threading.Thread(target=read_thread)
-    read_th.start()
+    global write_th, compress_th, display_th
     write_th = threading.Thread(target=write_thread)
     write_th.start()
     display_th = threading.Thread(target=display_thread)
@@ -745,19 +752,41 @@ def main() -> None:
         compress_th = threading.Thread(target=compress_thread)
         compress_th.start()
     
+    print('-' * 40)
+    print("Press CTRL+C to stop the control code.")
+    print(f"Stacked exposure time: {IMAGE_STACK_TIME / TIME_SCALE_FACTOR} seconds.")
+    print(f"Individual frame exposure time: {FRAME_TIME} seconds ({FPS} FPS).")
+
     if STARTUP_ONLY:
+        print("In STARTUP ONLY mode.")
         print("Control code started. Not capturing images yet.")
+    elif MANUAL_MODE:
+        print("In MANUAL CAPTURE mode.")
+        print("Press any key to manually take one exposure.")
+        while True:
+            try:
+                input()
+                take_one_capture(quiet=True)
+                for _ in tqdm(range(int(IMAGE_STACK_TIME / TIME_SCALE_FACTOR)), desc="Exposing", unit="s"):
+                    sleep(1)
+                    if stop_event.is_set():
+                        break
+            except (KeyboardInterrupt, EOFError):
+                stop_threads()
+                break
     elif CONTINUOUS_CAPTURE:
-        print("Press CTRL+C to stop capturing images.")
+        print("In CONTINUOUS CAPTURE mode.")
+        global read_th
+        read_th = threading.Thread(target=read_thread)
+        read_th.start()
+        print("Capturing images continuously until stopped.")
     else:
-        print('-' * 40)
-        print("Capturing images.")
+        print("In FIXED NUMBER mode.")
+        global read_th
+        read_th = threading.Thread(target=read_thread)
+        read_th.start()
         print(f"Number of images: {NUM_IMAGES}.")
         print(f"Total run time: {NUM_IMAGES * (IMAGE_STACK_TIME / TIME_SCALE_FACTOR)} seconds.")
-        print(f"Stacked exposure time: {IMAGE_STACK_TIME / TIME_SCALE_FACTOR} seconds.")
-        print(f"Individual frame exposure time: {FRAME_TIME} seconds ({FPS} FPS).")
-        print("Press CTRL+C to stop capturing images prematurely.")
-        print()
 
     # display_thread()
     # TODO: Maybe monitor threads?

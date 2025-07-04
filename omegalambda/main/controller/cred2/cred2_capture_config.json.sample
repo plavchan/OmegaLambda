@@ -7,5 +7,6 @@
     "enable_compression": true,
     "wait_for_cooler_settle": true,
     "startup_only": false,
+    "manual_mode": false,
     "stop_cooler_at_end": false
 }
