@@ -734,7 +734,6 @@ def progress_thread() -> None:
         cmd = progress_queue.get()
         if isinstance(cmd, str) and cmd == STOP:
             break
-        sleep(2)
         for _ in tqdm(range(int(OLD_IMAGE_STACK_TIME / TIME_SCALE_FACTOR)), desc="Exposing", unit="s"):
             sleep(1)
             if stop_event.is_set():
@@ -802,9 +801,6 @@ def main() -> None:
                 stop_threads()
                 break
     else:
-        global read_th
-        read_th = threading.Thread(target=read_thread)
-        read_th.start()
         if CONTINUOUS_CAPTURE:
             print("In CONTINUOUS CAPTURE mode.")
             print("Capturing images continuously until stopped.")
@@ -812,6 +808,9 @@ def main() -> None:
             print("In FIXED NUMBER mode.")
             print(f"Number of images: {NUM_IMAGES}.")
             print(f"Total run time: {NUM_IMAGES * (IMAGE_STACK_TIME / TIME_SCALE_FACTOR)} seconds.")
+        global read_th
+        read_th = threading.Thread(target=read_thread)
+        read_th.start()
 
     # display_thread()
     # TODO: Maybe monitor threads?
