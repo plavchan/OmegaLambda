@@ -774,19 +774,17 @@ def main() -> None:
             except (KeyboardInterrupt, EOFError):
                 stop_threads()
                 break
-    elif CONTINUOUS_CAPTURE:
-        print("In CONTINUOUS CAPTURE mode.")
-        global read_th
-        read_th = threading.Thread(target=read_thread)
-        read_th.start()
-        print("Capturing images continuously until stopped.")
     else:
-        print("In FIXED NUMBER mode.")
         global read_th
         read_th = threading.Thread(target=read_thread)
         read_th.start()
-        print(f"Number of images: {NUM_IMAGES}.")
-        print(f"Total run time: {NUM_IMAGES * (IMAGE_STACK_TIME / TIME_SCALE_FACTOR)} seconds.")
+        if CONTINUOUS_CAPTURE:
+            print("In CONTINUOUS CAPTURE mode.")
+            print("Capturing images continuously until stopped.")
+        else:
+            print("In FIXED NUMBER mode.")
+            print(f"Number of images: {NUM_IMAGES}.")
+            print(f"Total run time: {NUM_IMAGES * (IMAGE_STACK_TIME / TIME_SCALE_FACTOR)} seconds.")
 
     # display_thread()
     # TODO: Maybe monitor threads?
