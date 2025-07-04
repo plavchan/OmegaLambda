@@ -753,10 +753,10 @@ def main() -> None:
         compress_th.start()
     
     print('-' * 40)
-    print("Press CTRL+C to stop the control code.")
     print(f"Stacked exposure time: {IMAGE_STACK_TIME / TIME_SCALE_FACTOR} seconds.")
     print(f"Individual frame exposure time: {FRAME_TIME} seconds ({FPS} FPS).")
-
+    print("Press CTRL+C to stop the control code.")
+    print('-' * 40)
     if STARTUP_ONLY:
         print("In STARTUP ONLY mode.")
         print("Control code started. Not capturing images yet.")
