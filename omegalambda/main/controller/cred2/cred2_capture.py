@@ -734,6 +734,7 @@ def progress_thread() -> None:
             sleep(1)
             if stop_event.is_set():
                 break
+        print('-' * 40)
 
 ########## Main ##########
 def main() -> None:
@@ -807,7 +808,6 @@ def main() -> None:
                     if stop_event.is_set():
                         break
                 pause_captures(quiet=True)
-                print('-' * 40)
             except (KeyboardInterrupt, EOFError):
                 stop_threads()
                 break
