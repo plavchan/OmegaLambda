@@ -798,6 +798,8 @@ def main() -> None:
                     print("Invalid input.")
                     continue
                 num_images = int(num_images)
+                print('-' * 40)
+                print(f"Taking {num_images} exposures.")
                 for _ in range(num_images):
                     progress_queue.put(0)  # Start progress bar
                     take_one_capture(quiet=True)
