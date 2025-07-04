@@ -727,10 +727,10 @@ def display_thread() -> None:
 def progress_thread() -> None:
     """Progress bar for manual capture mode."""
     while not stop_event.is_set():
-        cmd = progress_queue.get()
-        if isinstance(cmd, str) and cmd == STOP:
+        progress_time = progress_queue.get()
+        if isinstance(progress_time, str) and progress_time == STOP:
             break
-        for _ in tqdm(range(int(OLD_IMAGE_STACK_TIME / TIME_SCALE_FACTOR)), desc="Exposing", unit="s"):
+        for _ in tqdm(range(progress_time), desc="Exposing", unit="s"):
             sleep(1)
             if stop_event.is_set():
                 break
@@ -798,11 +798,16 @@ def main() -> None:
                     print("Invalid input.")
                     continue
                 num_images = int(num_images)
-                print('-' * 40)
                 print(f"Taking {num_images} exposures.")
+                progress_queue.put(OLD_IMAGE_STACK_TIME / TIME_SCALE_FACTOR * num_images)  # Start progress bar
+
+                resume_captures(quiet=True)
                 for _ in range(num_images):
-                    progress_queue.put(0)  # Start progress bar
-                    take_one_capture(quiet=True)
+                    take_stacked_exposure()
+                    if stop_event.is_set():
+                        break
+                pause_captures(quiet=True)
+                print('-' * 40)
             except (KeyboardInterrupt, EOFError):
                 stop_threads()
                 break
