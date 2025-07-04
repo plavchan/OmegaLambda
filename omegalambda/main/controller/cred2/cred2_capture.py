@@ -465,11 +465,13 @@ read_queue = queue.Queue()
 write_queue = queue.Queue()
 compress_queue = queue.Queue()
 display_queue = queue.Queue()
+progress_queue = queue.Queue()
 
 read_th: threading.Thread = None
 write_th: threading.Thread = None
 compress_th: threading.Thread = None
 display_th: threading.Thread = None
+progress_th: threading.Thread = None
 
 stopping_event = threading.Event()
 stop_event = threading.Event()
@@ -490,6 +492,7 @@ def stop_threads(*args, script_done=False) -> None:
         compress_queue.put(STOP)
     display_queue.put(STOP)
     write_queue.put(STOP)
+    progress_queue.put(STOP)
     sleep(0.1)
     stop_event.set()
 
@@ -511,6 +514,11 @@ def stop_threads(*args, script_done=False) -> None:
         display_th.join(timeout=5)
         if display_th.is_alive():
             print("Display thread failed to stop.", flush=True)
+    if progress_th:
+        print("Stopping progress bar thread...", flush=True)
+        progress_th.join(timeout=5)
+        if progress_th.is_alive():
+            print("Progress bar thread failed to stop.", flush=True)
 
     stop_read_event.set()
     if read_th and not script_done:
@@ -540,7 +548,7 @@ def pause_captures(quiet=False) -> None:
 def resume_captures(quiet=False) -> None:
     if not quiet:
         print("Resuming image captures.")
-    start_captures()
+    start_captures(quiet=quiet)
     continue_taking_images.set()
 
 
@@ -720,6 +728,18 @@ def display_thread() -> None:
         display_queue.task_done()
 
 
+def progress_thread() -> None:
+    """Progress bar for manual capture mode."""
+    while not stop_event.is_set():
+        cmd = progress_queue.get()
+        if isinstance(cmd, str) and cmd == STOP:
+            break
+        sleep(2)
+        for _ in tqdm(range(int(OLD_IMAGE_STACK_TIME / TIME_SCALE_FACTOR)), desc="Exposing", unit="s"):
+            sleep(1)
+            if stop_event.is_set():
+                break
+
 ########## Main ##########
 def main() -> None:
     signal.signal(signal.SIGINT, stop_threads)
@@ -767,14 +787,17 @@ def main() -> None:
     elif MANUAL_MODE:
         print("In MANUAL CAPTURE mode.")
         print("Press any key to manually take one exposure.")
+
+        global progress_th
+        progress_th = threading.Thread(target=progress_thread)
+        progress_th.start()
+        initialize_image_callback(start=False)
+
         while True:
             try:
                 input()
+                progress_queue.put(0)  # Start progress bar
                 take_one_capture(quiet=True)
-                for _ in tqdm(range(int(OLD_IMAGE_STACK_TIME / TIME_SCALE_FACTOR)), desc="Exposing", unit="s"):
-                    sleep(1)
-                    if stop_event.is_set():
-                        break
             except (KeyboardInterrupt, EOFError):
                 stop_threads()
                 break
