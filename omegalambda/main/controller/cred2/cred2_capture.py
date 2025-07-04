@@ -383,7 +383,7 @@ HEIGHT = 512
 ArrayType = ctypes.c_uint16 * WIDTH * HEIGHT
 def get_image() -> np.ndarray[np.uint16]:
     continue_taking_images.wait()
-    if stop_read_event.is_set():
+    if stop_event.is_set():
         return np.array([])
 
     size = read_queue.qsize()
@@ -475,7 +475,6 @@ progress_th: threading.Thread = None
 
 stopping_event = threading.Event()
 stop_event = threading.Event()
-stop_read_event = threading.Event()
 continue_taking_images = threading.Event()  # If False, will pause taking images
 continue_taking_images.set()
 
@@ -519,8 +518,6 @@ def stop_threads(*args, script_done=False) -> None:
         progress_th.join(timeout=5)
         if progress_th.is_alive():
             print("Progress bar thread failed to stop.", flush=True)
-
-    stop_read_event.set()
     if read_th and not script_done:
         print("Stopping read thread...", flush=True)
         if not continue_taking_images.is_set():
@@ -534,7 +531,6 @@ def stop_threads(*args, script_done=False) -> None:
     if CONTEXT:
         print("Disconnecting from camera...", flush=True)
         disconnect()
-
     exit()
 
 
@@ -585,7 +581,7 @@ def take_stacked_exposure(stack_size=IMAGE_STACK_SIZE, write=True) -> np.ndarray
         images = []
         for _ in range(stack_size // IMAGE_CHUNK_SIZE):
             images.extend(get_image() for _ in range(IMAGE_CHUNK_SIZE))
-            if stop_read_event.is_set():
+            if stop_event.is_set():
                 return
             image = stack_images(images)
             images.clear()
@@ -594,12 +590,12 @@ def take_stacked_exposure(stack_size=IMAGE_STACK_SIZE, write=True) -> np.ndarray
         remaining_images = stack_size % IMAGE_CHUNK_SIZE
         if remaining_images:
             images.extend(get_image() for _ in range(remaining_images))
-            if stop_read_event.is_set():
+            if stop_event.is_set():
                 return
             image = stack_images(images)
     else: 
         images = [get_image() for _ in range(stack_size)]
-        if stop_read_event.is_set():
+        if stop_event.is_set():
             return
         image = stack_images(images)
 
@@ -637,7 +633,7 @@ def read_thread() -> None:
     CAMERA_START_TIME = datetime.now()
 
     continue_taking_images.wait()  # for STARTUP_ONLY mode
-    if stop_read_event.is_set():
+    if stop_event.is_set():
         return
 
     if not TAKE_CALIBRATION_IMAGES:
@@ -647,7 +643,7 @@ def read_thread() -> None:
 
     if IMAGE_STACK_SIZE > 1:
         if CONTINUOUS_CAPTURE:
-            while not stop_read_event.is_set():
+            while not stop_event.is_set():
                 take_stacked_exposure()
         else:
             for _ in tqdm(range(NUM_IMAGES), unit="images"):
@@ -657,7 +653,7 @@ def read_thread() -> None:
                     break
     else:
         if CONTINUOUS_CAPTURE:
-            while not stop_read_event.is_set():
+            while not stop_event.is_set():
                 image = get_image()
                 write_queue.put(image)
         else:
