@@ -89,6 +89,7 @@ DATA_DIRECTORY = os.path.realpath(DATA_DIRECTORY)
 ########## Calculated parameters ##########
 
 # added 20250702
+OLD_IMAGE_STACK_TIME = IMAGE_STACK_TIME
 IMAGE_STACK_TIME = IMAGE_STACK_TIME / (256 * FRAME_TIME) * FRAME_TIME
 
 COMPRESS_GROUP_SIZE: int = max(1, 60 // (IMAGE_STACK_TIME / TIME_SCALE_FACTOR))  # Number of images to compress at once
@@ -518,7 +519,7 @@ def stop_threads(*args, script_done=False) -> None:
             continue_taking_images.set()  # To make read thread stop
         sleep(0.1)
         pause_captures()
-        sleep(0.5)
+        sleep(1)
         read_th.join(timeout=IMAGE_CHUNK_TIME * 5)
         if read_th.is_alive():
             print("Read thread failed to stop.", flush=True)
@@ -529,22 +530,25 @@ def stop_threads(*args, script_done=False) -> None:
     exit()
 
 
-def pause_captures() -> None:
-    print("Pausing image captures.")
+def pause_captures(quiet=False) -> None:
+    if not quiet:
+        print("Pausing image captures.")
     FliSdk.Stop(CONTEXT)
     continue_taking_images.clear()
 
 
-def resume_captures() -> None:
-    print("Resuming image captures.")
+def resume_captures(quiet=False) -> None:
+    if not quiet:
+        print("Resuming image captures.")
     start_captures()
     continue_taking_images.set()
 
 
-def start_captures() -> None:
+def start_captures(quiet=False) -> None:
     if FliSdk.IsStarted(CONTEXT):
         return
-    print("Starting image captures.")
+    if not quiet:
+        print("Starting image captures.")
     FliSdk.Start(CONTEXT)
     sleep(2)
 
@@ -563,9 +567,9 @@ def reset_buffer() -> None:
 def take_one_capture(quiet=False) -> None:
     if not quiet:
         print("Taking one exposure.")
-    resume_captures()
+    resume_captures(quiet=quiet)
     take_stacked_exposure()
-    pause_captures()
+    pause_captures(quiet=quiet)
 
 
 def take_stacked_exposure(stack_size=IMAGE_STACK_SIZE, write=True) -> np.ndarray[np.uint32]:
@@ -631,7 +635,7 @@ def read_thread() -> None:
     if not TAKE_CALIBRATION_IMAGES:
         initialize_image_callback()
     else:
-        resume_captures()
+        resume_captures(quiet=True)
 
     if IMAGE_STACK_SIZE > 1:
         if CONTINUOUS_CAPTURE:
@@ -767,7 +771,7 @@ def main() -> None:
             try:
                 input()
                 take_one_capture(quiet=True)
-                for _ in tqdm(range(int(IMAGE_STACK_TIME / TIME_SCALE_FACTOR)), desc="Exposing", unit="s"):
+                for _ in tqdm(range(int(OLD_IMAGE_STACK_TIME / TIME_SCALE_FACTOR)), desc="Exposing", unit="s"):
                     sleep(1)
                     if stop_event.is_set():
                         break
