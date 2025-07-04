@@ -781,7 +781,8 @@ def main() -> None:
         print("Control code started. Not capturing images yet.")
     elif MANUAL_MODE:
         print("In MANUAL CAPTURE mode.")
-        print("Press any key to manually take one exposure.")
+        print("Press ENTER to manually take an exposure.")
+        print("Press CTRL+C followed by ENTER to stop the control code.")
 
         global progress_th
         progress_th = threading.Thread(target=progress_thread)
