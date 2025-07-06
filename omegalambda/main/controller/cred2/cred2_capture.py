@@ -22,6 +22,11 @@ import pythoncom
 
 import FliSdk_V2 as FliSdk
 
+# Raise warning if not run with -u
+if "-u" not in sys.argv:
+    print("Error: This script should be run with the -u flag to disable output buffering. Otherwise, messages may not display correctly.", file=sys.stderr)
+    exit()
+
 
 ########## Hardcoded - should not need to modify ##########
 FILENAME_NUM_LENGTH: int = 8
@@ -734,7 +739,6 @@ def progress_thread() -> None:
             sleep(1)
             if stop_event.is_set():
                 break
-        print('-' * 40)
 
 ########## Main ##########
 def main() -> None:
@@ -792,6 +796,9 @@ def main() -> None:
 
         while True:
             try:
+                # Start numbering at the nearest thousand greater than the current FILENAME_NUM
+                global FILENAME_NUM
+                FILENAME_NUM = (FILENAME_NUM // 1000 + 1) * 1000 + 1
                 num_images = input()
                 if num_images.strip() == "":
                     num_images = "1"
@@ -800,6 +807,7 @@ def main() -> None:
                     continue
                 num_images = int(num_images)
                 print(f"Taking {num_images} exposures.")
+                print(f"Starting image number: {FILENAME_NUM} | Ending image number: {FILENAME_NUM + num_images - 1}")
                 progress_queue.put(OLD_IMAGE_STACK_TIME / TIME_SCALE_FACTOR * num_images)  # Start progress bar
 
                 resume_captures(quiet=True)
