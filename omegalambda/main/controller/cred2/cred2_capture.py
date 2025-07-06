@@ -97,7 +97,7 @@ DATA_DIRECTORY = os.path.realpath(DATA_DIRECTORY)
 OLD_IMAGE_STACK_TIME = IMAGE_STACK_TIME
 IMAGE_STACK_TIME = IMAGE_STACK_TIME / (256 * FRAME_TIME) * FRAME_TIME
 
-COMPRESS_GROUP_SIZE: int = max(1, 60 // (IMAGE_STACK_TIME / TIME_SCALE_FACTOR))  # Number of images to compress at once
+COMPRESS_GROUP_SIZE: int = min(max(1, 60 // (IMAGE_STACK_TIME / TIME_SCALE_FACTOR)), 100)  # Number of images to compress at once
 IMAGE_STACK_SIZE: int = int(IMAGE_STACK_TIME / FRAME_TIME)  # Number of images to stack for each stacked image. 1 for no stacking.
 IMAGE_CHUNK_SIZE: int = int(IMAGE_CHUNK_TIME / FRAME_TIME)  # Number of images to stack for each chunk. 
 NUM_IMAGES = max(int(TOTAL_RUN_TIME / IMAGE_STACK_TIME), 1)  # Number of images to capture.
@@ -706,9 +706,12 @@ def compress_thread() -> None:
         compress_queue.task_done()
 
         if len(compress_group_paths) >= COMPRESS_GROUP_SIZE:
-            while sum(1 for p in psutil.process_iter() if p.name() == "fpack.exe") >= MAX_COMPRESS_PROCESSES and not stop_event.is_set():
-                sleep(0.5)
-            compress_group(compress_group_paths)
+            try:
+                while sum(1 for p in psutil.process_iter() if p.name() == "fpack.exe") >= MAX_COMPRESS_PROCESSES and not stop_event.is_set():
+                    sleep(0.5)
+                compress_group(compress_group_paths)
+            except Exception as e:
+                print(f"Error compressing images: {e}. Continuing...")
             compress_group_paths.clear()
 
 
@@ -785,6 +788,7 @@ def main() -> None:
         print("In STARTUP ONLY mode.")
         print("Control code started. Not capturing images yet.")
     elif MANUAL_MODE:
+        global FILENAME_NUM
         print("In MANUAL CAPTURE mode.")
         print("Input the number of images to take, followed by ENTER, to manually take exposures. The default number to take is 1.")
         print("Press CTRL+C followed by ENTER to stop the control code.")
@@ -797,8 +801,6 @@ def main() -> None:
         while True:
             try:
                 # Start numbering at the nearest thousand greater than the current FILENAME_NUM
-                global FILENAME_NUM
-                FILENAME_NUM = (FILENAME_NUM // 1000 + 1) * 1000 + 1
                 num_images = input()
                 if num_images.strip() == "":
                     num_images = "1"
@@ -806,8 +808,10 @@ def main() -> None:
                     print("Invalid input.")
                     continue
                 num_images = int(num_images)
+
+                FILENAME_NUM = (FILENAME_NUM // 1000 + 1) * 1000
                 print(f"Taking {num_images} exposures.")
-                print(f"Starting image number: {FILENAME_NUM} | Ending image number: {FILENAME_NUM + num_images - 1}")
+                print(f"Starting image number: {FILENAME_NUM + 1} | Ending image number: {FILENAME_NUM + num_images}")
                 progress_queue.put(OLD_IMAGE_STACK_TIME / TIME_SCALE_FACTOR * num_images)  # Start progress bar
 
                 resume_captures(quiet=True)
