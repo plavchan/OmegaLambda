@@ -22,15 +22,10 @@ import pythoncom
 
 import FliSdk_V2 as FliSdk
 
-# Raise warning if not run with -u
-if "-u" not in sys.argv:
-    print("Error: This script should be run with the -u flag to disable output buffering. Otherwise, messages may not display correctly.", file=sys.stderr)
-    exit()
-
-
 ########## Hardcoded - should not need to modify ##########
 FILENAME_NUM_LENGTH: int = 8
 FILENAME_NUM: int = 0
+GROUP_NUM: int = 0
 COMPRESS_CMD: list[str] = ["C:\\Program Files (x86)\\CFITSIO\\bin\\fpack.exe", "-h", "-F", "-Y"]
 MAX_COMPRESS_PROCESSES: int = 10
 IP_ADDRESS: ctypes.c_char_p = ctypes.c_char_p(b"169.254.123.123")
@@ -39,8 +34,6 @@ PASSWORD: ctypes.c_char_p = ctypes.c_char_p(b"flicred1")
 CONTEXT: ctypes.c_void_p = None
 TEMPERATURE: float = -40.0  # Celsius
 TEMP_THRESHOLD: float = 0.5  # Celsius. Temperature threshold for cooler to reach setpoint.
-FRAME_TIME: float = 1 / 20  # Seconds. Optimal individual frame exposure time for CRED2 camera.
-FRAME_TIME = 1 / 600
 TIME_SCALE_FACTOR: float = 1.0  # 36.0  # Because we don't get accurate frame rates (much higher than expected), compensate for it by increasing the stack time (empirically determined).
 
 CONFIG_FILE: str = os.path.join(os.path.dirname(__file__), "cred2_capture_config.json")
@@ -48,6 +41,9 @@ CONFIG_FILE: str = os.path.join(os.path.dirname(__file__), "cred2_capture_config
 {
     "total_run_time_seconds": 0.0,
     "image_stack_time_seconds": 1.0,
+    "fps": 16.0,
+    "ndr_num": 60,
+    "enable_up_the_ramp_sampling": true,
     "take_calibration_images": false,
     "data_directory": "data",
     "filename_prefix": "image-",
@@ -60,6 +56,9 @@ CONFIG_FILE: str = os.path.join(os.path.dirname(__file__), "cred2_capture_config
 """
 TOTAL_RUN_TIME: float = 0.0 * TIME_SCALE_FACTOR  # Seconds. Total time to capture images for. 0 for continuous capture.
 IMAGE_STACK_TIME: float = 1.0 * TIME_SCALE_FACTOR  # Seconds. Stacked exposure time for the stacked images.
+FPS: float = 16.0  # Frames per second for the camera.
+NDR_NUM: int = 60  # Number of NDRs (non-destructive reads) to perform per full exposure. Can be used with or without ENABLE_UP_THE_RAMP. Set to 1 for normal behavior (no NDR).
+ENABLE_UP_THE_RAMP: bool = True  # If True, will perform up-the-ramp sampling on images. Requires NDR_NUM > 1. If False, will capture images normally.
 IMAGE_CHUNK_TIME: float = 3.0 * TIME_SCALE_FACTOR  # Seconds. To conserve memory, continuously stack images in chunks of this size while capturing images until it reaches the final exposure time.
 TAKE_CALIBRATION_IMAGES: bool = False  # Take biases, darks, flats
 DATA_DIRECTORY: str = "data"
@@ -76,6 +75,9 @@ if os.path.exists(CONFIG_FILE):
         config = json.load(f)
         TOTAL_RUN_TIME = config.get("total_run_time_seconds", TOTAL_RUN_TIME) * TIME_SCALE_FACTOR
         IMAGE_STACK_TIME = config.get("image_stack_time_seconds", IMAGE_STACK_TIME) * TIME_SCALE_FACTOR
+        NDR_NUM = config.get("ndr_num", NDR_NUM)
+        FPS = config.get("fps", FPS)
+        ENABLE_UP_THE_RAMP = config.get("enable_up_the_ramp_sampling", ENABLE_UP_THE_RAMP)
         TAKE_CALIBRATION_IMAGES = config.get("take_calibration_images", TAKE_CALIBRATION_IMAGES)
         DATA_DIRECTORY = config.get("data_directory", DATA_DIRECTORY)
         FILENAME_PREFIX = config.get("filename_prefix", FILENAME_PREFIX)
@@ -92,30 +94,40 @@ if not os.path.isabs(DATA_DIRECTORY):
 DATA_DIRECTORY = os.path.realpath(DATA_DIRECTORY)
 
 ########## Calculated parameters ##########
-
-# added 20250702
-OLD_IMAGE_STACK_TIME = IMAGE_STACK_TIME
-IMAGE_STACK_TIME = IMAGE_STACK_TIME / (256 * FRAME_TIME) * FRAME_TIME
-
+FRAME_TIME: float = round(1 / FPS, 4)  # Seconds. Time for each frame exposure.
 COMPRESS_GROUP_SIZE: int = min(max(1, 60 // (IMAGE_STACK_TIME / TIME_SCALE_FACTOR)), 100)  # Number of images to compress at once
 IMAGE_STACK_SIZE: int = int(IMAGE_STACK_TIME / FRAME_TIME)  # Number of images to stack for each stacked image. 1 for no stacking.
 IMAGE_CHUNK_SIZE: int = int(IMAGE_CHUNK_TIME / FRAME_TIME)  # Number of images to stack for each chunk. 
 NUM_IMAGES = max(int(TOTAL_RUN_TIME / IMAGE_STACK_TIME), 1)  # Number of images to capture.
 CONTINUOUS_CAPTURE: bool = TOTAL_RUN_TIME == 0.0  # If True, will capture images continuously until stopped
-FPS: float = round(1 / FRAME_TIME)
 FITS_HEADER: dict[str, str | float] = {  # For FITS headers
     "ORIGIN": "George Mason University Observatory",
     "INSTRUME": "CRED2 Near-Infrared Camera",
     "OBSERVER": "GMU CRED2 automation code",
     "EXPTIME": IMAGE_STACK_TIME / TIME_SCALE_FACTOR,
     "FRAMTIME": FRAME_TIME,
+    "FPS": FPS,
     "SET-TEMP": TEMPERATURE,
-    "FILTER": "NIR",
+    "FILTER": "NIR",  # Placeholder for filter name because alnitak expects one
     "DATE-OBS": None,
 }
 
+if ENABLE_UP_THE_RAMP:
+    FITS_HEADER.update({
+        "GROUPNUM": None,
+        "NUMNDRS": NDR_NUM,
+    })
+
 CAMERA_BUFFER_RESET_TIME: datetime = datetime.now()  # Time of last camera buffer reset
-CAMERA_BUFFER_RESET_INTERVAL: float = 45 * 60  # How often to start and stop the camera to reset the buffer, seconds
+CAMERA_BUFFER_RESET_INTERVAL: float = 50 * 60  # How often to start and stop the camera to reset the buffer, seconds
+NDR_GROUPS_NUM: int = int(IMAGE_STACK_TIME / (FRAME_TIME * NDR_NUM))  # Number of NDR groups that constitute a full exposure. We need to count groups instead of images because there are often image drops.
+
+########## Checks ##########
+if IMAGE_STACK_TIME < FRAME_TIME:
+    raise ValueError("IMAGE_STACK_TIME must be greater than or equal to FRAME_TIME.")
+
+if ENABLE_UP_THE_RAMP and NDR_NUM <= 1:
+    raise ValueError("NDR_NUM must be greater than 1 to enable up-the-ramp sampling.")
 
 ########## Helpers ##########
 def create_save_directory() -> None:
@@ -149,9 +161,14 @@ def setup() -> None:
     set_temp(TEMPERATURE)
 
     # Set options
-    # FliSdk.FliCredTwo.EnableAntiBlooming(CONTEXT, True)
-    # FliSdk.FliCredTwo.SetConversionGain(CONTEXT, "high")
-    # FliSdk.FliSerialCamera.SendCommand(CONTEXT, "set tuning short_exposure")
+    FliSdk.FliCredTwo.EnableAntiBlooming(CONTEXT, False)
+    FliSdk.FliCredTwo.SetConversionGain(CONTEXT, "low")
+    FliSdk.FliCredTwo.EnableBadPixel(CONTEXT, True)  # Onboard bad pixel correction
+    FliSdk.FliCredTwo.EnableRawImages(CONTEXT, NDR_NUM > 1)  # Raw images required for NDR processing
+    FliSdk.FliCredTwo.SetNbReadWoReset(CONTEXT, NDR_NUM)  # This is the number of NDRs
+
+    tuning_mode = "long_exposure" if NDR_NUM > 1 else "short_exposure"  # Long exposure mode decreases bad pixels dramatically with NDRs
+    FliSdk.FliSerialCamera.SendCommand(CONTEXT, f"set tuning {tuning_mode}")
 
     create_save_directory()
 
@@ -386,14 +403,14 @@ def take_calibration_image(calibration_type, num_images, stack_time) -> None:
 WIDTH = 640
 HEIGHT = 512
 ArrayType = ctypes.c_uint16 * WIDTH * HEIGHT
-def get_image() -> np.ndarray[np.uint16]:
+def get_image() -> np.ndarray[np.uint16] | tuple[datetime, np.ndarray[np.uint16]]:
     continue_taking_images.wait()
     if stop_event.is_set():
         return np.array([])
 
     size = read_queue.qsize()
 
-    if size > 5 * FPS:
+    if size > 10 * FPS:
         print(f"Read queue size is {size}. Clearing queue to get latest exposure.")
         with read_queue.mutex:
             read_queue.queue.clear()
@@ -411,6 +428,8 @@ def get_image() -> np.ndarray[np.uint16]:
     image = np.ndarray((HEIGHT, WIDTH), dtype=np.uint16, buffer=pa.contents)
     read_queue.task_done()
 
+    if ENABLE_UP_THE_RAMP:
+        return datetime.now(), image
     return image
     # return FliSdk.GetRawImageAsNumpyArray(CONTEXT, -1)
     # return FliSdk.GetProcessedImageGrayscale16bNumpyArray(CONTEXT, -1)
@@ -426,10 +445,14 @@ def median_images(images: list[np.ndarray[np.uint16]]) -> np.ndarray[np.uint16]:
     return np.median(images, axis=0)
 
 
+exptime_timedelta: timedelta = timedelta(seconds=IMAGE_STACK_TIME / TIME_SCALE_FACTOR)
 def write_to_fits(image: np.ndarray[np.uint16 | np.uint32], annotation: str = "") -> str:
-    global FILENAME_NUM, FITS_HEADER
+    global FILENAME_NUM, FITS_HEADER, GROUP_NUM
     FILENAME_NUM += 1
-    FITS_HEADER["DATE-OBS"] = datetime.now(timezone.utc).strftime('%F %T.%f')[:-3]
+    FITS_HEADER["DATE-OBS"] = (datetime.now(timezone.utc) - exptime_timedelta).strftime('%F %T.%f')[:-3]
+    if ENABLE_UP_THE_RAMP:
+        GROUP_NUM += 1
+        FITS_HEADER["GROUPNUM"] = GROUP_NUM
     header: fits.Header = fits.Header(FITS_HEADER)
     hdu: fits.PrimaryHDU = fits.PrimaryHDU(image, header=header)
     filename: str = f"{DATA_DIRECTORY}/{FILENAME_PREFIX}{str(FILENAME_NUM).zfill(FILENAME_NUM_LENGTH)}{'_' + annotation if annotation else ''}.fits"
@@ -465,18 +488,41 @@ def check_identical_images(image1: np.ndarray[np.uint16], image2: np.ndarray[np.
     restart_camera()
 
 
+def uptheramp_fit(date_images: list[tuple[datetime, np.ndarray]]) -> np.ndarray:
+    # Performs up-the-ramp linear regression
+    datetimes, image_group = zip(*date_images)
+    datetimes = np.array([datetime.timestamp(dt) for dt in datetimes])
+    image_group = np.array(image_group)
+    t = datetimes[:, np.newaxis, np.newaxis]
+
+    # Compute means
+    t_mean = np.mean(t)
+    y_mean = np.mean(image_group, axis=0)
+
+    # Compute slope: numerator and denominator of covariance/variance
+    numerator = np.sum((t - t_mean) * (image_group - y_mean), axis=0)
+    denominator = np.sum((t - t_mean) ** 2)
+    m = numerator / denominator  # slope at each (i, j)
+
+    # Compute intercept
+    # b = y_mean - m * t_mean
+    return m
+
+
 ########## Threads ##########
 read_queue = queue.Queue()
 write_queue = queue.Queue()
 compress_queue = queue.Queue()
 display_queue = queue.Queue()
 progress_queue = queue.Queue()
+uptheramp_queue = queue.Queue()
 
 read_th: threading.Thread = None
 write_th: threading.Thread = None
 compress_th: threading.Thread = None
 display_th: threading.Thread = None
 progress_th: threading.Thread = None
+uptheramp_th: threading.Thread = None
 
 stopping_event = threading.Event()
 stop_event = threading.Event()
@@ -484,6 +530,7 @@ continue_taking_images = threading.Event()  # If False, will pause taking images
 continue_taking_images.set()
 
 STOP = "STOP"
+RESET = "RESET"
 
 
 def stop_threads(*args, script_done=False) -> None:
@@ -497,6 +544,7 @@ def stop_threads(*args, script_done=False) -> None:
     display_queue.put(STOP)
     write_queue.put(STOP)
     progress_queue.put(STOP)
+    uptheramp_queue.put(STOP)
     sleep(0.1)
     stop_event.set()
 
@@ -523,6 +571,11 @@ def stop_threads(*args, script_done=False) -> None:
         progress_th.join(timeout=5)
         if progress_th.is_alive():
             print("Progress bar thread failed to stop.", flush=True)
+    if uptheramp_th:
+        print("Stopping up-the-ramp sampling thread...", flush=True)
+        uptheramp_th.join(timeout=10)
+        if uptheramp_th.is_alive():
+            print("Up-the-ramp sampling thread failed to stop.", flush=True)
     if read_th and not script_done:
         print("Stopping read thread...", flush=True)
         if not continue_taking_images.is_set():
@@ -568,10 +621,20 @@ def reset_buffer() -> None:
     pause_captures()
     sleep(4)
     FliSdk.ResetBuffer(CONTEXT)
+
+    if ENABLE_UP_THE_RAMP:  # Resetting the buffer will mess with NDRs
+        uptheramp_queue.put(RESET)
+        # TODO: also do something for NDR_NUM > 1 but not ENABLE_UP_THE_RAMP
+
     sleep(4)
     resume_captures()
     CAMERA_BUFFER_RESET_TIME = datetime.now()
 
+
+def check_buffer_needs_reset() -> None:
+    if datetime.now() - CAMERA_BUFFER_RESET_TIME > timedelta(seconds=CAMERA_BUFFER_RESET_INTERVAL):
+        print("Briefly stopping and resuming exposures to reset buffer...")
+        reset_buffer()
 
 def take_one_capture(quiet=False) -> None:
     if not quiet:
@@ -582,7 +645,23 @@ def take_one_capture(quiet=False) -> None:
 
 
 def take_stacked_exposure(stack_size=IMAGE_STACK_SIZE, write=True) -> np.ndarray[np.uint32]:
-    if stack_size > IMAGE_CHUNK_SIZE:
+    if stack_size == 1 and not ENABLE_UP_THE_RAMP:
+        image = get_image()
+        if stop_event.is_set():
+            return
+    elif ENABLE_UP_THE_RAMP:
+        for _ in range(stack_size // IMAGE_CHUNK_SIZE):
+            for _ in range(IMAGE_CHUNK_SIZE):
+                uptheramp_queue.put(get_image())
+            if stop_event.is_set():
+                return
+        remaining_images = stack_size % IMAGE_CHUNK_SIZE
+        if remaining_images:
+            for _ in range(remaining_images):
+                uptheramp_queue.put(get_image())
+            if stop_event.is_set():
+                return
+    elif stack_size > IMAGE_CHUNK_SIZE:
         images = []
         for _ in range(stack_size // IMAGE_CHUNK_SIZE):
             images.extend(get_image() for _ in range(IMAGE_CHUNK_SIZE))
@@ -605,11 +684,10 @@ def take_stacked_exposure(stack_size=IMAGE_STACK_SIZE, write=True) -> np.ndarray
         image = stack_images(images)
 
     if write:
-        write_queue.put(image)
-
-    if datetime.now() - CAMERA_BUFFER_RESET_TIME > timedelta(seconds=CAMERA_BUFFER_RESET_INTERVAL):
-        print("Briefly stopping and resuming exposures to reset buffer...")
-        reset_buffer()
+        if ENABLE_UP_THE_RAMP:
+            uptheramp_queue.put(image)
+        else:
+            write_queue.put(image)
 
     return image
 
@@ -703,7 +781,6 @@ def compress_thread() -> None:
         if isinstance(path, str) and path == STOP:
             break
         compress_group_paths.append(path)
-        compress_queue.task_done()
 
         if len(compress_group_paths) >= COMPRESS_GROUP_SIZE:
             try:
@@ -713,6 +790,52 @@ def compress_thread() -> None:
             except Exception as e:
                 print(f"Error compressing images: {e}. Continuing...")
             compress_group_paths.clear()
+        compress_queue.task_done()
+
+
+def uptheramp_thread() -> None:
+    images: list[np.ndarray] = []
+    resultants: list[np.ndarray] = []
+    ndr_groups: int = 0
+    skip_next_resultant: bool = False
+
+    while not stop_event.is_set():
+        date_image = uptheramp_queue.get()
+        if isinstance(date_image, str):
+            if date_image == STOP:
+                break
+            elif date_image == RESET:  # Throw out the next resultant if it's affected by a buffer reset
+                skip_next_resultant = True
+                uptheramp_queue.task_done()
+                continue
+        images.append(date_image)
+
+        if date_image[1][0][2] == 0:  # This is the pixel in the image that holds the current NDR number
+            if skip_next_resultant:
+                skip_next_resultant = False
+                images.clear()
+                uptheramp_queue.task_done()
+                continue
+            resultant = uptheramp_fit(images)
+            resultants.append(resultant)
+            images.clear()
+            ndr_groups += 1
+
+        if len(images) >= NDR_NUM * 10:
+            print("Warning: Too many images in up-the-ramp queue. There may be a problem with taking NDRs. Resetting queue.")
+            images.clear()
+
+        if len(resultants) >= 5:
+            resultant = stack_images(resultants)
+            resultants.clear()
+            resultants.append(resultant)
+
+        if ndr_groups >= NDR_GROUPS_NUM:
+            resultant = stack_images(resultants)
+            resultants.clear()
+            ndr_groups = 0
+            write_queue.put(resultant)
+        uptheramp_queue.task_done()
 
 
 def display_thread() -> None:
@@ -742,6 +865,7 @@ def progress_thread() -> None:
             sleep(1)
             if stop_event.is_set():
                 break
+        progress_queue.task_done()
 
 ########## Main ##########
 def main() -> None:
@@ -769,7 +893,7 @@ def main() -> None:
         pause_captures()
     
     print("Starting threads...")
-    global write_th, compress_th, display_th
+    global write_th, compress_th, display_th, uptheramp_th
     write_th = threading.Thread(target=write_thread)
     write_th.start()
     display_th = threading.Thread(target=display_thread)
@@ -778,10 +902,15 @@ def main() -> None:
     if ENABLE_COMPRESSION:
         compress_th = threading.Thread(target=compress_thread)
         compress_th.start()
-    
+
+    if ENABLE_UP_THE_RAMP:
+        uptheramp_th = threading.Thread(target=uptheramp_thread)
+        uptheramp_th.start()
+
     print('-' * 40)
     print(f"Stacked exposure time: {IMAGE_STACK_TIME / TIME_SCALE_FACTOR} seconds.")
     print(f"Individual frame exposure time: {FRAME_TIME} seconds ({FPS} FPS).")
+    print(f"Non-destructive reads (NDRs): {NDR_NUM}.")
     print("Press CTRL+C to stop the control code.")
     print('-' * 40)
     if STARTUP_ONLY:
@@ -812,17 +941,20 @@ def main() -> None:
                 FILENAME_NUM = (FILENAME_NUM // 1000 + 1) * 1000
                 print(f"Taking {num_images} exposures.")
                 print(f"Starting image number: {FILENAME_NUM + 1} | Ending image number: {FILENAME_NUM + num_images}")
-                progress_queue.put(OLD_IMAGE_STACK_TIME / TIME_SCALE_FACTOR * num_images)  # Start progress bar
+                progress_queue.put(IMAGE_STACK_TIME / TIME_SCALE_FACTOR * num_images)  # Start progress bar
 
                 resume_captures(quiet=True)
                 for _ in range(num_images):
                     take_stacked_exposure()
                     if stop_event.is_set():
                         break
+                    if NDR_NUM == 1:
+                        check_buffer_needs_reset()
                 pause_captures(quiet=True)
             except (KeyboardInterrupt, EOFError):
                 stop_threads()
                 break
+            check_buffer_needs_reset()
     else:
         if CONTINUOUS_CAPTURE:
             print("In CONTINUOUS CAPTURE mode.")
@@ -838,8 +970,13 @@ def main() -> None:
     # display_thread()
     # TODO: Maybe monitor threads?
     # Keep the main thread alive so that it can catch signals
+    counter = 0
     while True:
         sleep(0.01)
+        counter += .01
+        if counter >= 60:
+            check_buffer_needs_reset()
+            counter = 0
 
 
 if __name__ == "__main__":

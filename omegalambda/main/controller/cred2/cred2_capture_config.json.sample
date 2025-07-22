@@ -1,6 +1,9 @@
 {
     "total_run_time_seconds": 0.0,
     "image_stack_time_seconds": 1.0,
+    "fps": 16.0,
+    "ndr_num": 60,
+    "enable_up_the_ramp_sampling": true,
     "take_calibration_images": false,
     "data_directory": "data",
     "filename_prefix": "image-",
