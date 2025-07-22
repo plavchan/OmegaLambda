@@ -158,6 +158,7 @@ deprecated/
 /omegalambda/main/common/*/__pycache__/
 
 /omegalambda/observation_tickets/*.json
+/omegalambda/observation_tickets/*/*
 /omegalambda/observation_tickets/toi_info/*.csv
 /omegalambda/observation_tickets/toi_info/info_chart.csv
 /omegalambda/observation_tickets/toi_info/google.csv
@@ -165,4 +166,10 @@ deprecated/
 !/omegalambda/observation_tickets/toi_info/
 !/omegalambda/observation_tickets/url_config.json
 
-de421.bsp
+de421.
+
+# CRED2 data
+/omegalambda/main/controller/cred2/TOI*/
+/omegalambda/main/controller/cred2/data/
+/omegalambda/main/controller/cred2/data*/
+/omegalambda/main/controller/cred2/202*/
