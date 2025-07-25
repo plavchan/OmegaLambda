@@ -699,7 +699,7 @@ def image_callback(image, context=None):
     if not continue_taking_images.is_set():
         return
     if ENABLE_UP_THE_RAMP:
-        uptheramp_queue.put((datetime.now(), image))
+        read_queue.put((datetime.now(), image))
     else:
         read_queue.put(image)
 
