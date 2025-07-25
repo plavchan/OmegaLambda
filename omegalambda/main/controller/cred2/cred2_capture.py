@@ -648,7 +648,7 @@ def take_one_capture(quiet=False) -> None:
     pause_captures(quiet=quiet)
 
 
-def take_stacked_exposure(stack_size=IMAGE_STACK_SIZE, write=True) -> np.ndarray[np.uint32]:
+def take_stacked_exposure(stack_size=IMAGE_STACK_SIZE, write=True) -> np.ndarray[np.uint32] | None:
     if stack_size == 1 and not ENABLE_UP_THE_RAMP:
         image = get_image()
         if stop_event.is_set():
@@ -689,8 +689,7 @@ def take_stacked_exposure(stack_size=IMAGE_STACK_SIZE, write=True) -> np.ndarray
 
     if write and not ENABLE_UP_THE_RAMP:
         write_queue.put(image)
-
-    return image
+        return image
 
 
 def image_callback(image, context=None):
