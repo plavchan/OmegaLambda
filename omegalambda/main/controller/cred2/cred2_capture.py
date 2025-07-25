@@ -428,12 +428,15 @@ def get_image() -> np.ndarray[np.uint16] | tuple[datetime, np.ndarray[np.uint16]
         return get_image()
 
     # width, height = FliSdk.GetCurrentImageDimension(CONTEXT)
+
+    if ENABLE_UP_THE_RAMP:
+        date, image = image
     pa = ctypes.cast(image, ctypes.POINTER(ArrayType))
     image = np.ndarray((HEIGHT, WIDTH), dtype=np.uint16, buffer=pa.contents)
     read_queue.task_done()
 
     if ENABLE_UP_THE_RAMP:
-        return datetime.now(), image
+        return date, image
     return image
     # return FliSdk.GetRawImageAsNumpyArray(CONTEXT, -1)
     # return FliSdk.GetProcessedImageGrayscale16bNumpyArray(CONTEXT, -1)
@@ -695,7 +698,10 @@ def take_stacked_exposure(stack_size=IMAGE_STACK_SIZE, write=True) -> np.ndarray
 def image_callback(image, context=None):
     if not continue_taking_images.is_set():
         return
-    read_queue.put(image)
+    if ENABLE_UP_THE_RAMP:
+        uptheramp_queue.put((datetime.now(), image))
+    else:
+        read_queue.put(image)
 
 image_callback_func = FliSdk.CWRAPPER(image_callback)
 read_images = 0
@@ -818,7 +824,7 @@ def uptheramp_thread() -> None:
                 continue
             resultant = uptheramp_fit(images)
             resultants.append(resultant)
-            images.clear()
+            images.clear() 
             ndr_groups += 1
 
         if len(images) >= NDR_NUM * 10:
