@@ -443,18 +443,18 @@ def get_image() -> np.ndarray[np.uint16]:
     # return FliSdk.GetProcessedImageGrayscale16bNumpyArray(CONTEXT, -1)
 
 
-def stack_images(images: list[np.ndarray[np.uint16]]) -> np.ndarray[np.uint32]:
+def stack_images(images: list[np.ndarray]) -> np.ndarray:
     """Stack images by summing pixel values."""
-    return np.sum(images, axis=0, dtype=np.uint32)
+    return np.sum(images, axis=0)
 
 
-def median_images(images: list[np.ndarray[np.uint16]]) -> np.ndarray[np.uint16]:
+def median_images(images: list[np.ndarray]) -> np.ndarray:
     """Return an image with the median of the pixel values of the images."""
     return np.median(images, axis=0)
 
 
 exptime_timedelta: timedelta = timedelta(seconds=IMAGE_STACK_TIME / TIME_SCALE_FACTOR)
-def write_to_fits(image: np.ndarray[np.uint16 | np.uint32], annotation: str = "") -> str:
+def write_to_fits(image: np.ndarray, annotation: str = "") -> str:
     global FILENAME_NUM, FITS_HEADER, GROUP_NUM
     FILENAME_NUM += 1
     FITS_HEADER["DATE-OBS"] = (datetime.now(timezone.utc) - exptime_timedelta).strftime('%F %T.%f')[:-3]
@@ -480,15 +480,15 @@ def compress_group(paths: list[str]) -> None:
     subprocess.Popen(COMPRESS_CMD + paths)
 
 
-def show_image(image: np.ndarray[np.uint16] | np.ndarray[np.uint32]) -> None:
+def show_image(image: np.ndarray) -> None:
     # Need to be careful to not modify complex data types
     # display_image = np.array(Image.fromarray(image, mode="RGBA").convert("L")) if image.dtype == np.uint32 else image
-    display_image = image.astype(np.uint16) if image.dtype == np.uint32 else image
+    display_image = image.astype(np.uint16)
     cv2.imshow("CRED2 Camera", display_image)
     cv2.waitKey(1)
 
 
-def check_identical_images(image1: np.ndarray[np.uint16], image2: np.ndarray[np.uint16]) -> None:
+def check_identical_images(image1: np.ndarray, image2: np.ndarray) -> None:
     # If the two images are identical, restart the camera
     if image1.shape != image2.shape or not np.all(np.isclose(image1, image2)):
         return
@@ -652,7 +652,7 @@ def take_one_capture(quiet=False) -> None:
     pause_captures(quiet=quiet)
 
 
-def take_stacked_exposure(stack_size=IMAGE_STACK_SIZE, write=True) -> np.ndarray[np.uint32] | None:
+def take_stacked_exposure(stack_size=IMAGE_STACK_SIZE, write=True) -> np.ndarray | None:
     if stack_size == 1 and not ENABLE_UP_THE_RAMP:
         image = get_image()
         if stop_event.is_set():
