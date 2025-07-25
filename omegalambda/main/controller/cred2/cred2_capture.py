@@ -120,7 +120,7 @@ if ENABLE_UP_THE_RAMP:
 
 CAMERA_BUFFER_RESET_TIME: datetime = datetime.now()  # Time of last camera buffer reset
 CAMERA_BUFFER_RESET_INTERVAL: float = 50 * 60  # How often to start and stop the camera to reset the buffer, seconds
-NDR_GROUPS_NUM: int = int(IMAGE_STACK_TIME / (FRAME_TIME * NDR_NUM))  # Number of NDR groups that constitute a full exposure. We need to count groups instead of images because there are often image drops.
+NDR_GROUPS_NUM: int = int(IMAGE_STACK_TIME / (FRAME_TIME * NDR_NUM)) if ENABLE_UP_THE_RAMP else None # Number of NDR groups that constitute a full exposure. We need to count groups instead of images because there are often image drops.
 
 ########## Checks ##########
 if IMAGE_STACK_TIME < FRAME_TIME:
@@ -128,6 +128,12 @@ if IMAGE_STACK_TIME < FRAME_TIME:
 
 if ENABLE_UP_THE_RAMP and NDR_NUM <= 1:
     raise ValueError("NDR_NUM must be greater than 1 to enable up-the-ramp sampling.")
+
+if NDR_GROUPS_NUM and NDR_GROUPS_NUM < 1:
+    raise ValueError(
+        f"The specified image stack time is less than the minimum stack time of {FRAME_TIME * NDR_NUM} seconds with the selected number of NDRs. " \
+        "Increase the image stack time or decrease the number of NDRs."
+    )
 
 if not isinstance(FPS, int):
     print("Warning: FPS should be an integer. Using the nearest integer value.")
