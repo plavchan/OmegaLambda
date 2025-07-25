@@ -507,8 +507,8 @@ def uptheramp_fit(date_images: list[tuple[datetime, np.ndarray]]) -> np.ndarray:
     y_mean = np.mean(image_group, axis=0)
 
     # Compute slope: numerator and denominator of covariance/variance
-    numerator = np.sum((t - t_mean) * (image_group - y_mean), axis=0)
-    denominator = np.sum((t - t_mean) ** 2)
+    numerator = np.sum((t - t_mean) * (image_group - y_mean), axis=0, dtype=np.float64)
+    denominator = np.sum((t - t_mean) ** 2, dtype=np.float64)
     m = numerator / denominator  # slope at each (i, j)
 
     # Compute intercept
