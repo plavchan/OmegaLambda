@@ -857,6 +857,12 @@ def display_thread() -> None:
         path = display_queue.get()
         if isinstance(path, str) and path == STOP:
             break
+
+        counter = 0
+        while not os.path.exists(path) and counter < 20:
+            sleep(0.1)
+            counter += 1
+
         maxim_document.OpenFile(path)
         with display_queue.mutex:
             display_queue.queue.clear()  # Always show the latest image
