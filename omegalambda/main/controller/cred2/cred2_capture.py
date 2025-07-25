@@ -499,8 +499,9 @@ def check_identical_images(image1: np.ndarray[np.uint16], image2: np.ndarray[np.
 def uptheramp_fit(images: list[np.ndarray]) -> np.ndarray:
     # Performs up-the-ramp linear regression
     images = np.array(images)
-    image_nums = np.array([image[0][0] for image in images])  # The first pixel in the image holds the image number; we don't have a good way of getting the actual timestamp
-    t = image_nums[:, np.newaxis, np.newaxis]
+    start_num = images[0][0][0]  # The first pixel in the image holds the image number; we don't have a good way of getting the actual timestamp
+    times = FRAME_TIME * np.array([image[0][0] - start_num for image in images])  # Approximate back to image timestamps
+    t = times[:, np.newaxis, np.newaxis]
 
     # Compute means
     t_mean = np.mean(t)
