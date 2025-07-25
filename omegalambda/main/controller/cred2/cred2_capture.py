@@ -770,6 +770,10 @@ def write_thread() -> None:
         image = write_queue.get()
         if isinstance(image, str) and image == STOP:
             break
+        if not image.shape == (HEIGHT, WIDTH):
+            print(f"Warning: Image shape {image.shape} does not match expected shape {(HEIGHT, WIDTH)}. Skipping image.")
+            write_queue.task_done()
+            continue
         path = write_to_fits(image)
         write_queue.task_done()
         display_queue.put(path)
