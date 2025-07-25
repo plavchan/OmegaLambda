@@ -41,7 +41,7 @@ CONFIG_FILE: str = os.path.join(os.path.dirname(__file__), "cred2_capture_config
 {
     "total_run_time_seconds": 0.0,
     "image_stack_time_seconds": 1.0,
-    "fps": 16.0,
+    "fps": 16,
     "ndr_num": 60,
     "enable_up_the_ramp_sampling": true,
     "take_calibration_images": false,
@@ -56,7 +56,7 @@ CONFIG_FILE: str = os.path.join(os.path.dirname(__file__), "cred2_capture_config
 """
 TOTAL_RUN_TIME: float = 0.0 * TIME_SCALE_FACTOR  # Seconds. Total time to capture images for. 0 for continuous capture.
 IMAGE_STACK_TIME: float = 1.0 * TIME_SCALE_FACTOR  # Seconds. Stacked exposure time for the stacked images.
-FPS: float = 16.0  # Frames per second for the camera.
+FPS: int = 16  # Frames per second for the camera.
 NDR_NUM: int = 60  # Number of NDRs (non-destructive reads) to perform per full exposure. Can be used with or without ENABLE_UP_THE_RAMP. Set to 1 for normal behavior (no NDR).
 ENABLE_UP_THE_RAMP: bool = True  # If True, will perform up-the-ramp sampling on images. Requires NDR_NUM > 1. If False, will capture images normally.
 IMAGE_CHUNK_TIME: float = 3.0 * TIME_SCALE_FACTOR  # Seconds. To conserve memory, continuously stack images in chunks of this size while capturing images until it reaches the final exposure time.
@@ -128,6 +128,10 @@ if IMAGE_STACK_TIME < FRAME_TIME:
 
 if ENABLE_UP_THE_RAMP and NDR_NUM <= 1:
     raise ValueError("NDR_NUM must be greater than 1 to enable up-the-ramp sampling.")
+
+if not isinstance(FPS, int):
+    print("Warning: FPS should be an integer. Using the nearest integer value.")
+    FPS = round(FPS)
 
 ########## Helpers ##########
 def create_save_directory() -> None:
