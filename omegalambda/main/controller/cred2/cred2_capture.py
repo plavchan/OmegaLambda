@@ -41,7 +41,7 @@ CONFIG_FILE: str = os.path.join(os.path.dirname(__file__), "cred2_capture_config
 {
     "total_run_time_seconds": 0.0,
     "image_stack_time_seconds": 1.0,
-    "fps": 16,
+    "fps": 20,
     "ndr_num": 60,
     "enable_up_the_ramp_sampling": true,
     "take_calibration_images": false,
@@ -56,7 +56,7 @@ CONFIG_FILE: str = os.path.join(os.path.dirname(__file__), "cred2_capture_config
 """
 TOTAL_RUN_TIME: float = 0.0 * TIME_SCALE_FACTOR  # Seconds. Total time to capture images for. 0 for continuous capture.
 IMAGE_STACK_TIME: float = 1.0 * TIME_SCALE_FACTOR  # Seconds. Stacked exposure time for the stacked images.
-FPS: int = 16  # Frames per second for the camera.
+FPS: int = 20  # Frames per second for the camera.
 NDR_NUM: int = 60  # Number of NDRs (non-destructive reads) to perform per full exposure. Can be used with or without ENABLE_UP_THE_RAMP. Set to 1 for normal behavior (no NDR).
 ENABLE_UP_THE_RAMP: bool = True  # If True, will perform up-the-ramp sampling on images. Requires NDR_NUM > 1. If False, will capture images normally.
 IMAGE_CHUNK_TIME: float = 3.0 * TIME_SCALE_FACTOR  # Seconds. To conserve memory, continuously stack images in chunks of this size while capturing images until it reaches the final exposure time.
@@ -115,7 +115,8 @@ FITS_HEADER: dict[str, str | float] = {  # For FITS headers
 if ENABLE_UP_THE_RAMP:
     FITS_HEADER.update({
         "GROUPNUM": None,
-        "NUMNDRS": NDR_NUM,
+        "TOT-NDRS": None,
+        "SET-NDRS": NDR_NUM,
     })
 
 CAMERA_BUFFER_RESET_TIME: datetime = datetime.now()  # Time of last camera buffer reset
@@ -454,13 +455,15 @@ def median_images(images: list[np.ndarray]) -> np.ndarray:
 
 
 exptime_timedelta: timedelta = timedelta(seconds=IMAGE_STACK_TIME / TIME_SCALE_FACTOR)
-def write_to_fits(image: np.ndarray, annotation: str = "") -> str:
+def write_to_fits(image: np.ndarray, annotation: str = "", total_ndrs: int = None) -> str:
     global FILENAME_NUM, FITS_HEADER, GROUP_NUM
     FILENAME_NUM += 1
     FITS_HEADER["DATE-OBS"] = (datetime.now(timezone.utc) - exptime_timedelta).strftime('%F %T.%f')[:-3]
     if ENABLE_UP_THE_RAMP:
         GROUP_NUM += 1
         FITS_HEADER["GROUPNUM"] = GROUP_NUM
+        if total_ndrs is not None:
+            FITS_HEADER["TOT-NDRS"] = total_ndrs
     header: fits.Header = fits.Header(FITS_HEADER)
     hdu: fits.PrimaryHDU = fits.PrimaryHDU(image, header=header)
     filename: str = f"{DATA_DIRECTORY}/{FILENAME_PREFIX}{str(FILENAME_NUM).zfill(FILENAME_NUM_LENGTH)}{'_' + annotation if annotation else ''}.fits"
@@ -768,11 +771,13 @@ def write_thread() -> None:
         image = write_queue.get()
         if isinstance(image, str) and image == STOP:
             break
+        if ENABLE_UP_THE_RAMP and isinstance(image, tuple):
+            image, total_ndrs = image
         if not image.shape == (HEIGHT, WIDTH):
             print(f"Warning: Image shape {image.shape} does not match expected shape {(HEIGHT, WIDTH)}. Skipping image.")
             write_queue.task_done()
             continue
-        path = write_to_fits(image)
+        path = write_to_fits(image, total_ndrs=total_ndrs if ENABLE_UP_THE_RAMP else None)
         write_queue.task_done()
         display_queue.put(path)
         if ENABLE_COMPRESSION:
@@ -806,6 +811,8 @@ def uptheramp_thread() -> None:
     resultants: list[np.ndarray] = []
     ndr_groups: int = 0
     skip_next_resultant: bool = False
+    last_ndr_num: int = NDR_NUM
+    total_ndrs: int = 0
 
     while not stop_event.is_set():
         image = uptheramp_queue.get()
@@ -816,9 +823,10 @@ def uptheramp_thread() -> None:
                 skip_next_resultant = True
                 uptheramp_queue.task_done()
                 continue
-        images.append(image)
 
-        if image[0][2] == 0:  # The third pixel in the image holds the current NDR number
+        total_ndrs += 1
+        ndr_num = image[0][2]  # The third pixel in the image holds the current NDR number
+        if last_ndr_num < ndr_num < NDR_NUM:
             if skip_next_resultant:
                 skip_next_resultant = False
                 images.clear()
@@ -828,6 +836,9 @@ def uptheramp_thread() -> None:
             resultants.append(resultant)
             images.clear() 
             ndr_groups += 1
+        
+        images.append(image)
+        last_ndr_num = ndr_num
 
         if len(images) >= NDR_NUM * 10:
             print("Warning: Too many images in up-the-ramp queue. There may be a problem with taking NDRs. Resetting queue.")
@@ -842,7 +853,8 @@ def uptheramp_thread() -> None:
             resultant = stack_images(resultants)
             resultants.clear()
             ndr_groups = 0
-            write_queue.put(resultant)
+            write_queue.put((resultant, total_ndrs))
+            total_ndrs = 0
         uptheramp_queue.task_done()
 
 
