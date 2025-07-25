@@ -816,7 +816,7 @@ def uptheramp_thread() -> None:
                 continue
         images.append(date_image)
 
-        if date_image[1][0][2] == 0:  # This is the pixel in the image that holds the current NDR number
+        if date_image[1][0][2] == 0 and date_image[1][0][3] != 0:  # The second pixel in the image holds the current NDR number
             if skip_next_resultant:
                 skip_next_resultant = False
                 images.clear()
