@@ -414,7 +414,10 @@ def take_calibration_image(calibration_type, num_images, stack_time) -> None:
 WIDTH = 640
 HEIGHT = 512
 ArrayType = ctypes.c_uint16 * WIDTH * HEIGHT
+bad_image_count = 0
 def get_image() -> np.ndarray[np.uint16]:
+    global bad_image_count
+
     continue_taking_images.wait()
     if stop_event.is_set():
         return np.array([])
@@ -427,18 +430,32 @@ def get_image() -> np.ndarray[np.uint16]:
             read_queue.queue.clear()
 
     try:
-        image = read_queue.get(timeout=30)
+        image = read_queue.get(timeout=10)
     except queue.Empty:
         if continue_taking_images.is_set():
             print("No image received from camera. Restarting camera...")
             restart_camera()
+        read_queue.task_done()
         return get_image()
 
     # width, height = FliSdk.GetCurrentImageDimension(CONTEXT)
     pa = ctypes.cast(image, ctypes.POINTER(ArrayType))
     image = np.ndarray((HEIGHT, WIDTH), dtype=np.uint16, buffer=pa.contents)
+
     read_queue.task_done()
 
+    if image.shape != (HEIGHT, WIDTH):
+        bad_image_count += 1
+        print(f"Bad image received from camera. Total bad images: {bad_image_count}")
+
+        if bad_image_count > 10:
+            print("Too many bad images received. Restarting camera...")
+            restart_camera()
+            bad_image_count = 0
+
+        return get_image()
+
+    bad_image_count = 0  # Reset bad image count if a good image is received
     return image
     # return FliSdk.GetRawImageAsNumpyArray(CONTEXT, -1)
     # return FliSdk.GetProcessedImageGrayscale16bNumpyArray(CONTEXT, -1)
@@ -503,7 +520,7 @@ def uptheramp_fit(images: list[np.ndarray]) -> np.ndarray:
     # Performs up-the-ramp linear regression
     images = np.array(images)
     start_num = images[0][0][0]  # The first pixel in the image holds the image number; we don't have a good way of getting the actual timestamp
-    times = np.array([(image[0][0] - start_num) * FRAME_TIME for image in images])  # Approximate back to image timestamps
+    times = np.array([(image[0][0] - start_num) * FRAME_TIME for image in images], dtype=np.float32)  # Approximate back to image timestamps
     t = times[:, np.newaxis, np.newaxis]
 
     # Compute means
