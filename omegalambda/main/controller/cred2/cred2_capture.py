@@ -508,8 +508,8 @@ def uptheramp_fit(images: list[np.ndarray]) -> np.ndarray:
     y_mean = np.mean(images, axis=0)
 
     # Compute slope: numerator and denominator of covariance/variance
-    numerator = np.sum((t - t_mean) * (images - y_mean), axis=0, dtype=np.float64)
-    denominator = np.sum((t - t_mean) ** 2, dtype=np.float64)
+    numerator = np.sum((t - t_mean) * (images - y_mean), axis=0, dtype=np.float32)
+    denominator = np.sum((t - t_mean) ** 2, dtype=np.float32)
     m = numerator / denominator  # slope at each (i, j)
 
     # Compute intercept
@@ -857,12 +857,6 @@ def display_thread() -> None:
         path = display_queue.get()
         if isinstance(path, str) and path == STOP:
             break
-
-        counter = 0
-        while not os.path.exists(path) and counter < 20:
-            sleep(0.1)
-            counter += 1
-
         maxim_document.OpenFile(path)
         with display_queue.mutex:
             display_queue.queue.clear()  # Always show the latest image
