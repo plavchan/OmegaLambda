@@ -687,11 +687,8 @@ def take_stacked_exposure(stack_size=IMAGE_STACK_SIZE, write=True) -> np.ndarray
             return
         image = stack_images(images)
 
-    if write:
-        if ENABLE_UP_THE_RAMP:
-            uptheramp_queue.put(image)
-        else:
-            write_queue.put(image)
+    if write and not ENABLE_UP_THE_RAMP:
+        write_queue.put(image)
 
     return image
 
