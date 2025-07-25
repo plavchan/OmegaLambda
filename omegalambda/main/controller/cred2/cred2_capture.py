@@ -413,7 +413,7 @@ def take_calibration_image(calibration_type, num_images, stack_time) -> None:
 WIDTH = 640
 HEIGHT = 512
 ArrayType = ctypes.c_uint16 * WIDTH * HEIGHT
-def get_image() -> np.ndarray[np.uint16] | tuple[datetime, np.ndarray[np.uint16]]:
+def get_image() -> np.ndarray[np.uint16]:
     continue_taking_images.wait()
     if stop_event.is_set():
         return np.array([])
@@ -434,15 +434,10 @@ def get_image() -> np.ndarray[np.uint16] | tuple[datetime, np.ndarray[np.uint16]
         return get_image()
 
     # width, height = FliSdk.GetCurrentImageDimension(CONTEXT)
-
-    if ENABLE_UP_THE_RAMP:
-        date, image = image
     pa = ctypes.cast(image, ctypes.POINTER(ArrayType))
     image = np.ndarray((HEIGHT, WIDTH), dtype=np.uint16, buffer=pa.contents)
     read_queue.task_done()
 
-    if ENABLE_UP_THE_RAMP:
-        return date, image
     return image
     # return FliSdk.GetRawImageAsNumpyArray(CONTEXT, -1)
     # return FliSdk.GetProcessedImageGrayscale16bNumpyArray(CONTEXT, -1)
@@ -501,19 +496,18 @@ def check_identical_images(image1: np.ndarray[np.uint16], image2: np.ndarray[np.
     restart_camera()
 
 
-def uptheramp_fit(date_images: list[tuple[datetime, np.ndarray]]) -> np.ndarray:
+def uptheramp_fit(images: list[np.ndarray]) -> np.ndarray:
     # Performs up-the-ramp linear regression
-    datetimes, image_group = zip(*date_images)
-    datetimes = np.array([datetime.timestamp(dt) for dt in datetimes])
-    image_group = np.array(image_group)
-    t = datetimes[:, np.newaxis, np.newaxis]
+    images = np.array(images)
+    image_nums = np.array(image[0][0] for image in images)  # The first pixel in the image holds the image number; we don't have a good way of getting the actual timestamp
+    t = image_nums[:, np.newaxis, np.newaxis]
 
     # Compute means
     t_mean = np.mean(t)
-    y_mean = np.mean(image_group, axis=0)
+    y_mean = np.mean(images, axis=0)
 
     # Compute slope: numerator and denominator of covariance/variance
-    numerator = np.sum((t - t_mean) * (image_group - y_mean), axis=0, dtype=np.float64)
+    numerator = np.sum((t - t_mean) * (images - y_mean), axis=0, dtype=np.float64)
     denominator = np.sum((t - t_mean) ** 2, dtype=np.float64)
     m = numerator / denominator  # slope at each (i, j)
 
@@ -704,10 +698,7 @@ def take_stacked_exposure(stack_size=IMAGE_STACK_SIZE, write=True) -> np.ndarray
 def image_callback(image, context=None):
     if not continue_taking_images.is_set():
         return
-    if ENABLE_UP_THE_RAMP:
-        read_queue.put((datetime.now(), image))
-    else:
-        read_queue.put(image)
+    read_queue.put(image)
 
 image_callback_func = FliSdk.CWRAPPER(image_callback)
 read_images = 0
@@ -816,17 +807,17 @@ def uptheramp_thread() -> None:
     skip_next_resultant: bool = False
 
     while not stop_event.is_set():
-        date_image = uptheramp_queue.get()
-        if isinstance(date_image, str):
-            if date_image == STOP:
+        image = uptheramp_queue.get()
+        if isinstance(image, str):
+            if image == STOP:
                 break
-            elif date_image == RESET:  # Throw out the next resultant if it's affected by a buffer reset
+            elif image == RESET:  # Throw out the next resultant if it's affected by a buffer reset
                 skip_next_resultant = True
                 uptheramp_queue.task_done()
                 continue
-        images.append(date_image)
+        images.append(image)
 
-        if date_image[1][0][2] == 0 and date_image[1][0][3] != 0:  # The second pixel in the image holds the current NDR number
+        if image[0][2] == 0:  # The third pixel in the image holds the current NDR number
             if skip_next_resultant:
                 skip_next_resultant = False
                 images.clear()
