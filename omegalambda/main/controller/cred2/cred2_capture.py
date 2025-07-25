@@ -503,7 +503,7 @@ def uptheramp_fit(images: list[np.ndarray]) -> np.ndarray:
     # Performs up-the-ramp linear regression
     images = np.array(images)
     start_num = images[0][0][0]  # The first pixel in the image holds the image number; we don't have a good way of getting the actual timestamp
-    times = FRAME_TIME * np.array([image[0][0] - start_num for image in images])  # Approximate back to image timestamps
+    times = np.array([(image[0][0] - start_num) * FRAME_TIME for image in images])  # Approximate back to image timestamps
     t = times[:, np.newaxis, np.newaxis]
 
     # Compute means
