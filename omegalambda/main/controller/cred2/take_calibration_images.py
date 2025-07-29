@@ -62,7 +62,7 @@ flatlamp.start()
 tertiary_mirror = TertiaryMirror()
 tertiary_mirror.start()
 
-sleep(10)
+sleep(5)
 
 ##############
 

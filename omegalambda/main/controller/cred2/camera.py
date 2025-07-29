@@ -336,7 +336,7 @@ class NIRCamera(Camera):
         return
 
     def _write_capture_code_config(self, config):
-        with open(join(self.current_dir, "cred2", "cred2_capture_config.json"), "w") as f:
+        with open(join(self.current_dir, "cred2_capture_config.json"), "w") as f:
             json.dump(config, f, indent=4)
         logging.info("CRED2 capture code configuration file written.")
 
@@ -344,7 +344,7 @@ class NIRCamera(Camera):
         if self.proc is not None:
             logging.info("Terminating previous CRED2 capture code process...")
             self.disconnect()
-        self.proc = subprocess.Popen([sys.executable, "-u", join(self.current_dir, "cred2", "cred2_capture.py"), *cmd_args])
+        self.proc = subprocess.Popen([sys.executable, "-u", join(self.current_dir, "cred2_capture.py"), *cmd_args])
         logging.info("NIR Camera connected. CRED2 capture code process started.")
 
     def start_exposing(self, exposure_time, save_dir, name, calibration=None, num_exposures=None, wait_for_cooler=True):
