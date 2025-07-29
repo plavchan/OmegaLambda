@@ -833,6 +833,7 @@ def uptheramp_thread() -> None:
     skip_next_resultant: bool = False
     last_ndr_num: int = NDR_NUM
     total_ndrs: int = 0
+    first_image: bool = True
 
     while not stop_event.is_set():
         image = uptheramp_queue.get()
@@ -846,7 +847,7 @@ def uptheramp_thread() -> None:
 
         total_ndrs += 1
         ndr_num = image[0][2]  # The third pixel in the image holds the current NDR number
-        if last_ndr_num < ndr_num < NDR_NUM:
+        if last_ndr_num < ndr_num < NDR_NUM and not first_image:
             if skip_next_resultant:
                 skip_next_resultant = False
                 images.clear()
@@ -863,6 +864,7 @@ def uptheramp_thread() -> None:
                 ndr_groups += 1
             images.clear()
         
+        first_image = False
         images.append(image)
         last_ndr_num = ndr_num
 
