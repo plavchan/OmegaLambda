@@ -25,7 +25,11 @@ def take_flats():
         exposure_time=EXPTIME,
         save_dir=save_dir,
         name="Flat",
+        num_exposures=NUM_CALIBRATION_IMAGES,
     )
+    sleep(EXPTIME * NUM_CALIBRATION_IMAGES + 30)
+    camera.disconnect()
+    sleep(5)
     flatlamp.turn_off()
     sleep(5)
     logging.info("Done taking flats.")
@@ -39,13 +43,16 @@ def take_darks():
         exposure_time=EXPTIME,
         save_dir=save_dir,
         name="Dark",
+        num_exposures=NUM_CALIBRATION_IMAGES,
     )
+    sleep(EXPTIME * NUM_CALIBRATION_IMAGES + 30)
+    camera.disconnect()
     sleep(5)
     logging.info("Done taking darks.")
 
 ##############
 
-date = datetime.now().date() if datetime.now().hour < 12 else datetime.now().date() + timedelta(days=1)
+date = datetime.now().date() if datetime.now().hour > 12 else datetime.now().date() + timedelta(days=1)
 date = date.strftime("%Y%m%d")
 save_dir = os.path.join("H:/Observatory Files/Observing Sessions/2025_Data", date)
 
