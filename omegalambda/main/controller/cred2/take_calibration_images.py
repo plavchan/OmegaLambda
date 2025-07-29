@@ -35,6 +35,7 @@ def take_flats():
 
 def take_darks():
     logging.info("Taking darks...")
+    flatlamp.turn_off()
     tertiary_mirror.select_camera("CCD")
     sleep(5)
     camera.start_exposing(
