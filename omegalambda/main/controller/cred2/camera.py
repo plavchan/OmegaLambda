@@ -1,5 +1,6 @@
 import time
 import threading
+import _thread
 import json
 import logging
 import psutil
@@ -11,32 +12,26 @@ import os
 from os.path import dirname, join
 import signal
 from typing import Optional, Union
-from multiprocessing import Process, Queue
 
 from hardware import Hardware
 
 
-def run_with_timeout(seconds, action=None):
-    def handler(queue, func, args, kwargs):
-        queue.put(func(*args, **kwargs))
+class Timeout:
+  def __init__(self, timeout):
+    self.timeout = timeout
+    self.exited = False
 
-    def decorator(func):
-        def wraps(*args, **kwargs):
-            q = Queue()
-            p = Process(target=handler, args=(q, func, args, kwargs))
-            p.start()
-            p.join(timeout=seconds)
-            if p.is_alive():
-                p.terminate()
-                p.join()
-                if hasattr(action, '__call__'):
-                    return action()
-                else:
-                    return action
-            else:
-                return q.get()
-        return wraps
-    return decorator
+  def __enter__(self):
+    threading.Thread(target=self.wait_for_timeout).start()
+
+  def wait_for_timeout(self):
+    time.sleep(self.timeout)
+    if not self.exited:
+        logging.error("Timeout reached, exiting thread.")
+        _thread.interrupt_main()
+
+  def __exit__(self, a, b, c):
+       self.exited = True
 
 
 class Camera(Hardware):
@@ -428,19 +423,15 @@ class NIRCamera(Camera):
         if num_exposures:
             if num_exposures == 1:
                 self.send_signal(self.SINGLE_EXPOSURE_SIG)  # take one exposure
-                # time.sleep(self.exposure_time_scale * exposure_time + 15)
-                run_with_timeout(
-                    self._wait_for_capture_end, 
-                    seconds=self.exposure_time_scale * exposure_time + min(3 * exposure_time, 30)
-                )
+                # time.sleep(self.exposure_time_scale * exposure_time + 120)
+                with Timeout(self.exposure_time_scale * exposure_time + min(3 * exposure_time, 30)):
+                    self._wait_for_capture_end()
                 self.exp_done.set()
                 return
             
             # time.sleep(self.exposure_time_scale * config["total_run_time_seconds"] + 120)
-            run_with_timeout(
-                self._wait_for_capture_end, 
-                seconds=self.exposure_time_scale * config["total_run_time_seconds"] + min(3 * exposure_time, 30)
-            )
+            with Timeout(self.exposure_time_scale * config["total_run_time_seconds"] + min(3 * exposure_time, 30)):
+                self._wait_for_capture_end()
             self.disconnect(timeout=exposure_time, terminate=False)
             self.exp_done.set()
 
