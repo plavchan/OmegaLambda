@@ -847,15 +847,15 @@ def uptheramp_thread() -> None:
 
         total_ndrs += 1
         ndr_num = image[0][2]  # The third pixel in the image holds the current NDR number
-        if last_ndr_num < ndr_num < NDR_NUM and not first_image:
-            if skip_next_resultant:
-                skip_next_resultant = False
-                images.clear()
-                uptheramp_queue.task_done()
-                continue
-            if len(images) < 0.7 * NDR_NUM:
-                print(f"Warning: received NDR number {ndr_num} but only {len(images)} images in the queue. This may indicate a problem with taking NDRs. Skipping for now...")
-                last_ndr_num = ndr_num
+        if last_ndr_num < ndr_num < NDR_NUM:
+            if first_image or skip_next_resultant or len(images) < 0.7 * NDR_NUM:
+                if first_image:  # discard the first image because it probably doesn't have all the NDRs
+                    first_image = False
+                if skip_next_resultant:
+                    skip_next_resultant = False
+                if len(images) < 0.7 * NDR_NUM:
+                    print(f"Warning: received NDR number {ndr_num} but only {len(images)} images in the queue. This may indicate a problem with taking NDRs. Skipping for now...")
+                    last_ndr_num = ndr_num
                 images.clear()
                 uptheramp_queue.task_done()
                 continue
@@ -865,8 +865,6 @@ def uptheramp_thread() -> None:
                 ndr_groups += 1
             images.clear()
         
-
-        first_image = False
         images.append(image)
         last_ndr_num = ndr_num
 

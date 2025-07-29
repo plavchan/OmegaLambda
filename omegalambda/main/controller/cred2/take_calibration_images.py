@@ -52,7 +52,7 @@ def take_darks():
 
 ##############
 
-date = datetime.now().date() if datetime.now().hour > 12 else datetime.now().date() + timedelta(days=1)
+date = datetime.now().date() if datetime.now().hour > 12 else datetime.now().date() - timedelta(days=1)
 date = date.strftime("%Y%m%d")
 save_dir = os.path.join("H:/Observatory Files/Observing Sessions/2025_Data", date)
 
