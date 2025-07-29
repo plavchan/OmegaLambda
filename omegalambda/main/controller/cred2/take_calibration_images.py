@@ -51,17 +51,18 @@ save_dir = os.path.join("H:/Observatory Files/Observing Sessions/2025_Data", dat
 
 ##############
 
+logging.info("Connecting to devices...")
+
 camera = NIRCamera()
 camera.start()
-camera.check_connection()
+
 flatlamp = FlatLamp()
 flatlamp.start()
-flatlamp.check_connection()
+
 tertiary_mirror = TertiaryMirror()
 tertiary_mirror.start()
-tertiary_mirror.check_connection()
 
-sleep(30)
+sleep(10)
 
 ##############
 
@@ -72,7 +73,14 @@ take_flats()
 
 ##############
 
+logging.info("Disconnecting from devices...")
+
 camera.disconnect()
 flatlamp.disconnect()
 tertiary_mirror.disconnect()
+
+camera.stop()
+flatlamp.stop()
+tertiary_mirror.stop()
+
 logging.info("Calibration images taken successfully.")
