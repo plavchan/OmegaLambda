@@ -430,12 +430,11 @@ def get_image() -> np.ndarray[np.uint16]:
             read_queue.queue.clear()
 
     try:
-        image = read_queue.get(timeout=10)
+        image = read_queue.get(timeout=30)
     except queue.Empty:
         if continue_taking_images.is_set():
             print("No image received from camera. Restarting camera...")
             restart_camera()
-        read_queue.task_done()
         return get_image()
 
     # width, height = FliSdk.GetCurrentImageDimension(CONTEXT)
