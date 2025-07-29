@@ -853,8 +853,9 @@ def uptheramp_thread() -> None:
                 images.clear()
                 uptheramp_queue.task_done()
                 continue
-            if len(images) < NDR_NUM / 2:
+            if len(images) < 0.7 * NDR_NUM:
                 print(f"Warning: received NDR number {ndr_num} but only {len(images)} images in the queue. This may indicate a problem with taking NDRs. Skipping for now...")
+                last_ndr_num = ndr_num
                 images.clear()
                 uptheramp_queue.task_done()
                 continue
@@ -864,6 +865,7 @@ def uptheramp_thread() -> None:
                 ndr_groups += 1
             images.clear()
         
+
         first_image = False
         images.append(image)
         last_ndr_num = ndr_num
