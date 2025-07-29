@@ -27,9 +27,7 @@ def take_flats():
         name="Flat",
         num_exposures=NUM_CALIBRATION_IMAGES,
     )
-    sleep(EXPTIME * NUM_CALIBRATION_IMAGES + 30)
-    camera.disconnect()
-    sleep(5)
+    camera.exp_done.wait()
     flatlamp.turn_off()
     sleep(5)
     logging.info("Done taking flats.")
@@ -45,8 +43,7 @@ def take_darks():
         name="Dark",
         num_exposures=NUM_CALIBRATION_IMAGES,
     )
-    sleep(EXPTIME * NUM_CALIBRATION_IMAGES + 30)
-    camera.disconnect()
+    camera.exp_done.wait()
     sleep(5)
     logging.info("Done taking darks.")
 
