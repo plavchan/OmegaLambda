@@ -918,9 +918,9 @@ def progress_thread() -> None:
 def main() -> None:
     signal.signal(signal.SIGINT, stop_threads)
     signal.signal(signal.SIGTERM, stop_threads)
-    signal.signal(signal.SIGABRT, pause_captures)  # Send SIGABRT to pause captures 
+    signal.signal(signal.SIGFPE, pause_captures)  # Send SIGFPE to pause captures
     signal.signal(signal.SIGILL, resume_captures)  # Send SIGILL to resume captures
-    signal.signal(signal.SIGFPE, take_one_capture)  # Send SIGFPE to take one exposure
+    signal.signal(signal.SIGSEGV, take_one_capture)  # Send SIGSEGV to take one exposure
 
     connect()
     setup()
