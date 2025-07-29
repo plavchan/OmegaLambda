@@ -45,7 +45,7 @@ def take_darks():
 
 ##############
 
-date = datetime.now().date() if datetime.now().hour() < 12 else datetime.now().date() + timedelta(days=1)
+date = datetime.now().date() if datetime.now().hour < 12 else datetime.now().date() + timedelta(days=1)
 date = date.strftime("%Y%m%d")
 save_dir = os.path.join("H:/Observatory Files/Observing Sessions/2025_Data", date)
 
@@ -53,10 +53,15 @@ save_dir = os.path.join("H:/Observatory Files/Observing Sessions/2025_Data", dat
 
 camera = NIRCamera()
 camera.start()
+camera.check_connection()
 flatlamp = FlatLamp()
 flatlamp.start()
+flatlamp.check_connection()
 tertiary_mirror = TertiaryMirror()
 tertiary_mirror.start()
+tertiary_mirror.check_connection()
+
+sleep(30)
 
 ##############
 
