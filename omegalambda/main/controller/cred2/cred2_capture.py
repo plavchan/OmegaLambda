@@ -515,9 +515,13 @@ def check_identical_images(image1: np.ndarray, image2: np.ndarray) -> None:
     restart_camera()
 
 
-def uptheramp_fit(images: list[np.ndarray]) -> np.ndarray:
+def uptheramp_fit(images: list[np.ndarray]) -> np.ndarray | None:
     # Performs up-the-ramp linear regression
     images = np.array(images)
+    if images.ndim != 3:
+        print(f"Warning: uptheramp_fit received an invalid images array. Expected 3D array, got {images.ndim}D array.")
+        return None
+
     start_num = images[0][0][0]  # The first pixel in the image holds the image number; we don't have a good way of getting the actual timestamp
     times = np.array([(image[0][0] - start_num) * FRAME_TIME for image in images], dtype=np.float32)  # Approximate back to image timestamps
     t = times[:, np.newaxis, np.newaxis]
@@ -848,10 +852,16 @@ def uptheramp_thread() -> None:
                 images.clear()
                 uptheramp_queue.task_done()
                 continue
+            if len(images) < NDR_NUM / 2:
+                print(f"Warning: received NDR number {ndr_num} but only {len(images)} images in the queue. This may indicate a problem with taking NDRs. Skipping for now...")
+                images.clear()
+                uptheramp_queue.task_done()
+                continue
             resultant = uptheramp_fit(images)
-            resultants.append(resultant)
-            images.clear() 
-            ndr_groups += 1
+            if resultant is not None:
+                resultants.append(resultant)
+                ndr_groups += 1
+            images.clear()
         
         images.append(image)
         last_ndr_num = ndr_num
