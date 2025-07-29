@@ -459,6 +459,7 @@ class NIRCamera(Camera):
         -------
         None.
         """
+        logging.info("Disconnecting from NIR Camera...")
         if self.proc is not None:
             try:
                 if terminate:
