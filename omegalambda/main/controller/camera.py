@@ -369,7 +369,7 @@ class NIRCamera(Camera):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             encoding="utf-8",
-            creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
+            # creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
         )
         logging.info("NIR Camera connected. CRED2 capture code process started.")
     
@@ -474,12 +474,13 @@ class NIRCamera(Camera):
                     self.proc.terminate()
                     self.proc.wait(timeout=timeout)
                 except subprocess.TimeoutExpired:
-                    logging.warning("CRED2 capture code process did not terminate in time. Terminating process group.")
-                    os.killpg(os.getpgid(self.proc.pid), signal.SIGTERM)
-                    time.sleep(60)
-                    if psutil.pid_exists(self.proc.pid):
-                        logging.error("Process group still not terminated. Sending SIGKILL.")
-                        os.killpg(os.getpgid(self.proc.pid), signal.SIGKILL)
+                    logging.warning("CRED2 capture code process still did not terminate.")
+                    # logging.warning("CRED2 capture code process did not terminate in time. Terminating process group.")
+                    # os.killpg(os.getpgid(self.proc.pid), signal.SIGTERM)
+                    # time.sleep(60)
+                    # if psutil.pid_exists(self.proc.pid):
+                    #     logging.error("Process group still not terminated. Sending SIGKILL.")
+                    #     os.killpg(os.getpgid(self.proc.pid), signal.SIGKILL)
             finally:
                 self.proc = None
             logging.info("NIR Camera has been disconnected")
