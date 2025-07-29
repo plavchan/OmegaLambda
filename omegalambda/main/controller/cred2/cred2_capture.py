@@ -620,6 +620,7 @@ def stop_threads(*args, script_done=False) -> None:
     if CONTEXT:
         print("Disconnecting from camera...", flush=True)
         disconnect()
+    print("EXITED", flush=True)
     exit()
 
 
