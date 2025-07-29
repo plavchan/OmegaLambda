@@ -12,9 +12,9 @@ import sys
 import psutil
 import os
 
-from ..flatfield_lamp import FlatLamp
-from ..tertiary_mirror import TertiaryMirror
-from ..camera import NIRCamera
+from flatfield_lamp import FlatLamp
+from tertiary_mirror import TertiaryMirror
+from camera import NIRCamera
 
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
