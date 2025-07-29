@@ -471,38 +471,39 @@ class NIRCamera(Camera):
         None.
         """
         logging.info("Disconnecting from NIR Camera...")
+        if self.proc is None:
+            logging.info("NIR Camera is already disconnected")
+            return
+
         if self.proc.poll() is not None:
             logging.info("NIR Camera is already disconnected.")
             self.proc = None
             return
 
-        if self.proc is not None:
-            try:
-                if terminate:
-                    self.proc.terminate()
-                self.proc.wait(timeout=timeout)
-            except subprocess.TimeoutExpired:
-                if self.proc.poll() is not None:
-                    self.proc = None
-                    return
-
-                if not terminate:
-                    self.disconnect(terminate=True)
-                    return
-
-                logging.warning("CRED2 capture code process did not terminate in time. Terminating process group.")
-                os.killpg(os.getpgid(self.proc.pid), signal.SIGTERM)
-                time.sleep(15)
-                if psutil.pid_exists(self.proc.pid):
-                    time.sleep(60)
-                    if psutil.pid_exists(self.proc.pid):
-                        logging.error("Process group still not terminated. Sending SIGKILL.")
-                        os.killpg(os.getpgid(self.proc.pid), signal.SIGKILL)
-            finally:
+        try:
+            if terminate:
+                self.proc.terminate()
+            self.proc.wait(timeout=timeout)
+        except subprocess.TimeoutExpired:
+            if self.proc.poll() is not None:
                 self.proc = None
-            logging.info("NIR Camera has been disconnected")
-        else:
-            logging.info("NIR Camera is already disconnected")
+                return
+
+            if not terminate:
+                self.disconnect(terminate=True)
+                return
+
+            logging.warning("CRED2 capture code process did not terminate in time. Terminating process group.")
+            os.killpg(os.getpgid(self.proc.pid), signal.SIGTERM)
+            time.sleep(15)
+            if psutil.pid_exists(self.proc.pid):
+                time.sleep(60)
+                if psutil.pid_exists(self.proc.pid):
+                    logging.error("Process group still not terminated. Sending SIGKILL.")
+                    os.killpg(os.getpgid(self.proc.pid), signal.SIGKILL)
+        finally:
+            self.proc = None
+        logging.info("NIR Camera has been disconnected")
 
     def send_signal(self, sig):
         if not self.proc:
