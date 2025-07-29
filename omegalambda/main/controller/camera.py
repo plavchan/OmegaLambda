@@ -367,21 +367,32 @@ class NIRCamera(Camera):
         self.proc = subprocess.Popen(
             [sys.executable, "-u", join(self.current_dir, "cred2", "cred2_capture.py"), *cmd_args],
             stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
             encoding="utf-8",
             creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
         )
         logging.info("NIR Camera connected. CRED2 capture code process started.")
     
-    def _wait_for_capture_end(self):
+    def _wait_for_capture_end(self, wait_for_exit=True):
         if self.proc is None:
             logging.error("No CRED2 capture code process running.")
             return
 
         for line in self.proc.stdout:
-            if "DONE TAKING" in line:
+            if not ("ssh_" in line or "socket_" in line or "channel_" in line or "grow_window" in line):
+                logging.info(line.strip())
+            if "DONE TAKING" in line and not wait_for_exit:
                 logging.info("Received end of capture message.")
+                time.sleep(5)
                 return True
+            if "EXITED" in line:
+                logging.info("Received exited message.")
+                time.sleep(10)
+                return True
+            
+        self.proc.stdout.close()
+        self.proc.stderr.close()
 
         logging.error("Did not receive expected end of capture message.")
         return False
@@ -425,7 +436,7 @@ class NIRCamera(Camera):
                 self.send_signal(self.SINGLE_EXPOSURE_SIG)  # take one exposure
                 # time.sleep(self.exposure_time_scale * exposure_time + 120)
                 with Timeout(self.exposure_time_scale * exposure_time + min(3 * exposure_time, 30)):
-                    self._wait_for_capture_end()
+                    self._wait_for_capture_end(wait_for_exit=False)
                 self.exp_done.set()
                 return
             
@@ -449,6 +460,13 @@ class NIRCamera(Camera):
         else:
             logging.warning("NIR camera is not connected. Cannot resume.")
 
+    def resume_exposing(self):
+        if self.proc is not None:
+            self.send_signal(self.RESUME_SIG)
+            logging.info("NIR camera captures resumed.")
+        else:
+            logging.warning("NIR camera is not connected. Cannot resume.")
+
     def disconnect(self, timeout=15, terminate=True):
         """
         Description
@@ -460,21 +478,34 @@ class NIRCamera(Camera):
         None.
         """
         logging.info("Disconnecting from NIR Camera...")
+        if self.proc.poll() is not None:
+            logging.info("NIR Camera is already disconnected.")
+            self.proc = None
+            return
+
         if self.proc is not None:
             try:
                 if terminate:
                     self.proc.send_signal(signal.CTRL_C_EVENT)
                 self.proc.wait(timeout=timeout)
             except subprocess.TimeoutExpired:
+                if self.proc.poll() is not None:
+                    self.proc = None
+                    return
+
                 if not terminate:
                     self.disconnect(terminate=True)
                     return
 
                 logging.warning("CRED2 capture code process did not terminate in time. Terminating subprocess.")
+
                 try:
                     self.proc.terminate()
                     self.proc.wait(timeout=timeout)
                 except subprocess.TimeoutExpired:
+                    if self.proc.poll() is not None:
+                        self.proc = None
+                        return
                     logging.warning("CRED2 capture code process did not terminate in time. Terminating process group.")
                     os.killpg(os.getpgid(self.proc.pid), signal.SIGTERM)
                     time.sleep(60)

@@ -397,7 +397,7 @@ class NIRCamera(Camera):
         logging.error("Did not receive expected end of capture message.")
         return False
 
-    def start_exposing(self, exposure_time, save_dir, name, calibration=None, num_exposures=None, wait_for_cooler=False):
+    def start_exposing(self, exposure_time, save_dir, name, calibration=None, num_exposures=None, wait_for_cooler=True):
         """
         Starts continuously exposing images using the NIR camera. Runs the capture code in a separate process.
         Pass 'flats' or 'darks' to the calibration parameter to take calibration images.
@@ -471,21 +471,34 @@ class NIRCamera(Camera):
         None.
         """
         logging.info("Disconnecting from NIR Camera...")
+        if self.proc.poll() is not None:
+            logging.info("NIR Camera is already disconnected.")
+            self.proc = None
+            return
+
         if self.proc is not None:
             try:
                 if terminate:
                     self.proc.send_signal(signal.CTRL_C_EVENT)
                 self.proc.wait(timeout=timeout)
             except subprocess.TimeoutExpired:
+                if self.proc.poll() is not None:
+                    self.proc = None
+                    return
+
                 if not terminate:
                     self.disconnect(terminate=True)
                     return
 
                 logging.warning("CRED2 capture code process did not terminate in time. Terminating subprocess.")
+
                 try:
                     self.proc.terminate()
                     self.proc.wait(timeout=timeout)
                 except subprocess.TimeoutExpired:
+                    if self.proc.poll() is not None:
+                        self.proc = None
+                        return
                     logging.warning("CRED2 capture code process did not terminate in time. Terminating process group.")
                     os.killpg(os.getpgid(self.proc.pid), signal.SIGTERM)
                     time.sleep(60)
