@@ -442,8 +442,8 @@ class NIRCamera(Camera):
             
             # time.sleep(self.exposure_time_scale * config["total_run_time_seconds"] + 120)
             with Timeout(self.exposure_time_scale * config["total_run_time_seconds"] + min(3 * exposure_time, 30)):
-                self._wait_for_capture_end()
-            self.disconnect(timeout=exposure_time, terminate=False)
+                exited = self._wait_for_capture_end()
+            self.disconnect(timeout=exposure_time, terminate=exited)
             self.exp_done.set()
 
     def pause_exposing(self):
@@ -452,13 +452,6 @@ class NIRCamera(Camera):
             logging.info("NIR camera captures paused.")
         else:
             logging.warning("NIR camera is not connected. Cannot pause.")
-
-    def resume_exposing(self):
-        if self.proc is not None:
-            self.send_signal(self.RESUME_SIG)
-            logging.info("NIR camera captures resumed.")
-        else:
-            logging.warning("NIR camera is not connected. Cannot resume.")
 
     def resume_exposing(self):
         if self.proc is not None:
@@ -486,7 +479,7 @@ class NIRCamera(Camera):
         if self.proc is not None:
             try:
                 if terminate:
-                    self.proc.send_signal(signal.CTRL_C_EVENT)
+                    self.proc.terminate()
                 self.proc.wait(timeout=timeout)
             except subprocess.TimeoutExpired:
                 if self.proc.poll() is not None:
@@ -497,17 +490,10 @@ class NIRCamera(Camera):
                     self.disconnect(terminate=True)
                     return
 
-                logging.warning("CRED2 capture code process did not terminate in time. Terminating subprocess.")
-
-                try:
-                    self.proc.terminate()
-                    self.proc.wait(timeout=timeout)
-                except subprocess.TimeoutExpired:
-                    if self.proc.poll() is not None:
-                        self.proc = None
-                        return
-                    logging.warning("CRED2 capture code process did not terminate in time. Terminating process group.")
-                    os.killpg(os.getpgid(self.proc.pid), signal.SIGTERM)
+                logging.warning("CRED2 capture code process did not terminate in time. Terminating process group.")
+                os.killpg(os.getpgid(self.proc.pid), signal.SIGTERM)
+                time.sleep(15)
+                if psutil.pid_exists(self.proc.pid):
                     time.sleep(60)
                     if psutil.pid_exists(self.proc.pid):
                         logging.error("Process group still not terminated. Sending SIGKILL.")
