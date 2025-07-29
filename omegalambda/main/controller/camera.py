@@ -13,7 +13,7 @@ import signal
 from typing import Optional, Union
 from multiprocessing import Process, Queue
 
-from hardware import Hardware
+from .hardware import Hardware
 
 
 def run_with_timeout(seconds, action=None):
@@ -361,7 +361,7 @@ class NIRCamera(Camera):
         return
 
     def _write_capture_code_config(self, config):
-        with open(join(self.current_dir, "cred2_capture_config.json"), "w") as f:
+        with open(join(self.current_dir, "cred2", "cred2_capture_config.json"), "w") as f:
             json.dump(config, f, indent=4)
         logging.info("CRED2 capture code configuration file written.")
 
@@ -370,7 +370,7 @@ class NIRCamera(Camera):
             logging.info("Terminating previous CRED2 capture code process...")
             self.disconnect()
         self.proc = subprocess.Popen(
-            [sys.executable, "-u", join(self.current_dir, "cred2_capture.py"), *cmd_args],
+            [sys.executable, "-u", join(self.current_dir, "cred2", "cred2_capture.py"), *cmd_args],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             encoding="utf-8",
