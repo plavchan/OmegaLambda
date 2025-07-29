@@ -363,10 +363,8 @@ class NIRCamera(Camera):
         config = {
             "total_run_time_seconds": 0.0,  # Continuous
             "image_stack_time_seconds": float(exposure_time),
-            "take_calibration_images": False,
             "data_directory": save_dir,
             "filename_prefix": name + "-",
-            "enable_compression": True,
             "wait_for_cooler_settle": wait_for_cooler,
             "startup_only": num_exposures == 1
         }

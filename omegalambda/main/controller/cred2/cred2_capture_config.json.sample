@@ -7,7 +7,7 @@
     "take_calibration_images": false,
     "data_directory": "data",
     "filename_prefix": "image-",
-    "enable_compression": true,
+    "enable_compression": false,
     "wait_for_cooler_settle": true,
     "startup_only": false,
     "manual_mode": false,

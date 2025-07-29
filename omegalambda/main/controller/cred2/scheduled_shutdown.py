@@ -1,3 +1,6 @@
+# Script for automating shutting down the observatory
+# without running omegalambda.
+#######################
 shutdown_time = "04:45"
 kill_python_processes = True
 #######################
@@ -123,25 +126,26 @@ def shutdown():
     logging.info("Shutdown complete.")
 
 
-if len(sys.argv) > 1:
-    shutdown_time = sys.argv[1]
+if __name__ == "__main__":
+    if len(sys.argv) > 1:
+        shutdown_time = sys.argv[1]
 
-if len(sys.argv) > 2:
-    kill_python_processes = sys.argv[2].lower().strip() in ('true', 'yes', '1')
+    if len(sys.argv) > 2:
+        kill_python_processes = sys.argv[2].lower().strip() in ('true', 'yes', '1')
 
-shutdown_time = datetime.strptime(shutdown_time, "%H:%M").time()
-shutdown_date = datetime.now().date() if datetime.now().time() < shutdown_time else datetime.now().date() + timedelta(days=1)
-SHUTDOWN_DATETIME = datetime.combine(shutdown_date, shutdown_time)
+    shutdown_time = datetime.strptime(shutdown_time, "%H:%M").time()
+    shutdown_date = datetime.now().date() if datetime.now().time() < shutdown_time else datetime.now().date() + timedelta(days=1)
+    SHUTDOWN_DATETIME = datetime.combine(shutdown_date, shutdown_time)
 
-logging.info(f"Shutdown scheduled for {SHUTDOWN_DATETIME}.")
+    logging.info(f"Shutdown scheduled for {SHUTDOWN_DATETIME}.")
 
-DOME = win32com.client.Dispatch("ASCOMDome.Dome")
-dome_connect()
+    DOME = win32com.client.Dispatch("ASCOMDome.Dome")
+    dome_connect()
 
-TELESCOPE = win32com.client.Dispatch("ASCOM.SoftwareBisque.Telescope")
-telescope_connect()
+    TELESCOPE = win32com.client.Dispatch("ASCOM.SoftwareBisque.Telescope")
+    telescope_connect()
 
-sleep_seconds = SHUTDOWN_DATETIME.timestamp() - datetime.now().timestamp()
-logging.info(f"Sleeping for {int(sleep_seconds)} seconds before shutdown.")
-sleep(sleep_seconds)
-shutdown()
+    sleep_seconds = SHUTDOWN_DATETIME.timestamp() - datetime.now().timestamp()
+    logging.info(f"Sleeping for {int(sleep_seconds)} seconds before shutdown.")
+    sleep(sleep_seconds)
+    shutdown()

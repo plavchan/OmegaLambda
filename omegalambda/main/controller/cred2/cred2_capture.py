@@ -47,7 +47,7 @@ CONFIG_FILE: str = os.path.join(os.path.dirname(__file__), "cred2_capture_config
     "take_calibration_images": false,
     "data_directory": "data",
     "filename_prefix": "image-",
-    "enable_compression": true,
+    "enable_compression": false,
     "wait_for_cooler_settle": true,
     "startup_only": false,
     "manual_mode": false,
@@ -63,7 +63,7 @@ IMAGE_CHUNK_TIME: float = 3.0 * TIME_SCALE_FACTOR  # Seconds. To conserve memory
 TAKE_CALIBRATION_IMAGES: bool = False  # Take biases, darks, flats
 DATA_DIRECTORY: str = "data"
 FILENAME_PREFIX: str = "image-"
-ENABLE_COMPRESSION: bool = True  # Compress images after saving using fpack
+ENABLE_COMPRESSION: bool = False  # Compress images after saving using fpack
 WAIT_FOR_COOLER_SETTLE: bool = True  # Wait for cooler to reach setpoint before capturing images
 STARTUP_ONLY: bool = False  # If True, will just startup the control code but not start capturing images
 MANUAL_MODE: bool = False  # If True, will not capture images automatically, but will allow manual captures via input
