@@ -673,6 +673,7 @@ def take_one_capture(quiet=False) -> None:
     resume_captures(quiet=quiet)
     take_stacked_exposure()
     pause_captures(quiet=quiet)
+    print("DONE TAKING one exposure.")
 
 
 def take_stacked_exposure(stack_size=IMAGE_STACK_SIZE, write=True) -> np.ndarray | None:
@@ -776,7 +777,7 @@ def read_thread() -> None:
 
     if read_images >= NUM_IMAGES and not CONTINUOUS_CAPTURE:
         print()
-        print(f"Done capturing {NUM_IMAGES} images.")
+        print(f"DONE TAKING {NUM_IMAGES} images.")
         # wait_time = write_queue.qsize() * 0.05 + (compress_queue.qsize() * 0.1 if ENABLE_COMPRESSION else 0)
         # if wait_time > 0:
         #     wait_time += 1
