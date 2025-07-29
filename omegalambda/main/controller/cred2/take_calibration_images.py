@@ -3,18 +3,14 @@
 NUM_CALIBRATION_IMAGES: int = 15  # Number of calibration images to take
 EXPTIME: float = 90.0  # Exposure time in seconds for calibration images
 #######################
-import win32com.client
 from datetime import datetime, timedelta
 from time import sleep
 import logging
-import pywintypes
-import sys
-import psutil
 import os
 
-from ..flatfield_lamp import FlatLamp
-from ..tertiary_mirror import TertiaryMirror
-from ..camera import NIRCamera
+from flatfield_lamp import FlatLamp
+from tertiary_mirror import TertiaryMirror
+from camera import NIRCamera
 
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
