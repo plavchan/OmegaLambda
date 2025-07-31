@@ -1,8 +1,9 @@
 # Script for automating shutting down the observatory
 # without running omegalambda.
 #######################
-shutdown_time = "04:45"
-kill_python_processes = True
+SHUTDOWN_TIME = "04:45"
+KILL_PYTHON_PROCESSES = True
+TAKE_CALIBRATION_IMAGES = True
 #######################
 
 import win32com.client
@@ -13,6 +14,8 @@ import pywintypes
 import sys
 import psutil
 import os
+
+from take_calibration_images import take_calibration_images
 
 
 DOME_OPEN = 0
@@ -120,7 +123,7 @@ def shutdown():
         tries += 1
         sleep(60)
 
-    if kill_python_processes:
+    if KILL_PYTHON_PROCESSES:
         kill_python_procs()
 
     logging.info("Shutdown complete.")
@@ -128,14 +131,17 @@ def shutdown():
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
-        shutdown_time = sys.argv[1]
+        SHUTDOWN_TIME = sys.argv[1]
 
     if len(sys.argv) > 2:
-        kill_python_processes = sys.argv[2].lower().strip() in ('true', 'yes', '1')
+        KILL_PYTHON_PROCESSES = sys.argv[2].lower().strip() in ('true', 'yes', '1')
 
-    shutdown_time = datetime.strptime(shutdown_time, "%H:%M").time()
-    shutdown_date = datetime.now().date() if datetime.now().time() < shutdown_time else datetime.now().date() + timedelta(days=1)
-    SHUTDOWN_DATETIME = datetime.combine(shutdown_date, shutdown_time)
+    if len(sys.argv) > 3:
+        TAKE_CALIBRATION_IMAGES = sys.argv[3].lower().strip() in ('true', 'yes', '1')
+
+    SHUTDOWN_TIME = datetime.strptime(SHUTDOWN_TIME, "%H:%M").time()
+    shutdown_date = datetime.now().date() if datetime.now().time() < SHUTDOWN_TIME else datetime.now().date() + timedelta(days=1)
+    SHUTDOWN_DATETIME = datetime.combine(shutdown_date, SHUTDOWN_TIME)
 
     logging.info(f"Shutdown scheduled for {SHUTDOWN_DATETIME}.")
 
@@ -149,3 +155,7 @@ if __name__ == "__main__":
     logging.info(f"Sleeping for {int(sleep_seconds)} seconds before shutdown.")
     sleep(sleep_seconds)
     shutdown()
+
+    if TAKE_CALIBRATION_IMAGES:
+        sleep(10)
+        take_calibration_images()

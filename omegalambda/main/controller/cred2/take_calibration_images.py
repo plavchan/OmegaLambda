@@ -48,44 +48,52 @@ def take_darks():
     sleep(5)
     logging.info("Done taking darks.")
 
-##############
 
-date = datetime.now().date() if datetime.now().hour > 12 else datetime.now().date() - timedelta(days=1)
-date = date.strftime("%Y%m%d")
-save_dir = os.path.join("H:/Observatory Files/Observing Sessions/2025_Data", date)
+def take_calibration_images():
+    global camera, flatlamp, tertiary_mirror, save_dir
 
-##############
+    logging.info("Starting calibration image process...")
 
-logging.info("Connecting to devices...")
+    date = datetime.now().date() if datetime.now().hour > 12 else datetime.now().date() - timedelta(days=1)
+    date = date.strftime("%Y%m%d")
+    save_dir = os.path.join("H:/Observatory Files/Observing Sessions/2025_Data", date)
 
-camera = NIRCamera()
-camera.start()
+    ##############
 
-flatlamp = FlatLamp()
-flatlamp.start()
+    logging.info("Connecting to devices...")
 
-tertiary_mirror = TertiaryMirror()
-tertiary_mirror.start()
+    camera = NIRCamera()
+    camera.start()
 
-sleep(5)
+    flatlamp = FlatLamp()
+    flatlamp.start()
 
-##############
+    tertiary_mirror = TertiaryMirror()
+    tertiary_mirror.start()
 
-logging.info(f"Taking {NUM_CALIBRATION_IMAGES} darks and flats at {EXPTIME} seconds exposure time.")
+    sleep(5)
 
-take_darks()
-take_flats()
+    ##############
 
-##############
+    logging.info(f"Taking {NUM_CALIBRATION_IMAGES} darks and flats at {EXPTIME} seconds exposure time.")
 
-logging.info("Disconnecting from devices...")
+    take_darks()
+    take_flats()
 
-camera.disconnect()
-flatlamp.disconnect()
-tertiary_mirror.disconnect()
+    ##############
 
-camera.stop()
-flatlamp.stop()
-tertiary_mirror.stop()
+    logging.info("Disconnecting from devices...")
 
-logging.info("Calibration images taken successfully.")
+    camera.disconnect()
+    flatlamp.disconnect()
+    tertiary_mirror.disconnect()
+
+    camera.stop()
+    flatlamp.stop()
+    tertiary_mirror.stop()
+
+    logging.info("Calibration images taken successfully.")
+
+
+if __name__ == "__main__":
+    take_calibration_images()
