@@ -404,12 +404,13 @@ class NIRCamera(Camera):
         """
         self.exp_done.clear()
 
-        if num_exposures == 1 and self.proc is not None:
-            self.send_signal(self.SINGLE_EXPOSURE_SIG)  # take one exposure
-            with Timeout(self.exposure_time_scale * exposure_time + min(3 * exposure_time, 10)):
-                    self._wait_for_capture_end(wait_for_exit=False)
-            self.exp_done.set()
-            return
+        # TODO: Make taking one exposure more efficient by using manual mode in control code.
+        # if num_exposures == 1 and self.proc is not None:
+        #     self.send_signal(self.SINGLE_EXPOSURE_SIG)  # take one exposure
+        #     with Timeout(self.exposure_time_scale * exposure_time + min(3 * exposure_time, 10)):
+        #             self._wait_for_capture_end(wait_for_exit=False)
+        #     self.exp_done.set()
+        #     return
 
         config = {
             "total_run_time_seconds": 0.0,  # Continuous
@@ -417,10 +418,10 @@ class NIRCamera(Camera):
             "data_directory": save_dir,
             "filename_prefix": name + "-",
             "wait_for_cooler_settle": wait_for_cooler,
-            "startup_only": num_exposures == 1
+            # "startup_only": num_exposures == 1
         }
 
-        if num_exposures and num_exposures > 1:
+        if num_exposures:  # and num_exposures > 1:
             config["total_run_time_seconds"] = float(num_exposures) * float(exposure_time)
 
         self._write_capture_code_config(config)
@@ -433,14 +434,14 @@ class NIRCamera(Camera):
             self._run_capture_code()
 
         if num_exposures:
-            if num_exposures == 1:
-                time.sleep(15)
-                self.send_signal(self.SINGLE_EXPOSURE_SIG)  # take one exposure
-                # time.sleep(self.exposure_time_scale * exposure_time + 120)
-                with Timeout(self.exposure_time_scale * exposure_time + min(3 * exposure_time, 30)):
-                    self._wait_for_capture_end(wait_for_exit=False)
-                self.exp_done.set()
-                return
+            # if num_exposures == 1:
+            #     time.sleep(15)
+            #     self.send_signal(self.SINGLE_EXPOSURE_SIG)  # take one exposure
+            #     # time.sleep(self.exposure_time_scale * exposure_time + 120)
+            #     with Timeout(self.exposure_time_scale * exposure_time + min(3 * exposure_time, 30)):
+            #         self._wait_for_capture_end(wait_for_exit=False)
+            #     self.exp_done.set()
+            #     return
             
             # time.sleep(self.exposure_time_scale * config["total_run_time_seconds"] + 120)
             with Timeout(self.exposure_time_scale * config["total_run_time_seconds"] + min(3 * exposure_time, 30)):
