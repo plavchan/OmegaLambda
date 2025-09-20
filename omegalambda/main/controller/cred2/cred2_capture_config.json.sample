@@ -1,10 +1,15 @@
 {
     "total_run_time_seconds": 0.0,
     "image_stack_time_seconds": 1.0,
+    "fps": 20,
+    "ndr_num": 60,
+    "enable_up_the_ramp_sampling": true,
     "take_calibration_images": false,
     "data_directory": "data",
     "filename_prefix": "image-",
-    "enable_compression": true,
+    "enable_compression": false,
     "wait_for_cooler_settle": true,
-    "startup_only": false
+    "startup_only": false,
+    "manual_mode": false,
+    "stop_cooler_at_end": false
 }

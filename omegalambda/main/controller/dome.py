@@ -119,7 +119,7 @@ class Dome(Hardware):
             while not self.Dome.AtHome:
                 time.sleep(5)
                 t += 5
-                if t >= 5*60:
+                if t >= 3*60:
                     logging.warning('Dome is still homing...ASCOM may be incorrectly reporting status.')
                     break
             self.has_homed.set()

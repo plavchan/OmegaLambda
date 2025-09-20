@@ -691,8 +691,13 @@ class ObservationRun:
                     break
                 if not self.everything_ok():
                     break
+                
                 current_filter = _filter[i % num_filters]
                 current_exp = exp_time[i % num_exptimes]
+
+                if satellite_tracking:
+                    satellite_check_time = self.satellite_tracking_check(satellite_check_time, satellite_tracking_mode, current_exp)
+
                 image_name = "{0:s}_{1:.3f}s_{2:s}-{3:04d}.fits".format(name, current_exp, str(current_filter).upper(), image_num)
 
                 if i == 0 and os.path.exists(os.path.join(path, image_name)):
@@ -706,11 +711,8 @@ class ObservationRun:
                     image_name = "{0:s}_{1:.3f}s_{2:s}-{3:04d}.fits".format(name, current_exp, str(current_filter).upper(), image_base[current_filter])
 
                 # Satellite tracking
-                if satellite_tracking and datetime.now() >= satellite_check_time:
-                    wait_seconds = self.continuous_satellite_tracking_procedure(satellite_tracking_mode)
-                    satellite_check_time = datetime.now() + timedelta(seconds=wait_seconds)
-                    if satellite_tracking_mode in (1, 3):
-                        satellite_check_time -= timedelta(seconds=current_exp)
+                if satellite_tracking:
+                    satellite_check_time = self.satellite_tracking_check(satellite_check_time, satellite_tracking_mode, current_exp)
 
                 header_info_i = self.add_timed_header_info(header_info, name, current_exp, satellite_tracking)
                 self.camera.onThread(
@@ -720,18 +722,21 @@ class ObservationRun:
                 if self.crash_check("MaxIm_DL.exe"):
                     continue
 
-                if satellite_tracking and satellite_tracking_mode == 2:  # Continuously adjust the tracking rate for mode 2
-                    cumulative_time = 0
-                    while not self.camera.image_done.is_set():
-                        time.sleep(0.1)
-                        cumulative_time += 0.1
-                        if datetime.now() >= satellite_check_time:
-                            wait_seconds = self.continuous_satellite_tracking_procedure(satellite_tracking_mode)
-                            satellite_check_time = datetime.now() + timedelta(seconds=wait_seconds)
-                        if cumulative_time >= int(current_exp) * 2 + 60:
-                            break
-                else:
-                    self.camera.image_done.wait(timeout=int(current_exp) * 2 + 60)
+                # if satellite_tracking and satellite_tracking_mode == 2:  # Continuously adjust the tracking rate for mode 2
+                #     cumulative_time = 0
+                #     while not self.camera.image_done.is_set():
+                #         time.sleep(0.1)
+                #         cumulative_time += 0.1
+                #         if datetime.now() >= satellite_check_time:
+                #             wait_seconds = self.continuous_satellite_tracking_procedure(satellite_tracking_mode)
+                #             satellite_check_time = datetime.now() + timedelta(seconds=wait_seconds)
+                #         if cumulative_time >= int(current_exp) * 2 + 10:
+                #             break
+                # else:
+                self.camera.image_done.wait(timeout=int(current_exp) * 2 + 10)
+
+                if satellite_tracking:
+                    satellite_check_time = self.satellite_tracking_check(satellite_check_time, satellite_tracking_mode, current_exp)
 
                 if cycle_filter:
                     if names_list:
@@ -749,6 +754,12 @@ class ObservationRun:
             self.telescope.onThread(self.telescope.clear_ra_dec_rates)
 
         return i
+    
+    def satellite_tracking_check(self, satellite_check_time, satellite_tracking_mode, current_exp):
+        if datetime.now() >= satellite_check_time:
+            wait_seconds = self.continuous_satellite_tracking_procedure(satellite_tracking_mode)
+            return datetime.now() + timedelta(seconds=wait_seconds - current_exp)
+        return satellite_check_time
 
     def satellite_tracking_mode_2_slew(self):
         ra_rate, dec_rate = satellite_utils.get_ra_dec_rates(self.satellite)  # do this first since it takes a little time

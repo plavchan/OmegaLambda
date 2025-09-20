@@ -408,6 +408,8 @@ def save_all_auto_folders():
         with open(target_path, 'r') as f:
             target_info = json.load(f)
         start_time = datetime.datetime.strptime(target_info["details"]["start_time"].replace(dst_check(), ""), "%Y-%m-%d %H:%M:%S")
+        if start_time.hour < 12:
+            start_time = start_time - datetime.timedelta(days=1)
         folder_name = start_time.strftime("%Y%m%d")
         folder_path = os.path.join(current_path, folder_name)
         if not os.path.exists(folder_path):
