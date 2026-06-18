@@ -18,6 +18,9 @@ class Telescope(Hardware):
         self.Telescope = None
         self.threads = []
         self.live_connection = threading.Event()
+
+    def last_slew_status(self):
+        return self.slewDone()
         
     def check_connection(self):
         """
@@ -244,7 +247,7 @@ class Telescope(Hardware):
         self._is_ready()
         
         # Native async command sequence mapping to target variables
-        self.Telescope.send_js("sky6RASCOMTele.Asynchronous == True;")
+        self.Telescope.send_js("sky6RASCOMTele.Asynchronous = true;")
         time.sleep(1)     
         cmd = f"sky6RASCOMTele.SlewToRaDec({ra}, {dec}, 'Target Slew');"
         self.Telescope.send_js(cmd)
