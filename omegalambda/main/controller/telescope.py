@@ -189,10 +189,8 @@ class Telescope(Hardware):
             dec_seconds = (dec_abs - dec_degrees - dec_minutes/60.0) * 3600
             if coords["dec"] < 0:
                 dec_degrees = -dec_degrees
-
-
-           coordsaltaz = self.get_coordinatesAltAz()
-           if coordsaltaz["alt"] is not None and coords["az"] is not None:
+            coordsaltaz = self.get_coordinatesAltAz()
+            if coordsaltaz["alt"] is not None and coords["az"] is not None:
                 if alt < 10 or abs(ra)>8.0:
                      inbounds=False
                 else:
