@@ -14,7 +14,7 @@ class Telescope(Hardware):
         """
         Initializes the telescope subclass inheriting from Hardware.
         """
-        super(Telescope, self).__init__()
+        super(Telescope, self).__init__("Telescope")
         self.Telescope = None
         self.threads = []
         self.live_connection = threading.Event()
