@@ -46,11 +46,10 @@ class Telescope(Hardware):
         try:
             # Instantiate your socket wrapper class
             self.Telescope = TheSkyXSocketWrapper()
-            
+            time.sleep(15)
             # Connect the telescope hardware if not already connected
             self.Telescope.send_js("sky6RASCOMTele.Connect();")
-            time.sleep(1)
-            
+            time.sleep(1)      
             self.check_connection()
         except Exception as e:
             logging.error(f"Telescope connection failed: {e}")
@@ -245,6 +244,8 @@ class Telescope(Hardware):
         self._is_ready()
         
         # Native async command sequence mapping to target variables
+        self.Telescope.send_js("sky6RASCOMTele.Asynchronous == True;")
+        time.sleep(1)     
         cmd = f"sky6RASCOMTele.SlewToRaDec({ra}, {dec}, 'Target Slew');"
         self.Telescope.send_js(cmd)
         

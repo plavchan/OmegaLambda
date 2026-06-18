@@ -74,12 +74,16 @@ class ObservationRun:
             self.camera = NIRCamera()
         else:  # CCD
             self.camera = Camera()
-        self.telescope = Telescope()
-        self.dome = Dome()
         self.focuser = Focuser()
         self.conditions = Conditions(plot_lock=self.plot_lock)
         self.flatlamp = FlatLamp()
         self.tertiary_mirror = TertiaryMirror()
+
+        self.dome = Dome()
+        time.sleep(15)
+        print("debug I'm here")
+        self.telescope = Telescope()
+
 
         # Initializes higher level structures - focuser, guider, and calibration
         self.focus_procedures = FocusProcedures(self.focuser, self.camera, self.conditions, self.shutdown_event, plot_lock=self.plot_lock)
