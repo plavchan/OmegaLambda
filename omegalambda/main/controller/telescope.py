@@ -284,8 +284,9 @@ class Telescope(Hardware):
         # self.Telescope.send_js("sky6RASCOMTele.Asynchronous = true;")
         # time.sleep(2)
         # print(ra,dec)
+        target_name = "automatedradec"
         print("here 1")     # this next line triggers mount cannot slew.  is it a number of digits issue?  float vs double?
-        cmd = f"sky6RASCOMTele.SlewToRaDec({ra}, {dec});"
+        cmd = f'sky6RASCOMTele.SlewToRaDec({ra}, {dec}, "{target_name}");\n'
         self.Telescope.send_js(cmd)
         print("here 2")
         # Wait until movement is finalized
@@ -310,11 +311,11 @@ class Telescope(Hardware):
             return
 
         self._is_ready()
-        
+        target_name = "automatedaltaz"
         # Native async command sequence mapping to target variables
         self.Telescope.send_js("sky6RASCOMTele.Asynchronous = true;")
         time.sleep(1)     
-        cmd = f"sky6RASCOMTele.SlewToAzAlt({az}, {alt});"
+        cmd = f'sky6RASCOMTele.SlewToAzAlt({az}, {alt},"{target_name}");\n'
         self.Telescope.send_js(cmd)
         
         # Wait until movement is finalized
