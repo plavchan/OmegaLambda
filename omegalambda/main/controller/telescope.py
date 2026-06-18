@@ -281,9 +281,12 @@ class Telescope(Hardware):
         self._is_ready()
         
         # Native async command sequence mapping to target variables
-        # self.Telescope.send_js("sky6RASCOMTele.Asynchronous = true;")
+        print("here 0")
+        self.Telescope.send_js("sky6RASCOMTele.Asynchronous = 0;\n")
         # time.sleep(2)
         # print(ra,dec)
+        self.Telescope.send_js("sky6ObjectInformation.Property(54);\n") 
+        print("here 0.5")
         target_name = "automatedradec"
         print("here 1")     # this next line triggers mount cannot slew.  is it a number of digits issue?  float vs double?
         cmd = f'sky6RASCOMTele.SlewToRaDec({ra}, {dec}, "{target_name}");\n'
