@@ -245,7 +245,7 @@ class Telescope(Hardware):
         self._is_ready()
         
         # Native async command sequence mapping to target variables
-        cmd = f"sky6RASCOMTele.SlewToRaDecAsync({ra}, {dec}, 'Target Slew');"
+        cmd = f"sky6RASCOMTele.SlewToRaDec({ra}, {dec}, 'Target Slew');"
         self.Telescope.send_js(cmd)
         
         # Wait until movement is finalized
