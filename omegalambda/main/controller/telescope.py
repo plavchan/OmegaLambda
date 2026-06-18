@@ -61,7 +61,7 @@ class Telescope(Hardware):
             True if successful, otherwise False.
         """
         try:
-            self.Telescope = win32com.client.Dispatch("ASCOM.SoftwareBisque.Telescope")
+            self.Telescope = win32com.client.Dispatch("TheSky64.sky6RASCOMTele")
             self.Telescope.SlewSettleTime = 1
             self.check_connection()
         except (AttributeError, pywintypes.com_error):
@@ -123,10 +123,10 @@ class Telescope(Hardware):
         None.
 
         """
-        while self.Telescope.Slewing:
+        while self.Telescope.IsSlewComplete == 0:
             logging.debug("In _is_ready slew loop")
             time.sleep(1)
-        if not self.Telescope.Slewing:
+        if not self.Telescope.IsSlewComplete == 1:
             return
 
     def check_current_coords(self):
@@ -163,9 +163,9 @@ class Telescope(Hardware):
             return park_status
         time.sleep(1)
         t = 0
-        while self.Telescope.Tracking:
+        while self.Telescope.Tracking:  # this line broken
             try:
-                self.Telescope.Tracking = False
+                self.Telescope.SetTracking(0,0,0.0,0.0)
             except (AttributeError, pywintypes.com_error) as exc:
                 logging.error("Could not disable tracking.  Exception: {}".format(exc))
             time.sleep(5)
@@ -199,7 +199,7 @@ class Telescope(Hardware):
         try:
             with self.movement_lock:
                 self.Telescope.Unpark()
-                self.Telescope.Tracking = True
+                self.Telescope.SetTracking(1,1,0.0,0.0)
         except (AttributeError, pywintypes.com_error) as e:
             logging.error("Error unparking telescope or tracking")
             logging.exception(e)
@@ -245,24 +245,24 @@ class Telescope(Hardware):
             try:
                 with self.movement_lock:
                     logging.info('Slewing to RA/Dec')
-                    self.Telescope.SlewToCoordinatesAsync(ra, dec)
+                    self.Telescope.SlewToRaDecAsync(ra, dec,"Slew Target")
                     if coord_check_delay_ms > 0:
                         time.sleep(coord_check_delay_ms/1000)
                     time.sleep(1)
-                    while self.Telescope.Slewing:
+                    while self.Telescope.isSlewComplete == 0:
                         logging.debug("In slew loop")
                         in_limits = self.__check_coordinate_limit(self.Telescope.RightAscension, self.Telescope.Declination, verbose=1)
                         if not in_limits:
                             self.abort()
                             logging.critical('Telescope has slewed past limits, despite the final destination being within limits!'
                                              ' aborting slew!')
-                            self.Telescope.Tracking = False
+                            self.Telescope.SetTracking(0,0,0.0,0.0)
                             self.last_slew_status = -100
                             time.sleep(2)
                             self.slew_done.set()
                             return -100
                         time.sleep(.1)
-                    self.Telescope.Tracking = tracking
+                    self.Telescope.SetTracking(1 if tracking else 0,1 if tracking else 0,0.0,0.0)
                     time.sleep(2)
             except (AttributeError, pywintypes.com_error) as e:
                 logging.error("ASCOM Error slewing to target.  You may safely ignore this warning.")
@@ -282,7 +282,7 @@ class Telescope(Hardware):
         try:
             with self.movement_lock:
                 logging.info('Setting telescope tracking to {}'.format(str(tracking)))
-                self.Telescope.Tracking = tracking
+                self.Telescope.SetTracking(1 if tracking else 0, 1 if tracking else 0, 0.0,0.0)
         except (AttributeError, pywintypes.com_error):
             logging.error('Could not set telescope tracking!')
         self._is_ready()
@@ -315,10 +315,11 @@ class Telescope(Hardware):
                 if convert_to_sidereal_sec:
                     ra_rate = conversion_utils.convert_sec_to_sidereal_sec(ra_rate)  # only ra needs to be converted
                 # ra_rate -= 1  # offset to sidereal: 15"/s -> 1s/s is sidereal rate
-                # The following 3 lines have to go in that exact order. No idea why.
-                self.Telescope.DeclinationRate = dec_rate
-                self.Telescope.Tracking = True
-                self.Telescope.RightAscensionRate = ra_rate
+                self.Telescope.setTracking(1,0,ra_rate,dec_rate)
+	        # old code pre 64-bit:
+                # self.Telescope.DeclinationRate = dec_rate
+                # self.Telescope.Tracking = True
+                # self.Telescope.RightAscensionRate = ra_rate
         except (AttributeError, pywintypes.com_error):
             logging.error('Could not set telescope tracking rates!')
 
@@ -368,7 +369,7 @@ class Telescope(Hardware):
         self._is_ready()
         try:
             with self.movement_lock:
-                self.Telescope.PulseGuide(direction_num, duration)
+                self.Telescope.PulseGuide(duration,direction.upper())  # might cause a problem.
         except (AttributeError, pywintypes.com_error):
             logging.error("Could not pulse guide")
             return False
@@ -410,7 +411,7 @@ class Telescope(Hardware):
         if abs(distance) < 30*60:                            # Less than 30', pulse guide
             duration = (abs(distance)/3600)/rate
             logging.debug('Calculated Pulse Guide Duration: {} milliseconds'.format(duration*1000))
-            self.pulse_guide(direction, duration)
+            self.pulse_guide(direction,duration)
 
         elif abs(distance) >= 30*60:                         # More than 30', slew normally
             if direction in ("north", "south"):
