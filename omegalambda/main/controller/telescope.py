@@ -17,6 +17,7 @@ class Telescope(Hardware):
         super(Telescope, self).__init__("Telescope")
         self.Telescope = None
         self.threads = []
+        self.status = True
         self.live_connection = threading.Event()
 
     def last_slew_status(self):
@@ -85,23 +86,23 @@ class Telescope(Hardware):
                 break
             time.sleep(0.2)
 
-    @property
-    def status(self):
-        """
-        Exposes a telemetry status dictionary mapping real-time states 
-        to satisfy OmegaLambda's background ThreadMonitor diagnostics.
-        """
-        coords = self.get_coordinates()
-        
-        # Pull real-time connection state from your active Event flag
-        is_connected = self.live_connection.is_set()
-        
-        # Query if the mount is slewing (IsSlewComplete returns 0 if moving)
-        if is_connected and self.Telescope:
-            slew_val = self.Telescope.send_js("var res = sky6RASCOMTele.IsSlewComplete; res;")
-            is_slewing = (slew_val == "0")
-        else:
-            is_slewing = False
+#    @property
+#    def status(self):
+#        """
+#        Exposes a telemetry status dictionary mapping real-time states 
+#        to satisfy OmegaLambda's background ThreadMonitor diagnostics.
+#        """
+#        coords = self.get_coordinates()
+#        
+#        # Pull real-time connection state from your active Event flag
+#        is_connected = self.live_connection.is_set()
+#       
+#        # Query if the mount is slewing (IsSlewComplete returns 0 if moving)
+#        if is_connected and self.Telescope:
+#            slew_val = self.Telescope.send_js("var res = sky6RASCOMTele.IsSlewComplete; res;")
+#            is_slewing = (slew_val == "0")
+#        else:
+#            is_slewing = False
 
         # Build the exact status metadata structure expected by the framework
         #return {
@@ -110,10 +111,11 @@ class Telescope(Hardware):
         #    "ra": coords.get("ra"),
         #    "dec": coords.get("dec")
         #}
-        if is_connected and self.check_current_coords():
-             return True 
-        else:
-             return False
+#        print(is_connected,self.check_current_coords())
+#        if is_connected and self.check_current_coords():
+#             return True 
+#        else:
+#             return False
 
 
     @property
@@ -200,9 +202,11 @@ class Telescope(Hardware):
                 f"RA: {ra_hours:02d}:{ra_minutes:02d}:{ra_seconds:05.2f}, "
                 f"DEC: {dec_degrees:02d}:{dec_minutes:02d}:{dec_seconds:04.1f}"
             )
+            self.status = inbounds
             return inbounds
         else:
             logging.warning("ThreadMonitor failed to fetch telescope coordinates.")
+            self.status = False
             return False
 
     def get_coordinates(self):
