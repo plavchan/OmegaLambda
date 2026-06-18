@@ -23,7 +23,7 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     include_package_data=True,
     install_requires=install_requires,
-    url="https://github.com/Kakon24/omegalambda",
+    url="https://github.com/plavchan/omegalambda",
     classifiers=[
         "Programming Language :: Python :: 3.8",
         "Operating System :: Windows"

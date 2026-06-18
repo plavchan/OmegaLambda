@@ -50,7 +50,7 @@ def run(obs_tickets, data=None, config=None, _filter=None, logger=None, shutdown
     current_path = os.path.abspath(os.path.dirname(__file__))
     # Gets the current filepath for this driver.py file, to use for automatically finding the config files
     config_path = os.path.join(current_path, r'..', r'..', r'config')
-    
+    print("current_path")
     if logger:
         log_object = Logger(logger)
     else:
