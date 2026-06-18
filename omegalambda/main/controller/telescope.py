@@ -224,7 +224,7 @@ class Telescope(Hardware):
         # Pull values out via separate evaluated expressions
         ra_raw = self.Telescope.send_js("var res = sky6RASCOMTele.dRa; res;")
         dec_raw = self.Telescope.send_js("var res = sky6RASCOMTele.dDec; res;")
-        #print(ra_raw,dec_raw)
+        print(ra_raw,dec_raw)
         try:
             return {
                 "ra": float(ra_raw),
@@ -248,7 +248,7 @@ class Telescope(Hardware):
         # Pull values out via separate evaluated expressions
         alt_raw = self.Telescope.send_js("var res = sky6RASCOMTele.dAlt; res;")
         az_raw = self.Telescope.send_js("var res = sky6RASCOMTele.dAz; res;")
-        #print(alt_raw,az_raw)
+        print(alt_raw,az_raw)
         try:
             return {
                 "alt": float(alt_raw),
@@ -285,8 +285,8 @@ class Telescope(Hardware):
         self.Telescope.send_js("sky6RASCOMTele.Asynchronous = 0;\n")
         time.sleep(1)
         print(ra,dec)
-        self.Telescope.send_js("sky6ObjectInformation.Property(54);\n") 
-        print("here 0.5")
+        #self.Telescope.send_js("sky6ObjectInformation.Property(54);\n") 
+        #print("here 0.5")
         target_name = "automatedradec"
         print("here 1")     # this next line triggers mount cannot slew.  is it a number of digits issue?  float vs double?
         cmd = f'sky6RASCOMTele.SlewToRaDec({ra}, {dec}, "{target_name}");\n'
@@ -315,23 +315,23 @@ class Telescope(Hardware):
 
         self._is_ready()
         target_name = "automatedaltaz"
-        print("here 0")
+        print("here alt 0")
         self.Telescope.send_js("sky6RASCOMTele.Asynchronous = 0;\n")
         time.sleep(1)
-        print(ra,dec)
+        print(alt,az)
         self.Telescope.send_js("sky6ObjectInformation.Property(54);\n") 
-        print("here 0.5")
+        print("here alt 0.5")
 
         cmd = f'sky6RASCOMTele.SlewToAzAlt({az}, {alt},"{target_name}");\n'
         self.Telescope.send_js(cmd)
-        ρrint("here 1")
+        ρrint("here alt 1")
         # Wait until movement is finalized
         self._is_ready()
-        print("here 2")
+        print("here alt 2")
         # Set post-slew tracking state
         track_flag = 1 if tracking else 0
         self.Telescope.send_js(f"sky6RASCOMTele.SetTracking({track_flag}, 1, 0.0, 0.0);")
-        print("here 3")
+        print("here alt 3")
 
     def set_tracking(self, tracking=True):
         """
