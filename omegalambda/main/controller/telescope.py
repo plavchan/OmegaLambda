@@ -2,495 +2,221 @@ import threading
 import logging
 import time
 import subprocess
-import pywintypes
-import win32com.client
+import os
 
-from ..common.util import conversion_utils
-from ..common.util import time_utils
+from ..common.util import conversion_utils, time_utils
 from .hardware import Hardware
-
+# Import the custom socket wrapper you created
+from .skyx_tcpsocketwrapper import TheSkyXSocketWrapper
 
 class Telescope(Hardware):
-
     def __init__(self):
         """
-        Initializes the telescope class as a subclass of Hardware.
-
-        Returns
-        -------
-        None.
-
+        Initializes the telescope subclass inheriting from Hardware.
         """
-        self.slew_done = threading.Event()
-        self.slew_done.set()
-        self.movement_lock = threading.Lock()
-        self.last_slew_status = None
-        self.status = True
-        # Threading event sets flags and allows threads to interact with each other
-        super(Telescope, self).__init__(name='Telescope')       # Calls Hardware.__init__ with the name 'Telescope'
-
+        super(Telescope, self).__init__()
+        self.Telescope = None
+        self.threads = []
+        self.live_connection = threading.Event()
+        
     def check_connection(self):
         """
-        Description
-        -----------
-        Overwrites base class.  Checks for telescope connection specifically.
-
-        Returns
-        -------
-
+        Verifies communication with TheSkyX via a fast status ping.
         """
-        logging.info('Checking connection for the {}'.format(self.label))
-        self.live_connection.clear()
-        if not self.Telescope.Connected:
-            self.Telescope.Connected = True
+        if self.Telescope is None:
+            self.live_connection.clear()
+            return
+
+        # Query connection status using a quick JS execution echo
+        res = self.Telescope.send_js("var res = sky6RASCOMTele.IsConnected; res;")
+        if res == "1":
             self.live_connection.set()
         else:
-            logging.info("Already connected")
+            self.live_connection.clear()
 
     def _class_connect(self):
         """
-        Description
-        -----------
-        Overrides base hardware class (not implemented).
-        Dispatches COM connection to telescope object and sets necessary parameters.
-        Should only ever be called from within the run method.
+        Connects to your custom socket wrapper and signals the physical mount connect command.
 
         Returns
         -------
-        BOOL
-            True if successful, otherwise False.
+        bool
+            True if connection to TheSkyX TCP engine is verified, False otherwise.
         """
         try:
-            self.Telescope = win32com.client.Dispatch("TheSky64.sky6RASCOMTele")
-            self.Telescope.SlewSettleTime = 1
-            self.check_connection()
-        except (AttributeError, pywintypes.com_error):
-            logging.error('Could not connect to the telescope')
-            return False
-        else:
-            logging.info('Telescope has successfully connected')
-        return True
-
-    def __check_coordinate_limit(self, ra, dec, time=None, verbose=0):
-        """
-
-        Parameters
-        ----------
-        ra : FLOAT
-            Target object's right ascension in hours.
-        dec : FLOAT
-            Target object's declination in degrees.
-        time : CLASS INSTANCE OBJECT of DATETIME.DATETIME, optional
-            Time at which these coordinates will need to be converted to Altitude/Azimuth. The default is None,
-            which will convert them for the current date/time.
-        verbose : INT
-            0 for no logging messages, 1 for logging messages
-
-        Returns
-        -------
-        BOOL
-            If True, the coordinates are within the physical limits of the telescope, and the
-            slew may proceed.
-
-        """
-        lst = time_utils.get_local_sidereal_time(self.config_dict.site_longitude, time)
-        ha = (lst - ra) % 24 # in hours
-        if ha > 12:
-            ha -= 24
-        (az, alt) = conversion_utils.convert_radec_to_altaz(ra, dec, self.config_dict.site_latitude,
-                                                            self.config_dict.site_longitude, time)
-
-        if verbose:
-            logging.debug('Telescope Coordinates: ' + str(ra) + ' ' + str(dec))
-            logging.debug('Telescope Alt/Az: ' + str(alt) + ' ' + str(az))
-        if (alt <= 15) or (dec > 90) or (abs(ha) > 8.75):
-            msg = "Altitude less than 15 degrees" if (alt <= 15) else "Declination above 90 degrees" if (dec > 90) else \
-                "Hour angle = {}h > 8h 45m".format(ha) if (abs(ha) > 8.75) else "None"
-            logging.error('Coordinates not good.  Reason: {}'.format(msg))
-            return False
-        else:
-            return True
-        # TODO: Figure out if there are any other limits
-
-    def _is_ready(self):
-        """
-        Description
-        -----------
-        Affirms that the telescope is done slewing and ready for another command before continuing.
-
-        Returns
-        -------
-        None.
-
-        """
-        while self.Telescope.IsSlewComplete == 0:
-            logging.debug("In _is_ready slew loop")
+            # Instantiate your socket wrapper class
+            self.Telescope = TheSkyXSocketWrapper()
+            
+            # Connect the telescope hardware if not already connected
+            self.Telescope.send_js("sky6RASCOMTele.Connect();")
             time.sleep(1)
-        if not self.Telescope.IsSlewComplete == 1:
-            return
-
-    def check_current_coords(self):
-        ra = self.Telescope.RightAscension
-        dec = self.Telescope.Declination
-        check = self.__check_coordinate_limit(ra, dec)
-        self.status = check
-        return self.status
-
-    def park(self, coord_check_delay_ms=0):
-        """
-
-        Returns
-        -------
-        BOOL
-            True if the park was successful, False otherwise.
-
-        """
-        self._is_ready()
-        self.slew_done.clear()
-        if self.Telescope.AtPark:
-            self.slew_done.set()
-            logging.info("Telescope is at park")
-            return True
-        try:
-            # self.Telescope.Park()
-            park_status = self.slewaltaz(self.config_dict.telescope_park_az, self.config_dict.telescope_park_alt, tracking=False,
-                                         coord_check_delay_ms=coord_check_delay_ms)
-        except (AttributeError, pywintypes.com_error) as exc:
-            logging.error("Could not park telescope.  Exception: {}".format(exc))
+            
+            self.check_connection()
+        except Exception as e:
+            logging.error(f"Telescope connection failed: {e}")
             return False
-        if park_status == -100:
-            self.slew_done.set()
-            return park_status
-        time.sleep(1)
-        t = 0
-        while self.Telescope.Tracking:  # this line broken
-            try:
-                self.Telescope.SetTracking(0,0,0.0,0.0)
-            except (AttributeError, pywintypes.com_error) as exc:
-                logging.error("Could not disable tracking.  Exception: {}".format(exc))
-            time.sleep(5)
-            t += 5
-            if t >= 25:
-                logging.critical("Failed to disable telescope tracking. "
-                                 "Gave up after {} attempts.".format(t // 5))
-                break
-        self._is_ready()
-        with self.movement_lock:
-            try:
-                self.Telescope.Park()
-            except (AttributeError, pywintypes.com_error) as exc:
-                logging.error("Could not park telescope.  Exception: {}".format(exc))
-                return False
-        logging.info('Telescope is parked, tracking off')
-        self._is_ready()
-        self.slew_done.set()
-        return park_status
-
-    def unpark(self):
-        """
-
-        Returns
-        -------
-        BOOL
-            True if unpark was successful, False otherwise.
-
-        """
-        self._is_ready()
-        try:
-            with self.movement_lock:
-                self.Telescope.Unpark()
-                self.Telescope.SetTracking(1,1,0.0,0.0)
-        except (AttributeError, pywintypes.com_error) as e:
-            logging.error("Error unparking telescope or tracking")
-            logging.exception(e)
-            return False
-        else: 
-            logging.info("Telescope is unparked; tracking at sidereal rate")
-            logging.info("Telescope is unparked, tracking on")
-            return True
-
-    def slew(self, ra, dec, tracking=True, coord_check_delay_ms=0, convert_to_apparent=True, apply_offsets=True):
-        """
-
-        Parameters
-        ----------
-        ra : FLOAT
-            Right ascension of target in hours.
-        dec : FLOAT
-            Declination of target in degrees.
-        tracking : BOOL, optional
-            Whether to turn tracking on or off. The default is True for RA/Dec slews.
-        coord_check_delay_ms : FLOAT, optional
-            Delay time in milliseconds after the slew starts before coordinates are checked
-            for validity.  This is necessary in case the starting position is out of bounds.
-
-        Returns
-        -------
-        BOOL
-            True if slew succeeded, False otherwise.
-
-        """
-        self.slew_done.clear()
-        if convert_to_apparent:
-            (ra, dec) = conversion_utils.convert_j2000_to_apparent(ra, dec)
-        # Telescope internally uses apparent epoch coordinates, but we input in J2000
-        if apply_offsets:
-            ra += self.config_dict.slew_offset_ra
-            dec += self.config_dict.slew_offset_dec
-        if self.__check_coordinate_limit(ra, dec, verbose=1) is False:
-            logging.error("Coordinates are outside of physical slew limits.")
-            self.last_slew_status = False
-        else:
-            self._is_ready()
-            try:
-                with self.movement_lock:
-                    logging.info('Slewing to RA/Dec')
-                    self.Telescope.SlewToRaDecAsync(ra, dec,"Slew Target")
-                    if coord_check_delay_ms > 0:
-                        time.sleep(coord_check_delay_ms/1000)
-                    time.sleep(1)
-                    while self.Telescope.isSlewComplete == 0:
-                        logging.debug("In slew loop")
-                        in_limits = self.__check_coordinate_limit(self.Telescope.RightAscension, self.Telescope.Declination, verbose=1)
-                        if not in_limits:
-                            self.abort()
-                            logging.critical('Telescope has slewed past limits, despite the final destination being within limits!'
-                                             ' aborting slew!')
-                            self.Telescope.SetTracking(0,0,0.0,0.0)
-                            self.last_slew_status = -100
-                            time.sleep(2)
-                            self.slew_done.set()
-                            return -100
-                        time.sleep(.1)
-                    self.Telescope.SetTracking(1 if tracking else 0,1 if tracking else 0,0.0,0.0)
-                    time.sleep(2)
-            except (AttributeError, pywintypes.com_error) as e:
-                logging.error("ASCOM Error slewing to target.  You may safely ignore this warning.")
-                logging.exception(e)
-            self._is_ready()
-            if abs(self.Telescope.RightAscension - ra) <= 0.5 and abs(self.Telescope.Declination - dec) <= 0.5:
-                self.last_slew_status = True
-            else:
-                self.last_slew_status = False
-        self.slew_done.set()
-        return self.last_slew_status
-
-    def get_ra_dec(self):
-        return self.Telescope.RightAscension, self.Telescope.Declination
-
-    def set_tracking(self, tracking):
-        try:
-            with self.movement_lock:
-                logging.info('Setting telescope tracking to {}'.format(str(tracking)))
-                self.Telescope.SetTracking(1 if tracking else 0, 1 if tracking else 0, 0.0,0.0)
-        except (AttributeError, pywintypes.com_error):
-            logging.error('Could not set telescope tracking!')
-        self._is_ready()
-        return True
-
-    def set_ra_dec_rates(self, ra_rate, dec_rate, convert_to_sidereal_sec=True):
-        """
-        Sets custom mount tracking rates in RA and Dec.
-
-        Parameters
-        ----------
-        ra_rate : FLOAT
-            Custom RA tracking rate, arcseconds per second.
-        dec_rate : FLOAT
-            Custom Dec tracking rate, arcseconds per second.
-
-        Returns
-        -------
-        None
-        """
-        if abs(ra_rate) >= 360 or abs(dec_rate) >= 360:
-            logging.error(f'Tracking rates of ra={ra_rate}"/s and dec={dec_rate}"/s too high: must be less than 360"/s')
-            return
-
-        self._is_ready()
-        try:
-            with self.movement_lock:
-                logging.info(f'Setting telescope tracking rates to ra={ra_rate}"/s and dec={dec_rate}"/s')
-                ra_rate = conversion_utils.convert_arcsec_to_ra_sec(ra_rate)
-                if convert_to_sidereal_sec:
-                    ra_rate = conversion_utils.convert_sec_to_sidereal_sec(ra_rate)  # only ra needs to be converted
-                # ra_rate -= 1  # offset to sidereal: 15"/s -> 1s/s is sidereal rate
-                self.Telescope.setTracking(1,0,ra_rate,dec_rate)
-	        # old code pre 64-bit:
-                # self.Telescope.DeclinationRate = dec_rate
-                # self.Telescope.Tracking = True
-                # self.Telescope.RightAscensionRate = ra_rate
-        except (AttributeError, pywintypes.com_error):
-            logging.error('Could not set telescope tracking rates!')
-
-    def get_ra_dec_rates(self):
-        """Returns the current mount tracking rates in arcseconds per second."""
-        ra_rate = self.Telescope.RightAscensionRate * (1 / conversion_utils.ARCSEC_TO_RA_SEC) * (1 / conversion_utils.SEC_TO_SIDEREAL_SEC)
-        return ra_rate, self.Telescope.DeclinationRate
-
-    def clear_ra_dec_rates(self):
-        """
-        Clears custom mount tracking rates, returning them to sidereal.
-
-        Returns
-        -------
-        None
-        """
-        self.set_ra_dec_rates(0, 0)
-
-    def pulse_guide(self, direction, duration):
-        """
-
-        Parameters
-        ----------
-        direction : STR
-            Direction that the telescope should pulse guide.  north, south, east, or west.
-        duration : INT
-            Duration in seconds that the telescope should pulse guide for.
-
-        Returns
-        -------
-        BOOL
-            True if successful, False otherwise.
-
-        """
-        self.slew_done.clear()
-        direction_key = {"north": 0, "south": 1, "east": 2, "west": 3}
-        # Converts str to int, used by internal telescope calls
-
-        if direction in direction_key:
-            direction_num = direction_key[direction]
-        else:
-            logging.error("Invalid pulse guide direction")
-            return False
-
-        duration *= 1000
-        # Convert seconds to milliseconds, used by internal telescope calls
-        self._is_ready()
-        try:
-            with self.movement_lock:
-                self.Telescope.PulseGuide(duration,direction.upper())  # might cause a problem.
-        except (AttributeError, pywintypes.com_error):
-            logging.error("Could not pulse guide")
-            return False
-        else:
-            self._is_ready()
-            self.slew_done.set()
-            logging.info('Telescope is pulse guiding')
-            return True
-
-    def jog(self, direction, distance):
-        """
-
-        Parameters
-        ----------
-        direction : STR
-            Direction to jog the telescope.  North, south, east, or west.
-        distance : INT
-            Distance to jog the telescope in arcseconds.
-
-        Returns
-        -------
-        None.
-
-        """
-        self.slew_done.clear()
-        logging.debug('Sending telescope jog request...')
-        rates_key = {**dict.fromkeys(["north", "south"], self.Telescope.GuideRateDeclination),
-                     **dict.fromkeys(["east", "west"], self.Telescope.GuideRateRightAscension)}
-        # Dictionaries to convert direction str to distance
-        distance_key = {**dict.fromkeys(["north", "east"], distance),
-                        **dict.fromkeys(["south", "west"], -distance)}
-
-        if direction in rates_key:
-            rate = rates_key[direction]
-            distance = distance_key[direction]
-        else:
-            logging.error('Invalid jog direction')
-            return
-        if abs(distance) < 30*60:                            # Less than 30', pulse guide
-            duration = (abs(distance)/3600)/rate
-            logging.debug('Calculated Pulse Guide Duration: {} milliseconds'.format(duration*1000))
-            self.pulse_guide(direction,duration)
-
-        elif abs(distance) >= 30*60:                         # More than 30', slew normally
-            if direction in ("north", "south"):
-                self.slew(self.Telescope.RightAscension, self.Telescope.Declination + distance/3600)
-            elif direction in ("east", "west"):
-                self.slew(self.Telescope.RightAscension + distance/(15*3600), self.Telescope.Declination)
-            logging.info('Telescope is jogging')
-
-    def slewaltaz(self, az, alt, time=None, tracking=False, coord_check_delay_ms=0):
-        """
-
-        Parameters
-        ----------
-        az : FLOAT
-            Azimuth in degrees of the target to slew to.
-        alt : FLOAT
-            Altitude in degrees of the target to slew to.
-        time : CLASS INSTANCE OBJECT of DATETIME.DATETIME, optional
-            The time for which the conversion to ra/dec should be done. The default is None,
-            which converts them for the current time.
-        tracking : BOOL, optional
-            Whether to set the tracking on or off after slewing. The default is False for Alt/Az slews.
-
-        Returns
-        -------
-        slew : BOOL
-            Whether or not slew was successful.
-
-        """
-        (ra, dec) = conversion_utils.convert_altaz_to_radec(az, alt, self.config_dict.site_latitude,
-                                                            self.config_dict.site_longitude, time)
-        (ra, dec) = conversion_utils.convert_apparent_to_j2000(ra, dec)
-        slew = self.slew(ra, dec, tracking, coord_check_delay_ms=coord_check_delay_ms)
-        logging.info('Slewing to Alt/Az')
-        return slew
-
-    def abort(self):
-        """
-        Description
-        -----------
-        Aborts any slews that may be in progress.
-
-        Returns
-        -------
-        None.
-
-        """
-        logging.warning('Aborting slew')
-        self.Telescope.AbortSlew()
+        return self.live_connection.is_set()
 
     def disconnect(self):
         """
-        Description
-        -----------
-        Disconnects the telescope.  Always park before disconnecting!
+        Disconnects the physical telescope mount software-side.
 
         Returns
         -------
-        BOOL
-            True if disconnecting was successful, False otherwise.
-
+        bool
+            True if disconnected successfully.
         """
-        logging.debug('Disconnecting telescope...')
         self._is_ready()
-        if self.Telescope.AtPark:
-            try: 
-                self.Telescope.Connected = False
-                self.live_connection.clear()
-                subprocess.call("taskkill /f /im TheSkyX.exe")
-                # This is the only way it will actually disconnect from TheSkyX so far
-            except (AttributeError, pywintypes.com_error):
-                logging.error("Could not disconnect from telescope")
-                return False
-            else:
-                logging.info('Telescope disconnected')
-                return True
-        else: 
-            logging.warning("Telescope is not parked.")
-            return False
+        if self.Telescope:
+            self.Telescope.send_js("sky6RASCOMTele.Disconnect();")
+        self.live_connection.clear()
+        return True
 
+    def _is_ready(self):
+        """
+        Blocking loop that holds execution until the telescope completes its current slew.
+        """
+        while True:
+            # IsSlewComplete returns 0 if still moving, 1 if done
+            val = self.Telescope.send_js("var res = sky6RASCOMTele.IsSlewComplete; res;")
+            if val == "1":
+                break
+            time.sleep(0.2)
 
-# Don't know what the cordwrap functions were all about in the deprecated telescope file?
+    def park(self):
+        """
+        Parks the telescope to its resting safety orientation.
+        """
+        self._is_ready()
+        # Turn tracking off natively before parking
+        self.Telescope.send_js("sky6RASCOMTele.SetTracking(0, 1, 0.0, 0.0);")
+        self.Telescope.send_js("sky6RASCOMTele.Park();")
+        self._is_ready()
+
+    def unpark(self):
+        """
+        Unparks the telescope mount.
+        """
+        self._is_ready()
+        self.Telescope.send_js("sky6RASCOMTele.Unpark();")
+        # Explicitly engage default tracking upon unpark
+        self.Telescope.send_js("sky6RASCOMTele.SetTracking(1, 1, 0.0, 0.0);")
+
+    def get_coordinates(self):
+        """
+        Queries the telescope position and scales them into degrees/hours.
+
+        Returns
+        -------
+        dict
+            A dictionary tracking current 'ra' and 'dec'.
+        """
+        # Command TheSkyX to grab latest telemetry
+        self.Telescope.send_js("sky6RASCOMTele.GetRaDec();")
+        
+        # Pull values out via separate evaluated expressions
+        ra_raw = self.Telescope.send_js("var res = sky6RASCOMTele.dRa; res;")
+        dec_raw = self.Telescope.send_js("var res = sky6RASCOMTele.dDec; res;")
+        
+        try:
+            return {
+                "ra": float(ra_raw),
+                "dec": float(dec_raw)
+            }
+        except ValueError:
+            logging.error("Could not parse coordinates from telescope socket.")
+            return {"ra": None, "dec": None}
+
+    def slew(self, ra, dec, tracking=True):
+        """
+        Asynchronously slews the telescope to target Right Ascension and Declination coordinates.
+
+        Parameters
+        -------
+        ra : float
+            Target Right Ascension in hours.
+        dec : float
+            Target Declination in degrees.
+        tracking : bool, optional
+            Whether standard sidereal tracking remains engaged after slew finishes. Default is True.
+        """
+        if ra < 0 or ra >= 24:
+            logging.error(f"Invalid RA coordinate given: {ra}")
+            return
+        if dec < -90 or dec > 90:
+            logging.error(f"Invalid Dec coordinate given: {dec}")
+            return
+
+        self._is_ready()
+        
+        # Native async command sequence mapping to target variables
+        cmd = f"sky6RASCOMTele.SlewToRaDecAsync({ra}, {dec}, 'Target Slew');"
+        self.Telescope.send_js(cmd)
+        
+        # Wait until movement is finalized
+        self._is_ready()
+        
+        # Set post-slew tracking state
+        track_flag = 1 if tracking else 0
+        self.Telescope.send_js(f"sky6RASCOMTele.SetTracking({track_flag}, 1, 0.0, 0.0);")
+
+    def set_tracking(self, tracking=True):
+        """
+        Toggles telescope target tracking states.
+        """
+        track_flag = 1 if tracking else 0
+        self.Telescope.send_js(f"sky6RASCOMTele.SetTracking({track_flag}, 1, 0.0, 0.0);")
+
+    def set_ra_dec_rates(self, ra_rate, dec_rate):
+        """
+        Applies custom offset tracking adjustments.
+
+        Parameters
+        -------
+        ra_rate : float
+            Custom right ascension offset tracking rate.
+        dec_rate : float
+            Custom declination offset tracking rate.
+        """
+        # SetTracking(bTrackingOn, bTransmitRates, dRaRateOffset, dDecRateOffset)
+        cmd = f"sky6RASCOMTele.SetTracking(1, 0, {ra_rate}, {dec_rate});"
+        self.Telescope.send_js(cmd)
+
+    def pulse_guide(self, direction, duration):
+        """
+        Sends low-level pulse adjustments for tracking corrections.
+
+        Parameters
+        -------
+        direction : str
+            Direction value string ('north', 'south', 'east', 'west').
+        duration : float
+            Pulse length step window in seconds.
+        """
+        # Convert fractional seconds to milliseconds for native TheSkyX API expectations
+        duration_ms = int(duration * 1000)
+        
+        # Map direction strings to expected object inputs
+        dir_map = {
+            "north": "dNorth",
+            "south": "dSouth",
+            "east": "dEast",
+            "west": "dWest"
+        }
+        
+        target_dir = dir_map.get(direction.lower())
+        if not target_dir:
+            logging.error(f"Unknown pulse guide direction: {direction}")
+            return
+            
+        cmd = f"sky6RASCOMTele.PulseGuide({duration_ms}, {target_dir});"
+        self.Telescope.send_js(cmd)
+
+    def jog(self, direction, distance):
+        """
+        Jogs the telescope position using small fixed step increments.
+        """
+        # Retained logic interface utilizing pulse guide timing blocks to approximate step movement distances safely
+        # Note: If your system configuration relies on guide rate values, adjust math ratios accordingly
+        duration = distance / 15.0  # Sidereal motion translation approximation 
+        self.pulse_guide(direction, duration)
