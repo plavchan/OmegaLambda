@@ -323,7 +323,7 @@ class ObservationRun:
             time.sleep(2)
             self.telescope.slew_done.wait()
             # If it does fail, don't try to park again
-            park = self.telescope.last_slew_status
+            park = self.telescope.status
             if park is True:
                 # If the park was successful, try the slew one more time
                 self.telescope.onThread(self.telescope.unpark)

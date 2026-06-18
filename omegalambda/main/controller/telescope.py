@@ -83,21 +83,70 @@ class Telescope(Hardware):
                 break
             time.sleep(0.2)
 
+    @property
+    def status(self):
+        """
+        Exposes a telemetry status dictionary mapping real-time states 
+        to satisfy OmegaLambda's background ThreadMonitor diagnostics.
+        """
+        coords = self.get_coordinates()
+        
+        # Pull real-time connection state from your active Event flag
+        is_connected = self.live_connection.is_set()
+        
+        # Query if the mount is slewing (IsSlewComplete returns 0 if moving)
+        if is_connected and self.Telescope:
+            slew_val = self.Telescope.send_js("var res = sky6RASCOMTele.IsSlewComplete; res;")
+            is_slewing = (slew_val == "0")
+        else:
+            is_slewing = False
+
+        # Build the exact status metadata structure expected by the framework
+        #return {
+        #    "connected": is_connected,
+        #    "slewing": is_slewing,
+        #    "ra": coords.get("ra"),
+        #    "dec": coords.get("dec")
+        #}
+        if is_connected:
+             return True 
+        else:
+             return False
+
+
+    @property
     def slew_done(self):
         """
-        Non-blocking check to determine if the current telescope slew has completed.
-
-        Returns
-        -------
-        bool
-            True if the telescope is stationary and the slew is finished, False if still moving.
+        Exposes a property mimicking a threading event object structure 
+        to ensure compatibility with OmegaLambda's automated ThreadMonitor handlers.
         """
-        if not self.Telescope:
-            return True
-            
-        # IsSlewComplete returns 0 if still moving, 1 if done
-        val = self.Telescope.send_js("var res = sky6RASCOMTele.IsSlewComplete; res;")
-        return val == "1"
+        # Define an inner structural helper container class with a custom wait attribute
+        class SlewStatusWrapper:
+            def __init__(self, telescope_obj):
+                self._t = telescope_obj
+
+            def is_set(self):
+                """Returns True if the telescope is stationary and the slew is finished."""
+                if not self._t.Telescope:
+                    return True
+                # IsSlewComplete returns 0 if still moving, 1 if done
+                val = self._t.Telescope.send_js("var res = sky6RASCOMTele.IsSlewComplete; res;")
+                return val == "1"
+
+            def wait(self, timeout=None):
+                """
+                Blocks the caller until the telescope finishes slewing or 
+                the specified timeout expires.
+                """
+                start_time = time.time()
+                while not self.is_set():
+                    if timeout and (time.time() - start_time) > timeout:
+                        return False
+                    time.sleep(0.2)
+                return True
+
+        # Instantiates and returns the status container object
+        return SlewStatusWrapper(self)
 
 
     def park(self):
@@ -126,12 +175,24 @@ class Telescope(Hardware):
         """
         coords = self.get_coordinates()
         if coords["ra"] is not None and coords["dec"] is not None:
-            # Format to hours/minutes/seconds and degrees/minutes/seconds for logs
-            ra_hms = conversion_utils.degrees_to_hms(coords["ra"] * 15.0)  # RA is in hours, convert to degrees first
-            dec_dms = conversion_utils.degrees_to_dms(coords["dec"])
+            # 1. Format RA (coords["ra"] is already in decimal hours)
+            ra_hours = int(coords["ra"])
+            ra_minutes = int((coords["ra"] - ra_hours) * 60)
+            ra_seconds = (coords["ra"] - ra_hours - ra_minutes/60.0) * 3600
             
-            logging.debug(f"Current Telescope Coordinates -- RA: {ra_hms[0]}:{ra_hms[1]}:{ra_hms[2]:.2f}, "
-                          f"DEC: {dec_dms[0]}:{dec_dms[1]}:{dec_dms[2]:.2f}")
+            # 2. Format DEC (coords["dec"] is in decimal degrees)
+            dec_abs = abs(coords["dec"])
+            dec_degrees = int(dec_abs)
+            dec_minutes = int((dec_abs - dec_degrees) * 60)
+            dec_seconds = (dec_abs - dec_degrees - dec_minutes/60.0) * 3600
+            if coords["dec"] < 0:
+                dec_degrees = -dec_degrees
+
+            logging.debug(
+                f"Current Telescope Coordinates -- "
+                f"RA: {ra_hours:02d}:{ra_minutes:02d}:{ra_seconds:05.2f}, "
+                f"DEC: {dec_degrees:02d}:{dec_minutes:02d}:{dec_seconds:04.1f}"
+            )
         else:
             logging.warning("ThreadMonitor failed to fetch telescope coordinates.")
 
