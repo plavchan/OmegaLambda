@@ -102,6 +102,23 @@ class Telescope(Hardware):
         # Explicitly engage default tracking upon unpark
         self.Telescope.send_js("sky6RASCOMTele.SetTracking(1, 1, 0.0, 0.0);")
 
+    def check_current_coords(self):
+        """
+        Continuously queries the telescope for its current coordinates and
+        logs them. This is called as a background thread by the ThreadMonitor.
+        """
+        coords = self.get_coordinates()
+        if coords["ra"] is not None and coords["dec"] is not None:
+            # Format to hours/minutes/seconds and degrees/minutes/seconds for logs
+            ra_hms = conversion_utils.degrees_to_hms(coords["ra"] * 15.0)  # RA is in hours, convert to degrees first
+            dec_dms = conversion_utils.degrees_to_dms(coords["dec"])
+            
+            logging.debug(f"Current Telescope Coordinates -- RA: {ra_hms[0]}:{ra_hms[1]}:{ra_hms[2]:.2f}, "
+                          f"DEC: {dec_dms[0]}:{dec_dms[1]}:{dec_dms[2]:.2f}")
+        else:
+            logging.warning("ThreadMonitor failed to fetch telescope coordinates.")
+
+
     def get_coordinates(self):
         """
         Queries the telescope position and scales them into degrees/hours.

@@ -33,7 +33,7 @@
 	"guider_max_move": 15,
 	"guider_angle": 180.0,
 	"guider_flip_y": false,
-	"data_directory": "H:/Observatory Files/Observing Sessions/",
+	"data_directory": "G:/Observatory Files/Observing Sessions/",
 	"calibration_time": "end",
 	"calibration_num": 10,
 	"default_camera": "CCD",
