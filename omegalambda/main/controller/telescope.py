@@ -83,6 +83,23 @@ class Telescope(Hardware):
                 break
             time.sleep(0.2)
 
+    def slew_done(self):
+        """
+        Non-blocking check to determine if the current telescope slew has completed.
+
+        Returns
+        -------
+        bool
+            True if the telescope is stationary and the slew is finished, False if still moving.
+        """
+        if not self.Telescope:
+            return True
+            
+        # IsSlewComplete returns 0 if still moving, 1 if done
+        val = self.Telescope.send_js("var res = sky6RASCOMTele.IsSlewComplete; res;")
+        return val == "1"
+
+
     def park(self):
         """
         Parks the telescope to its resting safety orientation.
