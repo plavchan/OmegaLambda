@@ -284,11 +284,9 @@ class Telescope(Hardware):
         # self.Telescope.send_js("sky6RASCOMTele.Asynchronous = true;")
         # time.sleep(2)
         # print(ra,dec)
-        print("here 1")     
+        print("here 1")     # this next line triggers mount cannot slew.
         cmd = f"sky6RASCOMTele.SlewToRaDec({ra}, {dec}, 'Target Slew');"
         self.Telescope.send_js(cmd)
-        print("here 1.5")
-        time.sleep(60)
         print("here 2")
         # Wait until movement is finalized
         self._is_ready()
