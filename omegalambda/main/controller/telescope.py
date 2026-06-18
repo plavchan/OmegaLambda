@@ -282,7 +282,8 @@ class Telescope(Hardware):
         
         # Native async command sequence mapping to target variables
         self.Telescope.send_js("sky6RASCOMTele.Asynchronous = true;")
-        time.sleep(1)     
+        time.sleep(2)
+        print(ra,dec)     
         cmd = f"sky6RASCOMTele.SlewToRaDec({ra}, {dec}, 'Target Slew');"
         self.Telescope.send_js(cmd)
         
