@@ -110,7 +110,7 @@ class Telescope(Hardware):
         #    "ra": coords.get("ra"),
         #    "dec": coords.get("dec")
         #}
-        if is_connected:
+        if is_connected and self.check_current_coords():
              return True 
         else:
              return False
@@ -190,14 +190,22 @@ class Telescope(Hardware):
             if coords["dec"] < 0:
                 dec_degrees = -dec_degrees
 
+
+           coordsaltaz = self.get_coordinatesAltAz()
+           if coordsaltaz["alt"] is not None and coords["az"] is not None:
+                if alt < 10 or abs(ra)>8.0:
+                     inbounds=False
+                else:
+                     inbounds=True
             logging.debug(
                 f"Current Telescope Coordinates -- "
                 f"RA: {ra_hours:02d}:{ra_minutes:02d}:{ra_seconds:05.2f}, "
                 f"DEC: {dec_degrees:02d}:{dec_minutes:02d}:{dec_seconds:04.1f}"
             )
+            return inbounds
         else:
             logging.warning("ThreadMonitor failed to fetch telescope coordinates.")
-
+            return False
 
     def get_coordinates(self):
         """
@@ -223,6 +231,30 @@ class Telescope(Hardware):
         except ValueError:
             logging.error("Could not parse coordinates from telescope socket.")
             return {"ra": None, "dec": None}
+
+    def get_coordinatesAltAz(self):
+        """
+        Queries the telescope position 
+        Returns
+        -------
+        dict
+            A dictionary tracking current 'alt' and 'azi'.
+        """
+        # Command TheSkyX to grab latest telemetry
+        self.Telescope.send_js("sky6RASCOMTele.GetAzAlt();")
+        
+        # Pull values out via separate evaluated expressions
+        alt_raw = self.Telescope.send_js("var res = sky6RASCOMTele.dAlt; res;")
+        az_raw = self.Telescope.send_js("var res = sky6RASCOMTele.dAz; res;")
+        #print(alt_raw,az_raw)
+        try:
+            return {
+                "alt": float(alt_raw),
+                "az": float(az_raw)
+            }
+        except ValueError:
+            logging.error("Could not parse alt/az coordinates from telescope socket.")
+            return {"alt": None, "az": None}
 
     def slew(self, ra, dec, tracking=True):
         """
@@ -258,6 +290,36 @@ class Telescope(Hardware):
         # Set post-slew tracking state
         track_flag = 1 if tracking else 0
         self.Telescope.send_js(f"sky6RASCOMTele.SetTracking({track_flag}, 1, 0.0, 0.0);")
+
+
+    def slewAltAz(self, alt, az, tracking=True):
+        """
+        Asynchronously slews the telescope to target alt-az coordinates.
+
+        Parameters
+        -------
+               tracking : bool, optional
+            Whether standard sidereal tracking remains engaged after slew finishes. Default is True.
+        """
+        if alt < 8:
+            logging.error(f"Invalid alt coordinate given: {alt}")
+            return
+
+        self._is_ready()
+        
+        # Native async command sequence mapping to target variables
+        self.Telescope.send_js("sky6RASCOMTele.Asynchronous = true;")
+        time.sleep(1)     
+        cmd = f"sky6RASCOMTele.SlewToAzAlt({az}, {alt}, 'Target Slew');"
+        self.Telescope.send_js(cmd)
+        
+        # Wait until movement is finalized
+        self._is_ready()
+        
+        # Set post-slew tracking state
+        track_flag = 1 if tracking else 0
+        self.Telescope.send_js(f"sky6RASCOMTele.SetTracking({track_flag}, 1, 0.0, 0.0);")
+
 
     def set_tracking(self, tracking=True):
         """
