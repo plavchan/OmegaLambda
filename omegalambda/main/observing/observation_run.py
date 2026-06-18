@@ -968,7 +968,7 @@ class ObservationRun:
             self.calibration.onThread(self.calibration.take_darks, self.observation_request_list[i])
             time.sleep(2)
             self.calibration.darks_done.wait()
-            self.calibrated_tickets[i] = 1ø
+            self.calibrated_tickets[i] = 1
             logging.debug('Calibration progress:\n Calibrated tickets: {}'.format(self.calibrated_tickets))
             # Doesn't work?
             # if self.current_ticket == self.observation_request_list[i] and beginning is False:
