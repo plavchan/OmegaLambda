@@ -283,8 +283,8 @@ class Telescope(Hardware):
         # Native async command sequence mapping to target variables
         print("here 0")
         self.Telescope.send_js("sky6RASCOMTele.Asynchronous = 0;\n")
-        # time.sleep(2)
-        # print(ra,dec)
+        time.sleep(1)
+        print(ra,dec)
         self.Telescope.send_js("sky6ObjectInformation.Property(54);\n") 
         print("here 0.5")
         target_name = "automatedradec"
@@ -315,19 +315,23 @@ class Telescope(Hardware):
 
         self._is_ready()
         target_name = "automatedaltaz"
-        # Native async command sequence mapping to target variables
-        self.Telescope.send_js("sky6RASCOMTele.Asynchronous = true;")
-        time.sleep(1)     
+        print("here 0")
+        self.Telescope.send_js("sky6RASCOMTele.Asynchronous = 0;\n")
+        time.sleep(1)
+        print(ra,dec)
+        self.Telescope.send_js("sky6ObjectInformation.Property(54);\n") 
+        print("here 0.5")
+
         cmd = f'sky6RASCOMTele.SlewToAzAlt({az}, {alt},"{target_name}");\n'
         self.Telescope.send_js(cmd)
-        
+        ρrint("here 1")
         # Wait until movement is finalized
         self._is_ready()
-        
+        print("here 2")
         # Set post-slew tracking state
         track_flag = 1 if tracking else 0
         self.Telescope.send_js(f"sky6RASCOMTele.SetTracking({track_flag}, 1, 0.0, 0.0);")
-
+        print("here 3")
 
     def set_tracking(self, tracking=True):
         """
