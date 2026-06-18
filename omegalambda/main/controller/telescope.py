@@ -287,6 +287,8 @@ class Telescope(Hardware):
         print("here 1")     
         cmd = f"sky6RASCOMTele.SlewToRaDec({ra}, {dec}, 'Target Slew');"
         self.Telescope.send_js(cmd)
+        print("here 1.5")
+        time.sleep(60)
         print("here 2")
         # Wait until movement is finalized
         self._is_ready()

@@ -20,7 +20,7 @@ class TheSkyXSocketWrapper:
         
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                s.settimeout(5.0)
+                s.settimeout(30.0)
                 s.connect((self.host, self.port))
                 s.sendall(payload.encode('utf-8'))
                 
