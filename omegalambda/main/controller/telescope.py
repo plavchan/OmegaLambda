@@ -211,7 +211,7 @@ class Telescope(Hardware):
         # Pull values out via separate evaluated expressions
         ra_raw = self.Telescope.send_js("var res = sky6RASCOMTele.dRa; res;")
         dec_raw = self.Telescope.send_js("var res = sky6RASCOMTele.dDec; res;")
-        
+        print(ra_raw,dec_raw)
         try:
             return {
                 "ra": float(ra_raw),

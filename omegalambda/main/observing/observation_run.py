@@ -78,10 +78,7 @@ class ObservationRun:
         self.conditions = Conditions(plot_lock=self.plot_lock)
         self.flatlamp = FlatLamp()
         self.tertiary_mirror = TertiaryMirror()
-
         self.dome = Dome()
-        time.sleep(15)
-        print("debug I'm here")
         self.telescope = Telescope()
 
 
@@ -100,9 +97,10 @@ class ObservationRun:
         self.focuser.start()        # Must be started first so that it may check all available COM ports for robofocus
         self.conditions.start()
         self.camera.start()
+        self.dome.start()
+        self.domee.live_connection.wait(timeout=15)
         self.telescope.start()
         self.telescope.live_connection.wait(timeout=15)
-        self.dome.start()
         self.focus_procedures.start()
         self.flatlamp.start()
         self.tertiary_mirror.start()
@@ -970,7 +968,7 @@ class ObservationRun:
             self.calibration.onThread(self.calibration.take_darks, self.observation_request_list[i])
             time.sleep(2)
             self.calibration.darks_done.wait()
-            self.calibrated_tickets[i] = 1
+            self.calibrated_tickets[i] = 1ø
             logging.debug('Calibration progress:\n Calibrated tickets: {}'.format(self.calibrated_tickets))
             # Doesn't work?
             # if self.current_ticket == self.observation_request_list[i] and beginning is False:
