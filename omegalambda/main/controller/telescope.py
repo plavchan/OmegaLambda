@@ -54,7 +54,7 @@ class Telescope(Hardware):
             time.sleep(5)
             # Connect the telescope hardware if not already connected
             self.Telescope.send_js("sky6RASCOMTele.Connect();")
-            time.sleep(1)      
+            time.sleep(5)      
             self.check_connection()
         except Exception as e:
             logging.error(f"Telescope connection failed: {e}")
@@ -237,7 +237,7 @@ class Telescope(Hardware):
             return inbounds
         else:
             logging.warning("ThreadMonitor failed to fetch telescope coordinates.")
-            self.status["connected"] = False
+            #self.status["connected"] = False
             return False
 
     def get_coordinates(self):
