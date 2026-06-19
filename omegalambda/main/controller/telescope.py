@@ -112,8 +112,6 @@ class Telescope(Hardware):
             is_slewing = False
             logging.error("Telescope not connected or no self.telescope in status call")
 
-        print("status call: connected, slewing, current coords",is_connected,is_slewing,self.check_current_coords())
-
         # Build the exact status metadata structure expected by the framework
         retdict = {
              "connected": null,
