@@ -227,6 +227,9 @@ class Telescope(Hardware):
                      self.last_slew_status = False
                 else:
                      inbounds=True
+            else:
+                inbounds=False
+                logging.debug("coordsaltaz is none")
             logging.debug(
                 f"Current Telescope Coordinates -- "
                 f"RA: {ra_hours:02d}:{ra_minutes:02d}:{ra_seconds:05.2f}, "
