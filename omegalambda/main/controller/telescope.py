@@ -315,7 +315,7 @@ class Telescope(Hardware):
         self._is_ready()        
         print("here slew 0")
         # Native async command sequence mapping to target variables
-        self.Telescope.send_js("sky6RASCOMTele.Asynchronous = 0;\n")
+        self.Telescope.send_js("sky6RASCOMTele.Asynchronous = 1;\n")
         time.sleep(1)
         print(ra,dec)
         target_name = "automatedradec"
@@ -360,7 +360,7 @@ class Telescope(Hardware):
         target_name = "automatedaltaz"
         print("here slewalt 0")
         # Native async command sequence mapping to target variables
-        self.Telescope.send_js("sky6RASCOMTele.Asynchronous = 0;\n")
+        self.Telescope.send_js("sky6RASCOMTele.Asynchronous = 1;\n")
         time.sleep(1)
         print(alt,az)
         print("here alt 0.5")
