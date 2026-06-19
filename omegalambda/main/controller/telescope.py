@@ -236,7 +236,7 @@ class Telescope(Hardware):
             return inbounds
         else:
             logging.warning("ThreadMonitor failed to fetch telescope coordinates.")
-            self.status = False
+            self.status["connected"] = False
             return False
 
     def get_coordinates(self):
