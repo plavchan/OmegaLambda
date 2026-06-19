@@ -313,8 +313,6 @@ class Telescope(Hardware):
         self.live_connection.clear()
         print("here slew -2")
         self._is_ready()        
-        print("here slew -1")
-        print(self.isconnected())
         print("here slew 0")
         # Native async command sequence mapping to target variables
         self.Telescope.send_js("sky6RASCOMTele.Asynchronous = 0;\n")
@@ -360,8 +358,6 @@ class Telescope(Hardware):
         self._is_ready()
         print("connection status in start of slew command: ",self.status["connected"])
         target_name = "automatedaltaz"
-        print("here slewalt -1")
-        print(self.isconnected())
         print("here slewalt 0")
         # Native async command sequence mapping to target variables
         self.Telescope.send_js("sky6RASCOMTele.Asynchronous = 0;\n")
