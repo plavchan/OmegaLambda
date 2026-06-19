@@ -233,8 +233,8 @@ class Telescope(Hardware):
                 f"RA: {ra_hours:02d}:{ra_minutes:02d}:{ra_seconds:05.2f}, "
                 f"DEC: {dec_degrees:02d}:{dec_minutes:02d}:{dec_seconds:04.1f}"
             )
-            self.status["inbounds"] = inbounds
-            return inbounds
+            #self.status["inbounds"] = inbounds
+            return True #inbounds
         else:
             logging.warning("ThreadMonitor failed to fetch telescope coordinates.")
             #self.status["connected"] = False
@@ -255,7 +255,7 @@ class Telescope(Hardware):
         # Pull values out via separate evaluated expressions
         ra_raw = self.Telescope.send_js("var res = sky6RASCOMTele.dRa; res;")
         dec_raw = self.Telescope.send_js("var res = sky6RASCOMTele.dDec; res;")
-        print(ra_raw,dec_raw)
+        #print(ra_raw,dec_raw)
         try:
             return {
                 "ra": float(ra_raw),
@@ -279,7 +279,7 @@ class Telescope(Hardware):
         # Pull values out via separate evaluated expressions
         alt_raw = self.Telescope.send_js("var res = sky6RASCOMTele.dAlt; res;")
         az_raw = self.Telescope.send_js("var res = sky6RASCOMTele.dAz; res;")
-        print(alt_raw,az_raw)
+        #print(alt_raw,az_raw)
         try:
             return {
                 "alt": float(alt_raw),
