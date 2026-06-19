@@ -114,11 +114,11 @@ class Telescope(Hardware):
 
         # Build the exact status metadata structure expected by the framework
         retdict = {
-             "connected": null,
-             "slewing": null,
-             "ra": null,
-             "dec": null,
-             "inbounds": null
+             "connected": None,
+             "slewing": None,
+             "ra": None,
+             "dec": None,
+             "inbounds": None
         }
         if is_connected: 
              coords = self.get_coordinates()
