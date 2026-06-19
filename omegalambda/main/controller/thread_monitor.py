@@ -41,10 +41,10 @@ class Monitor(threading.Thread):
                         logging.debug('List of crashed threads: {}'.format(self.crashed))
             if 'telescope' not in self.crashed and not self.skip_telescope_check:
                 self.threadlist['telescope'].onThread(self.threadlist['telescope'].check_current_coords)
-                self.telescope_coords_check = self.threadlist['telescope'].status
+                self.telescope_coords_check = self.threadlist['telescope'].status["inbounds"]
                 time.sleep(30)
                 self.threadlist['telescope'].slew_done.wait(timeout=60)
-                self.telescope_coords_check = self.threadlist['telescope'].status
+                self.telescope_coords_check = self.threadlist['telescope'].status["inbounds"]
                 time.sleep(30)
 
 

@@ -302,7 +302,7 @@ class ObservationRun:
         logging.info('Slewing the telescope to the target\'s ra=' + str(ticket.ra) + ' and dec=' + str(ticket.dec))
         self.telescope.onThread(self.telescope.slew, ticket.ra, ticket.dec)
         time.sleep(2)
-        self.telescope.slew_done.wait()
+        self.telescope.live_connection.wait()
         slew = self.telescope.last_slew_status
         if not slew:
             logging.warning('Telescope cannot slew to target.  Waiting until slew conditions are acceptable.')
@@ -316,16 +316,16 @@ class ObservationRun:
                 logging.info('Slewing the telescope to the target\'s ra=' + str(ticket.ra) + ' and dec=' + str(ticket.dec))
                 self.telescope.onThread(self.telescope.slew, ticket.ra, ticket.dec)
                 time.sleep(2)
-                self.telescope.slew_done.wait()
+                self.telescope.live_connection.wait()
                 slew = self.telescope.last_slew_status
         if slew == -100:
 
             # Try to park, but that may also fail.  Delay coordinate checks by 1 second.
             self.telescope.onThread(self.telescope.park, 1000)
             time.sleep(2)
-            self.telescope.slew_done.wait()
+            self.telescope.live_connection.wait()
             # If it does fail, don't try to park again
-            park = self.telescope.status
+            park = self.telescope.status["inbounds"]
             if park is True:
                 # If the park was successful, try the slew one more time
                 self.telescope.onThread(self.telescope.unpark)
@@ -333,7 +333,7 @@ class ObservationRun:
                 logging.warning('Attempting to slew to the target one more time: ra=' + str(ticket.ra) + ' and dec=' + str(ticket.dec))
                 self.telescope.onThread(self.telescope.slew, ticket.ra, ticket.dec)
                 time.sleep(2)
-                self.telescope.slew_done.wait()
+                self.telescope.live_connection.wait()
                 slew = self.telescope.last_slew_status
                 if slew != -100:
                     # If the second slew was successful, yay!  Observations can continue
@@ -349,7 +349,7 @@ class ObservationRun:
     def _park_procedure(self):
         self.telescope.onThread(self.telescope.park)
         time.sleep(5)
-        self.telescope.slew_done.wait()
+        self.telescope.live_connection.wait()
         park = self.telescope.last_slew_status
         if park == -100:
             self._critical_shutdown_procedure()
@@ -769,7 +769,7 @@ class ObservationRun:
         self.telescope.onThread(self.telescope.slew, ra, dec)
         self.telescope.onThread(self.telescope.set_ra_dec_rates, ra_rate, dec_rate)
         logging.info(f"Slewing to satellite position for tracking mode 2: RA={ra} Dec={dec}")
-        self.telescope.slew_done.wait()
+        self.telescope.live_connection.wait()
 
     def continuous_satellite_tracking_procedure(self, mode):
         """Procedure for tracking the satellite. Returns number of seconds to wait before next check."""
@@ -798,12 +798,12 @@ class ObservationRun:
         logging.info(f"Slewing to capture satellite streak in tracking mode {mode}: RA={ra} Dec={dec}")
 
         if mode == 1:
-            self.telescope.slew_done.wait()
+            self.telescope.live_connection.wait()
             return self.calc_satellite_fov_time(ra_rate, dec_rate)
 
         if mode == 3:  # Half satellite rate
             self.telescope.onThread(self.telescope.set_ra_dec_rates, ra_rate / 2, dec_rate / 2)
-            self.telescope.slew_done.wait()
+            self.telescope.live_connection.wait()
             return self.calc_satellite_fov_time(ra_rate / 2, dec_rate / 2)
 
     def slew_time_correction(self, date=None):
