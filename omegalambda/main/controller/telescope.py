@@ -116,10 +116,10 @@ class Telescope(Hardware):
 
         # Build the exact status metadata structure expected by the framework
         retdict = {
-             "connected": null
-             "slewing": null
-             "ra": null
-             "dec": null
+             "connected": null,
+             "slewing": null,
+             "ra": null,
+             "dec": null,
              "inbounds": null
         }
         if is_connected: 
