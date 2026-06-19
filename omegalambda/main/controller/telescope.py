@@ -85,8 +85,7 @@ class Telescope(Hardware):
             val = self.Telescope.send_js("var res = sky6RASCOMTele.IsSlewComplete; res;")
             if self.check_current_coords == False:
                 self.abort()
-                logging.critical('While thought to be slewing, telescope has slewed past limits, despite the final 
-                                 'destination being within limits! Aborting slew!')
+                logging.critical("While thought to be slewing, telescope has slewed past limits, despite the final destination being within limits! Aborting slew!")
                 self.last_slew_status = -100
                 time.sleep(2)
                 self.live_connection.set()
