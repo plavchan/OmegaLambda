@@ -79,15 +79,15 @@ class Telescope(Hardware):
         """
         Blocking loop that holds execution until the telescope completes its current slew.
         """
-        while True:
+        val=0
+        while val==0:
             # IsSlewComplete returns 0 if still moving, !=0 if done
             val = self.Telescope.send_js("var res = sky6RASCOMTele.IsSlewComplete; res;")
             time.sleep(1)
+            print("isslewcomplete val:",val)
             if val != 0:
                 self.last_slew_status = 1
-                return 1
-                break
-            else:
+            else:  # this is a check on errant slews
                 if self.check_current_coords == False:
                     self.abort()
                     logging.critical("While thought to be slewing, telescope has slewed past limits, despite the final destination being within limits! Aborting slew!")
