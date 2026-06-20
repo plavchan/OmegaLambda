@@ -17,7 +17,6 @@ class Telescope(Hardware):
         super(Telescope, self).__init__("Telescope")
         self.Telescope = None
         self.threads = []
-        self.last_slew_status = None
         self.live_connection = threading.Event()
         self.live_connection.set()
 
@@ -85,6 +84,8 @@ class Telescope(Hardware):
             val = self.Telescope.send_js("var res = sky6RASCOMTele.IsSlewComplete; res;")
             time.sleep(1)
             if val != 0:
+                self.last_slew_status = 1
+                return 1
                 break
             else:
                 if self.check_current_coords == False:
@@ -131,40 +132,6 @@ class Telescope(Hardware):
         else:
              logging.error("Telescope not connected during status call")
         return retdict
-
-#    @property
-#    def slew_done(self):
-#        """
-#        Exposes a property mimicking a threading event object structure 
-#        to ensure compatibility with OmegaLambda's automated ThreadMonitor handlers.
-#        """
-#        # Define an inner structural helper container class with a custom wait attribute
-#        class SlewStatusWrapper:
-#            def __init__(self, telescope_obj):
-#                self._t = telescope_obj
-#
-#            def is_set(self):
-#                """Returns True if the telescope is stationary and the slew is finished."""
-#                if not self._t.Telescope:
-#                    return True
-#                # IsSlewComplete returns 0 if still moving, 1 if done
-#                val = self._t.Telescope.send_js("var res = sky6RASCOMTele.IsSlewComplete; res;")
-#                return val == "1"
-#
-#            def wait(self, timeout=None):
-#                """
-#                Blocks the caller until the telescope finishes slewing or 
-#                the specified timeout expires.
-#                """
-#                start_time = time.time()
-#                while not self.is_set():
-#                    if timeout and (time.time() - start_time) > timeout:
-#                        return False
-#                    time.sleep(0.2)
-#                return True
-#
-#        # Instantiates and returns the status container object
-#        return SlewStatusWrapper(self)
 
 
     def abort(self):

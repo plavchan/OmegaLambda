@@ -304,7 +304,7 @@ class ObservationRun:
         self.telescope.onThread(self.telescope.slew, ticket.ra, ticket.dec)
         time.sleep(2)
         self.telescope.live_connection.wait()
-        slew = self.telescope.last_slew_status
+        slew = self.telescope._is_ready()
         if not slew:
             logging.warning('Telescope cannot slew to target.  Waiting until slew conditions are acceptable.')
             while not slew:
