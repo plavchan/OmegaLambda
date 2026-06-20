@@ -31,6 +31,7 @@ class Monitor(threading.Thread):
         '''
         logging.debug('Beginning thread monitoring')
         while self.run_th_monitor.isSet():
+            time.sleep(30)
             for th_name in self.threadlist.keys():
                 if not self.threadlist[th_name].is_alive():
                     if th_name not in self.crashed:
@@ -42,10 +43,6 @@ class Monitor(threading.Thread):
             if 'telescope' not in self.crashed and not self.skip_telescope_check:
                 self.threadlist['telescope'].onThread(self.threadlist['telescope'].check_current_coords)
                 self.telescope_coords_check = self.threadlist['telescope'].status["inbounds"]
-                time.sleep(30)
-                self.threadlist['telescope'].live_connection.wait(timeout=60)
-                self.telescope_coords_check = self.threadlist['telescope'].status["inbounds"]
-                time.sleep(30)
 
 # first call 
 

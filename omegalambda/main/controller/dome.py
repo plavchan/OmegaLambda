@@ -6,6 +6,8 @@ import pywintypes
 import win32com.client
 
 from .hardware import Hardware
+# Import the custom socket wrapper you created
+from .skyx_tcpsocketwrapper import TheSkyXSocketWrapper
 
 
 class Dome(Hardware):
