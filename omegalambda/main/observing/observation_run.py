@@ -248,7 +248,8 @@ class ObservationRun:
         -------
         Initial_shutter : INT
             The position of the shutter before observing started.
-            0 = open, 1 = closed, 2 = opening, 3 = closing, 4 = error.
+            OLD: 0 = open, 1 = closed, 2 = opening, 3 = closing, 4 = error.
+            NEW:  0 = slitstateunknown, 1 = pseudoopen, 2 = pseudoclosed, 3 = open, 4 = closed.
             -1 = failed hardware/weather check.
 
         """
@@ -261,7 +262,7 @@ class ObservationRun:
         self.dome.onThread(self.dome.shutter_position)
         time.sleep(2)
         initial_shutter = self.dome.shutter
-        if initial_shutter in (1, 3, 4) and initial_check is True:
+        if initial_shutter in (0, 2, 4) and initial_check is True:
             self.dome.onThread(self.dome.move_shutter, 'open')
             self.dome.onThread(self.dome.home)
         elif not initial_check:
@@ -270,7 +271,7 @@ class ObservationRun:
             return -1
         self.telescope.onThread(self.telescope.unpark)
         self.camera.onThread(self.camera.cooler_ready)
-        self.dome.onThread(self.dome.slave_dome_to_scope, True)
+        self.dome.onThread(self.dome.sync_dome_to_scope, True)
         return initial_shutter
 
     def _ticket_slew(self, ticket):
@@ -439,8 +440,7 @@ class ObservationRun:
             if not self.everything_ok():
                 self.shutdown()
                 return
-            self.crash_check('TheSkyX.exe')
-            self.crash_check('ASCOMDome.exe')
+            self.crash_check('TheSky64.exe')
 
             if ticket.camera:
                 self.tertiary_mirror.select_camera(ticket.camera)
@@ -896,8 +896,7 @@ class ObservationRun:
             False.
 
         """
-        prog_dict = {'MaxIm_DL.exe': [self.camera, Camera], 'TheSkyX.exe': [self.telescope, Telescope],
-                     'ASCOMDome.exe': [self.dome, Dome]}
+        prog_dict = {'MaxIm_DL.exe': [self.camera, Camera], 'TheSky64.exe': [self.telescope, Telescope]}
         if program not in prog_dict.keys():
             logging.error('Unrecognized program name to perform a crash check for.')
             return False
@@ -920,7 +919,7 @@ class ObservationRun:
             prog_dict[program][0] = prog_dict[program][1]()
             prog_dict[program][0].start()
             time.sleep(5)
-            if program in ('MaxIm_DL.exe', 'TheSkyX.exe') and self.current_ticket.self_guide is True:
+            if program in ('MaxIm_DL.exe', 'TheSky64.exe') and self.current_ticket.self_guide is True:
                 self.guider.stop_guiding()
                 self.guider.onThread(self.guider.stop)
                 time.sleep(5)
@@ -1052,7 +1051,7 @@ class ObservationRun:
         logging.info("Shutting down observatory.")
         self.shutdown_event.set()
         time.sleep(5)
-        self.dome.onThread(self.dome.slave_dome_to_scope, False)
+        self.dome.onThread(self.dome.sync_dome_to_scope, False)
         self.dome.onThread(self.dome.park)
         self.dome.onThread(self.dome.move_shutter, 'close')
         self._park_procedure()
@@ -1078,7 +1077,7 @@ class ObservationRun:
         """
         self.shutdown_event.set()
         time.sleep(5)
-        self.dome.onThread(self.dome.slave_dome_to_scope, False)
+        self.dome.onThread(self.dome.sync_dome_to_scope, False)
         self.dome.onThread(self.dome.park)
         self.dome.onThread(self.dome.move_shutter, 'close')
         time.sleep(2)

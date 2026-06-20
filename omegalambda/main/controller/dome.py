@@ -38,48 +38,69 @@ class Dome(Hardware):
         """
         logging.info('Checking connection for the {}'.format(self.label))
         self.live_connection.clear()
-        self.Dome.Connected = True
+        self.Dome.isConnected = self.Dome.send_js("var res = sky6Dome.isConnected; res\n;")
         self.live_connection.set()
 
     def _class_connect(self):
         """
-        Description
-        -----------
-        Overrides base hardware class (not implemented).
-        Dispatches COM connection to dome object and sets necessary parameters.
-        Should only ever be called from within the run method.
+        Connects to your custom socket wrapper and signals the physical mount connect command.
 
         Returns
         -------
-        BOOL
-            True if successful, otherwise False.
+        bool
+            True if connection to TheSkyX TCP engine is verified, False otherwise.
         """
         try:
-            self.Dome = win32com.client.Dispatch("ASCOMDome.Dome")
+            # Instantiate your socket wrapper class
+            self.Dome = TheSkyXSocketWrapper()
+            time.sleep(5)
+            # Connect the dome hardware if not already connected
+            self.Dome.send_js("sky6Dome.Connect();")
+            time.sleep(5)      
             self.check_connection()
-        except (AttributeError, pywintypes.com_error):
-            logging.error('Could not connect to dome')
+        except Exception as e:
+            logging.error(f"Dome connection failed: {e}")
             return False
-        else:
-            logging.info('Dome has successfully connected')
-        return True
+        return self.live_connection.is_set()
 
-    def _is_ready(self):
+    def _is_ready(self,movetype):
         """
         Description
         -----------
         Checks to see if the dome is ready to receive a new command, else
         it waits.
+        domemove = 0
+        home = 1
+        park = 2
+        open = 3
+        close = 4
+        unpark = 5
 
         Returns
         -------
         None.
 
         """
-        while self.Dome.Slewing:
-            time.sleep(2)
-        if not self.Dome.Slewing:
-            return
+        """
+        Blocking loop that holds execution until the dome completes its current action.
+        """
+        while not self.domedone:
+            # returns 0 if still moving, 1 if done
+            match movetype:
+                case 0: # dome move
+                    self.domedone = self.Dome.send_js("var res = sky6Dome.IsGoToComplete; res;")
+                case 1: # dome home
+                    self.domedone = self.Dome.send_js("var res = sky6Dome.IsFindHomeComplete; res;")
+                case 2: # dome park
+                    self.domedone = self.Dome.send_js("var res = sky6Dome.IsParkComplete; res;")
+                case 3: # dome open
+                    self.domedone = self.Dome.send_js("var res = sky6Dome.IsOpenComplete; res;")
+                case 4: # dome close
+                    self.domedone = self.Dome.send_js("var res = sky6Dome.IsCloseComplete; res;")
+                case 5: # dome unpark
+                    self.domedone = self.Dome.send_js("var res = sky6Dome.IsUnParkComplete; res;")
+            time.sleep(0.2)
+
         
     def shutter_position(self):
         """
@@ -92,8 +113,9 @@ class Dome(Hardware):
         None.
 
         """
-        # Shutter status: 0 = open, 1 = closed, 2 = opening, 3 = closing, 4 = error.
-        self.shutter = self.Dome.ShutterStatus
+        # Shutter status: 0 = slitstateunknown, 1 = pseudoopen, 2 = pseudoclosed, 3 = open, 4 = closed.
+        self.shutter = self.Dome.send_js("var res = sky6Dome.slitState; res;")
+
     
     def home(self):
         """
@@ -106,24 +128,14 @@ class Dome(Hardware):
         None.
 
         """
-        self._is_ready()
+        if self.Dome.AtHome:
+            logging.info("Dome is at home")
+            self.move_done.set()
         self.has_homed.clear()
-        try:
-            with self.dome_move_lock:
-                self.Dome.FindHome()
-        except pywintypes.com_error:
-            logging.error('Dome cannot find home')
-        else: 
-            logging.info("Dome is homing")
-            t = 0
-            while not self.Dome.AtHome:
-                time.sleep(5)
-                t += 5
-                if t >= 3*60:
-                    logging.warning('Dome is still homing...ASCOM may be incorrectly reporting status.')
-                    break
-            self.has_homed.set()
-            return
+        val = self.Dome.send_js("var res = sky6Dome.FindHome(); res;")
+        logging.info("Dome is homing")
+        self._is_ready(1)
+        return
     
     def park(self):
         """
@@ -138,20 +150,15 @@ class Dome(Hardware):
 
         """
         self.move_done.clear()
-        if self.Dome.AtPark or ((self.config_dict.dome_park_az - 1) <= self.Dome.Azimuth <= (self.config_dict.dome_park_az + 1)):
+        
+        if self.Dome.AtPark:
             logging.info("Dome is at park")
             self.move_done.set()
             return True
-        try:
-            with self.dome_move_lock:
-                self._is_ready()
-                self.Dome.Park()
-        except pywintypes.com_error:
-            logging.error("Error parking dome")
-            return False
-        else: 
+        with self.dome_move_lock:
+            val = self.Dome.send_js("var res = sky6Dome.Park(); res;")
             logging.info("Dome is parking")
-            self._is_ready()
+            self._is_ready(2)
             self.move_done.set()
             return True
         
@@ -168,82 +175,48 @@ class Dome(Hardware):
         None.
         """
         self.shutter_done.clear()
-        self._is_ready()
         if open_or_close == 'open':
             with self.dome_move_lock:
-                self.Dome.OpenShutter()
+                val = self.Dome.send_js("var res = sky6Dome.OpenSlit(); res;")
                 logging.info("Shutter is opening")
+                self._is_ready(3)
                 time.sleep(2)
-            t = 0
-            while self.Dome.ShutterStatus in (1, 2, 4):
-                time.sleep(1)
-                t += 1
-                if t >= 3*60:
-                    logging.warning('Shutter is still opening...ASCOM may be incorrectly reporting status.')
-                    break
-            # time.sleep(2)
-            # if self.Dome.ShutterStatus in (0, 2, 4):
-            self.shutter_done.set()
-            # else:
-            #     logging.error('Dome did not open correctly.  Trying again...')
-            #     self.move_shutter('open')
         elif open_or_close == 'close':
             with self.dome_move_lock:
-                self.Dome.CloseShutter()
+                val = self.Dome.send_js("var res = sky6Dome.CloseSlit(); res;")
                 logging.info("Shutter is closing")
+                self._is_ready(4)
                 time.sleep(2)
-            t = 0
-            while self.Dome.ShutterStatus in (0, 3, 4):
-                time.sleep(1)
-                t += 1
-                if t >= 3*60:
-                    logging.warning('Shutter is still closing...ASCOM may be incorrectly reporting status.')
-                    break
-            # time.sleep(2)
-            # if self.Dome.ShutterStatus in (1, 3, 4):
-            self.shutter_done.set()
-            # else:
-            #     logging.error('Dome did not close correctly.  Trying again...')
-            #     self.move_shutter('close')
         else:
             logging.critical("Invalid shutter move command")
         return
     
-    def slave_dome_to_scope(self, toggle):
+    def sync_dome_to_scope(self, toggle):
         """
         Parameters
         ----------
         toggle : BOOL
-            If True, will slave the dome movements to the telescope movement.
-            If False, will stop slaving the dome movements to the telescope movement.
+            If True, will sync the dome movements to the telescope movement.
+            If False, will stop syncing the dome movements to the telescope movement.
 
         Returns
         -------
         None.
         """
         self.move_done.clear()
-        self._is_ready()
         if toggle is True:
-            try:
-                with self.dome_move_lock:
-                    self.Dome.Slaved = True
-            except pywintypes.com_error:
-                logging.error("Cannot sync dome to scope")
-            else: 
+            with self.dome_move_lock:
+                val = self.Dome.send_js("var res = sky6Dome.setIsCoupledToMountTracking(1); res;")
                 logging.info("Dome is syncing to scope")
-                self._is_ready()
-                # Extra wait in case the dome pauses in the middle of syncing
+                self._is_ready(0)
                 time.sleep(5)
-                self._is_ready()
                 self.move_done.set()
         elif toggle is False:
-            try:
-                self.Dome.Slaved = False
-            except pywintypes.com_error:
-                logging.error("Cannot stop syncing dome to scope")
-            else: 
-                logging.info("Dome is no longer syncing to scope")
-                self.move_done.set()
+                val = self.Dome.send_js("var res = sky6Dome.setIsCoupledToMountTracking(0); res;")
+                logging.info("Dome is syncing to scope")
+                self._is_ready(0)
+                time.sleep(5) 
+               self.move_done.set()
         logging.debug('Dome syncing toggled')
         
     def slew(self, azimuth):
@@ -258,15 +231,11 @@ class Dome(Hardware):
         None.
         """
         self.move_done.clear()
-        self._is_ready()
-        try:
-            with self.dome_move_lock:
-                self.Dome.SlewtoAzimuth(azimuth)
-        except pywintypes.com_error:
-            logging.error("Error slewing dome")
-        else: 
+        with self.dome_move_lock:
+            cmd = f'var res = skyDome6.GoToAzEl({azimuth},0); res;\n'
+            val = self.Dome.send_js(cmd)
             logging.info("Dome is slewing to {} degrees".format(azimuth))
-            self._is_ready()
+            self._is_ready(0)
             self.move_done.set()
     
     def abort(self):
@@ -280,7 +249,13 @@ class Dome(Hardware):
         None.
 
         """
-        self.Dome.AbortSlew()
+        self.move_done.clear()
+        with self.dome_move_lock:
+            val = self.Dome.send_js("var res = sky6Dome.Abort(); res;")
+            logging.info("Dome is aborting")
+            self._is_ready(0)
+            self.move_done.set()
+            return True
         
     def disconnect(self):   # Always close shutter and park before disconnecting
         """
@@ -295,19 +270,19 @@ class Dome(Hardware):
             Dome has disconnected.
 
         """
-        self._is_ready()
-        while self.Dome.ShutterStatus != 1:
-            time.sleep(5)
-        if self.Dome.AtPark and self.Dome.ShutterStatus == 1:
-            try: 
-                self.Dome.Connected = False
-                self.live_connection.clear()
-                return True
-            except (AttributeError, pywintypes.com_error):
-                logging.error("Could not disconnect from dome")
-                subprocess.call('taskkill /f /im ASCOMDome.exe')
-                subprocess.Popen(r'"C:\Program Files (x86)\Common Files\ASCOM\Dome\ASCOMDome.exe"')
-                return False
+
+        self.move_shutter('close')
+        self.park()
+
+        if self.Dome.AtPark and self.Dome.shutter_position() == 4:
+            logging.info("Dome is closed and parked, disconnecting...")   
+            val = self.Dome.send_js("var res = sky6Dome.Disconnect(); res;")
+            time.sleep(2)
+            if self.Dome.isConnected == False:
+                logging.info("Dome is disconnected.")   
+            else:
+                logging.critical("Dome is not disconnected")
+
         else: 
             logging.critical("Dome is not parked, or shutter not closed")
-            return False
+        

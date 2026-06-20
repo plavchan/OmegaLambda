@@ -47,6 +47,6 @@ class Monitor(threading.Thread):
                 self.telescope_coords_check = self.threadlist['telescope'].status["inbounds"]
                 time.sleep(30)
 
-
+# first call 
 
 
