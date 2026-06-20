@@ -26,6 +26,7 @@ class Dome(Hardware):
         self.has_homed = threading.Event()
         self.dome_move_lock = threading.Lock()
         self.shutter = None
+        self.domedone = True
         super(Dome, self).__init__(name='Dome')
 
     def check_connection(self):
