@@ -26,6 +26,7 @@ class Dome(Hardware):
         self.has_homed = threading.Event()
         self.dome_move_lock = threading.Lock()
         self.shutter = None
+        awlf.atPark = True
         self.domedone = True
         super(Dome, self).__init__(name='Dome')
 
@@ -162,6 +163,7 @@ class Dome(Hardware):
             val = self.Dome.send_js("var res = sky6Dome.Park(); res;")
             logging.info("Dome is parking")
             self._is_ready(2)
+            self.AtPark = True
             self.move_done.set()
             return True
         
@@ -278,7 +280,7 @@ class Dome(Hardware):
         self.move_shutter('close')
         self.park()
 
-        if self.Dome.AtPark and self.Dome.shutter_position() == 4:
+        if self.AtPark and self.Dome.shutter_position() == 4:
             logging.info("Dome is closed and parked, disconnecting...")   
             val = self.Dome.send_js("var res = sky6Dome.Disconnect(); res;")
             time.sleep(2)
