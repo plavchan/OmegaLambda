@@ -15,7 +15,7 @@ class Monitor(threading.Thread):
                            'guider': 0, 'focus_procedures': 0, 'gui': 0
                            }
         self.telescope_coords_check = True
-        self.skip_telescope_check = False
+        self.skip_telescope_check = True
         super(Monitor, self).__init__(name='Monitor', daemon=True)
 
     def run(self):

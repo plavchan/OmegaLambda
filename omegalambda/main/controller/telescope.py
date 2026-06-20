@@ -83,6 +83,7 @@ class Telescope(Hardware):
         while True:
             # IsSlewComplete returns 0 if still moving, 1 if done
             val = self.Telescope.send_js("var res = sky6RASCOMTele.IsSlewComplete; res;")
+            time.sleep(5)
             if self.check_current_coords == False:
                 self.abort()
                 logging.critical("While thought to be slewing, telescope has slewed past limits, despite the final destination being within limits! Aborting slew!")
