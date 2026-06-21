@@ -104,6 +104,11 @@ class Dome(Hardware):
                     self.domedone = self.Dome.send_js("var res = sky6Dome.IsCloseComplete; res;")
                 case 5: # dome unpark
                     self.domedone = self.Dome.send_js("var res = sky6Dome.IsUnParkComplete; res;")
+            print("self.domedone: ",self.domedone)
+            try:
+                self.domedone = int(self.domedone)
+            except:
+                self.domedone = 0
             time.sleep(0.2)
 
         
