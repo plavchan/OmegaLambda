@@ -305,6 +305,7 @@ class ObservationRun:
         time.sleep(2)
         self.telescope.live_connection.wait()
         slew = self.telescope._is_ready()
+        print("slew returned:",slew)
         if not slew:
             logging.warning('Telescope cannot slew to target.  Waiting until slew conditions are acceptable.')
             while not slew:
