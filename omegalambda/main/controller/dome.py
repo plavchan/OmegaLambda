@@ -109,7 +109,7 @@ class Dome(Hardware):
                 self.domedone = int(self.domedone)
             except:
                 self.domedone = 0
-            time.sleep(0.2)
+            time.sleep(10)
 
         
     def shutter_position(self):
@@ -225,7 +225,7 @@ class Dome(Hardware):
         elif toggle is False:
             with self.dome_move_lock:
                 val = self.Dome.send_js("var res = sky6Dome.setIsCoupledToMountTracking(0); res;")
-                logging.info("Dome is syncing to scope")
+                logging.info("Dome is not syncing to scope")
                 self._is_ready(0)
                 time.sleep(5) 
                 self.move_done.set()
