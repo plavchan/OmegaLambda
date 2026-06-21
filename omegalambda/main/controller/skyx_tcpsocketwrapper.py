@@ -34,4 +34,4 @@ class TheSkyXSocketWrapper:
                 return response.strip()
         except Exception as e:
             logging.error(f"TheSkyX TCP Server communication failed: {e}")
-            return "Error"
+            return "-100"

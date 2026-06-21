@@ -27,7 +27,7 @@ class Dome(Hardware):
         self.dome_move_lock = threading.Lock()
         self.shutter = None
         self.atPark = None
-        self.domedone = True
+        self.domedone = 1
         super(Dome, self).__init__(name='Dome')
 
     def check_connection(self):
@@ -88,6 +88,7 @@ class Dome(Hardware):
         """
         Blocking loop that holds execution until the dome completes its current action.
         """
+        self.domedone = 1
         while not self.domedone:
             # returns 0 if still moving, 1 if done
             match movetype:
