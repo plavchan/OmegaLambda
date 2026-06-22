@@ -93,7 +93,7 @@ class Dome(Hardware):
         Blocking loop that holds execution until the dome completes its current action.
         """
         self.live_connection.clear()
-        self.dome.done=0
+        self.domedone=0
         with self.dome_move_lock:
             while not self.domedone:
                 # returns 0 if still moving, 1 if done
