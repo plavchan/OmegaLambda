@@ -43,7 +43,7 @@ class Dome(Hardware):
         """
         logging.info('Checking connection for the {}'.format(self.label))
         self.live_connection.clear()
-        self.Dome.isConnected = self.Dome.send_js("var res = sky6Dome.isConnected; res\n;")
+        self.Dome.isConnected = self.Dome.send_js("var res = sky6Dome.isConnected; res;\n")
         if self.Dome.isConnected:
             self.live_connection.set()
         else:
@@ -62,6 +62,7 @@ class Dome(Hardware):
             # Instantiate your socket wrapper class
             self.Dome = TheSkyXSocketWrapper()
             time.sleep(5)
+            print("here")
             # Connect the dome hardware if not already connected
             self.Dome.send_js("sky6Dome.Connect();")
             time.sleep(5)      
