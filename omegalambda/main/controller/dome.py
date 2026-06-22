@@ -27,6 +27,7 @@ class Dome(Hardware):
         self.move_done_lock = threading.Lock()
         self.live_connection = threading.Event()
         self.live_connection.set()
+        self.isConnected = 0
         self.shutter = None
         self.atPark = None
         super(Dome, self).__init__(name='Dome')
@@ -43,8 +44,9 @@ class Dome(Hardware):
         """
         logging.info('Checking connection for the {}'.format(self.label))
         self.live_connection.clear()
-        self.Dome.isConnected = self.Dome.send_js("var res = sky6Dome.isConnected; res;\n")
-        if self.Dome.isConnected:
+        self.isConnected = self.Dome.send_js("var res = sky6Dome.isConnected; res;\n")
+        print ("self.isConnected in check_connection: ",self.isConnected)
+        if self.isConnected:
             self.live_connection.set()
         else:
             self.live_connection.clear()
@@ -62,7 +64,6 @@ class Dome(Hardware):
             # Instantiate your socket wrapper class
             self.Dome = TheSkyXSocketWrapper()
             time.sleep(5)
-            print("here")
             # Connect the dome hardware if not already connected
             self.Dome.send_js("sky6Dome.Connect();")
             time.sleep(5)      
