@@ -325,7 +325,7 @@ class ObservationRun:
             # Try to park, but that may also fail.  Delay coordinate checks by 1 second.
             self.telescope.onThread(self.telescope.park, 1000)
             time.sleep(2)
-            self.telescope.live_connection.wait()
+            self.telescope.move_tele.wait()
             # If it does fail, don't try to park again
             park = self.telescope.status["inbounds"]
             if park is True:
@@ -335,7 +335,7 @@ class ObservationRun:
                 logging.warning('Attempting to slew to the target one more time: ra=' + str(ticket.ra) + ' and dec=' + str(ticket.dec))
                 self.telescope.onThread(self.telescope.slew, ticket.ra, ticket.dec)
                 time.sleep(2)
-                self.telescope.live_connection.wait()
+                self.telescope.move_tele.wait()
                 slew = self.telescope.last_slew_status
                 if slew != -100:
                     # If the second slew was successful, yay!  Observations can continue
@@ -351,7 +351,7 @@ class ObservationRun:
     def _park_procedure(self):
         self.telescope.onThread(self.telescope.park)
         time.sleep(5)
-        self.telescope.live_connection.wait()
+        self.telescope.move_tele.wait()
         park = self.telescope.last_slew_status
         if park == -100:
             self._critical_shutdown_procedure()
