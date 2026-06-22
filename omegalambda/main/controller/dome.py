@@ -102,6 +102,7 @@ class Dome(Hardware):
   #      with self.move_done_lock:
         while not self.domedone:
             # returns 0 if still moving, 1 if done
+            print("Move type: ",movetype)
             match movetype:
                 case 0: # dome move
                     self.domedone = self.Dome.send_js("var res = sky6Dome.IsGoToComplete; res;")
@@ -115,6 +116,8 @@ class Dome(Hardware):
                    self.domedone = self.Dome.send_js("var res = sky6Dome.IsCloseComplete; res;")
                 case 5: # dome unpark
                     self.domedone = self.Dome.send_js("var res = sky6Dome.IsUnParkComplete; res;")
+                case _: # bad movetype
+                    self.domedone = 1
             print("self.domedone: ",self.domedone)
             try:
                 self.domedone = int(self.domedone)
