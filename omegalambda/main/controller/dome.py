@@ -137,8 +137,15 @@ class Dome(Hardware):
 
         """
         # Shutter status: 0 = slitstateunknown, 1 = pseudoopen, 2 = pseudoclosed, 3 = open, 4 = closed.
-        self.shutter = self.Dome.send_js("var res = sky6Dome.slitState; res;")
-
+        print("Checking slit state")
+        self.live_connection.clear()
+        self.domedone=0
+        with self.move_done_lock:
+            self.shutter = self.Dome.send_js("var res = sky6Dome.slitState; res;")
+            self._is_ready(0)
+        self.live_connection.set()
+        self.domedone=1
+        print("self.shutter now: ",self.shutter)
     
     def home(self):
         """
