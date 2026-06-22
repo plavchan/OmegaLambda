@@ -28,6 +28,7 @@ class Dome(Hardware):
         self.isConnected = 0
         self.shutter = None
         self.atPark = None
+        self.atHome = None
         super(Dome, self).__init__(name='Dome')
 
     def check_connection(self):
@@ -114,12 +115,12 @@ class Dome(Hardware):
                         self.domedone = self.Dome.send_js("var res = sky6Dome.IsUnParkComplete; res;")
                     case _: # bad movetype
                         self.domedone = 1
+                time.sleep(5)
                 try:
                     self.domedone = int(self.domedone)
                 except:
                     self.domedone = 1
                 print("self.domedone: ",self.domedone)
-                time.sleep(5)
             self.live_connection.set()
             return
          

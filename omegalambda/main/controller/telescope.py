@@ -87,13 +87,12 @@ class Telescope(Hardware):
             while val==0:
                 # IsSlewComplete returns 0 if still moving, !=0 if done
                 val = self.Telescope.send_js("var res = sky6RASCOMTele.IsSlewComplete; res;")
-                time.sleep(2)
+                time.sleep(10)
                 print("isslewcomplete val:",val)
                 try:
                     val = int(val)
                 except:
                     val = 0
-                time.sleep(10)
                 if val != 0:
                     self.last_slew_status = 1
                 # fix it later

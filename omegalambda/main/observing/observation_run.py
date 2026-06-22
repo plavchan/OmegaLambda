@@ -98,7 +98,7 @@ class ObservationRun:
         self.conditions.start()
         self.camera.start()
         self.dome.start()
-        time.sleep(10)
+        time.sleep(20)
         self.telescope.start()
         time.sleep(5)
 #        self.telescope.live_connection.wait(timeout=5)
