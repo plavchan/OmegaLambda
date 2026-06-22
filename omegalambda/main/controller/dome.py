@@ -170,7 +170,7 @@ class Dome(Hardware):
         Parks the dome.
         """
         
-        if self.Dome.AtPark:
+        if self.AtPark:
             logging.info("Dome is already at park")
         else:
             self.move_done.clear()

@@ -177,6 +177,7 @@ class Telescope(Hardware):
         with self.live_connection_lock:
             self._is_ready()
             self.Telescope.send_js("sky6RASCOMTele.Unpark();")
+            self._is_ready()
             # Explicitly engage default tracking upon unpark
             self.Telescope.send_js("sky6RASCOMTele.SetTracking(1, 1, 0.0, 0.0);")
 
