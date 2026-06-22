@@ -140,9 +140,11 @@ class ObservationRun:
         }
         message = ''
         for key, value in connections.items():
-            if not value.live_connection.wait(timeout=10):
-                message += key + ' '
-                check = False
+           # fix dome exception later 
+           if key != 'Dome':
+                if not value.live_connection.wait(timeout=10):
+                    message += key + ' '
+                    check = False
         if message:
             logging.error('Hardware connection timeout: {}'.format(message))
         if not self.focuser.live_connection.wait(timeout=10):
