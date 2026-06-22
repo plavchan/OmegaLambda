@@ -122,8 +122,8 @@ class Dome(Hardware):
                     self.domedone = 1
                 print("self.domedone: ",self.domedone)
                 time.sleep(5)
-           self.live_connection.set()
-           return
+            self.live_connection.set()
+            return
          
     def shutter_position(self):
         """
