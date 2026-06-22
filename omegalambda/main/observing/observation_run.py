@@ -98,7 +98,7 @@ class ObservationRun:
         self.conditions.start()
         self.camera.start()
         self.dome.start()
-        time.sleep(5)
+        time.sleep(10)
         self.telescope.start()
         time.sleep(5)
 #        self.telescope.live_connection.wait(timeout=5)
@@ -265,7 +265,8 @@ class ObservationRun:
         initial_shutter = self.dome.shutter
         time.sleep(2)
         print("here initial_shutter and initial_check:",initial_shutter,initial_check)
-        if initial_shutter in (0, 2, 4) and initial_check is True:
+#        if initial_shutter in (0, 2, 4) and initial_check is True:
+        if initial_check is True
             self.dome.onThread(self.dome.move_shutter, 'open')
             self.dome.onThread(self.dome.home)
         elif not initial_check:
