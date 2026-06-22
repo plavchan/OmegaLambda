@@ -139,7 +139,7 @@ class ObservationRun:
         }
         message = ''
         for key, value in connections.items():
-            if not value..wait(timeout=10):
+            if not value.live_connection.wait(timeout=10):
                 message += key + ' '
                 check = False
         if message:
