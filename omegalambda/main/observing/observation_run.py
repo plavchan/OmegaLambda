@@ -480,10 +480,8 @@ class ObservationRun:
                 return
             if initial_shutter in (1, 3, 4):
                 time.sleep(10)
-                self.dome.has_homed.wait()
-                self.dome.shutter_done.wait()
+                self.dome.live_connection.wait()
                 time.sleep(10)
-                self.dome.move_done.wait()
             self.camera.cooler_settle.wait()
             if self.focus_toggle and not (ticket.satellite_tracking and self.focus_procedures.focused.is_set()):
                 logging.info(f"Focusing on target {ticket.name}")
@@ -1058,9 +1056,9 @@ class ObservationRun:
         time.sleep(5)
         self.dome.onThread(self.dome.sync_dome_to_scope, False)
         self.dome.onThread(self.dome.park)
-        self.dome.move_done.wait()
+        self.dome.live_connection.wait()
         self.dome.onThread(self.dome.move_shutter, 'close')
-        self.dome.move_done.wait()
+        self.dome.live_connection.wait()
 
         self._park_procedure()      # Backup in case a pulse guide interrupted the last park
 
@@ -1085,10 +1083,10 @@ class ObservationRun:
         time.sleep(5)
         self.dome.onThread(self.dome.sync_dome_to_scope, False)
         self.dome.onThread(self.dome.park)
-        self.dome.move_done.wait()
+        self.dome.live_connection.wait()
         self.dome.onThread(self.dome.move_shutter, 'close')
         time.sleep(2)
-        self.dome.move_done.wait()
+        self.dome.live_connection.wait()
         time.sleep(2)
         self.camera.onThread(self.camera.cooler_set, False)
 

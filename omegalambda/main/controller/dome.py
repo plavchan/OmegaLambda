@@ -22,11 +22,9 @@ class Dome(Hardware):
 
         """
         self.domedone = 1
-        self.move_done = threading.Event()
-        self.move_done.set()
-        self.move_done_lock = threading.Lock()
         self.live_connection = threading.Event()
         self.live_connection.set()
+        self.live_connection_lock = threading.Lock()
         self.isConnected = 0
         self.shutter = None
         self.atPark = None
