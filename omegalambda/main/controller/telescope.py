@@ -71,7 +71,7 @@ class Telescope(Hardware):
         bool
             True if disconnected successfully.
         """
-        self._is_ready()
+#        self._is_ready()
         with self.live_connection_lock:
             if self.Telescope:
                 self.Telescope.send_js("sky6RASCOMTele.Disconnect();")
@@ -164,11 +164,11 @@ class Telescope(Hardware):
         """
         print("Parking scope...")
         with self.live_connection_lock:
-            self._is_ready()
+           # self._is_ready()
             # Turn tracking off natively before parking
             self.Telescope.send_js("sky6RASCOMTele.SetTracking(0, 1, 0.0, 0.0);")
             self.Telescope.send_js("sky6RASCOMTele.Park();")
-            self._is_ready()
+           # self._is_ready()
 
     def unpark(self):
         """
@@ -176,9 +176,9 @@ class Telescope(Hardware):
         """
         print("Unparking scope...")
         with self.live_connection_lock:
-            self._is_ready()
+            #self._is_ready()
             self.Telescope.send_js("sky6RASCOMTele.Unpark();")
-            self._is_ready()
+            #self._is_ready()
             # Explicitly engage default tracking upon unpark
             self.Telescope.send_js("sky6RASCOMTele.SetTracking(1, 1, 0.0, 0.0);")
 
@@ -294,7 +294,7 @@ class Telescope(Hardware):
 
         with self.live_connection_lock:
             self.live_connection.clear()
-            self._is_ready()        
+            #self._is_ready()        
             # Native async command sequence mapping to target variables
             self.Telescope.send_js("sky6RASCOMTele.Asynchronous = 1;\n")
             time.sleep(1)
@@ -303,7 +303,7 @@ class Telescope(Hardware):
             cmd = f'sky6RASCOMTele.SlewToRaDec({ra}, {dec}, "{target_name}");\n'
             self.Telescope.send_js(cmd)
             # Wait until movement is finalized
-            self._is_ready()
+            #self._is_ready()
             # Set post-slew tracking state
             track_flag = 1 if tracking else 0
             self.Telescope.send_js(f"sky6RASCOMTele.SetTracking({track_flag}, 1, 0.0, 0.0);")
@@ -330,7 +330,7 @@ class Telescope(Hardware):
             return
         with self.live_connection_lock:
             self.live_connection.clear()
-            self._is_ready()
+            #self._is_ready()
             print("connection status in start of slew command: ",self.status["connected"])
             target_name = "automatedaltaz"
             # Native async command sequence mapping to target variables
@@ -340,7 +340,7 @@ class Telescope(Hardware):
             cmd = f'sky6RASCOMTele.SlewToAzAlt({az}, {alt},"{target_name}");\n'
             self.Telescope.send_js(cmd)
             # Wait until movement is finalized
-            self._is_ready()
+            #self._is_ready()
             # Set post-slew tracking state
             track_flag = 1 if tracking else 0
             self.Telescope.send_js(f"sky6RASCOMTele.SetTracking({track_flag}, 1, 0.0, 0.0);")
@@ -415,8 +415,8 @@ class Telescope(Hardware):
         except (WinError):
             logging.error('could not pulse guide')
             return False
-        else:
-            self._is_ready()
+#        else:
+#            self._is_ready()
             self.live_connection.set()
             logging.info('Telescope is pulse guiding')
             return True
