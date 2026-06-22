@@ -58,8 +58,9 @@ class Telescope(Hardware):
             self.check_connection()
         except Exception as e:
             logging.error(f"Telescope connection failed: {e}")
-            return False
-        return self.live_connection.is_set()
+            return False 
+        self.live_connection.is_set()
+        return True
 
     def disconnect(self):
         """

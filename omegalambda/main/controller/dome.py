@@ -65,13 +65,16 @@ class Dome(Hardware):
             self.Dome = TheSkyXSocketWrapper()
             time.sleep(5)
             # Connect the dome hardware if not already connected
+            print("here 1")
             self.Dome.send_js("sky6Dome.Connect();")
             time.sleep(5)      
+            print("here 2")
             self.check_connection()
         except Exception as e:
             logging.error(f"Dome connection failed: {e}")
-            return False
-        return self.live_connection.is_set()
+            return False 
+        self.live_connection.is_set()
+        return True
 
     def _is_ready(self,movetype):
         """
@@ -298,7 +301,7 @@ class Dome(Hardware):
                 logging.info("Dome is closed and parked, disconnecting...")   
                 val = self.Dome.send_js("var res = sky6Dome.Disconnect(); res;")
                 time.sleep(2)
-                if self.Dome.isConnected == False:
+                if self.isConnected == False:
                     logging.info("Dome is disconnected.")   
                 else:
                     logging.critical("Dome is not disconnected")
