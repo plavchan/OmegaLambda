@@ -156,7 +156,7 @@ class Dome(Hardware):
         None.
 
         """
-        if self.Dome.AtHome:
+        if self.AtHome:
             logging.info("Dome is already at home")
             self.live_connection.set()
         else:

@@ -86,23 +86,25 @@ class Telescope(Hardware):
         with self.live_connection_lock:
             while val==0:
                 # IsSlewComplete returns 0 if still moving, !=0 if done
-                val = self.Telescope.send_js("var rest = sky6RASCOMTele.IsSlewComplete; rest;")
+                val = self.Telescope.send_js("var res = sky6RASCOMTele.IsSlewComplete; res;")
+                time.sleep(2)
                 print("isslewcomplete val:",val)
                 try:
                     val = int(val)
                 except:
                     val = 0
-                time.sleep(5)
+                time.sleep(10)
                 if val != 0:
                     self.last_slew_status = 1
-                else:  # this is a check on errant slews
-                    if self.check_current_coords == False:
-                        self.abort()
-                        logging.critical("While thought to be slewing, telescope has slewed past limits, despite the final destination being within limits! Aborting slew!")
-                        self.last_slew_status = -100
-                        time.sleep(2)
-                        self.live_connection.set()
-                        return -100
+                # fix it later
+                #else:  # this is a check on errant slews
+                    #if self.check_current_coords == False:
+                    #    self.abort()
+                    #    logging.critical("While thought to be slewing, telescope has slewed past limits, despite the final destination being within limits! Aborting slew!")
+                    #    self.last_slew_status = -100
+                    #    time.sleep(2)
+                    #    self.live_connection.set()
+                    #    return -100
             return            
 
     @property
