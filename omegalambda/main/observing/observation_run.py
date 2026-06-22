@@ -1054,11 +1054,12 @@ class ObservationRun:
         time.sleep(5)
         self.dome.onThread(self.dome.sync_dome_to_scope, False)
         self.dome.onThread(self.dome.park)
-        self.dome.onThread(self.dome.move_shutter, 'close')
-        self._park_procedure()
         self.dome.move_done.wait()
-        self.dome.shutter_done.wait()
+        self.dome.onThread(self.dome.move_shutter, 'close')
+        self.dome.move_done.wait()
+
         self._park_procedure()      # Backup in case a pulse guide interrupted the last park
+
         if calibration:
             logging.info('Beginning flat and dark collection...')
             self.take_calibration_images()

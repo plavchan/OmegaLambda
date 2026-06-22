@@ -94,7 +94,7 @@ class Dome(Hardware):
         """
         self.live_connection.clear()
         self.domedone=0
-        with self.dome_move_lock:
+        with self.move_dome_lock:
             while not self.domedone:
                 # returns 0 if still moving, 1 if done
                 match movetype:
