@@ -59,19 +59,17 @@ class Dome(Hardware):
         bool
             True if connection to TheSkyX TCP engine is verified, False otherwise.
         """
-        try:
-            # Instantiate your socket wrapper class
-            self.Dome = TheSkyXSocketWrapper()
-            time.sleep(5)
-            # Connect the dome hardware if not already connected
-            self.Dome.send_js("sky6Dome.Connect();")
-            time.sleep(5)      
-            self.check_connection()
-        except Exception as e:
+        self.Dome = self.Telescope
+        self.Dome.send_js("sky6Dome.Connect();")
+        time.sleep(5)      
+        self.isConnected = self.check_connection()   
+         time.sleep(2)
+        if not self.isConnected:
             logging.error(f"Dome connection failed: {e}")
             return False 
-        self.live_connection.is_set()
-        return True
+        else:
+            self.live_connection.set()
+            return True
 
     def _is_ready(self,movetype):
         """
@@ -157,7 +155,7 @@ class Dome(Hardware):
         None.
 
         """
-        if self.AtHome:
+        if self.atHome:
             logging.info("Dome is already at home")
             self.live_connection.set()
         else:
@@ -176,7 +174,7 @@ class Dome(Hardware):
         Parks the dome.
         """
         
-        if self.AtPark:
+        if self.atPark:
             logging.info("Dome is already at park")
         else:
             self.live_connection.clear()
@@ -184,7 +182,7 @@ class Dome(Hardware):
                 val = self.Dome.send_js("var res = sky6Dome.Park(); res;")
                 logging.info("Dome is parking")
                 #self._is_ready(2)
-                self.AtPark = True
+                self.atPark = True
             self.live_connection.set()
         return
         
