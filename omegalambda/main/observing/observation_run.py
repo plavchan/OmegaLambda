@@ -263,6 +263,7 @@ class ObservationRun:
         self.dome.onThread(self.dome.shutter_position)
         time.sleep(2)
         initial_shutter = self.dome.shutter
+        print("here initial_shutter and initial_check:",initial_shutter,initial_check)
         if initial_shutter in (0, 2, 4) and initial_check is True:
             self.dome.onThread(self.dome.move_shutter, 'open')
             self.dome.onThread(self.dome.home)
