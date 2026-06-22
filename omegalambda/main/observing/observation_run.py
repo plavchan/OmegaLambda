@@ -98,9 +98,9 @@ class ObservationRun:
         self.conditions.start()
         self.camera.start()
         self.dome.start()
-        self.dome.live_connection.wait(timeout=5)
+        self.dome.move_tele.wait(timeout=5)
         self.telescope.start()
-        self.telescope.live_connection.wait(timeout=5)
+        self.telescope.move_tele.wait(timeout=5)
         self.focus_procedures.start()
         self.flatlamp.start()
         self.tertiary_mirror.start()
@@ -139,12 +139,12 @@ class ObservationRun:
         }
         message = ''
         for key, value in connections.items():
-            if not value.live_connection.wait(timeout=10):
+            if not value.move_tele.wait(timeout=10):
                 message += key + ' '
                 check = False
         if message:
             logging.error('Hardware connection timeout: {}'.format(message))
-        if not self.focuser.live_connection.wait(timeout=10):
+        if not self.focuser.move_tele.wait(timeout=10):
             self.continuous_focus_toggle = False
             self.focus_toggle = False
             logging.warning('Hardware connection timeout: Focuser.  Will continue observing without focusing.')
@@ -303,7 +303,7 @@ class ObservationRun:
         logging.info('Slewing the telescope to the target\'s ra=' + str(ticket.ra) + ' and dec=' + str(ticket.dec))
         self.telescope.onThread(self.telescope.slew, ticket.ra, ticket.dec)
         time.sleep(2)
-        self.telescope.live_connection.wait()
+        self.telescope.move_tele.wait()
         slew = self.telescope._is_ready()
         print("slew returned:",slew)
         if not slew:
@@ -318,7 +318,7 @@ class ObservationRun:
                 logging.info('Slewing the telescope to the target\'s ra=' + str(ticket.ra) + ' and dec=' + str(ticket.dec))
                 self.telescope.onThread(self.telescope.slew, ticket.ra, ticket.dec)
                 time.sleep(2)
-                self.telescope.live_connection.wait()
+                self.telescope.move_tele.wait()
                 slew = self.telescope.last_slew_status
         if slew == -100:
 
@@ -770,7 +770,7 @@ class ObservationRun:
         self.telescope.onThread(self.telescope.slew, ra, dec)
         self.telescope.onThread(self.telescope.set_ra_dec_rates, ra_rate, dec_rate)
         logging.info(f"Slewing to satellite position for tracking mode 2: RA={ra} Dec={dec}")
-        self.telescope.live_connection.wait()
+        self.telescope.move_tele.wait()
 
     def continuous_satellite_tracking_procedure(self, mode):
         """Procedure for tracking the satellite. Returns number of seconds to wait before next check."""
@@ -799,12 +799,12 @@ class ObservationRun:
         logging.info(f"Slewing to capture satellite streak in tracking mode {mode}: RA={ra} Dec={dec}")
 
         if mode == 1:
-            self.telescope.live_connection.wait()
+            self.telescope.move_tele.wait()
             return self.calc_satellite_fov_time(ra_rate, dec_rate)
 
         if mode == 3:  # Half satellite rate
             self.telescope.onThread(self.telescope.set_ra_dec_rates, ra_rate / 2, dec_rate / 2)
-            self.telescope.live_connection.wait()
+            self.telescope.move_tele.wait()
             return self.calc_satellite_fov_time(ra_rate / 2, dec_rate / 2)
 
     def slew_time_correction(self, date=None):
@@ -1137,7 +1137,7 @@ class ObservationRun:
             self.telescope.start()
             self.monitor.n_restarts['telescope'] += 1
             self.monitor.threadlist['telescope'] = self.telescope
-            self.telescope.live_connection.wait(timeout=15)
+            self.telescope.move_tele.wait(timeout=15)
         elif thname == 'dome':
             self.dome = Dome()
             self.dome.start()
