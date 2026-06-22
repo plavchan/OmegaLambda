@@ -63,7 +63,7 @@ class Dome(Hardware):
         self.Dome.send_js("sky6Dome.Connect();")
         time.sleep(5)      
         self.isConnected = self.check_connection()   
-         time.sleep(2)
+        time.sleep(2)
         if not self.isConnected:
             logging.error(f"Dome connection failed: {e}")
             return False 
