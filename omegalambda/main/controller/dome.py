@@ -43,7 +43,7 @@ class Dome(Hardware):
         logging.info('Checking connection for the {}'.format(self.label))
         self.live_connection.clear()
         self.isConnected = self.Dome.send_js("var res = sky6Dome.isConnected; res;\n")
-        print ("self.isConnected in check_connection: ",self.`isConnected)
+        print ("self.isConnected in check_connection: ",self.isConnected)
         if self.isConnected:
             self.live_connection.set()
         else:
