@@ -59,7 +59,7 @@ class Dome(Hardware):
         bool
             True if connection to TheSkyX TCP engine is verified, False otherwise.
         """
-        self.Dome = self.Telescope
+        self.Dome = TheSkyXSocketWrapper()
         self.Dome.send_js("sky6Dome.Connect();")
         time.sleep(5)      
         self.isConnected = self.check_connection()   

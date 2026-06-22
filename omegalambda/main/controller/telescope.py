@@ -299,12 +299,11 @@ class Telescope(Hardware):
             # Native async command sequence mapping to target variables
             self.Telescope.send_js("sky6RASCOMTele.Asynchronous = 1;\n")
             time.sleep(1)
-            print(ra,dec)
             target_name = "automatedradec"
             cmd = f'sky6RASCOMTele.SlewToRaDec({ra}, {dec}, "{target_name}");\n'
             self.Telescope.send_js(cmd)
             # Wait until movement is finalized
-            #self._is_ready()
+            self._is_ready()
             # Set post-slew tracking state
             track_flag = 1 if tracking else 0
             self.Telescope.send_js(f"sky6RASCOMTele.SetTracking({track_flag}, 1, 0.0, 0.0);")
