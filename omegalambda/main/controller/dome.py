@@ -122,8 +122,8 @@ class Dome(Hardware):
             try:
                 self.domedone = int(self.domedone)
             except:
-                self.domedone = 0
-            time.sleep(10)
+                self.domedone = 1
+            time.sleep(5)
         self.live_connection.set()
 
          
