@@ -16,7 +16,7 @@ class TheSkyXSocketWrapper:
         to TheSkyX cross-platform TCP engine server on port 3040.
         """
         # Software Bisque's TCP engine strictly mandates this syntax prefix
-        payload = f"/* Java Script */\n{script}"
+        payload = f"/* Java Script */\n/* Socket Start Packet */\n{script}\n/* Socket End Packet */"
         
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
