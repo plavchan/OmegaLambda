@@ -290,7 +290,7 @@ class Telescope(Hardware):
             logging.error(f"Invalid Dec coordinate given: {dec}")
             return
 
-        with live_connection_lock:
+        with self.live_connection_lock:
             self.live_connection.clear()
             self._is_ready()        
             # Native async command sequence mapping to target variables
