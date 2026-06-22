@@ -24,7 +24,7 @@ class Dome(Hardware):
         self.domedone = 1
         self.move_done = threading.Event()
         self.move_done.set()
-        self.move_dome_lock = threading.Lock()
+        self.live_connection_lock = threading.Lock()
         self.live_connection = threading.Event()
         self.live_connection.set()
         self.shutter = None
@@ -92,7 +92,7 @@ class Dome(Hardware):
         """
         Blocking loop that holds execution until the dome completes its current action.
         """
-        self.move_dome.clear()
+        self.live_connection.clear()
         self.dome.done=0
         with self.dome_move_lock:
             while not self.domedone:
@@ -116,7 +116,7 @@ class Dome(Hardware):
                 except:
                     self.domedone = 0
                 time.sleep(10)
-            self.move_dome.set()
+            self.live_connection.set()
 
          
     def shutter_position(self):
@@ -150,7 +150,7 @@ class Dome(Hardware):
             self.move_done.set()
         else:
             self.move_done.clear()
-            with self.move_dome_lock:
+            with self.live_connection_lock:
                 val = self.Dome.send_js("var res = sky6Dome.FindHome(); res;")
                 logging.info("Dome is homing")
                 self._is_ready(1)
@@ -168,7 +168,7 @@ class Dome(Hardware):
             logging.info("Dome is already at park")
         else:
             self.move_done.clear()
-            with self.move_dome_lock:
+            with self.live_connection_lock:
                 val = self.Dome.send_js("var res = sky6Dome.Park(); res;")
                 logging.info("Dome is parking")
                 self._is_ready(2)
@@ -188,15 +188,15 @@ class Dome(Hardware):
         -------
         None.
         """
-        self.move_dome_done.clear()
+        self.live_connection_done.clear()
         if open_or_close == 'open':
-            with self.move_dome_lock:
+            with self.live_connection_lock:
                 val = self.Dome.send_js("var res = sky6Dome.OpenSlit(); res;")
                 logging.info("Shutter is opening")
                 self._is_ready(3)
                 time.sleep(2)
         elif open_or_close == 'close':
-            with self.move_dome_lock:
+            with self.live_connection_lock:
                 val = self.Dome.send_js("var res = sky6Dome.CloseSlit(); res;")
                 logging.info("Shutter is closing")
                 self._is_ready(4)
@@ -221,14 +221,14 @@ class Dome(Hardware):
         """
         self.move_done.clear()
         if toggle is True:
-            with self.move_dome_lock:
+            with self.live_connection_lock:
                 val = self.Dome.send_js("var res = sky6Dome.setIsCoupledToMountTracking(1); res;")
                 logging.info("Dome is syncing to scope")
                 self._is_ready(0)
                 time.sleep(5)
                 self.move_done.set()
         elif toggle is False:
-            with self.move_dome_lock:
+            with self.live_connection_lock:
                 val = self.Dome.send_js("var res = sky6Dome.setIsCoupledToMountTracking(0); res;")
                 logging.info("Dome is not syncing to scope")
                 self._is_ready(0)
@@ -248,7 +248,7 @@ class Dome(Hardware):
         None.
         """
         self.move_done.clear()
-        with self.move_dome_lock:
+        with self.live_connection_lock:
             cmd = f'var res = skyDome6.GoToAzEl({azimuth},0); res;\n'
             val = self.Dome.send_js(cmd)
             logging.info("Dome is slewing to {} degrees".format(azimuth))
@@ -267,7 +267,7 @@ class Dome(Hardware):
 
         """
         self.move_done.clear()
-        with self.move_dome_lock:
+        with self.live_connection_lock:
             val = self.Dome.send_js("var res = sky6Dome.Abort(); res;")
             logging.info("Dome is aborting")
             self._is_ready(0)
@@ -292,7 +292,7 @@ class Dome(Hardware):
         self.park()
 
         if self.AtPark and self.Dome.shutter_position() == 4:
-            with self.move_dome_lock:
+            with self.live_connection_lock:
                 logging.info("Dome is closed and parked, disconnecting...")   
                 val = self.Dome.send_js("var res = sky6Dome.Disconnect(); res;")
                 time.sleep(2)

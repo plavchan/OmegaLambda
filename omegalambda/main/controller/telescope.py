@@ -17,9 +17,9 @@ class Telescope(Hardware):
         super(Telescope, self).__init__("Telescope")
         self.Telescope = None
         self.threads = []
-        self.move_tele = threading.Event()
-        self.move_tele.set()
-        self.move_tele_lock = threading.Lock()
+        self.live_connection = threading.Event()
+        self.live_connection.set()
+        self.live_connection_lock = threading.Lock()
 
     def last_slew_status(self):
         return self.slewDone()
@@ -29,15 +29,15 @@ class Telescope(Hardware):
         Verifies communication with TheSkyX via a fast status ping.
         """
         if self.Telescope is None:
-            self.move_tele.clear()
+            self.live_connection.clear()
             return
 
         # Query connection status using a quick JS execution echo
         res = self.Telescope.send_js("var res = sky6RASCOMTele.IsConnected; res;")
         if res == "1":
-            self.move_tele.set()
+            self.live_connection.set()
         else:
-            self.move_tele.clear()
+            self.live_connection.clear()
 
     def _class_connect(self):
         """
@@ -59,7 +59,7 @@ class Telescope(Hardware):
         except Exception as e:
             logging.error(f"Telescope connection failed: {e}")
             return False
-        return self.move_tele.is_set()
+        return self.live_connection.is_set()
 
     def disconnect(self):
         """
@@ -71,10 +71,10 @@ class Telescope(Hardware):
             True if disconnected successfully.
         """
         self._is_ready()
-        with self.move_tele_lock:
+        with self.live_connection_lock:
             if self.Telescope:
                 self.Telescope.send_js("sky6RASCOMTele.Disconnect();")
-            self.move_tele.set()
+            self.live_connection.set()
         return True
 
     def _is_ready(self):
@@ -82,7 +82,7 @@ class Telescope(Hardware):
         Blocking loop that holds execution until the telescope completes its current slew.
         """
         val=0
-        with self.move_tele_lock:
+        with self.live_connection_lock:
             while val==0:
                 # IsSlewComplete returns 0 if still moving, !=0 if done
                 val = self.Telescope.send_js("var rest = sky6RASCOMTele.IsSlewComplete; rest;")
@@ -100,7 +100,7 @@ class Telescope(Hardware):
                         logging.critical("While thought to be slewing, telescope has slewed past limits, despite the final destination being within limits! Aborting slew!")
                         self.last_slew_status = -100
                         time.sleep(2)
-                        self.move_tele.set()
+                        self.live_connection.set()
                         return -100
 
     @property
@@ -111,7 +111,7 @@ class Telescope(Hardware):
         """
         
         # Pull real-time connection state from your active Event flag
-        is_connected = self.move_tele.is_set()
+        is_connected = self.live_connection.is_set()
        
         # Query if the mount is slewing (IsSlewComplete returns 0 if moving)
         if is_connected and self.Telescope:
@@ -153,7 +153,7 @@ class Telescope(Hardware):
 
         """
         logging.warning('Aborting slew')
-        with self.move_tele_lock:
+        with self.live_connection_lock:
             self.Telescope.send_js("sky6RASCOMTele.Abort();")        
 
     def park(self):
@@ -161,7 +161,7 @@ class Telescope(Hardware):
         Parks the telescope to its resting safety orientation.
         """
         print("Parking scope...")
-        with self.move_tele_lock:
+        with self.live_connection_lock:
             self._is_ready()
             # Turn tracking off natively before parking
             self.Telescope.send_js("sky6RASCOMTele.SetTracking(0, 1, 0.0, 0.0);")
@@ -173,7 +173,7 @@ class Telescope(Hardware):
         Unparks the telescope mount.
         """
         print("Unparking scope...")
-        with self.move_tele_lock:
+        with self.live_connection_lock:
             self._is_ready()
             self.Telescope.send_js("sky6RASCOMTele.Unpark();")
             # Explicitly engage default tracking upon unpark
@@ -289,8 +289,8 @@ class Telescope(Hardware):
             logging.error(f"Invalid Dec coordinate given: {dec}")
             return
 
-        with move_tele_lock:
-            self.move_tele.clear()
+        with live_connection_lock:
+            self.live_connection.clear()
             self._is_ready()        
             # Native async command sequence mapping to target variables
             self.Telescope.send_js("sky6RASCOMTele.Asynchronous = 1;\n")
@@ -309,7 +309,7 @@ class Telescope(Hardware):
                   self.last_slew_status = True
             else:
                   self.last_slew_status = False
-            self.move_tele.set()
+            self.live_connection.set()
         return self.last_slew_status
 
     def slewAltAz(self, alt, az, tracking=True):
@@ -324,8 +324,8 @@ class Telescope(Hardware):
         if alt < 8:
             logging.error(f"Invalid alt coordinate given: {alt}")
             return
-        with self.move_tele_lock:
-            self.move_tele.clear()
+        with self.live_connection_lock:
+            self.live_connection.clear()
             self._is_ready()
             print("connection status in start of slew command: ",self.status["connected"])
             target_name = "automatedaltaz"
@@ -345,7 +345,7 @@ class Telescope(Hardware):
                   self.last_slew_status = True
             else:
                   self.last_slew_status = False
-            self.move_tele.set()
+            self.live_connection.set()
         return self.last_slew_status
 
 
@@ -358,7 +358,7 @@ class Telescope(Hardware):
              self.Telescope.send_js(f"sky6RASCOMTele.SetTracking({track_flag}, 1, 0.0, 0.0);")
         except (WinError):
              logging.debug("Could not set tracking")
-        self.move_tele.set()
+        self.live_connection.set()
         return True
 
     def set_ra_dec_rates(self, ra_rate, dec_rate):
@@ -403,7 +403,7 @@ class Telescope(Hardware):
             logging.error(f"Unknown pulse guide direction: {direction}")
             return
         logging.debug('Sending telescope pulse guide request...')    
-        self.move_tele.clear()
+        self.live_connection.clear()
         cmd = f"sky6RASCOMTele.PulseGuide({duration_ms}, {target_dir});"
         try:
             self.Telescope.send_js(cmd)
@@ -412,7 +412,7 @@ class Telescope(Hardware):
             return False
         else:
             self._is_ready()
-            self.move_tele.set()
+            self.live_connection.set()
             logging.info('Telescope is pulse guiding')
             return True
 
@@ -424,5 +424,5 @@ class Telescope(Hardware):
         # Note: If your system configuration relies on guide rate values, adjust math ratios accordingly
         duration = distance / 15.0  # Sidereal motion translation approximation 
         logging.debug('Sending telescope jog request...')
-        self.move_tele.clear()
+        self.live_connection.clear()
         self.pulse_guide(direction, duration)
