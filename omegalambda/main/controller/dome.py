@@ -24,7 +24,7 @@ class Dome(Hardware):
         self.domedone = 1
         self.move_done = threading.Event()
         self.move_done.set()
-        self.live_connection_lock = threading.Lock()
+        self.move_done_lock = threading.Lock()
         self.live_connection = threading.Event()
         self.live_connection.set()
         self.shutter = None
@@ -94,7 +94,7 @@ class Dome(Hardware):
         """
         self.live_connection.clear()
         self.domedone=0
-        with self.move_dome_lock:
+        with self.move_done_lock:
             while not self.domedone:
                 # returns 0 if still moving, 1 if done
                 match movetype:
