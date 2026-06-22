@@ -65,10 +65,8 @@ class Dome(Hardware):
             self.Dome = TheSkyXSocketWrapper()
             time.sleep(5)
             # Connect the dome hardware if not already connected
-            print("here 1")
             self.Dome.send_js("sky6Dome.Connect();")
             time.sleep(5)      
-            print("here 2")
             self.check_connection()
         except Exception as e:
             logging.error(f"Dome connection failed: {e}")
@@ -118,11 +116,11 @@ class Dome(Hardware):
                     self.domedone = self.Dome.send_js("var res = sky6Dome.IsUnParkComplete; res;")
                 case _: # bad movetype
                     self.domedone = 1
-            print("self.domedone: ",self.domedone)
             try:
                 self.domedone = int(self.domedone)
             except:
                 self.domedone = 1
+            print("self.domedone: ",self.domedone)
             time.sleep(5)
         self.live_connection.set()
 

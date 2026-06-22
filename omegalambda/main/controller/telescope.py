@@ -83,26 +83,26 @@ class Telescope(Hardware):
         Blocking loop that holds execution until the telescope completes its current slew.
         """
         val=0
-        with self.live_connection_lock:
-            while val==0:
-                # IsSlewComplete returns 0 if still moving, !=0 if done
-                val = self.Telescope.send_js("var rest = sky6RASCOMTele.IsSlewComplete; rest;")
-                print("isslewcomplete val:",val)
-                try:
-                    val = int(val)
-                except:
-                    val = 0
-                time.sleep(5)
-                if val != 0:
-                    self.last_slew_status = 1
-                else:  # this is a check on errant slews
-                    if self.check_current_coords == False:
-                        self.abort()
-                        logging.critical("While thought to be slewing, telescope has slewed past limits, despite the final destination being within limits! Aborting slew!")
-                        self.last_slew_status = -100
-                        time.sleep(2)
-                        self.live_connection.set()
-                        return -100
+#        with self.live_connection_lock:
+        while val==0:
+            # IsSlewComplete returns 0 if still moving, !=0 if done
+            val = self.Telescope.send_js("var rest = sky6RASCOMTele.IsSlewComplete; rest;")
+            print("isslewcomplete val:",val)
+            try:
+                val = int(val)
+            except:
+                val = 0
+            time.sleep(5)
+            if val != 0:
+                self.last_slew_status = 1
+            else:  # this is a check on errant slews
+                if self.check_current_coords == False:
+                    self.abort()
+                    logging.critical("While thought to be slewing, telescope has slewed past limits, despite the final destination being within limits! Aborting slew!")
+                    self.last_slew_status = -100
+                    time.sleep(2)
+                    self.live_connection.set()
+                    return -100
 
     @property
     def status(self):
