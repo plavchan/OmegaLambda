@@ -201,7 +201,7 @@ class Dome(Hardware):
         -------
         None.
         """
-        self.live_connection_done.clear()
+        self.live_connection.clear()
         if open_or_close == 'open':
             with self.move_done_lock:
                 val = self.Dome.send_js("var res = sky6Dome.OpenSlit(); res;")
