@@ -340,7 +340,7 @@ class Telescope(Hardware):
             cmd = f'sky6RASCOMTele.SlewToAzAlt({az}, {alt},"{target_name}");\n'
             self.Telescope.send_js(cmd)
             # Wait until movement is finalized
-            #self._is_ready()
+            self._is_ready()
             # Set post-slew tracking state
             track_flag = 1 if tracking else 0
             self.Telescope.send_js(f"sky6RASCOMTele.SetTracking({track_flag}, 1, 0.0, 0.0);")
