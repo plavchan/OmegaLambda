@@ -65,7 +65,7 @@ class Dome(Hardware):
         self.isConnected = self.check_connection()   
         time.sleep(2)
         if not self.isConnected:
-            logging.error(f"Dome connection failed: {e}")
+            logging.error(f"Dome not connected")
             return False 
         else:
             self.live_connection.set()
