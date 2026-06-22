@@ -29,7 +29,6 @@ class Dome(Hardware):
         self.live_connection.set()
         self.shutter = None
         self.atPark = None
-        self.Dome.isConnected = 0
         super(Dome, self).__init__(name='Dome')
 
     def check_connection(self):
