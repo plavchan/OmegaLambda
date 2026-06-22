@@ -121,7 +121,7 @@ class Dome(Hardware):
                 except:
                     self.domedone = 1
                 print("self.domedone: ",self.domedone)
-               time.sleep(5)
+                time.sleep(5)
            self.live_connection.set()
            return
          
