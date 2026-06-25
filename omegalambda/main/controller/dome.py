@@ -61,7 +61,7 @@ class Dome(Hardware):
         """
         self.Dome = TheSkyXSocketWrapper()
         self.Dome.send_js("sky6Dome.Connect();")
-        time.sleep(5)      
+        time.sleep(10)      
         self.isConnected = self.check_connection()   
         time.sleep(2)
         if not self.isConnected:

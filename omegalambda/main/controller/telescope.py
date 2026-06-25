@@ -29,15 +29,14 @@ class Telescope(Hardware):
         Verifies communication with TheSkyX via a fast status ping.
         """
         if self.Telescope is None:
-            self.live_connection.clear()
-            return
+            return False
 
         # Query connection status using a quick JS execution echo
         res = self.Telescope.send_js("var res = sky6RASCOMTele.IsConnected; res;")
         if res == "1":
-            self.live_connection.set()
+            return True
         else:
-            self.live_connection.clear()
+            return False
 
     def _class_connect(self):
         """
@@ -59,7 +58,6 @@ class Telescope(Hardware):
         except Exception as e:
             logging.error(f"Telescope connection failed: {e}")
             return False 
-        self.live_connection.is_set()
         return True
 
     def disconnect(self):
@@ -71,11 +69,10 @@ class Telescope(Hardware):
         bool
             True if disconnected successfully.
         """
-#        self._is_ready()
+        self._is_ready()
         with self.live_connection_lock:
             if self.Telescope:
                 self.Telescope.send_js("sky6RASCOMTele.Disconnect();")
-            self.live_connection.set()
         return True
 
     def _is_ready(self):
@@ -95,15 +92,13 @@ class Telescope(Hardware):
                     val = 0
                 if val != 0:
                     self.last_slew_status = 1
-                # fix it later
-                #else:  # this is a check on errant slews
-                    #if self.check_current_coords == False:
-                    #    self.abort()
-                    #    logging.critical("While thought to be slewing, telescope has slewed past limits, despite the final destination being within limits! Aborting slew!")
-                    #    self.last_slew_status = -100
-                    #    time.sleep(2)
-                    #    self.live_connection.set()
-                    #    return -100
+                else:  # this is a check on errant slews
+                    if self.check_current_coords == False:
+                        self.abort()
+                        logging.critical("While thought to be slewing, telescope has slewed past limits, despite the final destination being within limits! Aborting slew!")
+                        self.last_slew_status = -100
+                        time.sleep(2)
+                        return -100
             return            
 
     @property
@@ -112,19 +107,6 @@ class Telescope(Hardware):
         Exposes a telemetry status dictionary mapping real-time states 
         to satisfy OmegaLambda's background ThreadMonitor diagnostics.
         """
-        
-        # Pull real-time connection state from your active Event flag
-        is_connected = self.live_connection.is_set()
-       
-        # Query if the mount is slewing (IsSlewComplete returns 0 if moving)
-        if is_connected and self.Telescope:
-            slew_val = self.Telescope.send_js("var res = sky6RASCOMTele.IsSlewComplete; res;")
-            is_slewing = (slew_val == "0")
-        else:
-            is_slewing = False
-            logging.error("Telescope not connected or no self.telescope in status call")
-
-        # Build the exact status metadata structure expected by the framework
         retdict = {
              "connected": None,
              "slewing": None,
@@ -132,15 +114,28 @@ class Telescope(Hardware):
              "dec": None,
              "inbounds": None
         }
-        if is_connected: 
-             coords = self.get_coordinates()
-             retdict["connected"] = is_connected
-             retdict["slewing"] = is_slewing
-             retdict["ra"] = coords.get("ra")
-             retdict["dec"] = coords.get("dec")
-             retdict["inbounds"] = self.check_current_coords()
-        else:
-             logging.error("Telescope not connected during status call")
+        with self.live_connection_lock():
+            is_connected = self.check_connection()
+       
+            # Query if the mount is slewing (IsSlewComplete returns 0 if moving)
+            if is_connected and self.Telescope:
+                slew_val = self.Telescope.send_js("var res = sky6RASCOMTele.IsSlewComplete; res;")
+                is_slewing = (slew_val == "0")
+            else:
+                is_slewing = False
+                logging.error("Telescope not connected or no self.telescope in status call")
+
+            # Build the exact status metadata structure expected by the framework
+
+            if is_connected: 
+                 coords = self.get_coordinates()
+                 retdict["connected"] = is_connected
+                 retdict["slewing"] = is_slewing
+                 retdict["ra"] = coords["ra"]
+                 retdict["dec"] = coords["dec"]
+                 retdict["inbounds"] = self.check_current_coords()
+            else:
+                 logging.error("Telescope not connected during status call")
         return retdict
 
 
@@ -165,11 +160,11 @@ class Telescope(Hardware):
         """
         print("Parking scope...")
         with self.live_connection_lock:
-           # self._is_ready()
+            self._is_ready()
             # Turn tracking off natively before parking
             self.Telescope.send_js("sky6RASCOMTele.SetTracking(0, 1, 0.0, 0.0);")
             self.Telescope.send_js("sky6RASCOMTele.Park();")
-           # self._is_ready()
+            self._is_ready()
 
     def unpark(self):
         """
@@ -177,9 +172,9 @@ class Telescope(Hardware):
         """
         print("Unparking scope...")
         with self.live_connection_lock:
-            #self._is_ready()
+            self._is_ready()
             self.Telescope.send_js("sky6RASCOMTele.Unpark();")
-            #self._is_ready()
+            self._is_ready()
             # Explicitly engage default tracking upon unpark
             self.Telescope.send_js("sky6RASCOMTele.SetTracking(1, 1, 0.0, 0.0);")
 
@@ -188,6 +183,7 @@ class Telescope(Hardware):
         Continuously queries the telescope for its current coordinates and
         logs them. This is called as a background thread by the ThreadMonitor.
         """
+        # add with lock here and isready here?
         coords = self.get_coordinates()
         if coords["ra"] is not None and coords["dec"] is not None:
             # 1. Format RA (coords["ra"] is already in decimal hours)
@@ -217,8 +213,8 @@ class Telescope(Hardware):
                 f"RA: {ra_hours:02d}:{ra_minutes:02d}:{ra_seconds:05.2f}, "
                 f"DEC: {dec_degrees:02d}:{dec_minutes:02d}:{dec_seconds:04.1f}"
             )
-            #self.status["inbounds"] = inbounds
-            return True #inbounds
+            self.status["inbounds"] = inbounds
+            return inbounds
         else:
             logging.warning("ThreadMonitor failed to fetch telescope coordinates.")
             #self.status["connected"] = False
@@ -233,21 +229,23 @@ class Telescope(Hardware):
         dict
             A dictionary tracking current 'ra' and 'dec'.
         """
-        # Command TheSkyX to grab latest telemetry
-        self.Telescope.send_js("sky6RASCOMTele.GetRaDec();")
+        with self.live_connection_lock:
+            # Command TheSkyX to grab latest telemetry
+            self._is_ready()
+            self.Telescope.send_js("sky6RASCOMTele.GetRaDec();")
         
-        # Pull values out via separate evaluated expressions
-        ra_raw = self.Telescope.send_js("var res = sky6RASCOMTele.dRa; res;")
-        dec_raw = self.Telescope.send_js("var res = sky6RASCOMTele.dDec; res;")
-        #print(ra_raw,dec_raw)
-        try:
-            return {
-                "ra": float(ra_raw),
-                "dec": float(dec_raw)
-            }
-        except ValueError:
-            logging.error("Could not parse coordinates from telescope socket in get_coordinates().")
-            return {"ra": None, "dec": None}
+            # Pull values out via separate evaluated expressions
+            ra_raw = self.Telescope.send_js("var res = sky6RASCOMTele.dRa; res;")
+            dec_raw = self.Telescope.send_js("var res = sky6RASCOMTele.dDec; res;")
+            #print(ra_raw,dec_raw)
+            try:
+                return {
+                    "ra": float(ra_raw),
+                    "dec": float(dec_raw)
+                }
+            except ValueError:
+                logging.error("Could not parse coordinates from telescope socket in get_coordinates().")
+                return {"ra": None, "dec": None}
 
     def get_coordinatesAltAz(self):
         """
@@ -258,20 +256,23 @@ class Telescope(Hardware):
             A dictionary tracking current 'alt' and 'azi'.
         """
         # Command TheSkyX to grab latest telemetry
-        self.Telescope.send_js("sky6RASCOMTele.GetAzAlt();")
-        
-        # Pull values out via separate evaluated expressions
-        alt_raw = self.Telescope.send_js("var res = sky6RASCOMTele.dAlt; res;")
-        az_raw = self.Telescope.send_js("var res = sky6RASCOMTele.dAz; res;")
-        #print(alt_raw,az_raw)
-        try:
-            return {
-                "alt": float(alt_raw),
-                "az": float(az_raw)
-            }
-        except ValueError:
-            logging.error("Could not parse alt/az coordinates from telescope socket in get_coordinatesaltaz().")
-            return {"alt": None, "az": None}
+        with self.live_connection_lock:
+            # Command TheSkyX to grab latest telemetry
+            self._is_ready()
+            self.Telescope.send_js("sky6RASCOMTele.GetAzAlt();")
+            
+            # Pull values out via separate evaluated expressions
+            alt_raw = self.Telescope.send_js("var res = sky6RASCOMTele.dAlt; res;")
+            az_raw = self.Telescope.send_js("var res = sky6RASCOMTele.dAz; res;")
+            #print(alt_raw,az_raw)
+            try:
+                return {
+                    "alt": float(alt_raw),
+                    "az": float(az_raw)
+                }
+            except ValueError:
+                logging.error("Could not parse alt/az coordinates from telescope socket in get_coordinatesaltaz().")
+                return {"alt": None, "az": None}
 
     def slew(self, ra, dec, tracking=True):
         """
